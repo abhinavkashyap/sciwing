@@ -44,20 +44,25 @@ class Numericalizer:
             numerical_tokens.append(idx)
 
         # pad the output to max length
-        if len_tokens <= self.max_length:
+        if len_tokens < self.max_length:
             len_difference = self.max_length - len_tokens
             len_difference = len_difference - 2
+
+            # add start and end before padding
+            numerical_tokens.insert(0, start_idx)
+            numerical_tokens.append(end_idx)
+
+            # pad to max_length
             numerical_tokens.extend([pad_idx] * len_difference)
 
         else:
             # allow space for <SOS> and <EOS>
             numerical_tokens = numerical_tokens[:self.max_length-2]
-
-        # append start of sentence and end of sentence markers
-        numerical_tokens.insert(0, start_idx)
-        numerical_tokens.append(end_idx)
+            numerical_tokens.insert(0, start_idx)
+            numerical_tokens.append(end_idx)
 
         assert len(numerical_tokens) == self.max_length
+
         return len_tokens, numerical_tokens
 
     def numericalize_batch_instances(self, instances: List[List[str]]) -> (
