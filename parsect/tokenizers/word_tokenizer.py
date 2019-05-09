@@ -22,6 +22,9 @@ class WordTokenizer:
 
         if self.tokenizer == 'spacy':
             self.nlp = spacy.load('en_core_web_sm')
+            self.nlp.remove_pipe("parser")
+            self.nlp.remove_pipe("tagger")
+            self.nlp.remove_pipe("ner")
 
     def tokenize(self, text: str)-> List[str]:
         """
