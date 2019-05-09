@@ -131,11 +131,11 @@ class Vocab:
 
     @staticmethod
     def get_token2idx_mapping(vocab: Dict[str, Tuple[int, int]]) -> Dict[str, int]:
-        words2idx = {}
+        token2idx = {}
         for word, (freq, idx) in vocab.items():
-            words2idx[word] = idx
+            token2idx[word] = idx
 
-        return words2idx
+        return token2idx
 
     @staticmethod
     def get_idx2token_mapping(vocab: Dict[str, Tuple[int, int]]) -> Dict[int, str]:
@@ -212,10 +212,10 @@ class Vocab:
         if not self.token2idx:
             self.token2idx = self.get_token2idx_mapping(self.vocab)
 
-            try:
-                return self.token2idx[token]
-            except KeyError:
-                return self.token2idx[self.unk_token]
+        try:
+            return self.token2idx[token]
+        except KeyError:
+            return self.token2idx[self.unk_token]
 
 
 

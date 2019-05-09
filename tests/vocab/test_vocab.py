@@ -221,14 +221,6 @@ class TestVocab:
         with pytest.raises(ValueError):
             vocab_builder.get_idx_from_token(1)
 
-    def test_token2idx_cries_for_vocab(self, instances):
-        single_instance = instances['single_instance']
-        MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance,
-                              max_num_words=MAX_NUM_WORDS)
-        with pytest.raises(ValueError):
-            vocab_builder.get_idx_from_token('<UNK>')
-
     def test_token2idx(self, instances):
         single_instance = instances['single_instance']
         MAX_NUM_WORDS = 100
