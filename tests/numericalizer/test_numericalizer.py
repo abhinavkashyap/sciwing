@@ -70,7 +70,7 @@ class TestNumericalizer:
         len_tokens, numerical_tokens = numericalizer.numericalize_instance(single_instance[0])
 
         assert numerical_tokens[0] == vocabulary.get_idx_from_token(vocabulary.start_token)
-        assert numerical_tokens[-1] == vocabulary.get_idx_from_token(vocabulary.end_token)
+        assert numerical_tokens[-1] == vocabulary.get_idx_from_token(vocabulary.pad_token)
 
     def test_max_length_instance_has_more_tokens_than_max_length(self, single_instance_more_tokens_setup):
         single_instance, MAX_LENGTH, numericalizer, vocabulary = single_instance_more_tokens_setup
