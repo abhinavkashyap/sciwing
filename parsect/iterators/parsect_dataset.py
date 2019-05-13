@@ -18,7 +18,8 @@ class ParsectDataset(Dataset):
                  secthead_label_file: str,
                  dataset_type: str,
                  max_num_words: int,
-                 max_length: int):
+                 max_length: int,
+                 vocab_store_location: str):
         """
         :param dataset_type: type: str
         One of ['train', 'valid', 'test']
@@ -26,17 +27,22 @@ class ParsectDataset(Dataset):
         The top frequent `max_num_words` to consider
         :param max_length: type: int
         The maximum length after numericalization
+        :param vocab_store_location: type: str
+        The vocab store location to store vocabulary
 
         """
         self.dataset_type = dataset_type
         self.secthead_label_file = secthead_label_file
         self.max_num_words = max_num_words
         self.max_length = max_length
-        self.word_tokenizer = WordTokenizer()
+        self.store_location = vocab_store_location
 
+        self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
         self.allowable_dataset_types = ['train', 'valid', 'test']
         self.msg_printer = Printer()
+
+        self.msg_printer.divider("{0} ITERATOR".format(self.dataset_type.upper()))
 
         assert self.dataset_type in self.allowable_dataset_types, "You can Pass one of these " \
                                                                   "for dataset types: {0}" \
@@ -46,15 +52,13 @@ class ParsectDataset(Dataset):
         self.lines, self.labels = self.get_lines_labels()
         self.instances = self.tokenize(self.lines)
 
-        # build the vocab only for training data
-        if self.dataset_type == 'train':
-            self.vocab = Vocab(self.instances, max_num_words=self.max_num_words)
-            self.numericalizer = Numericalizer(max_length=self.max_length,
-                                               vocabulary=self.vocab)
+        self.vocab = Vocab(self.instances,
+                           max_num_words=self.max_num_words,
+                           store_location=self.store_location)
+        self.vocab.build_vocab()
 
-        else:
-            # TODO: LOAD THE VOCAB FROM A SAVED FILE FOR VALIDATION AND TESTING
-            pass
+        self.numericalizer = Numericalizer(max_length=self.max_length,
+                                           vocabulary=self.vocab)
 
     def __len__(self) -> int:
         return len(self.instances)
@@ -75,9 +79,6 @@ class ParsectDataset(Dataset):
         Returns the appropriate lines depending on the type of dataset
         :return:
         """
-
-        self.msg_printer.divider('READING {0} LINES AND LABELS'.format(self.dataset_type.upper()))
-
         texts = []
         labels = []
         parsect_json = self.parsect_json["parse_sect"]
@@ -124,3 +125,30 @@ class ParsectDataset(Dataset):
         categories = dict(categories)
         return categories
 
+
+if __name__ == '__main__':
+    import os
+    vocab_store_location = os.path.join('.', 'vocab.json')
+    train_dataset = ParsectDataset(
+        secthead_label_file=SECT_LABEL_FILE,
+        dataset_type='train',
+        max_num_words=1000,
+        max_length=15,
+        vocab_store_location=vocab_store_location
+    )
+
+    validation_dataset = ParsectDataset(
+        secthead_label_file=SECT_LABEL_FILE,
+        dataset_type='valid',
+        max_num_words=1000,
+        max_length=15,
+        vocab_store_location=vocab_store_location
+    )
+
+    test_dataset = ParsectDataset(
+        secthead_label_file=SECT_LABEL_FILE,
+        dataset_type='test',
+        max_num_words=1000,
+        max_length=15,
+        vocab_store_location=vocab_store_location
+    )

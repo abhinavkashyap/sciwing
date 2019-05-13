@@ -17,7 +17,6 @@ def convert_secthead_to_json(filename: str) -> Dict:
     output_json = {"parse_sect": []}
     msg_printer = Printer()
 
-    msg_printer.divider('Converting SectLabel File to JSON')
     with open(filename) as fp:
         for line in tqdm(fp, desc="Converting SectLabel File to JSON"):
             line = line.replace('\n', '')

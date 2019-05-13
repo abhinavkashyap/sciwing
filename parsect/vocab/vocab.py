@@ -1,8 +1,8 @@
 from typing import List, Dict, Tuple, Any
 from collections import Counter
 from operator import itemgetter
-from copy import deepcopy
 import json
+import os
 from wasabi import Printer
 
 
@@ -16,6 +16,7 @@ class Vocab:
                  start_token: str = '<SOS>',
                  end_token: str = '<EOS>',
                  special_token_freq: float = 1e10,
+                 store_location: str=None
                  ):
         """
 
@@ -33,10 +34,14 @@ class Vocab:
         :param start_token: type: str
         This token will be used for start of sentence indicator
         :param end_token: type: str
-        This tokenn will be used for end of sentence indicator
+        This token will be used for end of sentence indicator
         :param special_token_freq: type: float
         special tokens should have high frequency.
         The higher the frequency, the more common they are
+        :param store_location: type: str
+        The users can provide a store location optionally.
+        The vocab will be stored in the location
+        If the file exists then, the vocab will be restored from the file, rather than building it.
         """
         self.instances = instances
         self.max_num_words = max_num_words
@@ -49,6 +54,7 @@ class Vocab:
         self.vocab = None
         self.idx2token = None
         self.token2idx = None
+        self.store_location = store_location
         self.msg_printer = Printer()
 
         # store the special tokens
@@ -119,12 +125,22 @@ class Vocab:
         return vocab
 
     def build_vocab(self) -> Dict[str, Tuple[int, int]]:
-        self.msg_printer.divider("BUILDING VOCAB")
-        vocab = self.map_words_to_freq_idx()
-        vocab = self.clip_on_mincount(vocab)
-        vocab = self.clip_on_max_num(vocab)
-        self.vocab = vocab
-        return vocab
+
+        if self.store_location and os.path.isfile(self.store_location):
+            self.load_from_file(self.store_location)
+            self.msg_printer.good('Loaded vocab from file {0}'.format(self.store_location))
+
+        else:
+            self.msg_printer.info("BUILDING VOCAB")
+            vocab = self.map_words_to_freq_idx()
+            vocab = self.clip_on_mincount(vocab)
+            vocab = self.clip_on_max_num(vocab)
+            self.vocab = vocab
+
+            if self.store_location:
+                self.msg_printer.info('SAVING VOCAB TO FILE')
+                self.save_to_file(self.store_location)
+            return vocab
 
     def get_vocab_len(self):
         if not self.vocab:
@@ -157,6 +173,9 @@ class Vocab:
         """
         :param filename: str
         The filename where the result to the file will be stored
+        The vocab will be stored in the json file name
+        Please make sure that this is a json filename
+
         :return: None
         The whole vocab object will be saved to the file
         """
@@ -239,4 +258,3 @@ class Vocab:
             return self.token2idx[token]
         except KeyError:
             return self.token2idx[self.unk_token]
-

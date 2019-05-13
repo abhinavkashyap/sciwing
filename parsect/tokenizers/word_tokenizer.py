@@ -42,7 +42,6 @@ class WordTokenizer:
             return tokens
 
     def tokenize_batch(self, texts: List[str]) -> List[List[str]]:
-        self.msg_printer.divider("TOKENIZING TEXT")
         tokenized = []
         for text in tqdm(texts, total=len(texts),
                          desc="Batch tokenize"):
