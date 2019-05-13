@@ -25,7 +25,7 @@ class WordEmbLoader:
         :param embedding_type: type: List
         """
         self.vocab = vocab
-        self.token2idx_mapping = self.vocab.get_token2idx_mapping(self.vocab.vocab)
+        self.token2idx_mapping = self.vocab.get_token2idx_mapping()
         self.embedding_type = embedding_type
         self.allowed_embedding_types = ['glove_6B_50', 'glove_6B_100', 'glove_6B_200', 'glove_6B_300']
 

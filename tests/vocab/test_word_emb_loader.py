@@ -36,7 +36,7 @@ class TestWordEmbLoader:
 
     def test_all_vocab_words_have_embedding(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
-        emb_loader =  WordEmbLoader(
+        emb_loader = WordEmbLoader(
             vocab=vocab,
             embedding_type='glove_6B_50'
         )
@@ -45,5 +45,5 @@ class TestWordEmbLoader:
 
         words = vocab_embedding.keys()
 
-        assert len(words) == vocab.get_vocab_len(vocab.vocab)
+        assert len(words) == vocab.get_vocab_len()
 
