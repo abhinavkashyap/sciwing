@@ -50,7 +50,7 @@ class WordEmbLoader:
         elif self.embedding_type == 'glove_6B_200':
             filename = os.path.join(DATA_DIR, 'embeddings', 'glove', 'glove.6B.200d.txt')
 
-        elif self.embedding_type ==  'glove_6B_300':
+        elif self.embedding_type == 'glove_6B_300':
             filename = os.path.join(DATA_DIR, 'embeddings', 'glove', 'glove.6B.300d.txt')
 
         return filename
