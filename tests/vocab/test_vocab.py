@@ -69,7 +69,7 @@ class TestVocab:
         vocab_builder = Vocab(instances=single_instance,
                               max_num_words=MAX_NUM_WORDS,
                               )
-
+        vocab_builder.build_vocab()
         vocab = vocab_builder.map_words_to_freq_idx()
 
         vocab = vocab_builder.clip_on_max_num(vocab)
@@ -131,8 +131,8 @@ class TestVocab:
         vocab_builder = Vocab(single_instance,
                               min_count=MIN_FREQ,
                               max_num_words=MAX_NUM_WORDS)
-        vocab = vocab_builder.build_vocab()
-        len_vocab = vocab_builder.get_vocab_len(vocab)
+        vocab_builder.build_vocab()
+        len_vocab = vocab_builder.get_vocab_len()
         assert len_vocab == 3 + len(vocab_builder.special_vocab)
 
     def test_vocab_length_min_freq_1_max_words_0(self, instances):
@@ -144,7 +144,7 @@ class TestVocab:
                               min_count=MIN_FREQ,
                               max_num_words=MAX_NUM_WORDS)
         vocab = vocab_builder.build_vocab()
-        len_vocab = vocab_builder.get_vocab_len(vocab)
+        len_vocab = vocab_builder.get_vocab_len()
         assert len_vocab == len(vocab_builder.special_vocab)
 
     def test_vocab_length_min_freq_1_max_words_1(self, instances):
@@ -156,7 +156,7 @@ class TestVocab:
                               min_count=MIN_FREQ,
                               max_num_words=MAX_NUM_WORDS)
         vocab = vocab_builder.build_vocab()
-        len_vocab = vocab_builder.get_vocab_len(vocab)
+        len_vocab = vocab_builder.get_vocab_len()
         assert len_vocab == 1 + len(vocab_builder.special_vocab)
 
     def test_save_vocab(self, instances, tmpdir):
@@ -165,9 +165,9 @@ class TestVocab:
         vocab_builder = Vocab(single_instance,
                               max_num_words=MAX_NUM_WORDS)
 
-        vocab = vocab_builder.build_vocab()
+        vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join('vocab.json')
-        vocab_builder.save_to_file(vocab, vocab_file)
+        vocab_builder.save_to_file(vocab_file)
 
         assert os.path.isfile(vocab_file)
 
@@ -176,13 +176,13 @@ class TestVocab:
         MAX_NUM_WORDS = 100
         vocab_builder = Vocab(single_instance,
                               max_num_words=MAX_NUM_WORDS)
-        vocab = vocab_builder.build_vocab()
+        vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join('vocab.json')
-        vocab_builder.save_to_file(vocab, vocab_file)
+        vocab_builder.save_to_file(vocab_file)
 
         options, vocab = vocab_builder.load_from_file(vocab_file)
 
-        assert vocab_builder.get_vocab_len(vocab) == 3 + len(vocab_builder.special_vocab)
+        assert vocab_builder.get_vocab_len() == 3 + len(vocab_builder.special_vocab)
 
     def test_idx2token(self, instances):
         single_instance = instances['single_instance']
@@ -208,8 +208,8 @@ class TestVocab:
         vocab_builder = Vocab(instances=single_instance,
                               max_num_words=MAX_NUM_WORDS,
                               )
-        vocab = vocab_builder.build_vocab()
-        print(vocab_builder.get_idx2token_mapping(vocab))
+        vocab_builder.build_vocab()
+        print(vocab_builder.get_idx2token_mapping())
         with pytest.raises(ValueError):
             vocab_builder.get_token_from_idx(100)
 
@@ -226,7 +226,7 @@ class TestVocab:
         MAX_NUM_WORDS = 100
         vocab_builder = Vocab(single_instance,
                               max_num_words=MAX_NUM_WORDS)
-        vocab = vocab_builder.build_vocab()
+        vocab_builder.build_vocab()
         unknown_idx = vocab_builder.get_idx_from_token('<UNK>')
 
         assert unknown_idx == 0

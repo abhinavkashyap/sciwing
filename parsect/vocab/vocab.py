@@ -3,6 +3,7 @@ from collections import Counter
 from operator import itemgetter
 from copy import deepcopy
 import json
+from wasabi import Printer
 
 
 class Vocab:
@@ -48,6 +49,7 @@ class Vocab:
         self.vocab = None
         self.idx2token = None
         self.token2idx = None
+        self.msg_printer = Printer()
 
         # store the special tokens
         self.special_vocab = {
@@ -91,7 +93,6 @@ class Vocab:
         Clip the vocab based on min count
         We decide to keep the word and it count
         We just change the idx of the token to idx of the unknown token
-        :param vocab: type: Dict[str, Tuple[int, int]]
         :return: vocab: type: Dict[str, Tuple[int, int]]
         The new vocab
         """
@@ -118,43 +119,51 @@ class Vocab:
         return vocab
 
     def build_vocab(self) -> Dict[str, Tuple[int, int]]:
+        self.msg_printer.divider("BUILDING VOCAB")
         vocab = self.map_words_to_freq_idx()
         vocab = self.clip_on_mincount(vocab)
         vocab = self.clip_on_max_num(vocab)
         self.vocab = vocab
         return vocab
 
-    @staticmethod
-    def get_vocab_len(vocab: Dict[str, Tuple[int, int]]):
-        length = len(set(idx for freq, idx in vocab.values()))
+    def get_vocab_len(self):
+        if not self.vocab:
+            raise ValueError('Build vocab first by calling build_vocab()')
+
+        length = len(set(idx for freq, idx in self.vocab.values()))
         return length
 
-    @staticmethod
-    def get_token2idx_mapping(vocab: Dict[str, Tuple[int, int]]) -> Dict[str, int]:
+    def get_token2idx_mapping(self) -> Dict[str, int]:
+        if not self.vocab:
+            raise ValueError('Build vocab first by calling build_vocab()')
+
         token2idx = {}
-        for word, (freq, idx) in vocab.items():
+        for word, (freq, idx) in self.vocab.items():
             token2idx[word] = idx
 
         return token2idx
 
-    @staticmethod
-    def get_idx2token_mapping(vocab: Dict[str, Tuple[int, int]]) -> Dict[int, str]:
+    def get_idx2token_mapping(self) -> Dict[int, str]:
+        if not self.vocab:
+            raise ValueError('Build vocab first by calling build_vocab()')
+
         idx2words = {}
-        for word, (freq, idx) in vocab.items():
+        for word, (freq, idx) in self.vocab.items():
             idx2words[idx] = word
         return idx2words
 
-    def save_to_file(self, vocab: Dict[str, Tuple[int, int]],
+    def save_to_file(self,
                      filename: str):
         """
-
-        :param vocab: Dict[str, Tuple[int, int]]
-        Vocab object with word -> (freq, idx)
         :param filename: str
         The filename where the result to the file will be stored
         :return: None
         The whole vocab object will be saved to the file
         """
+
+        if not self.vocab:
+            raise ValueError('Build vocab first by calling build_vocab()')
+
         vocab_state = dict()
         vocab_state['options'] = {
             'max_num_words': self.max_num_words,
@@ -163,9 +172,9 @@ class Vocab:
             'pad_token': self.pad_token,
             'start_token': self.start_token,
             'end_token': self.end_token,
-            'special_token_frequenct': self.special_token_freq
+            'special_token_freq': self.special_token_freq
         }
-        vocab_state['vocab'] = vocab
+        vocab_state['vocab'] = self.vocab
         try:
             with open(filename, 'w') as fp:
                 json.dump(vocab_state, fp)
@@ -174,13 +183,27 @@ class Vocab:
             print("You passed {0} for the filename. Please check whether "
                   "the path exists and try again".format(filename))
 
-    @staticmethod
-    def load_from_file(filename: str) -> Tuple[Dict[str, Any], Dict[str, Tuple[int, int]]]:
+    def load_from_file(self, filename: str) -> Tuple[Dict[str, Any], Dict[str, Tuple[int, int]]]:
         try:
             with open(filename, 'r') as fp:
                 vocab_state = json.load(fp)
                 vocab_options = vocab_state['options']
                 vocab = vocab_state['vocab']
+
+                # restore the object
+                # restore all the property values from the file
+
+                self.vocab = vocab
+                self.token2idx = self.get_token2idx_mapping()
+                self.idx2token = self.get_idx2token_mapping()
+                self.max_num_words = vocab_options['max_num_words']
+                self.min_count = vocab_options['min_count']
+                self.unk_token = vocab_options['unk_token']
+                self.pad_token = vocab_options['pad_token']
+                self.start_token = vocab_options['start_token']
+                self.end_token = vocab_options['end_token']
+                self.special_token_freq = vocab_options['special_token_freq']
+
                 return vocab_options, vocab
         except FileNotFoundError:
             print("You passed {0} for the filename. Please check whether "
@@ -193,12 +216,12 @@ class Vocab:
             raise ValueError("Please build the vocab first")
 
         if not self.idx2token:
-            self.idx2token = self.get_idx2token_mapping(self.vocab)
+            self.idx2token = self.get_idx2token_mapping()
 
         try:
             return self.idx2token[idx]
         except KeyError:
-            vocab_len = self.get_vocab_len(self.vocab)
+            vocab_len = self.get_vocab_len()
             message = "You tried to access idx {0} of the vocab " \
                       "The length of the vocab is {1}. Please Provide " \
                       "Number between {2}".format(idx, vocab_len, vocab_len-1)
@@ -210,14 +233,10 @@ class Vocab:
             raise ValueError("Please build the vocab first")
 
         if not self.token2idx:
-            self.token2idx = self.get_token2idx_mapping(self.vocab)
+            self.token2idx = self.get_token2idx_mapping()
 
         try:
             return self.token2idx[token]
         except KeyError:
             return self.token2idx[self.unk_token]
-
-
-
-
 
