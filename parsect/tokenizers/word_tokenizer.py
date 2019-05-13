@@ -1,6 +1,7 @@
 import spacy
 from typing import List
 from tqdm import tqdm
+from wasabi import Printer
 
 
 class WordTokenizer:
@@ -16,6 +17,7 @@ class WordTokenizer:
         :param tokenizer: type:str
         We can use either of ['spacy'] tokenizer to tokenize text
         """
+        self.msg_printer = Printer()
         self.tokenizer = tokenizer
         assert self.tokenizer in ['spacy', 'nltk'], \
             AssertionError("The word tokenizer can be either spacy or nltk")
@@ -40,10 +42,12 @@ class WordTokenizer:
             return tokens
 
     def tokenize_batch(self, texts: List[str]) -> List[List[str]]:
+        self.msg_printer.divider("TOKENIZING TEXT")
         tokenized = []
         for text in tqdm(texts, total=len(texts),
                          desc="Batch tokenize"):
             tokenized.append(self.tokenize(text))
 
+        self.msg_printer.good('Finished Tokenizing Text')
         return tokenized
 

@@ -79,6 +79,5 @@ class Numericalizer:
             lengths_batch.append(length)
             numerical_tokens_batch.append(tokens)
 
-
         return lengths_batch, numerical_tokens_batch
 

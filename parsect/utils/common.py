@@ -4,6 +4,7 @@ import json
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
+from wasabi import Printer
 
 
 def convert_secthead_to_json(filename: str) -> Dict:
@@ -14,6 +15,9 @@ def convert_secthead_to_json(filename: str) -> Dict:
     file_count = 1
     line_count = 1
     output_json = {"parse_sect": []}
+    msg_printer = Printer()
+
+    msg_printer.divider('Converting SectLabel File to JSON')
     with open(filename) as fp:
         for line in tqdm(fp, desc="Converting SectLabel File to JSON"):
             line = line.replace('\n', '')
@@ -38,6 +42,7 @@ def convert_secthead_to_json(filename: str) -> Dict:
 
             output_json['parse_sect'].append(line_json)
 
+    msg_printer.good("Finished converting sect label file to JSON")
     return output_json
 
 
