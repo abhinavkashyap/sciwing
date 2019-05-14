@@ -16,7 +16,7 @@ class Vocab:
                  start_token: str = '<SOS>',
                  end_token: str = '<EOS>',
                  special_token_freq: float = 1e10,
-                 store_location: str=None
+                 store_location: str = None
                  ):
         """
 
@@ -141,6 +141,7 @@ class Vocab:
                 self.msg_printer.info('SAVING VOCAB TO FILE')
                 self.save_to_file(self.store_location)
             return vocab
+        self.msg_printer.good('Finished vocab loading')
 
     def get_vocab_len(self):
         if not self.vocab:

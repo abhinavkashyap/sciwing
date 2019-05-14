@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
+from wasabi import Printer
 
 
 class Simple_Classifier(nn.Module):
@@ -31,6 +32,7 @@ class Simple_Classifier(nn.Module):
         self.classification_layer = nn.Linear(encoding_dim, num_classes,
                                               bias=self.classification_layer_bias)
         self._loss = CrossEntropyLoss()
+        self.msg_printer = Printer()
 
     def forward(self, x: torch.LongTensor,
                 labels: torch.LongTensor,
@@ -41,7 +43,7 @@ class Simple_Classifier(nn.Module):
                   N - batch size
                   T - Number of tokens per batch
         :param labels: type: torch.LongTensor
-                shape: N
+                shape: N,
                 N - batch size
         :param is_training: type: bool
         indicates whether the forward method is being called for training
@@ -53,6 +55,14 @@ class Simple_Classifier(nn.Module):
         # N * D
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
+
+        assert x.ndimension() == 2, self.msg_printer.fail('the input should have 2 dimensions  d'
+                                                          'your input has shape {0}'
+                                                          .format(x.size()))
+        assert labels.ndimension() == 1, self.msg_printer.fail('the labels should have 1 dimension '
+                                                               'your input has shape {0}'
+                                                               .format(labels.size()))
+
         encoding = self.encoder(x)
 
         # N * C
@@ -72,6 +82,7 @@ class Simple_Classifier(nn.Module):
         }
 
         if is_training:
+            print('labels size', labels.size())
             loss = self._loss(logits, labels)
             output_dict['loss'] = loss
 

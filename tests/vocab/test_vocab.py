@@ -143,7 +143,7 @@ class TestVocab:
         vocab_builder = Vocab(single_instance,
                               min_count=MIN_FREQ,
                               max_num_words=MAX_NUM_WORDS)
-        vocab = vocab_builder.build_vocab()
+        vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
         assert len_vocab == len(vocab_builder.special_vocab)
 
@@ -155,7 +155,7 @@ class TestVocab:
         vocab_builder = Vocab(single_instance,
                               min_count=MIN_FREQ,
                               max_num_words=MAX_NUM_WORDS)
-        vocab = vocab_builder.build_vocab()
+        vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
         assert len_vocab == 1 + len(vocab_builder.special_vocab)
 
@@ -190,7 +190,7 @@ class TestVocab:
         vocab_builder = Vocab(instances=single_instance,
                               max_num_words=MAX_NUM_WORDS,
                               )
-        vocab = vocab_builder.build_vocab()
+        vocab_builder.build_vocab()
         unk_token = vocab_builder.get_token_from_idx(0)
         assert unk_token == '<UNK>'
         pad_token = vocab_builder.get_token_from_idx(1)

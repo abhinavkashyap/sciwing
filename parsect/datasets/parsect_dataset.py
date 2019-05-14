@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from torch.utils.data import Dataset
 from typing import List, Dict
 import parsect.constants as constants
@@ -19,7 +20,8 @@ class ParsectDataset(Dataset):
                  dataset_type: str,
                  max_num_words: int,
                  max_length: int,
-                 vocab_store_location: str):
+                 vocab_store_location: str,
+                 debug: bool = False):
         """
         :param dataset_type: type: str
         One of ['train', 'valid', 'test']
@@ -29,6 +31,12 @@ class ParsectDataset(Dataset):
         The maximum length after numericalization
         :param vocab_store_location: type: str
         The vocab store location to store vocabulary
+        This should be a json filename
+        :param debug: type: bool
+        If debug is true, then we randomly sample
+        10% of the dataset and work with it. This is useful
+        for faster automated tests and looking at random
+        examples
 
         """
         self.dataset_type = dataset_type
@@ -36,13 +44,14 @@ class ParsectDataset(Dataset):
         self.max_num_words = max_num_words
         self.max_length = max_length
         self.store_location = vocab_store_location
+        self.debug = debug
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
         self.allowable_dataset_types = ['train', 'valid', 'test']
         self.msg_printer = Printer()
 
-        self.msg_printer.divider("{0} ITERATOR".format(self.dataset_type.upper()))
+        self.msg_printer.divider("{0} DATASET".format(self.dataset_type.upper()))
 
         assert self.dataset_type in self.allowable_dataset_types, "You can Pass one of these " \
                                                                   "for dataset types: {0}" \
@@ -65,14 +74,17 @@ class ParsectDataset(Dataset):
 
     def __getitem__(self, idx) -> (torch.LongTensor, torch.LongTensor):
         instance = self.instances[idx]
+
+        # real length of tokens, numericalized tokens
         len_tokens, tokens = self.numericalizer.numericalize_instance(instance)
         label = self.labels[idx]
         label_idx = self.label_mapping[label]
 
         tokens = torch.LongTensor(tokens)
         label = torch.LongTensor([label_idx])
+        len_tokens = torch.LongTensor([len_tokens])
 
-        return tokens, label
+        return tokens, label, len_tokens
 
     def get_lines_labels(self) -> (List[str], List[str]):
         """
@@ -99,6 +111,17 @@ class ParsectDataset(Dataset):
                 texts.append(text)
                 labels.append(label)
 
+        if self.debug:
+            # randomly sample 10% samples and return
+            num_text = len(texts)
+            random_ints = np.random.randint(0, num_text-1, size= int(0.1 * num_text))
+            random_ints = list(random_ints)
+            sample_texts = []
+            sample_labels = []
+            for random_int in random_ints:
+                sample_texts.append(texts[random_int])
+                sample_labels.append(texts[random_int])
+
         self.msg_printer.good('Finished Reading JSON lines from the data file')
 
         return texts, labels
@@ -118,12 +141,15 @@ class ParsectDataset(Dataset):
         categories = ['address', 'affiliation', 'author', 'bodyText',
                       'category', 'construct', 'copyright', 'email', 'equation',
                       'figure', 'figureCaption', 'footnote', 'keyword', 'listItem',
-                      'note', 'page', 'reference', 'subsectionHeader', 'subsubSectionHeader',
-                      'subsubsubSectionHeader', 'tableCaption', 'table', 'title'
+                      'note', 'page', 'reference', 'sectionHeader', 'subsectionHeader',
+                      'subsubsectionHeader', 'tableCaption', 'table', 'title'
                       ]
         categories = [(word, idx) for idx, word in enumerate(categories)]
         categories = dict(categories)
         return categories
+
+    def get_num_classes(self) -> int:
+        return len(self.label_mapping.keys())
 
 
 if __name__ == '__main__':
