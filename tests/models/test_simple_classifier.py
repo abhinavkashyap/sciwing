@@ -50,3 +50,15 @@ class TestSimpleClassifier:
         loss = output['loss'].item()
         correct_loss = -np.log(1/num_classes)
         assert torch.allclose(torch.Tensor([loss]), torch.Tensor([correct_loss]))
+
+    def test_classifier_produces_correct_precision(self, setup_classifier_bs_1):
+        tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
+        output = simple_classifier(tokens, labels, is_training=True)
+        precision = output['precision']
+        expected_precision = {1: 0, 2: 0}
+
+        assert len(precision) == 2
+
+        for class_label, precision_value in precision.items():
+            print(class_label)
+            assert precision_value == expected_precision[class_label]

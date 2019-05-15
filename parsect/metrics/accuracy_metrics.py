@@ -4,6 +4,7 @@ from wasabi import Printer
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import confusion_matrix
 
+
 class Accuracy:
     def __init__(self):
         self.msg_printer = Printer()
@@ -51,6 +52,10 @@ class Accuracy:
         # get the set of labels in the batch of predictions
         labels_set = set(labels_numpy.tolist())
         top_indices_set = set(top_indices_numpy.tolist())
+
+        print("labels set", labels_set)
+        print('top_indices set', top_indices_set)
+
         classes = labels_set.union(top_indices_set)
         classes = sorted(list(classes))
 

@@ -4,6 +4,7 @@ from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
 from wasabi import Printer
+from parsect.metrics.accuracy_metrics import Accuracy
 
 
 class Simple_Classifier(nn.Module):
@@ -32,6 +33,7 @@ class Simple_Classifier(nn.Module):
         self.classification_layer = nn.Linear(encoding_dim, num_classes,
                                               bias=self.classification_layer_bias)
         self._loss = CrossEntropyLoss()
+        self.accuracy_calculator = Accuracy()
         self.msg_printer = Printer()
 
     def forward(self, x: torch.LongTensor,
@@ -85,6 +87,14 @@ class Simple_Classifier(nn.Module):
             print('labels size', labels.size())
             loss = self._loss(logits, labels)
             output_dict['loss'] = loss
+
+        # calculate metrics
+        metrics = self.accuracy_calculator.get_accuracy(
+            normalized_probs, labels
+        )
+
+        # combine the two dicts
+        output_dict = {**output_dict, **metrics}
 
         return output_dict
 
