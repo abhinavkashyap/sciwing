@@ -4,7 +4,7 @@ from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
 from wasabi import Printer
-from parsect.metrics.accuracy_metrics import Accuracy
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 
 class Simple_Classifier(nn.Module):
@@ -33,7 +33,7 @@ class Simple_Classifier(nn.Module):
         self.classification_layer = nn.Linear(encoding_dim, num_classes,
                                               bias=self.classification_layer_bias)
         self._loss = CrossEntropyLoss()
-        self.accuracy_calculator = Accuracy()
+        self.accuracy_calculator = PrecisionRecallFMeasure()
         self.msg_printer = Printer()
 
     def forward(self, x: torch.LongTensor,

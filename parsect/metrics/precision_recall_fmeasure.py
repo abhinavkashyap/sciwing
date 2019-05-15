@@ -5,7 +5,7 @@ from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import confusion_matrix
 
 
-class Accuracy:
+class PrecisionRecallFMeasure:
     def __init__(self):
         self.msg_printer = Printer()
 

@@ -1,6 +1,6 @@
 import pytest
 import torch
-from parsect.metrics.accuracy_metrics import Accuracy
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def setup_data_basecase():
     expected_recall = {0: 1.0, 1: 1.0}
     expected_fmeasure = {0: 1.0, 1: 1.0}
 
-    accuracy = Accuracy()
+    accuracy = PrecisionRecallFMeasure()
     return predicted_probs, labels, accuracy, {
         'expected_precision': expected_precision,
         'expected_recall': expected_recall,
@@ -37,7 +37,7 @@ def setup_data_one_true_class_missing():
     expected_recall = {0: 1.0, 1: 0.0, 2: 0.0}
     expected_fscore = {0: 1.0, 1: 0.0, 2: 0.0}
 
-    accuracy = Accuracy()
+    accuracy = PrecisionRecallFMeasure()
 
     return predicted_probs, labels, accuracy, {
         'expected_precision': expected_precision,
@@ -52,7 +52,7 @@ def setup_data_to_test_length():
                                          [0.2, 0.3, 0.5]])
     labels = torch.LongTensor([0, 2])
 
-    accuracy = Accuracy()
+    accuracy = PrecisionRecallFMeasure()
 
     expected_length = 3
 
