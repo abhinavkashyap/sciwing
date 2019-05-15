@@ -6,6 +6,7 @@ from torch.nn import Embedding
 import torch.optim as optim
 import torch
 import numpy as np
+import os
 
 
 import pytest
@@ -54,6 +55,7 @@ def setup_engine_test_with_simple_classifier(tmpdir):
     EMB_DIM = 300
     VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.vocab.special_vocab)
     NUM_CLASSES = train_dataset.get_num_classes()
+    NUM_EPOCHS = 1
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
     labels = torch.LongTensor([1])
 
@@ -77,7 +79,8 @@ def setup_engine_test_with_simple_classifier(tmpdir):
                     optimizer=optimizer,
                     batch_size=BATCH_SIZE,
                     save_dir=tmpdir.mkdir('model_save'),
-                    num_epochs=1)
+                    num_epochs=NUM_EPOCHS,
+                    save_every=1)
 
     options = {
         'MAX_NUM_WORDS': MAX_NUM_WORDS,
@@ -87,6 +90,7 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         'EMB_DIM': EMB_DIM,
         'VOCAB_SIZE': VOCAB_SIZE,
         'NUM_CLASSES': NUM_CLASSES,
+        'NUM_EPOCHS': NUM_EPOCHS
     }
 
     return engine, tokens, labels, options
@@ -132,6 +136,15 @@ class TestEngine:
     def test_one_train_epoch(self, setup_engine_test_with_simple_classifier):
         # check whether you can run train_epoch without throwing an error
         engine, tokens, labels, options = setup_engine_test_with_simple_classifier
-        engine.train_epoch()
+        engine.train_epoch(0)
+
+    def test_save_model(self, setup_engine_test_with_simple_classifier):
+        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine.run()
+
+        # test for the file model_epoch_1.pt
+        assert os.path.isdir(engine.save_dir)
+        assert os.path.isfile(os.path.join(engine.save_dir, 'model_epoch_1.pt'))
+
 
 

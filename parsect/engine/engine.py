@@ -5,7 +5,8 @@ import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
 import multiprocessing
-from typing import Tuple, Iterator
+from typing import Iterator
+import os
 
 
 class Engine:
@@ -17,7 +18,8 @@ class Engine:
                  optimizer:optim,
                  batch_size: int,
                  save_dir: str,
-                 num_epochs: int):
+                 num_epochs: int,
+                 save_every: int):
         """
         This orchestrates the whole model training. The supervised machine learning
         that needs to be used
@@ -36,7 +38,9 @@ class Engine:
         :param save_dir: type: str
         The full location where the intermediate results are stored
         :param num_epochs: type: int
-        Number of epochs to run traininng
+        Number of epochs to run training
+        :param save_every: type: int
+        The model state will be save every `save_every` num of epochs
         """
 
         self.model = model
@@ -48,11 +52,15 @@ class Engine:
         self.save_dir = save_dir
         self.num_epochs = num_epochs
         self.msg_printer = Printer()
+        self.save_every = save_every
 
         self.num_workers = multiprocessing.cpu_count()  # num_workers
 
         # get the data loader
-        # TODO: For now we randomly sample the dataset to obtain instances
+        # TODO: For now we randomly sample the dataset to obtain instances, we can have different
+        #       sampling strategies. For one, there are BucketIterators, that bucket different
+        #       isntances of the same length together
+
         self.train_loader = self.get_loader(self.train_dataset)
         self.validation_loader = self.get_loader(self.validation_dataset)
         self.test_loader = self.get_loader(self.test_dataset)
@@ -76,34 +84,56 @@ class Engine:
         :return:
         """
         for epoch_num in range(self.num_epochs):
-            self.train_epoch()
+            self.train_epoch(epoch_num)
 
             self.validation_epoch()
 
-    def train_epoch(self):
+    def train_epoch(self,
+                    epoch_num: int):
         """
         Run the training for one epoch
+        :param epoch_num: type: int
+        The current epoch number
         """
         train_iter = self.get_iter(self.train_loader)
         self.model.train()
-        try:
-            # N*T, N * 1, N * 1
-            tokens, labels, len_tokens = next(train_iter)
-            labels = labels.squeeze(1)
-            model_forward_out = self.model(tokens, labels, is_training=True)
-
+        self.msg_printer.info('starting training epoch')
+        while True:
             try:
-                self.optimizer.zero_grad()
-                loss = model_forward_out['loss']
-                loss.backward()
-                self.optimizer.step()
+                # N*T, N * 1, N * 1
+                tokens, labels, len_tokens = next(train_iter)
+                labels = labels.squeeze(1)
+                model_forward_out = self.model(tokens, labels, is_training=True)
 
-            except KeyError:
-                self.msg_printer.fail('The model output dictionary does not have '
-                                      'a key called loss. Please check to have '
-                                      'loss in the model output')
-        except StopIteration:
-            pass
+                try:
+                    self.optimizer.zero_grad()
+                    loss = model_forward_out['loss']
+                    loss.backward()
+                    self.optimizer.step()
+
+                except KeyError:
+                    self.msg_printer.fail('The model output dictionary does not have '
+                                          'a key called loss. Please check to have '
+                                          'loss in the model output')
+            except StopIteration:
+                self.train_epoch_end(epoch_num)
+                break
+
+    def train_epoch_end(self,
+                        epoch_num: int):
+        """
+
+        :param epoch_num: type: int
+        The epoch number that just ended
+        """
+
+        # save the model after every `self.save_every` epochs
+        if (epoch_num + 1) % self.save_every == 0:
+            torch.save({
+                'epoch_num': epoch_num,
+                'optimizer_state': self.optimizer.state_dict(),
+                'model_state': self.model.state_dict()
+            }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
 
     def validation_epoch(self):
         """
@@ -133,7 +163,6 @@ class Engine:
 
 
 if __name__ == '__main__':
-    import os
     import parsect.constants as constants
     from parsect.datasets.parsect_dataset import ParsectDataset
     from parsect.modules.bow_encoder import BOW_Encoder
@@ -178,8 +207,8 @@ if __name__ == '__main__':
     BATCH_SIZE = 1
     NUM_TOKENS = 3
     EMB_DIM = 300
-    VOCAB_SIZE = 10
-    NUM_CLASSES = 3
+    NUM_CLASSES = train_dataset.get_num_classes()
+    VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.vocab.special_vocab)
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
     labels = torch.LongTensor([1])
 
@@ -203,4 +232,9 @@ if __name__ == '__main__':
                     optimizer=optimizer,
                     batch_size=BATCH_SIZE,
                     save_dir=os.path.join('.'),
-                    num_epochs=1)
+                    num_epochs=1,
+                    save_every=1)
+
+    engine.run()
+    # clean up
+    os.remove('./vocab.json')

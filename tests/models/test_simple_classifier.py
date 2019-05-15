@@ -55,10 +55,12 @@ class TestSimpleClassifier:
         tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
         output = simple_classifier(tokens, labels, is_training=True)
         precision = output['precision']
+
+        # NOTE: topk returns the last value in the dimension incase
+        # all the values are equal.
         expected_precision = {1: 0, 2: 0}
 
         assert len(precision) == 2
 
         for class_label, precision_value in precision.items():
-            print(class_label)
             assert precision_value == expected_precision[class_label]

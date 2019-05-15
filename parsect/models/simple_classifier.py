@@ -84,7 +84,6 @@ class Simple_Classifier(nn.Module):
         }
 
         if is_training:
-            print('labels size', labels.size())
             loss = self._loss(logits, labels)
             output_dict['loss'] = loss
 

@@ -53,9 +53,6 @@ class Accuracy:
         labels_set = set(labels_numpy.tolist())
         top_indices_set = set(top_indices_numpy.tolist())
 
-        print("labels set", labels_set)
-        print('top_indices set', top_indices_set)
-
         classes = labels_set.union(top_indices_set)
         classes = sorted(list(classes))
 
