@@ -1,5 +1,6 @@
 import parsect.constants as constants
 from parsect.utils.common import convert_secthead_to_json
+from parsect.utils.common import merge_dictionaries_with_sum
 FILES = constants.FILES
 
 SECTLABEL_FILENAME = FILES['SECT_LABEL_FILE']
@@ -32,3 +33,24 @@ class TestCommon:
         file_numbers = [each_line['file_no'] for each_line in output]
         file_numbers = set(file_numbers)
         assert len(file_numbers) == 40  # number of files expected
+
+    def test_merge_dictionaries_empty(self):
+        a = {}
+        b = {'a':0, 'b':1}
+        a_b = merge_dictionaries_with_sum(a, b)
+        expected = {'a': 0, 'b': 1}
+        assert a_b == expected
+
+    def test_merge_dictionaries_one_zero(self):
+        a = {'a': 0}
+        b = {'a': 0, 'b': 1}
+        a_b = merge_dictionaries_with_sum(a, b)
+        expected = {'a': 0, 'b': 1}
+        assert a_b == expected
+
+    def test_merge_two_full_dictionaries(self):
+        a = {'a': 1, 'b': 2}
+        b = {'a': 2, 'b': 4, 'c': 0}
+        expected = {'a': 3, 'b': 6, 'c': 0}
+        a_b = merge_dictionaries_with_sum(a, b)
+        assert a_b == expected

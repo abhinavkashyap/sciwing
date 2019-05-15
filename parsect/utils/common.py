@@ -29,7 +29,8 @@ def convert_secthead_to_json(filename: str) -> Dict:
             # new file
             fields = line.split()
             line_content = fields[0]  # first column contains the content text
-            line_content = line_content.replace('|||', ' ')  # every word in the line is sepearted by |||
+            line_content = line_content.replace('|||',
+                                                ' ')  # every word in the line is sepearted by |||
             label = fields[-1]  # the last column contains the field marked
             line_json = {
                 'text': line_content,
@@ -95,7 +96,7 @@ def write_tokenization_vis_json(filename: str) -> Dict:
     output_json = {'parse_sect': []}
 
     for idx in tqdm(range(num_instances), desc="Forming output json",
-                              total=num_instances):
+                    total=num_instances):
         line_json = parsect_lines[idx]
         text = line_json['text']
         label = line_json['label']
@@ -115,10 +116,17 @@ def write_tokenization_vis_json(filename: str) -> Dict:
     return output_json
 
 
+def merge_dictionaries_with_sum(a: Dict, b: Dict) -> Dict:
+    # refer to https://stackoverflow.com/questions/11011756/is-there-any-pythonic-way-to-combine-two-dicts-adding-values-for-keys-that-appe?rq=1
+    return dict(list(a.items()) + list(b.items()) +
+                [(k, a[k] + b[k]) for k in set(b) & set(a)])
+
+
 if __name__ == '__main__':
     import os
     import parsect.constants as constants
     import json
+
     PATHS = constants.PATHS
     DATA_DIR = PATHS['DATA_DIR']
     filename = "sectLabel.train.data"

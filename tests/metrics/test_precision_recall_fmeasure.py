@@ -60,6 +60,61 @@ def setup_data_to_test_length():
 
 
 class TestAccuracy:
+    def test_overall_accuracy_basecase(self, setup_data_basecase):
+        predicted_probs, labels, accuracy, expected = setup_data_basecase
+        expected_precision = expected['expected_precision']
+        expected_recall = expected['expected_recall']
+        expected_fmeasure = expected['expected_fscore']
+
+        accuracy_metrics = accuracy.get_overall_accuracy(predicted_probs, labels)
+
+        precision = accuracy_metrics['precision']
+        recall = accuracy_metrics['recall']
+        fscore = accuracy_metrics['fscore']
+
+        for class_label, precision_value in precision.items():
+            assert precision_value == expected_precision[class_label]
+
+        for class_label, recall_value in recall.items():
+            assert recall_value == expected_recall[class_label]
+
+        for class_label, fscore_value in fscore.items():
+            assert fscore_value == expected_fmeasure[class_label]
+
+    def test_overall_accuracy_one_true_class_missing(self, setup_data_one_true_class_missing):
+        predicted_probs, labels, accuracy, expected = setup_data_one_true_class_missing
+        expected_precision = expected['expected_precision']
+        expected_recall = expected['expected_recall']
+        expected_fscore = expected['expected_fscore']
+
+        accuracy_metrics = accuracy.get_overall_accuracy(predicted_probs, labels)
+
+        precision = accuracy_metrics['precision']
+        recall = accuracy_metrics['recall']
+        fscore = accuracy_metrics['fscore']
+
+        for class_label, precision_value in precision.items():
+            assert precision_value == expected_precision[class_label]
+
+        for class_label, recall_value in recall.items():
+            assert recall_value == expected_recall[class_label]
+
+        for class_label, fscore_value in fscore.items():
+            assert fscore_value == expected_fscore[class_label]
+
+    def test_overall_accuracy_length(self, setup_data_to_test_length):
+        predicted_probs, labels, accuracy, expected_length = setup_data_to_test_length
+
+        metrics = accuracy.get_overall_accuracy(predicted_probs, labels)
+        precision = metrics['precision']
+
+        assert len(precision.keys()) == expected_length
+
+    def test_print_confusion_matrix_works(self, setup_data_basecase):
+        predicted_probs, labels, accuracy, expected = setup_data_basecase
+        accuracy.print_confusion_metrics(predicted_probs,
+                                         labels)
+
     def test_accuracy_basecase(self, setup_data_basecase):
         predicted_probs, labels, accuracy, expected = setup_data_basecase
         expected_precision = expected['expected_precision']
@@ -101,16 +156,3 @@ class TestAccuracy:
 
         for class_label, fscore_value in fscore.items():
             assert fscore_value == expected_fscore[class_label]
-
-    def test_length(self, setup_data_to_test_length):
-        predicted_probs, labels, accuracy, expected_length = setup_data_to_test_length
-
-        metrics = accuracy.get_accuracy(predicted_probs, labels)
-        precision = metrics['precision']
-
-        assert len(precision.keys()) == expected_length
-
-    def test_print_confusion_matrix_works(self, setup_data_basecase):
-        predicted_probs, labels, accuracy, expected = setup_data_basecase
-        accuracy.print_confusion_metrics(predicted_probs,
-                                         labels)

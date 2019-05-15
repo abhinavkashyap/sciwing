@@ -88,7 +88,7 @@ class Simple_Classifier(nn.Module):
             output_dict['loss'] = loss
 
         # calculate metrics
-        metrics = self.accuracy_calculator.get_accuracy(
+        metrics = self.accuracy_calculator.get_overall_accuracy(
             normalized_probs, labels
         )
 
