@@ -6,6 +6,7 @@ import torch.optim as optim
 from wasabi import Printer
 import multiprocessing
 from typing import Iterator
+from parsect.meters.loss_meter import LossMeter
 import os
 
 
@@ -70,6 +71,10 @@ class Engine:
         self.validation_iter = None
         self.test_iter = None
 
+        # initializing loss meters
+        self.train_loss_meter = LossMeter()
+        self.validation_loss_meter = LossMeter()
+
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
             dataset=dataset,
@@ -96,14 +101,19 @@ class Engine:
         :param epoch_num: type: int
         The current epoch number
         """
+
+        # refresh everything necessary before training begins
         num_iterations = 0
         train_iter = self.get_iter(self.train_loader)
         self.model.train()
+        self.train_loss_meter.reset()
+
         self.msg_printer.info('starting training epoch')
         while True:
             try:
                 # N*T, N * 1, N * 1
                 tokens, labels, len_tokens = next(train_iter)
+                batch_size = tokens.size()[0]
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(tokens, labels, is_training=True)
 
@@ -112,6 +122,7 @@ class Engine:
                     loss = model_forward_out['loss']
                     loss.backward()
                     self.optimizer.step()
+                    self.train_loss_meter.add_loss(loss.item(), batch_size)
 
                 except KeyError:
                     self.msg_printer.fail('The model output dictionary does not have '
@@ -140,6 +151,10 @@ class Engine:
                 'model_state': self.model.state_dict()
             }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
 
+        self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num))
+        average_loss = self.train_loss_meter.get_average()
+        self.msg_printer.text('Average Loss: {0}'.format(average_loss))
+
         self.model.reset_metrics()
 
     def validation_epoch(self,
@@ -147,8 +162,11 @@ class Engine:
         """
         Run the validation
         """
+
         self.model.eval()
         valid_iter = iter(self.validation_loader)
+        self.validation_loss_meter.reset()
+
         while True:
             try:
                 tokens, labels, len_tokens = next(valid_iter)
@@ -160,9 +178,12 @@ class Engine:
 
     def validation_epoch_end(self,
                              epoch_num: int):
+
+        self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
         metrics = self.model.report_metrics
-        self.msg_printer.divider("VALIDATION METRICS")
+        average_loss = self.validation_loss_meter.get_average()
         print(metrics)
+        self.msg_printer.text("Average Loss: {0}".format(average_loss))
         self.model.reset_metrics()
 
     def test_epoch(self, epoch_num: int):
@@ -180,7 +201,7 @@ class Engine:
     def test_epoch_end(self,
                        epoch_num: int):
         metrics = self.model.report_metrics()
-        self.msg_printer.divider("TEST METRICS")
+        self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num))
         print(metrics)
 
     def get_train_dataset(self):
