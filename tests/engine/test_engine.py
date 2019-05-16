@@ -1,6 +1,6 @@
 from parsect.engine.engine import Engine
 from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.models.simple_classifier import Simple_Classifier
+from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.parsect_dataset import ParsectDataset
 from torch.nn import Embedding
 import torch.optim as optim
@@ -65,11 +65,11 @@ def setup_engine_test_with_simple_classifier(tmpdir):
                           aggregation_type='sum')
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)
-    model = Simple_Classifier(encoder=encoder,
-                                          encoding_dim=EMB_DIM,
-                                          num_classes=NUM_CLASSES,
-                                          classification_layer_bias=False
-                                          )
+    model = SimpleClassifier(encoder=encoder,
+                             encoding_dim=EMB_DIM,
+                             num_classes=NUM_CLASSES,
+                             classification_layer_bias=False
+                             )
 
     optimizer = optim.SGD(model.parameters(), lr=0.01)
     engine = Engine(model,

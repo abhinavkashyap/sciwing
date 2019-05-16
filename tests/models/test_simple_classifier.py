@@ -1,7 +1,7 @@
 import pytest
 import torch
 from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.models.simple_classifier import Simple_Classifier
+from parsect.models.simpleclassifier import SimpleClassifier
 from torch.nn import Embedding
 import numpy as np
 
@@ -21,11 +21,11 @@ def setup_classifier_bs_1():
                           aggregation_type='sum')
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)
-    simple_classifier = Simple_Classifier(encoder=encoder,
-                                          encoding_dim=EMB_DIM,
-                                          num_classes=NUM_CLASSES,
-                                          classification_layer_bias=False
-                                          )
+    simple_classifier = SimpleClassifier(encoder=encoder,
+                                         encoding_dim=EMB_DIM,
+                                         num_classes=NUM_CLASSES,
+                                         classification_layer_bias=False
+                                         )
     return tokens, labels, simple_classifier, BATCH_SIZE, NUM_CLASSES
 
 

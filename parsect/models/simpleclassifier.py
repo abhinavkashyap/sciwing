@@ -8,7 +8,7 @@ from wasabi import table
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 
-class Simple_Classifier(nn.Module):
+class SimpleClassifier(nn.Module):
     def __init__(self,
                  encoder: nn.Module,
                  encoding_dim: int,
@@ -26,7 +26,7 @@ class Simple_Classifier(nn.Module):
         Would you want to add bias to the classification layer
         This can be useful for testing the classifier
         """
-        super(Simple_Classifier, self).__init__()
+        super(SimpleClassifier, self).__init__()
         self.encoder = encoder
         self.encoding_dim = encoding_dim
         self.num_classes = num_classes

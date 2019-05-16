@@ -170,8 +170,11 @@ class Engine:
         while True:
             try:
                 tokens, labels, len_tokens = next(valid_iter)
+                batch_size = tokens.size(0)
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens, labels, is_training=False)
+                model_forward_out = self.model(tokens, labels, is_training=True)
+                loss = model_forward_out['loss']
+                self.validation_loss_meter.add_loss(loss, batch_size)
             except StopIteration:
                 self.validation_epoch_end(epoch_num)
                 break
@@ -180,7 +183,7 @@ class Engine:
                              epoch_num: int):
 
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
-        metrics = self.model.report_metrics
+        metrics = self.model.report_metrics()
         average_loss = self.validation_loss_meter.get_average()
         print(metrics)
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
@@ -229,7 +232,7 @@ if __name__ == '__main__':
     import parsect.constants as constants
     from parsect.datasets.parsect_dataset import ParsectDataset
     from parsect.modules.bow_encoder import BOW_Encoder
-    from parsect.models.simple_classifier import Simple_Classifier
+    from parsect.models.simpleclassifier import SimpleClassifier
     from torch.nn import Embedding
     import numpy as np
     FILES = constants.FILES
@@ -281,11 +284,11 @@ if __name__ == '__main__':
                           aggregation_type='sum')
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)
-    model = Simple_Classifier(encoder=encoder,
-                              encoding_dim=EMB_DIM,
-                              num_classes=NUM_CLASSES,
-                              classification_layer_bias=False
-                              )
+    model = SimpleClassifier(encoder=encoder,
+                             encoding_dim=EMB_DIM,
+                             num_classes=NUM_CLASSES,
+                             classification_layer_bias=False
+                             )
 
     optimizer = optim.SGD(model.parameters(), lr=0.01)
     engine = Engine(model,

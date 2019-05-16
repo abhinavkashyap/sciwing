@@ -2,3 +2,4 @@ parsect/vis/*
 parsect/data/*
 .idea
 *.egg-info
+parsect/outputs/*

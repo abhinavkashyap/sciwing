@@ -4,7 +4,8 @@ ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 PATHS = dict(
-    DATA_DIR=os.path.join(ROOT_DIR, 'data')
+    DATA_DIR=os.path.join(ROOT_DIR, 'data'),
+    OUTPUT_DIR=os.path.join(ROOT_DIR, 'outputs')
 )
 
 FILES = dict(
