@@ -21,7 +21,8 @@ class ParsectDataset(Dataset):
                  max_num_words: int,
                  max_length: int,
                  vocab_store_location: str,
-                 debug: bool = False):
+                 debug: bool = False,
+                 debug_dataset_proportion=0.1):
         """
         :param dataset_type: type: str
         One of ['train', 'valid', 'test']
@@ -37,6 +38,9 @@ class ParsectDataset(Dataset):
         10% of the dataset and work with it. This is useful
         for faster automated tests and looking at random
         examples
+        :param debug_dataset_proportion: type: float
+        Send a number (0.0, 1.0) and a random proportion of the dataset
+        will be used for debug purposes
 
         """
         self.dataset_type = dataset_type
@@ -45,6 +49,7 @@ class ParsectDataset(Dataset):
         self.max_length = max_length
         self.store_location = vocab_store_location
         self.debug = debug
+        self.debug_dataset_proportion = debug_dataset_proportion
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
@@ -114,7 +119,8 @@ class ParsectDataset(Dataset):
         if self.debug:
             # randomly sample 10% samples and return
             num_text = len(texts)
-            random_ints = np.random.randint(0, num_text-1, size= int(0.1 * num_text))
+            random_ints = np.random.randint(0, num_text - 1,
+                                            size=int(self.debug_dataset_proportion * num_text))
             random_ints = list(random_ints)
             sample_texts = []
             sample_labels = []
@@ -154,6 +160,7 @@ class ParsectDataset(Dataset):
 
 if __name__ == '__main__':
     import os
+
     vocab_store_location = os.path.join('.', 'vocab.json')
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
