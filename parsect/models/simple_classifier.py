@@ -4,6 +4,7 @@ from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
 from wasabi import Printer
+from wasabi import table
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 
@@ -87,14 +88,39 @@ class Simple_Classifier(nn.Module):
             loss = self._loss(logits, labels)
             output_dict['loss'] = loss
 
-        # calculate metrics
-        metrics = self.accuracy_calculator.get_overall_accuracy(
+        # calculate metrics for the batch of inputs
+        self.accuracy_calculator.calc_accuracy(
             normalized_probs, labels
         )
 
-        # combine the two dicts
-        output_dict = {**output_dict, **metrics}
-
         return output_dict
 
+    def report_metrics(self,
+                       report_type: str = "wasabi"):
+        """
+        This should report the metrics in a printable/loggable form
+        :param report_type :type: str
+        Different loggers would require different kinds of report
+        For now we support only wasabi type, which will print a table
+        :return: 
+        """
+        accuracy_metrics = self.accuracy_calculator.get_accuracy()
+        precision = accuracy_metrics['precision']
+        recall = accuracy_metrics['recall']
+        fscore = accuracy_metrics['fscore']
 
+        if report_type == 'wasabi':
+            classes = precision.keys()
+            classes = sorted(classes)
+            header_row = [' ', 'Precision', 'Recall', 'F_measure']
+            rows = []
+            for class_num in classes:
+                p = precision[class_num]
+                r = recall[class_num]
+                f = fscore[class_num]
+                rows.append(('class_{0}'.format(class_num), p, r, f))
+
+            return table(rows, header=header_row, divider=True)
+
+    def reset_metrics(self):
+        self.accuracy_calculator.reset()

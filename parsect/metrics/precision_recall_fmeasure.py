@@ -116,8 +116,8 @@ class PrecisionRecallFMeasure:
                                header=header,
                                divider=True)
 
-    def get_accuracy(self, predicted_probs: torch.FloatTensor,
-                     labels: torch.LongTensor) -> Dict[str, Dict[int, float]]:
+    def calc_accuracy(self, predicted_probs: torch.FloatTensor,
+                      labels: torch.LongTensor) -> None :
 
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -164,6 +164,7 @@ class PrecisionRecallFMeasure:
         self.fp_counter = merge_dictionaries_with_sum(self.fp_counter, class_fps_mapping)
         self.fn_counter = merge_dictionaries_with_sum(self.fn_counter, class_fns_mapping)
 
+    def get_accuracy(self) -> Dict[str, Dict[str, float]]:
         precision_dict = {}
         recall_dict = {}
         fscore_dict = {}
@@ -193,9 +194,17 @@ class PrecisionRecallFMeasure:
             recall_dict[key] = recall
             fscore_dict[key] = fscore
 
-        return {'precision':precision_dict,
-                'recall': recall_dict,
-                'fscore': fscore_dict}
+        return {
+            'precision': precision_dict,
+            'recall': recall_dict,
+            'fscore': fscore_dict
+        }
+
+    def reset(self) -> None:
+        self.tp_counter = {}
+        self.fp_counter = {}
+        self.fn_counter = {}
+        self.tn_counter = {}
 
 
 if __name__ == '__main__':
@@ -205,7 +214,8 @@ if __name__ == '__main__':
 
     accuracy = PrecisionRecallFMeasure()
 
-    metrics_ = accuracy.get_accuracy(predicted_probs, labels)
+    accuracy.calc_accuracy(predicted_probs, labels)
+    metrics_ = accuracy.get_accuracy()
     precision_ = metrics_['precision']
     recall_ = metrics_['recall']
     fscore_ = metrics_['fscore']

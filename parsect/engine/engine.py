@@ -85,8 +85,9 @@ class Engine:
         """
         for epoch_num in range(self.num_epochs):
             self.train_epoch(epoch_num)
+            self.validation_epoch(epoch_num)
 
-            self.validation_epoch()
+        self.test_epoch(epoch_num)
 
     def train_epoch(self,
                     epoch_num: int):
@@ -95,6 +96,7 @@ class Engine:
         :param epoch_num: type: int
         The current epoch number
         """
+        num_iterations = 0
         train_iter = self.get_iter(self.train_loader)
         self.model.train()
         self.msg_printer.info('starting training epoch')
@@ -115,6 +117,9 @@ class Engine:
                     self.msg_printer.fail('The model output dictionary does not have '
                                           'a key called loss. Please check to have '
                                           'loss in the model output')
+                num_iterations += 1
+                metrics = self.model.report_metrics()
+                print(metrics)
             except StopIteration:
                 self.train_epoch_end(epoch_num)
                 break
@@ -135,11 +140,48 @@ class Engine:
                 'model_state': self.model.state_dict()
             }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
 
-    def validation_epoch(self):
+        self.model.reset_metrics()
+
+    def validation_epoch(self,
+                         epoch_num: int):
         """
         Run the validation
         """
-        pass
+        self.model.eval()
+        valid_iter = iter(self.validation_loader)
+        while True:
+            try:
+                tokens, labels, len_tokens = next(valid_iter)
+                labels = labels.squeeze(1)
+                model_forward_out = self.model(tokens, labels, is_training=False)
+            except StopIteration:
+                self.validation_epoch_end(epoch_num)
+                break
+
+    def validation_epoch_end(self,
+                             epoch_num: int):
+        metrics = self.model.report_metrics
+        self.msg_printer.divider("VALIDATION METRICS")
+        print(metrics)
+        self.model.reset_metrics()
+
+    def test_epoch(self, epoch_num: int):
+        self.model.eval()
+        test_iter = iter(self.test_loader)
+        while True:
+            try:
+                tokens, labels, len_tokens = next(test_iter)
+                labels = labels.squeeze(1)
+                model_forward_out = self.model(tokens, labels, is_training=False)
+            except StopIteration:
+                self.test_epoch_end(epoch_num)
+                break
+
+    def test_epoch_end(self,
+                       epoch_num: int):
+        metrics = self.model.report_metrics()
+        self.msg_printer.divider("TEST METRICS")
+        print(metrics)
 
     def get_train_dataset(self):
         return self.train_dataset

@@ -121,7 +121,8 @@ class TestAccuracy:
         expected_recall = expected['expected_recall']
         expected_fmeasure = expected['expected_fscore']
 
-        accuracy_metrics = accuracy.get_accuracy(predicted_probs, labels)
+        accuracy.calc_accuracy(predicted_probs, labels)
+        accuracy_metrics = accuracy.get_accuracy()
 
         precision = accuracy_metrics['precision']
         recall = accuracy_metrics['recall']
@@ -142,7 +143,8 @@ class TestAccuracy:
         expected_recall = expected['expected_recall']
         expected_fscore = expected['expected_fscore']
 
-        accuracy_metrics = accuracy.get_accuracy(predicted_probs, labels)
+        accuracy.calc_accuracy(predicted_probs, labels)
+        accuracy_metrics = accuracy.get_accuracy()
 
         precision = accuracy_metrics['precision']
         recall = accuracy_metrics['recall']

@@ -140,11 +140,21 @@ class TestEngine:
 
     def test_save_model(self, setup_engine_test_with_simple_classifier):
         engine, tokens, labels, options = setup_engine_test_with_simple_classifier
-        engine.run()
+        engine.train_epoch_end(0)
 
         # test for the file model_epoch_1.pt
         assert os.path.isdir(engine.save_dir)
         assert os.path.isfile(os.path.join(engine.save_dir, 'model_epoch_1.pt'))
+
+    def test_runs(self, setup_engine_test_with_simple_classifier):
+        """
+        Just tests runs without any errors
+        """
+        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine.run()
+
+
+
 
 
 
