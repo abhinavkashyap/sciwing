@@ -3,3 +3,6 @@ parsect/data/*
 .idea
 *.egg-info
 parsect/outputs/*
+
+# ignore runs directory wherever it is
+runs

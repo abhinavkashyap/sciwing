@@ -8,6 +8,7 @@ import multiprocessing
 from typing import Iterator
 from parsect.meters.loss_meter import LossMeter
 import os
+from tensorboardX import SummaryWriter
 
 
 class Engine:
@@ -20,7 +21,8 @@ class Engine:
                  batch_size: int,
                  save_dir: str,
                  num_epochs: int,
-                 save_every: int):
+                 save_every: int,
+                 tensorboard_logdir: str = None):
         """
         This orchestrates the whole model training. The supervised machine learning
         that needs to be used
@@ -42,6 +44,10 @@ class Engine:
         Number of epochs to run training
         :param save_every: type: int
         The model state will be save every `save_every` num of epochs
+        :param tensorboard_logdir: type: str
+        pass in the directory where tensorboard logs are stored
+        By default it will be put in a directory called run/ in the same directory as the
+        script using Engine
         """
 
         self.model = model
@@ -54,6 +60,8 @@ class Engine:
         self.num_epochs = num_epochs
         self.msg_printer = Printer()
         self.save_every = save_every
+        self.tensorboard_logdir = tensorboard_logdir
+        self.summaryWriter = SummaryWriter(log_dir=tensorboard_logdir)
 
         self.num_workers = multiprocessing.cpu_count()  # num_workers
 
@@ -160,6 +168,11 @@ class Engine:
                 'loss': average_loss
             }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
 
+        # log loss to tensor board
+        self.summaryWriter.add_scalars('train_validation_loss',
+                                       {'train_loss': average_loss},
+                                       epoch_num+1)
+
         self.model.reset_metrics(metrics_for="train")
 
     def validation_epoch(self,
@@ -196,6 +209,11 @@ class Engine:
         average_loss = self.validation_loss_meter.get_average()
         print(metrics)
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
+
+        self.summaryWriter.add_scalars('train_validation_loss',
+                                       {'validation_loss': average_loss},
+                                       epoch_num + 1)
+
         self.model.reset_metrics(metrics_for="validation")
 
     def test_epoch(self, epoch_num: int):
