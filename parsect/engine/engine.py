@@ -143,17 +143,18 @@ class Engine:
         The epoch number that just ended
         """
 
+        self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num))
+        average_loss = self.train_loss_meter.get_average()
+        self.msg_printer.text('Average Loss: {0}'.format(average_loss))
+
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
             torch.save({
                 'epoch_num': epoch_num,
                 'optimizer_state': self.optimizer.state_dict(),
-                'model_state': self.model.state_dict()
+                'model_state': self.model.state_dict(),
+                'loss': average_loss
             }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
-
-        self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num))
-        average_loss = self.train_loss_meter.get_average()
-        self.msg_printer.text('Average Loss: {0}'.format(average_loss))
 
         self.model.reset_metrics()
 
@@ -226,6 +227,23 @@ class Engine:
         """
         iterator = iter(loader)
         return iterator
+
+    def load_model_from_file(self, filename: str):
+        """
+        This loads the pretrained model from file
+        :param filename: type: str
+        The filename where the model state is stored
+        The model is saved during training. Look at the method `train_epoch_end` for
+        more details.
+        """
+        self.msg_printer.divider('LOADING MODEL FROM FILE')
+        with self.msg_printer.loading('Loading Pytorch Model from file {0}'.format(filename)):
+            model_chkpoint = torch.load(filename)
+
+        self.msg_printer.good('Finished Loading the Model')
+
+        model_state = model_chkpoint['model_state']
+        self.model.load_state_dict(model_state)
 
 
 if __name__ == '__main__':
@@ -301,6 +319,10 @@ if __name__ == '__main__':
                     num_epochs=1,
                     save_every=1)
 
-    engine.run()
+    engine.train_epoch_end(0)
+    engine.load_model_from_file(
+        os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1))
+    )
     # clean up
     os.remove('./vocab.json')
+    os.remove(os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1)))

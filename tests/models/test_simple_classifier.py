@@ -54,7 +54,8 @@ class TestSimpleClassifier:
     def test_classifier_produces_correct_precision(self, setup_classifier_bs_1):
         tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
         output = simple_classifier(tokens, labels, is_training=True)
-        precision = output['precision']
+        metrics = simple_classifier.accuracy_calculator.get_accuracy()
+        precision = metrics['precision']
 
         # NOTE: topk returns the last value in the dimension incase
         # all the values are equal.

@@ -20,7 +20,11 @@ class LossMeter:
         self.batch_sizes.append(num_instances)
 
     def get_average(self) -> float:
-        average = sum(self.losses) / sum(self.batch_sizes)
+        if len(self.losses) == 0 or len(self.batch_sizes) == 0:
+            average = None # to indicate absent value
+        else:
+            average = sum(self.losses) / sum(self.batch_sizes)
+
         return average
 
     def reset(self):

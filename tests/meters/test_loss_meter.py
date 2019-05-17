@@ -24,3 +24,7 @@ class TestLossMeter:
         average_loss = loss_meter.get_average()
         assert average_loss == 1.3
 
+    def test_average_with_empty_losses(self):
+        loss_meter = LossMeter()
+        assert loss_meter.get_average() is None
+

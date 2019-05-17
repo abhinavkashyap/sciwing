@@ -153,6 +153,16 @@ class TestEngine:
         engine, tokens, labels, options = setup_engine_test_with_simple_classifier
         engine.run()
 
+    def test_load_model(self, setup_engine_test_with_simple_classifier):
+        """
+        Test whether engine loads the model without any error.
+        """
+        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine.train_epoch_end(0)
+        engine.load_model_from_file(
+            os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1))
+        )
+
 
 
 

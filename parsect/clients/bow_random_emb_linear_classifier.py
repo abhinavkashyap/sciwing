@@ -69,7 +69,7 @@ if __name__ == '__main__':
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding = embedding,
+        embedding=embedding,
         dropout_value=0.0,
         aggregation_type='sum'
     )
