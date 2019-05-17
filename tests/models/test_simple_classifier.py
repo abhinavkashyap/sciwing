@@ -32,29 +32,44 @@ def setup_classifier_bs_1():
 class TestSimpleClassifier:
     def test_classifier_produces_0_logits_for_0_embedding(self, setup_classifier_bs_1):
         tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
-        output = simple_classifier(tokens, labels, is_training=True)
+        output = simple_classifier(tokens,
+                                   labels,
+                                   is_training=True,
+                                   is_validation=False,
+                                   is_test=False)
         logits = output['logits']
         expected_logits = torch.zeros([batch_size, num_classes])
         assert torch.allclose(logits, expected_logits)
 
     def test_classifier_produces_equal_probs_for_0_embedding(self, setup_classifier_bs_1):
         tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
-        output = simple_classifier(tokens, labels, is_training=True)
+        output = simple_classifier(tokens,
+                                   labels,
+                                   is_training=True,
+                                   is_validation=False,
+                                   is_test=False)
         probs = output['normalized_probs']
         expected_probs = torch.ones([batch_size, num_classes]) / num_classes
         assert torch.allclose(probs, expected_probs)
 
     def test_classifier_produces_correct_initial_loss_for_0_embedding(self, setup_classifier_bs_1):
         tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
-        output = simple_classifier(tokens, labels, is_training=True)
+        output = simple_classifier(tokens,
+                                   labels,
+                                   is_training=True,
+                                   is_validation=False,
+                                   is_test=False)
         loss = output['loss'].item()
         correct_loss = -np.log(1/num_classes)
         assert torch.allclose(torch.Tensor([loss]), torch.Tensor([correct_loss]))
 
     def test_classifier_produces_correct_precision(self, setup_classifier_bs_1):
         tokens, labels, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
-        output = simple_classifier(tokens, labels, is_training=True)
-        metrics = simple_classifier.accuracy_calculator.get_accuracy()
+        output = simple_classifier(tokens, labels,
+                                   is_training=True,
+                                   is_validation=False,
+                                   is_test=False)
+        metrics = simple_classifier.train_accuracy_calculator.get_accuracy()
         precision = metrics['precision']
 
         # NOTE: topk returns the last value in the dimension incase

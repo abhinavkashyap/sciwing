@@ -34,12 +34,16 @@ class SimpleClassifier(nn.Module):
         self.classification_layer = nn.Linear(encoding_dim, num_classes,
                                               bias=self.classification_layer_bias)
         self._loss = CrossEntropyLoss()
-        self.accuracy_calculator = PrecisionRecallFMeasure()
+        self.train_accuracy_calculator = PrecisionRecallFMeasure()
+        self.validation_accuracy_calculator = PrecisionRecallFMeasure()
+        self.test_accuracy_calculator = PrecisionRecallFMeasure()
         self.msg_printer = Printer()
 
     def forward(self, x: torch.LongTensor,
                 labels: torch.LongTensor,
-                is_training: bool) -> Dict[str, Any]:
+                is_training: bool,
+                is_validation: bool,
+                is_test: bool) -> Dict[str, Any]:
         """
         :param x: type: torch.LongTensor
                   shape: N * T
@@ -87,24 +91,45 @@ class SimpleClassifier(nn.Module):
         if is_training:
             loss = self._loss(logits, labels)
             output_dict['loss'] = loss
+            self.train_accuracy_calculator.calc_accuracy(
+                normalized_probs, labels
+            )
 
-        # calculate metrics for the batch of inputs
-        self.accuracy_calculator.calc_accuracy(
-            normalized_probs, labels
-        )
+        if is_validation:
+            loss = self._loss(logits, labels)
+            output_dict['loss'] = loss
+            self.validation_accuracy_calculator.calc_accuracy(
+                normalized_probs, labels
+            )
+        if is_test:
+            self.test_accuracy_calculator.calc_accuracy(
+                normalized_probs, labels
+            )
 
         return output_dict
 
     def report_metrics(self,
-                       report_type: str = "wasabi"):
+                       report_for: str,
+                       report_type: str = "wasabi",
+                       ):
         """
         This should report the metrics in a printable/loggable form
+        :param report_for: type: str
+        The report can be generated for training, validation or test data
         :param report_type :type: str
         Different loggers would require different kinds of report
         For now we support only wasabi type, which will print a table
         :return: 
         """
-        accuracy_metrics = self.accuracy_calculator.get_accuracy()
+        accuracy_metrics = None
+
+        if report_for == 'train':
+            accuracy_metrics = self.train_accuracy_calculator.get_accuracy()
+        if report_for == 'validation':
+            accuracy_metrics = self.validation_accuracy_calculator.get_accuracy()
+        if report_for == 'test':
+            accuracy_metrics = self.test_accuracy_calculator.get_accuracy()
+
         precision = accuracy_metrics['precision']
         recall = accuracy_metrics['recall']
         fscore = accuracy_metrics['fscore']
@@ -122,5 +147,10 @@ class SimpleClassifier(nn.Module):
 
             return table(rows, header=header_row, divider=True)
 
-    def reset_metrics(self):
-        self.accuracy_calculator.reset()
+    def reset_metrics(self, metrics_for: str):
+        if metrics_for == "train":
+            self.train_accuracy_calculator.reset()
+        if metrics_for == "validation":
+            self.validation_accuracy_calculator.reset()
+        if metrics_for == "test":
+            self.test_accuracy_calculator.reset()

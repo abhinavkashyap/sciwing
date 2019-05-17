@@ -115,7 +115,11 @@ class Engine:
                 tokens, labels, len_tokens = next(train_iter)
                 batch_size = tokens.size()[0]
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens, labels, is_training=True)
+                model_forward_out = self.model(tokens,
+                                               labels,
+                                               is_training=True,
+                                               is_validation=False,
+                                               is_test=False)
 
                 try:
                     self.optimizer.zero_grad()
@@ -129,7 +133,7 @@ class Engine:
                                           'a key called loss. Please check to have '
                                           'loss in the model output')
                 num_iterations += 1
-                metrics = self.model.report_metrics()
+                metrics = self.model.report_metrics(report_for="train")
                 print(metrics)
             except StopIteration:
                 self.train_epoch_end(epoch_num)
@@ -156,7 +160,7 @@ class Engine:
                 'loss': average_loss
             }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
 
-        self.model.reset_metrics()
+        self.model.reset_metrics(metrics_for="train")
 
     def validation_epoch(self,
                          epoch_num: int):
@@ -173,7 +177,11 @@ class Engine:
                 tokens, labels, len_tokens = next(valid_iter)
                 batch_size = tokens.size(0)
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens, labels, is_training=True)
+                model_forward_out = self.model(tokens,
+                                               labels,
+                                               is_training=False,
+                                               is_validation=True,
+                                               is_test=False)
                 loss = model_forward_out['loss']
                 self.validation_loss_meter.add_loss(loss, batch_size)
             except StopIteration:
@@ -184,11 +192,11 @@ class Engine:
                              epoch_num: int):
 
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
-        metrics = self.model.report_metrics()
+        metrics = self.model.report_metrics(report_for="validation")
         average_loss = self.validation_loss_meter.get_average()
         print(metrics)
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
-        self.model.reset_metrics()
+        self.model.reset_metrics(metrics_for="validation")
 
     def test_epoch(self, epoch_num: int):
         self.model.eval()
@@ -197,14 +205,18 @@ class Engine:
             try:
                 tokens, labels, len_tokens = next(test_iter)
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens, labels, is_training=False)
+                model_forward_out = self.model(tokens,
+                                               labels,
+                                               is_training=False,
+                                               is_validation=False,
+                                               is_test=True)
             except StopIteration:
                 self.test_epoch_end(epoch_num)
                 break
 
     def test_epoch_end(self,
                        epoch_num: int):
-        metrics = self.model.report_metrics()
+        metrics = self.model.report_metrics(report_for="test")
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num))
         print(metrics)
 
