@@ -9,7 +9,8 @@ from typing import Iterator
 from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
-
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+import numpy as np
 
 class Engine:
     def __init__(self,
@@ -22,7 +23,8 @@ class Engine:
                  save_dir: str,
                  num_epochs: int,
                  save_every: int,
-                 tensorboard_logdir: str = None):
+                 tensorboard_logdir: str = None,
+                 metric='accuracy'):
         """
         This orchestrates the whole model training. The supervised machine learning
         that needs to be used
@@ -61,6 +63,7 @@ class Engine:
         self.msg_printer = Printer()
         self.save_every = save_every
         self.tensorboard_logdir = tensorboard_logdir
+        self.metric = metric
         self.summaryWriter = SummaryWriter(log_dir=tensorboard_logdir)
 
         self.num_workers = multiprocessing.cpu_count()  # num_workers
@@ -82,6 +85,10 @@ class Engine:
         # initializing loss meters
         self.train_loss_meter = LossMeter()
         self.validation_loss_meter = LossMeter()
+
+        # get metric calculators
+        self.train_metric_calc, self.validation_metric_calc, \
+        self.test_metric_calc = self.get_metric_calculators()
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
@@ -115,6 +122,7 @@ class Engine:
         train_iter = self.get_iter(self.train_loader)
         self.model.train()
         self.train_loss_meter.reset()
+        self.train_metric_calc.reset()
 
         self.msg_printer.info('starting training epoch')
         while True:
@@ -128,6 +136,8 @@ class Engine:
                                                is_training=True,
                                                is_validation=False,
                                                is_test=False)
+                self.train_metric_calc.calc_metric(model_forward_out['normalized_probs'],
+                                                   labels)
 
                 try:
                     self.optimizer.zero_grad()
@@ -141,7 +151,7 @@ class Engine:
                                           'a key called loss. Please check to have '
                                           'loss in the model output')
                 num_iterations += 1
-                metrics = self.model.report_metrics(report_for="train")
+                metrics = self.train_metric_calc.report_metrics()
                 print(metrics)
             except StopIteration:
                 self.train_epoch_end(epoch_num)
@@ -170,10 +180,8 @@ class Engine:
 
         # log loss to tensor board
         self.summaryWriter.add_scalars('train_validation_loss',
-                                       {'train_loss': average_loss},
+                                       {'train_loss': average_loss or np.inf},
                                        epoch_num+1)
-
-        self.model.reset_metrics(metrics_for="train")
 
     def validation_epoch(self,
                          epoch_num: int):
@@ -184,6 +192,7 @@ class Engine:
         self.model.eval()
         valid_iter = iter(self.validation_loader)
         self.validation_loss_meter.reset()
+        self.validation_metric_calc.reset()
 
         while True:
             try:
@@ -197,6 +206,10 @@ class Engine:
                                                is_test=False)
                 loss = model_forward_out['loss']
                 self.validation_loss_meter.add_loss(loss, batch_size)
+                self.validation_metric_calc.calc_metric(
+                    predicted_probs=model_forward_out['normalized_probs'],
+                    labels=labels
+                )
             except StopIteration:
                 self.validation_epoch_end(epoch_num)
                 break
@@ -205,16 +218,16 @@ class Engine:
                              epoch_num: int):
 
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
-        metrics = self.model.report_metrics(report_for="validation")
+
+        metrics = self.validation_metric_calc.report_metrics()
         average_loss = self.validation_loss_meter.get_average()
         print(metrics)
+
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
 
         self.summaryWriter.add_scalars('train_validation_loss',
-                                       {'validation_loss': average_loss},
+                                       {'validation_loss': average_loss or np.inf},
                                        epoch_num + 1)
-
-        self.model.reset_metrics(metrics_for="validation")
 
     def test_epoch(self, epoch_num: int):
         self.model.eval()
@@ -228,13 +241,17 @@ class Engine:
                                                is_training=False,
                                                is_validation=False,
                                                is_test=True)
+                self.test_metric_calc.calc_metric(
+                    predicted_probs=model_forward_out['normalized_probs'],
+                    labels=labels
+                )
             except StopIteration:
                 self.test_epoch_end(epoch_num)
                 break
 
     def test_epoch_end(self,
                        epoch_num: int):
-        metrics = self.model.report_metrics(report_for="test")
+        metrics = self.train_metric_calc.report_metrics()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num))
         print(metrics)
 
@@ -275,6 +292,18 @@ class Engine:
         model_state = model_chkpoint['model_state']
         self.model.load_state_dict(model_state)
 
+    def get_metric_calculators(self):
+        train_calculator = None
+        validation_calculator = None
+        test_calculator = None
+
+        if self.metric == 'accuracy':
+            train_calculator = PrecisionRecallFMeasure()
+            validation_calculator = PrecisionRecallFMeasure()
+            test_calculator = PrecisionRecallFMeasure()
+
+        return train_calculator, validation_calculator, test_calculator
+
 
 if __name__ == '__main__':
     import parsect.constants as constants
@@ -282,7 +311,6 @@ if __name__ == '__main__':
     from parsect.modules.bow_encoder import BOW_Encoder
     from parsect.models.simpleclassifier import SimpleClassifier
     from torch.nn import Embedding
-    import numpy as np
     FILES = constants.FILES
     SECT_LABEL_FILE = FILES['SECT_LABEL_FILE']
 
@@ -349,10 +377,11 @@ if __name__ == '__main__':
                     num_epochs=1,
                     save_every=1)
 
-    engine.train_epoch_end(0)
-    engine.load_model_from_file(
-        os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1))
-    )
+    # engine.train_epoch_end(0)
+    #     # engine.load_model_from_file(
+    #     #     os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1))
+    #     # )
+    engine.run()
     # clean up
     os.remove('./vocab.json')
     os.remove(os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1)))

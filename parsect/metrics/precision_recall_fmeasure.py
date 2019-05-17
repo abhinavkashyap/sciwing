@@ -1,6 +1,7 @@
 import torch
 from typing import Dict
 from wasabi import Printer
+from wasabi import table
 from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
@@ -116,8 +117,8 @@ class PrecisionRecallFMeasure:
                                header=header,
                                divider=True)
 
-    def calc_accuracy(self, predicted_probs: torch.FloatTensor,
-                      labels: torch.LongTensor) -> None :
+    def calc_metric(self, predicted_probs: torch.FloatTensor,
+                    labels: torch.LongTensor) -> None :
 
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -164,7 +165,7 @@ class PrecisionRecallFMeasure:
         self.fp_counter = merge_dictionaries_with_sum(self.fp_counter, class_fps_mapping)
         self.fn_counter = merge_dictionaries_with_sum(self.fn_counter, class_fns_mapping)
 
-    def get_accuracy(self) -> Dict[str, Dict[str, float]]:
+    def get_metric(self) -> Dict[str, Dict[str, float]]:
         precision_dict = {}
         recall_dict = {}
         fscore_dict = {}
@@ -206,6 +207,27 @@ class PrecisionRecallFMeasure:
         self.fn_counter = {}
         self.tn_counter = {}
 
+    def report_metrics(self,
+                      report_type="wasabi"):
+
+        accuracy_metrics = self.get_metric()
+        precision = accuracy_metrics['precision']
+        recall = accuracy_metrics['recall']
+        fscore = accuracy_metrics['fscore']
+
+        if report_type == 'wasabi':
+            classes = precision.keys()
+            classes = sorted(classes)
+            header_row = [' ', 'Precision', 'Recall', 'F_measure']
+            rows = []
+            for class_num in classes:
+                p = precision[class_num]
+                r = recall[class_num]
+                f = fscore[class_num]
+                rows.append(('class_{0}'.format(class_num), p, r, f))
+
+            return table(rows, header=header_row, divider=True)
+
 
 if __name__ == '__main__':
     predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2],
@@ -214,8 +236,8 @@ if __name__ == '__main__':
 
     accuracy = PrecisionRecallFMeasure()
 
-    accuracy.calc_accuracy(predicted_probs, labels)
-    metrics_ = accuracy.get_accuracy()
+    accuracy.calc_metric(predicted_probs, labels)
+    metrics_ = accuracy.get_metric()
     precision_ = metrics_['precision']
     recall_ = metrics_['recall']
     fscore_ = metrics_['fscore']

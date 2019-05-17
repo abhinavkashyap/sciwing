@@ -2,6 +2,7 @@ import pytest
 import torch
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from torch.nn import Embedding
 import numpy as np
 
@@ -69,7 +70,11 @@ class TestSimpleClassifier:
                                    is_training=True,
                                    is_validation=False,
                                    is_test=False)
-        metrics = simple_classifier.train_accuracy_calculator.get_accuracy()
+        metrics_calc = PrecisionRecallFMeasure()
+        metrics_calc.calc_metric(
+            predicted_probs=output['normalized_probs'],
+            labels=labels)
+        metrics = metrics_calc.get_metric()
         precision = metrics['precision']
 
         # NOTE: topk returns the last value in the dimension incase
