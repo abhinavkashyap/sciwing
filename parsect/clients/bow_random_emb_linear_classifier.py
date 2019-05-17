@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     MAX_NUM_WORDS = config['MAX_NUM_WORDS']
     MAX_LENGTH = config['MAX_LENGTH']
-    vocab_store_location = os.path.join(EXP_DIR_PATH, 'vocab.json')
+    VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, 'vocab.json')
     DEBUG = config['DEBUG']
     DEBUG_DATASET_PROPORTION = config['DEBUG_DATASET_PROPORTION']
     BATCH_SIZE = config['BATCH_SIZE']
@@ -45,7 +45,7 @@ if __name__ == '__main__':
         dataset_type='train',
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION
     )
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         dataset_type='valid',
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION
     )
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         dataset_type='test',
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION
     )
@@ -100,10 +100,11 @@ if __name__ == '__main__':
         batch_size=BATCH_SIZE,
         save_dir=MODEL_SAVE_DIR,
         num_epochs=NUM_EPOCHS,
-        save_every=SAVE_EVERY
+        save_every=SAVE_EVERY,
     )
 
     engine.run()
 
+    config['VOCAB_STORE_LOCATION'] = VOCAB_STORE_LOCATION
     with open(os.path.join(EXP_DIR_PATH, 'config.json'), 'w') as fp:
         json.dump(config, fp)
