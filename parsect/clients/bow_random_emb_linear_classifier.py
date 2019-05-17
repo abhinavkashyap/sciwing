@@ -6,15 +6,21 @@ import os
 import torch.nn as nn
 import torch.optim as optim
 from parsect.engine.engine import Engine
+import json
 
 FILES = constants.FILES
 PATHS = constants.PATHS
 
 SECT_LABEL_FILE = FILES['SECT_LABEL_FILE']
 OUTPUT_DIR = PATHS['OUTPUT_DIR']
+CONFIGS_DIR = PATHS['CONFIGS_DIR']
 
 if __name__ == '__main__':
-    EXP_NAME = 'test_run_1'
+    # read the hyperparams from config file
+    with open(os.path.join(CONFIGS_DIR, 'bow_random_emb_linear_classifier_settings.json')) as fp:
+        config = json.load(fp)
+
+    EXP_NAME = config['EXP_NAME']
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, 'checkpoints')
     if not os.path.isdir(EXP_DIR_PATH):
@@ -23,16 +29,16 @@ if __name__ == '__main__':
     if not os.path.isdir(MODEL_SAVE_DIR):
         os.mkdir(MODEL_SAVE_DIR)
 
-    MAX_NUM_WORDS = 3000
-    MAX_LENGTH = 15
+    MAX_NUM_WORDS = config['MAX_NUM_WORDS']
+    MAX_LENGTH = config['MAX_LENGTH']
     vocab_store_location = os.path.join(EXP_DIR_PATH, 'vocab.json')
-    DEBUG = True
-    DEBUG_DATASET_PROPORTION = 0.01
-    BATCH_SIZE = 10
-    EMBEDDING_DIMENSION = 300
-    LEARNING_RATE = 0.01
-    NUM_EPOCHS = 20
-    SAVE_EVERY = 1
+    DEBUG = config['DEBUG']
+    DEBUG_DATASET_PROPORTION = config['DEBUG_DATASET_PROPORTION']
+    BATCH_SIZE = config['BATCH_SIZE']
+    EMBEDDING_DIMENSION = config['EMBEDDING_DIMENSION']
+    LEARNING_RATE = config['LEARNING_RATE']
+    NUM_EPOCHS = config['NUM_EPOCHS']
+    SAVE_EVERY = config['SAVE_EVERY']
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -66,6 +72,7 @@ if __name__ == '__main__':
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
+
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
@@ -97,3 +104,6 @@ if __name__ == '__main__':
     )
 
     engine.run()
+
+    with open(os.path.join(EXP_DIR_PATH, 'config.json'), 'w') as fp:
+        json.dump(config, fp)
