@@ -5,32 +5,24 @@ from parsect.clients.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.modules.bow_encoder import BOW_Encoder
 import torch.nn as nn
-from torch.nn import Embedding
 
-
-FILES = constants.FILES
 PATHS = constants.PATHS
-
-SECT_LABEL_FILE = FILES['SECT_LABEL_FILE']
 OUTPUT_DIR = PATHS['OUTPUT_DIR']
 CONFIGS_DIR = PATHS['CONFIGS_DIR']
+# read the hyperparams from config file
+# TODO: you can load this from a config file
+
+hyperparam_config_filepath = os.path.join(OUTPUT_DIR, 'test_run_1', 'config.json')
 
 
-if __name__ == '__main__':
-    # read the hyperparams from config file
-    hyperparam_config_filepath = os.path.join(OUTPUT_DIR, 'test_run_1', 'config.json')
+def get_random_emb_linear_classifier_infer():
 
-    with open(hyperparam_config_filepath, 'r') as fp :
+    with open(hyperparam_config_filepath, 'r') as fp:
         config = json.load(fp)
 
     EXP_NAME = config['EXP_NAME']
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, 'checkpoints')
-    if not os.path.isdir(EXP_DIR_PATH):
-        os.mkdir(EXP_DIR_PATH)
-
-    if not os.path.isdir(MODEL_SAVE_DIR):
-        os.mkdir(MODEL_SAVE_DIR)
 
     MAX_NUM_WORDS = config['MAX_NUM_WORDS']
     MAX_LENGTH = config['MAX_LENGTH']
@@ -70,9 +62,4 @@ if __name__ == '__main__':
         hyperparam_config_filepath=hyperparam_config_filepath
     )
 
-    parsect_inference.print_confusion_matrix()
-    sentences = parsect_inference.get_misclassified_sentences(0, 3)
-    for sentence in sentences:
-        print(sentence)
-
-
+    return parsect_inference
