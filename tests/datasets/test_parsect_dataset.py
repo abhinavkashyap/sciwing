@@ -2,6 +2,8 @@ import pytest
 import parsect.constants as constants
 import pytest
 from parsect.datasets.parsect_dataset import ParsectDataset
+import torch
+from torch.utils.data import DataLoader
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES['SECT_LABEL_FILE']
@@ -50,5 +52,29 @@ class TestParsectDataset:
         num_lines = len(lines)
         for idx in range(num_lines):
             assert len(train_dataset[idx][0]) == dataset_options['MAX_LENGTH']
+
+    def test_get_class_names_from_indices(self, setup_parsect_train_dataset):
+        train_dataset, dataset_options = setup_parsect_train_dataset
+        tokens, labels, len_tokens = next(iter(train_dataset))
+        labels_list = labels.tolist()
+        true_classnames = train_dataset.get_class_names_from_indices(labels_list)
+        assert len(true_classnames) == len(labels_list)
+
+    def test_get_disp_sentence_from_indices(self, setup_parsect_train_dataset):
+        train_dataset, dataset_options = setup_parsect_train_dataset
+        loader = DataLoader(
+            dataset=train_dataset,
+            batch_size=2,
+            shuffle=False
+        )
+        tokens, labels, len_tokens = next(iter(loader))
+        tokens_list = tokens.tolist()
+        train_sentence = train_dataset.get_disp_sentence_from_indices(tokens_list[0])
+        assert all([True for sentence in train_sentence if type(sentence) == str])
+
+
+
+
+
 
 

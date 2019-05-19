@@ -111,7 +111,7 @@ class PrecisionRecallFMeasure:
 
         assert len(classes) == len(confusion_mtrx.tolist())
 
-        header = ['class_{0}'.format(class_) for class_ in classes]
+        header = ['{0}'.format(class_) for class_ in classes]
 
         self.msg_printer.table(data=confusion_mtrx,
                                header=header,

@@ -1,5 +1,7 @@
 import torch
+import wasabi
 import numpy as np
+import collections
 from torch.utils.data import Dataset
 from typing import List, Dict
 import parsect.constants as constants
@@ -53,6 +55,7 @@ class ParsectDataset(Dataset):
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
+        self.idx2classname = {idx: classname for classname, idx in self.label_mapping.items()}
         self.allowable_dataset_types = ['train', 'valid', 'test']
         self.msg_printer = Printer()
 
@@ -106,7 +109,7 @@ class ParsectDataset(Dataset):
             parsect_json = filter(lambda json_line: json_line['file_no'] in [21, 30], parsect_json)
 
         elif self.dataset_type == 'test':
-            parsect_json = filter(lambda json_line: json_line['file_no'] in [30, 40], parsect_json)
+            parsect_json = filter(lambda json_line: json_line['file_no'] in [31, 40], parsect_json)
 
         with self.msg_printer.loading("Loading"):
             for line_json in parsect_json:
@@ -157,26 +160,59 @@ class ParsectDataset(Dataset):
     def get_num_classes(self) -> int:
         return len(self.label_mapping.keys())
 
+    def get_class_names_from_indices(self,
+                                      indices: List):
+        return [self.idx2classname[idx] for idx in indices]
+
+    def get_disp_sentence_from_indices(self,
+                                        indices: List) -> str:
+
+        token = [self.vocab.get_token_from_idx(idx) for idx in indices]
+        sentence = ' '.join(token)
+        return sentence
+
+    def get_stats(self):
+        """
+        Return some stats about the dataset
+        """
+        num_instances = len(self.instances)
+        all_labels = []
+        for idx in range(num_instances):
+            tokens, labels, len_tokens = self[idx]
+            all_labels.append(labels.item())
+
+        labels_stats = dict(collections.Counter(all_labels))
+        classes = list(set(labels_stats.keys()))
+        classes = sorted(classes)
+        header = ["label index", 'label name', 'count']
+        rows = [(class_, self.idx2classname[class_], labels_stats[class_]) for class_ in classes]
+        formatted = wasabi.table(data=rows,
+                     header=header,
+                     divider=True
+                    )
+        self.msg_printer.divider('Stats for {0} dataset'.format(self.dataset_type))
+        print(formatted)
+
 
 if __name__ == '__main__':
     import os
 
     vocab_store_location = os.path.join('.', 'vocab.json')
-    train_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
-        dataset_type='train',
-        max_num_words=1000,
-        max_length=15,
-        vocab_store_location=vocab_store_location
-    )
-
-    validation_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
-        dataset_type='valid',
-        max_num_words=1000,
-        max_length=15,
-        vocab_store_location=vocab_store_location
-    )
+    # train_dataset = ParsectDataset(
+    #     secthead_label_file=SECT_LABEL_FILE,
+    #     dataset_type='train',
+    #     max_num_words=1000,
+    #     max_length=15,
+    #     vocab_store_location=vocab_store_location
+    # )
+    #
+    # validation_dataset = ParsectDataset(
+    #     secthead_label_file=SECT_LABEL_FILE,
+    #     dataset_type='valid',
+    #     max_num_words=1000,
+    #     max_length=15,
+    #     vocab_store_location=vocab_store_location
+    # )
 
     test_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -185,3 +221,4 @@ if __name__ == '__main__':
         max_length=15,
         vocab_store_location=vocab_store_location
     )
+    test_dataset.get_stats()

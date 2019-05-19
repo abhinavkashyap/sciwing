@@ -106,5 +106,8 @@ if __name__ == '__main__':
     engine.run()
 
     config['VOCAB_STORE_LOCATION'] = VOCAB_STORE_LOCATION
+    config['MODEL_SAVE_DIR'] = MODEL_SAVE_DIR
+    config['VOCAB_SIZE'] = VOCAB_SIZE
+    config['NUM_CLASSES'] = NUM_CLASSES
     with open(os.path.join(EXP_DIR_PATH, 'config.json'), 'w') as fp:
         json.dump(config, fp)

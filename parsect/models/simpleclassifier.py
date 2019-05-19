@@ -49,7 +49,11 @@ class SimpleClassifier(nn.Module):
         :param is_training: type: bool
         indicates whether the forward method is being called for training
         inn which case we have to calculate a loss or during inference time
-        when just the probabilities are returne
+        when just the probabilities are returned
+        :param is_test: type: bool
+        Is this model being run in the inference mode
+        :param is_validation: type: bool
+        Is this model beign run in the validation model
         :return: type: Dict[str, Any]
         """
 

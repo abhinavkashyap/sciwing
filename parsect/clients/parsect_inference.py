@@ -1,9 +1,12 @@
 import json
 from parsect.datasets.parsect_dataset import ParsectDataset
 import parsect.constants as constants
-from torch.utils.data import Dataset
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from torch.utils.data import DataLoader
 import torch
+import torch.nn as nn
+from typing import Any, Dict, List, Tuple
+import pandas as pd
 
 FILES = constants.FILES
 
@@ -24,8 +27,9 @@ class ParsectInference:
     2) Investigate a particular example in the test dataset
     3) Get instances that were classified as 2 when their true label is 1 and others
     """
+
     def __init__(self,
-                 model: torch.nn.Module,
+                 model: nn.Module,
                  model_filepath: str,
                  hyperparam_config_filepath: str):
         """
@@ -54,12 +58,25 @@ class ParsectInference:
         self.lr = config['LEARNING_RATE']
         self.num_epochs = config['NUM_EPOCHS']
         self.save_every = config['SAVE_EVERY']
+        self.model_save_dir = config['MODEL_SAVE_DIR']
+        self.vocab_size = config['VOCAB_SIZE']
+        self.num_classes = config['NUM_CLASSES']
 
+        self.metrics_calculator = PrecisionRecallFMeasure()
         self.test_dataset = self.get_test_dataset()
         self.load_model()
-        self.run_inference()
+        self.output_analytics = self.run_inference()
 
-    def get_test_dataset(self) -> Dataset:
+        # create a dataframe with all the information
+        self.output_df = pd.DataFrame({
+            'true_labels_indices': self.output_analytics['true_labels_indices'].tolist(),
+            'pred_class_names': self.output_analytics['pred_class_names'],
+            'true_class_names': self.output_analytics['true_class_names'],
+            'sentences': self.output_analytics['sentences'],
+            'predicted_labels_indices': self.output_analytics['predicted_labels_indices']
+        })
+
+    def get_test_dataset(self) -> ParsectDataset:
         test_dataset = ParsectDataset(
             secthead_label_file=SECT_LABEL_FILE,
             dataset_type='test',
@@ -72,14 +89,78 @@ class ParsectInference:
         return test_dataset
 
     def load_model(self):
-
         model_chkpoint = torch.load(self.model_filepath)
         model_state_dict = model_chkpoint['model_state']
         self.model.load_state_dict(model_state_dict)
 
-    def run_inference(self):
+    def run_inference(self) -> Dict[str, Any]:
         loader = DataLoader(dataset=self.test_dataset,
                             batch_size=self.batch_size,
                             shuffle=False)
-        pass 
+        output_analytics = {}
+        pred_class_names = []  # contains the predicted class names for all the instances
+        true_class_names = []  # contains the true class names for all the instances
+        sentences = []  # batch sentences in english
+        true_labels_indices = []
+        predicted_labels_indices = []
 
+        for tokens, labels, len_tokens in loader:
+            labels = labels.squeeze(1)
+            labels_list = labels.tolist()
+
+            tokens_list = tokens.tolist()
+            batch_sentences = list(
+                map(self.test_dataset.get_disp_sentence_from_indices,
+                    tokens_list)
+            )
+
+            model_output_dict = self.model(tokens, labels,
+                                           is_training=False,
+                                           is_validation=False,
+                                           is_test=True)
+            normalized_probs = model_output_dict['normalized_probs']
+
+            top_probs, top_indices = torch.topk(normalized_probs, k=1, dim=1)
+            top_indices_list = top_indices.squeeze().tolist()
+
+            pred_label_names = self.test_dataset.get_class_names_from_indices(top_indices_list)
+            true_label_names = self.test_dataset.get_class_names_from_indices(labels_list)
+
+            true_labels_indices.append(labels)
+            pred_class_names.extend(pred_label_names)
+            true_class_names.extend(true_label_names)
+            sentences.extend(batch_sentences)
+            predicted_labels_indices.extend(top_indices_list)
+
+        # contains predicted probs for all the instances
+        true_labels_indices = torch.cat(true_labels_indices, dim=0).squeeze()
+
+        output_analytics['true_labels_indices'] = true_labels_indices  # torch.LongTensor
+        output_analytics['predicted_labels_indices'] = predicted_labels_indices
+        output_analytics['pred_class_names'] = pred_class_names
+        output_analytics['true_class_names'] = true_class_names
+        output_analytics['sentences'] = sentences
+
+        return output_analytics
+
+    def get_misclassifications(self,
+                               true_label_idx: int,
+                               pred_label_idx: int) -> List[str]:
+        """
+        This returns the true label misclassified as
+        pred label idx
+        :param true_label_idx: type: int
+        :param pred_label_idx: type: int
+        """
+        instances_idx = self.output_df[
+            self.output_df['true_labels_indices'].isin([true_label_idx]) &
+            self.output_df['predicted_labels_indices'].isin([pred_label_idx])
+            ].index.tolist()
+
+        sentences = [self.output_analytics['sentences'][idx] for idx in instances_idx]
+
+        return sentences
+
+
+if __name__ == '__main__':
+    pass
