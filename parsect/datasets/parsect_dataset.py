@@ -103,13 +103,13 @@ class ParsectDataset(Dataset):
         labels = []
         parsect_json = self.parsect_json["parse_sect"]
         if self.dataset_type == 'train':
-            parsect_json = filter(lambda json_line: json_line['file_no'] in [1, 20], parsect_json)
+            parsect_json = filter(lambda json_line: json_line['file_no'] in list(range(1, 21)), parsect_json)
 
         elif self.dataset_type == 'valid':
-            parsect_json = filter(lambda json_line: json_line['file_no'] in [21, 30], parsect_json)
+            parsect_json = filter(lambda json_line: json_line['file_no'] in list(range(21, 31)), parsect_json)
 
         elif self.dataset_type == 'test':
-            parsect_json = filter(lambda json_line: json_line['file_no'] in [31, 40], parsect_json)
+            parsect_json = filter(lambda json_line: json_line['file_no'] in list(range(31, 41)), parsect_json)
 
         with self.msg_printer.loading("Loading"):
             for line_json in parsect_json:
@@ -122,6 +122,7 @@ class ParsectDataset(Dataset):
         if self.debug:
             # randomly sample 10% samples and return
             num_text = len(texts)
+            np.random.seed(1729)  # so we can debug deterministically
             random_ints = np.random.randint(0, num_text - 1,
                                             size=int(self.debug_dataset_proportion * num_text))
             random_ints = list(random_ints)
@@ -129,7 +130,9 @@ class ParsectDataset(Dataset):
             sample_labels = []
             for random_int in random_ints:
                 sample_texts.append(texts[random_int])
-                sample_labels.append(texts[random_int])
+                sample_labels.append(labels[random_int])
+            texts = sample_texts
+            labels = sample_labels
 
         self.msg_printer.good('Finished Reading JSON lines from the data file')
 
@@ -192,33 +195,42 @@ class ParsectDataset(Dataset):
                     )
         self.msg_printer.divider('Stats for {0} dataset'.format(self.dataset_type))
         print(formatted)
+        self.msg_printer.info('Number of instances in {0} dataset - {1}'.format(self.dataset_type,
+                                                                                len(self)))
 
 
 if __name__ == '__main__':
     import os
 
     vocab_store_location = os.path.join('.', 'vocab.json')
-    # train_dataset = ParsectDataset(
-    #     secthead_label_file=SECT_LABEL_FILE,
-    #     dataset_type='train',
-    #     max_num_words=1000,
-    #     max_length=15,
-    #     vocab_store_location=vocab_store_location
-    # )
-    #
-    # validation_dataset = ParsectDataset(
-    #     secthead_label_file=SECT_LABEL_FILE,
-    #     dataset_type='valid',
-    #     max_num_words=1000,
-    #     max_length=15,
-    #     vocab_store_location=vocab_store_location
-    # )
+    DEBUG = False
+    train_dataset = ParsectDataset(
+        secthead_label_file=SECT_LABEL_FILE,
+        dataset_type='train',
+        max_num_words=1000,
+        max_length=15,
+        vocab_store_location=vocab_store_location,
+        debug=DEBUG
+    )
+
+    validation_dataset = ParsectDataset(
+        secthead_label_file=SECT_LABEL_FILE,
+        dataset_type='valid',
+        max_num_words=1000,
+        max_length=15,
+        vocab_store_location=vocab_store_location,
+        debug=DEBUG
+    )
 
     test_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
         dataset_type='test',
         max_num_words=1000,
         max_length=15,
-        vocab_store_location=vocab_store_location
+        vocab_store_location=vocab_store_location,
+        debug=DEBUG
     )
+    train_dataset.get_stats()
+    validation_dataset.get_stats()
     test_dataset.get_stats()
+    os.remove(vocab_store_location)
