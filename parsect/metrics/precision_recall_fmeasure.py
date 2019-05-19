@@ -102,16 +102,20 @@ class PrecisionRecallFMeasure:
         top_indices_numpy = top_indices.numpy().ravel()
 
         # convert labels to 1 dimension
-        labels_numpy = labels.numpy()
+        true_labels_numpy = labels.numpy()
 
-        confusion_mtrx = confusion_matrix(labels_numpy, top_indices_numpy)
+        confusion_mtrx = confusion_matrix(true_labels_numpy, top_indices_numpy)
 
-        classes = unique_labels(labels_numpy, top_indices_numpy)
+        classes = unique_labels(true_labels_numpy, top_indices_numpy)
         classes = classes.tolist()
 
-        assert len(classes) == len(confusion_mtrx.tolist())
+        # insert th
+        confusion_mtrx = np.insert(confusion_mtrx, 0, classes, axis=1)
+
+        assert len(classes) == confusion_mtrx.shape[1] - 1
 
         header = ['{0}'.format(class_) for class_ in classes]
+        header.insert(0, 'pred (cols) / true (rows)')
 
         self.msg_printer.table(data=confusion_mtrx,
                                header=header,

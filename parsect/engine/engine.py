@@ -11,6 +11,7 @@ import os
 from tensorboardX import SummaryWriter
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import numpy as np
+import time
 
 class Engine:
     def __init__(self,
@@ -89,6 +90,12 @@ class Engine:
         # get metric calculators
         self.train_metric_calc, self.validation_metric_calc, \
         self.test_metric_calc = self.get_metric_calculators()
+
+        self.msg_printer.divider('ENGINE STARTING')
+        self.msg_printer.info('Number of training examples {0}'.format(len(self.train_dataset)))
+        self.msg_printer.info('Number of validation examples {0}'.format(len(self.validation_dataset)))
+        self.msg_printer.info('Number of test examples {0}'.format(len(self.test_dataset)))
+        time.sleep(3)
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
@@ -251,7 +258,7 @@ class Engine:
 
     def test_epoch_end(self,
                        epoch_num: int):
-        metrics = self.train_metric_calc.report_metrics()
+        metrics = self.test_metric_calc.report_metrics()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num))
         print(metrics)
 

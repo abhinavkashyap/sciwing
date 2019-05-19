@@ -70,6 +70,9 @@ if __name__ == '__main__':
         hyperparam_config_filepath=hyperparam_config_filepath
     )
 
-    sentences = parsect_inference.get_misclassifications(1, 16)
-    print(sentences)
+    parsect_inference.print_confusion_matrix()
+    sentences = parsect_inference.get_misclassified_sentences(0, 3)
+    for sentence in sentences:
+        print(sentence)
+
 

@@ -103,6 +103,7 @@ class ParsectInference:
         sentences = []  # batch sentences in english
         true_labels_indices = []
         predicted_labels_indices = []
+        all_pred_probs = []
 
         for tokens, labels, len_tokens in loader:
             labels = labels.squeeze(1)
@@ -131,8 +132,10 @@ class ParsectInference:
             true_class_names.extend(true_label_names)
             sentences.extend(batch_sentences)
             predicted_labels_indices.extend(top_indices_list)
+            all_pred_probs.append(normalized_probs)
 
         # contains predicted probs for all the instances
+        all_pred_probs = torch.cat(all_pred_probs, dim=0)
         true_labels_indices = torch.cat(true_labels_indices, dim=0).squeeze()
 
         output_analytics['true_labels_indices'] = true_labels_indices  # torch.LongTensor
@@ -140,12 +143,13 @@ class ParsectInference:
         output_analytics['pred_class_names'] = pred_class_names
         output_analytics['true_class_names'] = true_class_names
         output_analytics['sentences'] = sentences
+        output_analytics['all_pred_probs'] = all_pred_probs
 
         return output_analytics
 
-    def get_misclassifications(self,
-                               true_label_idx: int,
-                               pred_label_idx: int) -> List[str]:
+    def get_misclassified_sentences(self,
+                                    true_label_idx: int,
+                                    pred_label_idx: int) -> List[str]:
         """
         This returns the true label misclassified as
         pred label idx
@@ -160,6 +164,12 @@ class ParsectInference:
         sentences = [self.output_analytics['sentences'][idx] for idx in instances_idx]
 
         return sentences
+
+    def print_confusion_matrix(self) -> None:
+        self.metrics_calculator.print_confusion_metrics(
+            predicted_probs=self.output_analytics['all_pred_probs'],
+            labels=self.output_analytics['true_labels_indices']
+        )
 
 
 if __name__ == '__main__':

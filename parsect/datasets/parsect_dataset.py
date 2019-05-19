@@ -170,7 +170,8 @@ class ParsectDataset(Dataset):
     def get_disp_sentence_from_indices(self,
                                         indices: List) -> str:
 
-        token = [self.vocab.get_token_from_idx(idx) for idx in indices]
+        token = [self.vocab.get_token_from_idx(idx) for idx in indices if idx !=
+                 self.vocab.special_vocab[self.vocab.pad_token][1]]
         sentence = ' '.join(token)
         return sentence
 
