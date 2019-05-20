@@ -233,7 +233,7 @@ class TestVocab:
 
     def test_orig_vocab_len(self, instances):
         single_instance = instances['single_instance']
-        MAX_NUM_WORDS = 100
+        MAX_NUM_WORDS = 0
         vocab_builder = Vocab(
             instances=single_instance,
             max_num_words=MAX_NUM_WORDS

@@ -73,6 +73,7 @@ class ParsectDataset(Dataset):
                            max_num_words=self.max_num_words,
                            store_location=self.store_location)
         self.vocab.build_vocab()
+        self.vocab.print_stats()
 
         self.numericalizer = Numericalizer(max_length=self.max_length,
                                            vocabulary=self.vocab)
@@ -205,10 +206,11 @@ if __name__ == '__main__':
 
     vocab_store_location = os.path.join('.', 'vocab.json')
     DEBUG = False
+    MAX_NUM_WORDS = 500
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
         dataset_type='train',
-        max_num_words=1000,
+        max_num_words=MAX_NUM_WORDS,
         max_length=15,
         vocab_store_location=vocab_store_location,
         debug=DEBUG
@@ -217,7 +219,7 @@ if __name__ == '__main__':
     validation_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
         dataset_type='valid',
-        max_num_words=1000,
+        max_num_words=MAX_NUM_WORDS,
         max_length=15,
         vocab_store_location=vocab_store_location,
         debug=DEBUG
@@ -226,7 +228,7 @@ if __name__ == '__main__':
     test_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
         dataset_type='test',
-        max_num_words=1000,
+        max_num_words=MAX_NUM_WORDS,
         max_length=15,
         vocab_store_location=vocab_store_location,
         debug=DEBUG

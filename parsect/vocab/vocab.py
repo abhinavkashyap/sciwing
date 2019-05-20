@@ -5,6 +5,7 @@ import json
 import os
 from wasabi import Printer
 import wasabi
+from copy import deepcopy
 
 
 class Vocab:
@@ -82,7 +83,7 @@ class Vocab:
 
         # order the order in decreasing order of their frequencies
         # List[Tuple]
-        counter = sorted(counter.items(),key=itemgetter(1), reverse=True)
+        counter = sorted(counter.items(), key=itemgetter(1), reverse=True)
 
         vocab = {}
 
@@ -135,7 +136,7 @@ class Vocab:
         else:
             self.msg_printer.info("BUILDING VOCAB")
             vocab = self.map_words_to_freq_idx()
-            self.orig_vocab = vocab
+            self.orig_vocab = deepcopy(vocab)  # dictionary are passed by reference. Be careful
             vocab = self.clip_on_mincount(vocab)
             vocab = self.clip_on_max_num(vocab)
             self.vocab = vocab
@@ -159,7 +160,7 @@ class Vocab:
         if not self.orig_vocab:
             raise ValueError("Build vocab first by calling build_vocab()")
 
-        length = len(set(idx for freq, idx in self.vocab.values()))
+        length = len(set(idx for freq, idx in self.orig_vocab.values()))
         return length
 
     def get_token2idx_mapping(self) -> Dict[str, int]:
@@ -246,7 +247,7 @@ class Vocab:
                   "a json file".format(filename))
 
     def get_token_from_idx(self,
-                           idx: int)-> str:
+                           idx: int) -> str:
         if not self.vocab:
             raise ValueError("Please build the vocab first")
 
@@ -259,7 +260,7 @@ class Vocab:
             vocab_len = self.get_vocab_len()
             message = "You tried to access idx {0} of the vocab " \
                       "The length of the vocab is {1}. Please Provide " \
-                      "Number between {2}".format(idx, vocab_len, vocab_len-1)
+                      "Number between {2}".format(idx, vocab_len, vocab_len - 1)
             raise ValueError(message)
 
     def get_idx_from_token(self,
@@ -276,7 +277,7 @@ class Vocab:
             return self.token2idx[self.unk_token]
 
     def get_topn_frequent_words(self,
-                                n: int=5) -> List[Tuple[str, int]]:
+                                n: int = 5) -> List[Tuple[str, int]]:
         idx2token = self.idx2token
         token_freqs = []
         max_n = min(len(self.special_vocab) + n, self.get_vocab_len())
@@ -296,12 +297,11 @@ class Vocab:
         data = [('Original vocab length', orig_vocab_len),
                 ('Clipped vocab length', vocab_len),
                 ('Top {0} words'.format(N), top_n)]
-        header = ("-", "Stats")
+        header = ("Stats Description", "#")
         table_string = wasabi.table(
-                     data=data,
-                     header=header,
-                     divider=True
+            data=data,
+            header=header,
+            divider=True
         )
+        self.msg_printer.divider("VOCAB STATS")
         print(table_string)
-
-
