@@ -7,7 +7,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
-from collections import Counter
+
 
 
 class PrecisionRecallFMeasure:
@@ -149,13 +149,13 @@ class PrecisionRecallFMeasure:
         classes = classes.tolist()
 
         # calculate tps
-        tps = np.diag(confusion_mtrx)
+        tps = np.around(np.diag(confusion_mtrx), decimals=4)
 
         # calculate fps
-        fps = np.sum(confusion_mtrx, axis=0) - tps
+        fps = np.around(np.sum(confusion_mtrx, axis=0) - tps, decimals=4)
 
         # calculate fns
-        fns = np.sum(confusion_mtrx, axis=1) - tps
+        fns = np.around(np.sum(confusion_mtrx, axis=1) - tps, decimals=4)
 
         tps = tps.tolist()
         fps = fps.tolist()
@@ -183,17 +183,20 @@ class PrecisionRecallFMeasure:
                 self.msg_printer.warn("both tp and fp are 0 .. setting precision to 0")
             else:
                 precision = tp / (tp + fp)
+                precision = np.around(precision, decimals=4)
             if tp == 0 and fn == 0:
                 recall = 0
                 self.msg_printer.warn("both tp and fn are 0 .. setting recall to 0")
             else:
                 recall = tp / (tp + fn)
+                recall = np.around(recall, decimals=4)
 
             if precision == 0 and recall == 0:
                 fscore = 0
                 self.msg_printer.warn("both precision and recall are 0 .. setting fscore to 0")
             else:
                 fscore = (2 * precision * recall) / (precision + recall)
+                fscore = np.around(fscore, decimals=4)
 
             precision_dict[key] = precision
             recall_dict[key] = recall

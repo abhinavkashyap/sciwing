@@ -184,7 +184,7 @@ class Engine:
                                           'a key called loss. Please check to have '
                                           'loss in the model output')
                 num_iterations += 1
-                if (num_iterations + 1) % self.log_train_metrics_every:
+                if (num_iterations + 1) % self.log_train_metrics_every == 0:
                     metrics = self.train_metric_calc.report_metrics()
                     precision_recall_fmeasure = self.train_metric_calc.get_metric()
                     print(metrics)
