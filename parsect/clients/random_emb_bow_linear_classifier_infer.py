@@ -9,14 +9,12 @@ import torch.nn as nn
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS['OUTPUT_DIR']
 CONFIGS_DIR = PATHS['CONFIGS_DIR']
-# read the hyperparams from config file
-# TODO: you can load this from a config file
-
-hyperparam_config_filepath = os.path.join(OUTPUT_DIR, 'test_run_1', 'config.json')
 
 
-def get_random_emb_linear_classifier_infer():
-
+def get_random_emb_linear_classifier_infer(
+        dirname: str
+):
+    hyperparam_config_filepath = os.path.join(dirname, 'config.json')
     with open(hyperparam_config_filepath, 'r') as fp:
         config = json.load(fp)
 

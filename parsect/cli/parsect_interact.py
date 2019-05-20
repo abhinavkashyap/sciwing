@@ -4,7 +4,10 @@ from typing import List
 from parsect.clients.random_emb_bow_linear_classifier_infer import get_random_emb_linear_classifier_infer
 import wasabi
 import parsect.constants as constants
+import os
 PATHS = constants.PATHS
+
+OUTPUT_DIR = PATHS['OUTPUT_DIR']
 
 
 class ParsectCli:
@@ -38,7 +41,19 @@ class ParsectCli:
     def get_inference(self):
         inference = None
         if self.model_type_answer == 'random embedding-bow encoder-linear classifier':
-            inference = get_random_emb_linear_classifier_infer()
+            choices = []
+            for expname in os.listdir(OUTPUT_DIR):
+                if expname.startswith('bow_random_emb_lc'):
+                     choices.append(Choice(expname))
+
+            exp_choice = questionary.rawselect(
+                'Please select an experiment',
+                choices=choices,
+                qmark='❓',
+
+            ).ask()
+            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_random_emb_linear_classifier_infer(exp_choice)
         return inference
 
     def interact(self):
