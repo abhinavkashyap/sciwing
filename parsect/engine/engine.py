@@ -12,6 +12,8 @@ from tensorboardX import SummaryWriter
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import numpy as np
 import time
+import json_logging
+import logging
 
 class Engine:
     def __init__(self,
@@ -24,6 +26,7 @@ class Engine:
                  save_dir: str,
                  num_epochs: int,
                  save_every: int,
+                 log_train_metrics_every: int,
                  tensorboard_logdir: str = None,
                  metric='accuracy'):
         """
@@ -47,6 +50,8 @@ class Engine:
         Number of epochs to run training
         :param save_every: type: int
         The model state will be save every `save_every` num of epochs
+        :param log_train_metrics_every
+        The train metrics will logged every `log_train_metrics_every` iterations
         :param tensorboard_logdir: type: str
         pass in the directory where tensorboard logs are stored
         By default it will be put in a directory called run/ in the same directory as the
@@ -63,6 +68,7 @@ class Engine:
         self.num_epochs = num_epochs
         self.msg_printer = Printer()
         self.save_every = save_every
+        self.log_train_metrics_every = log_train_metrics_every
         self.tensorboard_logdir = tensorboard_logdir
         self.metric = metric
         self.summaryWriter = SummaryWriter(log_dir=tensorboard_logdir)
@@ -96,6 +102,26 @@ class Engine:
         self.msg_printer.info('Number of validation examples {0}'.format(len(self.validation_dataset)))
         self.msg_printer.info('Number of test examples {0}'.format(len(self.test_dataset)))
         time.sleep(3)
+
+        # get the loggers ready
+        json_logging.ENABLE_JSON_LOGGING = True
+        json_logging.init()
+        self.train_log_filename = os.path.join(self.save_dir, 'train.log')
+        self.validation_log_filename = os.path.join(self.save_dir, 'validation.log')
+        self.test_log_filename = os.path.join(self.save_dir, 'test.log')
+
+        self.train_logger = logging.getLogger('train-logger')
+        self.validation_logger = logging.getLogger('validation-logger')
+        self.test_logger = logging.getLogger('test-logger')
+
+        self.train_logger.setLevel(logging.DEBUG)
+        self.train_logger.addHandler(logging.FileHandler(self.train_log_filename))
+
+        self.validation_logger.setLevel(logging.DEBUG)
+        self.validation_logger.addHandler(logging.FileHandler(self.validation_log_filename))
+
+        self.test_logger.setLevel(logging.DEBUG)
+        self.test_logger.addHandler(logging.FileHandler(self.test_log_filename))
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
@@ -158,8 +184,12 @@ class Engine:
                                           'a key called loss. Please check to have '
                                           'loss in the model output')
                 num_iterations += 1
-                metrics = self.train_metric_calc.report_metrics()
-                print(metrics)
+                if (num_iterations + 1) % self.log_train_metrics_every:
+                    metrics = self.train_metric_calc.report_metrics()
+                    precision_recall_fmeasure = self.train_metric_calc.get_metric()
+                    print(metrics)
+                    self.train_logger.info('Training Metrics at iteration {0} - {1}'
+                                           .format(num_iterations + 1, precision_recall_fmeasure))
             except StopIteration:
                 self.train_epoch_end(epoch_num)
                 break
@@ -172,9 +202,11 @@ class Engine:
         The epoch number that just ended
         """
 
-        self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num))
+        self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num + 1))
         average_loss = self.train_loss_meter.get_average()
         self.msg_printer.text('Average Loss: {0}'.format(average_loss))
+        self.train_logger.info('Average loss @ Epoch {0} - {1}'
+                               .format(epoch_num + 1, average_loss))
 
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
@@ -227,10 +259,18 @@ class Engine:
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
 
         metrics = self.validation_metric_calc.report_metrics()
+        precision_recall_fmeasure = self.validation_metric_calc.get_metric()
         average_loss = self.validation_loss_meter.get_average()
         print(metrics)
 
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
+
+        self.validation_logger.info('Validation Metrics @ Epoch {0} - {1}'
+                                    .format(epoch_num + 1, precision_recall_fmeasure))
+        self.validation_logger.info('Validation Loss @ Epoch {0} - {1}'.format(
+            epoch_num + 1,
+            average_loss
+        ))
 
         self.summaryWriter.add_scalars('train_validation_loss',
                                        {'validation_loss': average_loss or np.inf},
@@ -259,8 +299,11 @@ class Engine:
     def test_epoch_end(self,
                        epoch_num: int):
         metrics = self.test_metric_calc.report_metrics()
+        precision_recall_fmeasure = self.test_metric_calc.get_metric()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num))
         print(metrics)
+        self.test_logger.info('Test Metrics @ Epoch {0} - {1}'
+                                    .format(epoch_num + 1, precision_recall_fmeasure))
 
     def get_train_dataset(self):
         return self.train_dataset

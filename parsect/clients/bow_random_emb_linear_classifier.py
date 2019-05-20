@@ -39,6 +39,7 @@ if __name__ == '__main__':
     LEARNING_RATE = config['LEARNING_RATE']
     NUM_EPOCHS = config['NUM_EPOCHS']
     SAVE_EVERY = config['SAVE_EVERY']
+    LOG_TRAIN_METRICS_EVERY = config['LOG_TRAIN_METRICS_EVERY']
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -101,6 +102,7 @@ if __name__ == '__main__':
         save_dir=MODEL_SAVE_DIR,
         num_epochs=NUM_EPOCHS,
         save_every=SAVE_EVERY,
+        log_train_metrics_every=LOG_TRAIN_METRICS_EVERY
     )
 
     engine.run()
