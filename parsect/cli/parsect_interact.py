@@ -48,13 +48,13 @@ class ParsectCli:
                 qmark='❓',
                 choices=[
                     Choice('See-Confusion-Matrix'),
-                    Choice('See-examples-of-Misclassifications'),
+                    Choice('See-examples-of-Classifications'),
                     Choice('exit')
                 ]
             ).ask()
             if interaction_choice == 'See-Confusion-Matrix':
                 self.inference_client.print_confusion_matrix()
-            elif interaction_choice == 'See-examples-of-Misclassifications':
+            elif interaction_choice == 'See-examples-of-Classifications':
                 misclassification_choice = questionary.text(
                     'Enter Two Classes separated by a space. [Hint: 1 2]'
                 ).ask()
@@ -63,8 +63,12 @@ class ParsectCli:
                 sentences = self.inference_client.get_misclassified_sentences(first_class, second_class)
                 self.msg_printer.divider('Sentences with class {0} misclassified as {1}'
                                          .format(first_class, second_class))
-                for sentence in sentences:
-                    self.msg_printer.fail(sentence)
+                if first_class != second_class:
+                    for sentence in sentences:
+                        self.msg_printer.fail(sentence)
+                else:
+                    for sentence in sentences:
+                        self.msg_printer.good(sentence)
                 self.msg_printer.divider('')
             elif interaction_choice == 'exit':
                 self.msg_printer.text('See you again!')
