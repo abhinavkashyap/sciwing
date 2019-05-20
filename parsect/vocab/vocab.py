@@ -4,6 +4,7 @@ from operator import itemgetter
 import json
 import os
 from wasabi import Printer
+import wasabi
 
 
 class Vocab:
@@ -52,6 +53,7 @@ class Vocab:
         self.end_token = end_token
         self.special_token_freq = special_token_freq
         self.vocab = None
+        self.orig_vocab = None
         self.idx2token = None
         self.token2idx = None
         self.store_location = store_location
@@ -133,9 +135,12 @@ class Vocab:
         else:
             self.msg_printer.info("BUILDING VOCAB")
             vocab = self.map_words_to_freq_idx()
+            self.orig_vocab = vocab
             vocab = self.clip_on_mincount(vocab)
             vocab = self.clip_on_max_num(vocab)
             self.vocab = vocab
+            self.idx2token = self.get_idx2token_mapping()
+            self.token2idx = self.get_token2idx_mapping()
 
             if self.store_location:
                 self.msg_printer.info('SAVING VOCAB TO FILE')
@@ -143,9 +148,16 @@ class Vocab:
             return vocab
         self.msg_printer.good('Finished vocab loading')
 
-    def get_vocab_len(self):
+    def get_vocab_len(self) -> int:
         if not self.vocab:
             raise ValueError('Build vocab first by calling build_vocab()')
+
+        length = len(set(idx for freq, idx in self.vocab.values()))
+        return length
+
+    def get_orig_vocab_len(self) -> int:
+        if not self.orig_vocab:
+            raise ValueError("Build vocab first by calling build_vocab()")
 
         length = len(set(idx for freq, idx in self.vocab.values()))
         return length
@@ -195,6 +207,7 @@ class Vocab:
             'special_token_freq': self.special_token_freq
         }
         vocab_state['vocab'] = self.vocab
+        vocab_state['orig_vocab'] = self.orig_vocab
         try:
             with open(filename, 'w') as fp:
                 json.dump(vocab_state, fp)
@@ -209,11 +222,13 @@ class Vocab:
                 vocab_state = json.load(fp)
                 vocab_options = vocab_state['options']
                 vocab = vocab_state['vocab']
+                orig_vocab = vocab_state['orig_vocab']
 
                 # restore the object
                 # restore all the property values from the file
 
                 self.vocab = vocab
+                self.orig_vocab = orig_vocab
                 self.token2idx = self.get_token2idx_mapping()
                 self.idx2token = self.get_idx2token_mapping()
                 self.max_num_words = vocab_options['max_num_words']
@@ -259,3 +274,34 @@ class Vocab:
             return self.token2idx[token]
         except KeyError:
             return self.token2idx[self.unk_token]
+
+    def get_topn_frequent_words(self,
+                                n: int=5) -> List[Tuple[str, int]]:
+        idx2token = self.idx2token
+        token_freqs = []
+        max_n = min(len(self.special_vocab) + n, self.get_vocab_len())
+        for idx in range(len(self.special_vocab), max_n):
+            token = idx2token[idx]
+            freq = self.orig_vocab[token][0]
+            token_freqs.append((token, freq))
+
+        return token_freqs
+
+    def print_stats(self) -> None:
+        orig_vocab_len = self.get_orig_vocab_len()
+        vocab_len = self.get_vocab_len()
+        N = 5
+        top_n = self.get_topn_frequent_words(n=N)
+
+        data = [('Original vocab length', orig_vocab_len),
+                ('Clipped vocab length', vocab_len),
+                ('Top {0} words'.format(N), top_n)]
+        header = ("-", "Stats")
+        table_string = wasabi.table(
+                     data=data,
+                     header=header,
+                     divider=True
+        )
+        print(table_string)
+
+

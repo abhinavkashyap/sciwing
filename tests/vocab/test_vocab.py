@@ -231,6 +231,37 @@ class TestVocab:
 
         assert unknown_idx == 0
 
+    def test_orig_vocab_len(self, instances):
+        single_instance = instances['single_instance']
+        MAX_NUM_WORDS = 100
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_words=MAX_NUM_WORDS
+        )
+        vocab_builder.build_vocab()
+        vocab_len = vocab_builder.get_orig_vocab_len()
+        assert vocab_len == 3 + len(vocab_builder.special_vocab)
+
+    def test_get_topn(self, instances):
+        single_instance = instances['single_instance']
+        MAX_NUM_WORDS = 100
+        vocab_builder = Vocab(single_instance,
+                              max_num_words=MAX_NUM_WORDS)
+        vocab_builder.build_vocab()
+        words_freqs = vocab_builder.get_topn_frequent_words(n=1)
+
+        assert words_freqs[0][0] == 'i'
+        assert words_freqs[0][1] == 3
+
+    def test_print_stats_works(self, instances):
+        single_instance = instances['single_instance']
+        MAX_NUM_WORDS = 100
+        vocab_builder = Vocab(single_instance,
+                              max_num_words=MAX_NUM_WORDS)
+        vocab_builder.build_vocab()
+        vocab_builder.print_stats()
+
+
 
 
 
