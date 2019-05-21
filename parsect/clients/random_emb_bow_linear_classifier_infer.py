@@ -36,7 +36,7 @@ def get_random_emb_linear_classifier_infer(
     VOCAB_SIZE = config['VOCAB_SIZE']
     NUM_CLASSES = config['NUM_CLASSES']
 
-    model_filepath = os.path.join(MODEL_SAVE_DIR, 'model_epoch_1.pt')
+    model_filepath = os.path.join(MODEL_SAVE_DIR, 'best_model.pt')
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
 

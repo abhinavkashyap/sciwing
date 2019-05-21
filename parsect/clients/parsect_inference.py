@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 from typing import Any, Dict, List, Tuple
 import pandas as pd
+from wasabi import Printer
 
 FILES = constants.FILES
 
@@ -61,6 +62,7 @@ class ParsectInference:
         self.model_save_dir = config['MODEL_SAVE_DIR']
         self.vocab_size = config['VOCAB_SIZE']
         self.num_classes = config['NUM_CLASSES']
+        self.msg_printer = Printer()
 
         self.metrics_calculator = PrecisionRecallFMeasure()
         self.test_dataset = self.get_test_dataset()
@@ -76,6 +78,8 @@ class ParsectInference:
             'predicted_labels_indices': self.output_analytics['predicted_labels_indices']
         })
 
+
+
     def get_test_dataset(self) -> ParsectDataset:
         test_dataset = ParsectDataset(
             secthead_label_file=SECT_LABEL_FILE,
@@ -89,9 +93,15 @@ class ParsectInference:
         return test_dataset
 
     def load_model(self):
-        model_chkpoint = torch.load(self.model_filepath)
-        model_state_dict = model_chkpoint['model_state']
-        self.model.load_state_dict(model_state_dict)
+
+        with self.msg_printer.loading('LOADING MODEL FROM FILE {0}'.format(self.model_filepath)):
+            model_chkpoint = torch.load(self.model_filepath)
+            model_state_dict = model_chkpoint['model_state']
+            loss_value = model_chkpoint['loss']
+            self.model.load_state_dict(model_state_dict)
+
+        self.msg_printer.good('Loaded Best Model with loss value {0}'.format(loss_value))
+
 
     def run_inference(self) -> Dict[str, Any]:
         loader = DataLoader(dataset=self.test_dataset,
