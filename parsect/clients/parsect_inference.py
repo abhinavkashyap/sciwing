@@ -120,6 +120,10 @@ class ParsectInference:
                                            is_validation=False,
                                            is_test=True)
             normalized_probs = model_output_dict['normalized_probs']
+            self.metrics_calculator.calc_metric(
+                predicted_probs=normalized_probs,
+                labels=labels
+            )
 
             top_probs, top_indices = torch.topk(normalized_probs, k=1, dim=1)
             top_indices_list = top_indices.squeeze().tolist()
@@ -170,6 +174,10 @@ class ParsectInference:
             predicted_probs=self.output_analytics['all_pred_probs'],
             labels=self.output_analytics['true_labels_indices']
         )
+
+    def print_prf_table(self):
+        prf_table = self.metrics_calculator.report_metrics()
+        print(prf_table)
 
 
 if __name__ == '__main__':

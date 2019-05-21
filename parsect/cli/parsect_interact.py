@@ -64,6 +64,7 @@ class ParsectCli:
                 choices=[
                     Choice('See-Confusion-Matrix'),
                     Choice('See-examples-of-Classifications'),
+                    Choice('See-prf-table'),
                     Choice('exit')
                 ]
             ).ask()
@@ -85,6 +86,8 @@ class ParsectCli:
                     for sentence in sentences:
                         self.msg_printer.good(sentence)
                 self.msg_printer.divider('')
+            elif interaction_choice == 'See-prf-table':
+                self.inference_client.print_prf_table()
             elif interaction_choice == 'exit':
                 self.msg_printer.text('See you again!')
                 exit(0)

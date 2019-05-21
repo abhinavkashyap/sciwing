@@ -300,7 +300,7 @@ class Engine:
                        epoch_num: int):
         metrics = self.test_metric_calc.report_metrics()
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
-        self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num))
+        self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
         print(metrics)
         self.test_logger.info('Test Metrics @ Epoch {0} - {1}'
                                     .format(epoch_num + 1, precision_recall_fmeasure))
