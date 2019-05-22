@@ -74,7 +74,7 @@ if __name__ == "__main__":
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
-        "EMBEDDING_TYPE": args.emb_type
+        "EMBEDDING_TYPE": args.emb_type,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE
+        embedding_type=EMBEDDING_TYPE,
     )
 
     validation_dataset = ParsectDataset(
@@ -119,7 +119,7 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE
+        embedding_type=EMBEDDING_TYPE,
     )
 
     test_dataset = ParsectDataset(
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE
+        embedding_type=EMBEDDING_TYPE,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()

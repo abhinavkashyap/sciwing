@@ -82,7 +82,7 @@ class ParsectDataset(Dataset):
             self.instances,
             max_num_words=self.max_num_words,
             store_location=self.store_location,
-            embedding_type=self.embedding_type
+            embedding_type=self.embedding_type,
         )
         self.vocab.build_vocab()
         self.vocab.print_stats()
