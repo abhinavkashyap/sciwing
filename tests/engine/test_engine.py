@@ -80,7 +80,8 @@ def setup_engine_test_with_simple_classifier(tmpdir):
                     batch_size=BATCH_SIZE,
                     save_dir=tmpdir.mkdir('model_save'),
                     num_epochs=NUM_EPOCHS,
-                    save_every=1)
+                    save_every=1,
+                    log_train_metrics_every=10)
 
     options = {
         'MAX_NUM_WORDS': MAX_NUM_WORDS,
