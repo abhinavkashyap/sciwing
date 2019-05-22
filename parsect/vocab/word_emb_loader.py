@@ -1,4 +1,3 @@
-from parsect.vocab.vocab import Vocab
 import os
 import parsect.constants as constants
 from typing import Dict
@@ -16,15 +15,14 @@ class WordEmbLoader:
 
     """
 
-    def __init__(self, vocab: Vocab, embedding_type: str = "glove_6B"):
+    def __init__(self, token2idx: Dict, embedding_type: str = "glove_6B"):
         """
 
-        :param vocab: type: Vocab
-        All the words in the vocab are considered for loading
+        :param token2idx: type: Dict
+        The mapping between token2idx
         :param embedding_type: type: List
         """
-        self.vocab = vocab
-        self.token2idx_mapping = self.vocab.get_token2idx_mapping()
+        self.token2idx_mapping = token2idx
         self.embedding_type = embedding_type
         self.allowed_embedding_types = [
             "glove_6B_50",

@@ -261,6 +261,18 @@ class TestVocab:
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 
+    def test_load_embedding_has_all_words(self, instances):
+        single_instance = instances['single_instance']
+        MAX_NUM_WORDS = 100
+        vocab = Vocab(
+            instances=single_instance,
+            max_num_words=MAX_NUM_WORDS,
+            embedding_type='glove_6B_50'
+        )
+        vocab.build_vocab()
+        embedding = vocab.load_embedding()
+        assert embedding.size(0) == vocab.get_vocab_len()
+
 
 
 

@@ -6,6 +6,8 @@ import os
 from wasabi import Printer
 import wasabi
 from copy import deepcopy
+from parsect.vocab.word_emb_loader import WordEmbLoader
+import torch
 
 
 class Vocab:
@@ -20,6 +22,7 @@ class Vocab:
         end_token: str = "<EOS>",
         special_token_freq: float = 1e10,
         store_location: str = None,
+        embedding_type: str = None,
     ):
         """
 
@@ -45,6 +48,10 @@ class Vocab:
         The users can provide a store location optionally.
         The vocab will be stored in the location
         If the file exists then, the vocab will be restored from the file, rather than building it.
+        :param embedding_type: type: str
+        The embedding type is the type of pre-trained embedding that will be loaded
+        for all the words in the vocab optionally. You can refer to `WordEmbLoder`
+        for all the available embedding types
         """
         self.instances = instances
         self.max_num_words = max_num_words
@@ -59,6 +66,7 @@ class Vocab:
         self.idx2token = None
         self.token2idx = None
         self.store_location = store_location
+        self.embedding_type = embedding_type
         self.msg_printer = Printer()
 
         # store the special tokens
@@ -314,3 +322,23 @@ class Vocab:
         table_string = wasabi.table(data=data, header=header, divider=True)
         self.msg_printer.divider("VOCAB STATS")
         print(table_string)
+
+    def load_embedding(self) -> torch.FloatTensor:
+        if not self.vocab:
+            raise ValueError("Please build the vocab first")
+
+        embedding_loader = WordEmbLoader(
+            token2idx=self.token2idx, embedding_type=self.embedding_type
+        )
+        indices = [key for key in self.idx2token.keys()]
+        indices = sorted(indices)
+
+        embeddings = []
+        for idx in indices:
+            token = self.idx2token[idx]
+            # numpy array appends to the embeddings array
+            embedding = embedding_loader.vocab_embedding[token]
+            embeddings.append(embedding)
+
+        embeddings = torch.FloatTensor(embeddings)
+        return embeddings

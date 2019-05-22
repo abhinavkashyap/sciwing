@@ -18,7 +18,7 @@ class TestWordEmbLoader:
         vocab = setup_word_emb_loader
         with pytest.raises(AssertionError):
             emb_loader = WordEmbLoader(
-                vocab=vocab,
+                token2idx=vocab.get_token2idx_mapping(),
                 embedding_type="notexistent")
 
     def test_preloaded_file_exists(self, setup_word_emb_loader):
@@ -27,7 +27,7 @@ class TestWordEmbLoader:
 
         for embedding_type in embedding_types:
             emb_loader = WordEmbLoader(
-                vocab=vocab,
+                token2idx=vocab.get_token2idx_mapping(),
                 embedding_type=embedding_type
             )
             preloaded_filename = emb_loader.get_preloaded_filename()
@@ -37,7 +37,7 @@ class TestWordEmbLoader:
     def test_all_vocab_words_have_embedding(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
         emb_loader = WordEmbLoader(
-            vocab=vocab,
+            token2idx=vocab.get_token2idx_mapping(),
             embedding_type='glove_6B_50'
         )
 
