@@ -15,7 +15,7 @@ class WordEmbLoader:
 
     """
 
-    def __init__(self, token2idx: Dict, embedding_type: str = "glove_6B"):
+    def __init__(self, token2idx: Dict, embedding_type: str = "glove_6B_50"):
         """
 
         :param token2idx: type: Dict
@@ -101,12 +101,3 @@ class WordEmbLoader:
             vocab_embeddings[token] = emb
 
         return vocab_embeddings
-
-
-if __name__ == "__main__":
-    vocab = Vocab(
-        instances=[["i", "like", "nlp"], ["i", "dont", "like", "bs"]],
-        max_num_words=1000,
-    )
-    vocab.build_vocab()
-    word_emb_loader = WordEmbLoader(vocab=vocab, embedding_type="glove_6B_50")

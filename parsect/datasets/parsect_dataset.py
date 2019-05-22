@@ -25,7 +25,8 @@ class ParsectDataset(Dataset):
         max_length: int,
         vocab_store_location: str,
         debug: bool = False,
-        debug_dataset_proportion=0.1,
+        debug_dataset_proportion: float = 0.1,
+        embedding_type: str = "glove_6B_50",
     ):
         """
         :param dataset_type: type: str
@@ -45,6 +46,8 @@ class ParsectDataset(Dataset):
         :param debug_dataset_proportion: type: float
         Send a number (0.0, 1.0) and a random proportion of the dataset
         will be used for debug purposes
+        :param embedding_type: type: str
+        Pre-loaded embedding type to load.
 
         """
         self.dataset_type = dataset_type
@@ -54,6 +57,7 @@ class ParsectDataset(Dataset):
         self.store_location = vocab_store_location
         self.debug = debug
         self.debug_dataset_proportion = debug_dataset_proportion
+        self.embedding_type = embedding_type
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
@@ -78,6 +82,7 @@ class ParsectDataset(Dataset):
             self.instances,
             max_num_words=self.max_num_words,
             store_location=self.store_location,
+            embedding_type=self.embedding_type
         )
         self.vocab.build_vocab()
         self.vocab.print_stats()
@@ -239,6 +244,9 @@ class ParsectDataset(Dataset):
                 self.dataset_type, len(self)
             )
         )
+
+    def get_preloaded_embedding(self) -> torch.FloatTensor:
+        return self.vocab.load_embedding()
 
 
 if __name__ == "__main__":

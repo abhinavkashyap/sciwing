@@ -72,6 +72,10 @@ class TestParsectDataset:
         train_sentence = train_dataset.get_disp_sentence_from_indices(tokens_list[0])
         assert all([True for sentence in train_sentence if type(sentence) == str])
 
+    def test_preloaded_embedding_has_values(self, setup_parsect_train_dataset):
+        train_dataset, dataset_options = setup_parsect_train_dataset
+        preloaded_emb = train_dataset.get_preloaded_embedding()
+        assert type(preloaded_emb) == torch.Tensor
 
 
 

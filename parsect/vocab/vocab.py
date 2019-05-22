@@ -22,7 +22,7 @@ class Vocab:
         end_token: str = "<EOS>",
         special_token_freq: float = 1e10,
         store_location: str = None,
-        embedding_type: str = None,
+        embedding_type: str = "glove_6B_50",
     ):
         """
 
