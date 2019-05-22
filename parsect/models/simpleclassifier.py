@@ -5,12 +5,15 @@ from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
 from wasabi import Printer
 
+
 class SimpleClassifier(nn.Module):
-    def __init__(self,
-                 encoder: nn.Module,
-                 encoding_dim: int,
-                 num_classes: int,
-                 classification_layer_bias: bool):
+    def __init__(
+        self,
+        encoder: nn.Module,
+        encoding_dim: int,
+        num_classes: int,
+        classification_layer_bias: bool,
+    ):
         """
 
         :param encoder: type: nn.Module
@@ -28,16 +31,20 @@ class SimpleClassifier(nn.Module):
         self.encoding_dim = encoding_dim
         self.num_classes = num_classes
         self.classification_layer_bias = classification_layer_bias
-        self.classification_layer = nn.Linear(encoding_dim, num_classes,
-                                              bias=self.classification_layer_bias)
+        self.classification_layer = nn.Linear(
+            encoding_dim, num_classes, bias=self.classification_layer_bias
+        )
         self._loss = CrossEntropyLoss()
         self.msg_printer = Printer()
 
-    def forward(self, x: torch.LongTensor,
-                labels: torch.LongTensor,
-                is_training: bool,
-                is_validation: bool,
-                is_test: bool) -> Dict[str, Any]:
+    def forward(
+        self,
+        x: torch.LongTensor,
+        labels: torch.LongTensor,
+        is_training: bool,
+        is_validation: bool,
+        is_test: bool,
+    ) -> Dict[str, Any]:
         """
         :param x: type: torch.LongTensor
                   shape: N * T
@@ -61,12 +68,14 @@ class SimpleClassifier(nn.Module):
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
 
-        assert x.ndimension() == 2, self.msg_printer.fail('the input should have 2 dimensions  d'
-                                                          'your input has shape {0}'
-                                                          .format(x.size()))
-        assert labels.ndimension() == 1, self.msg_printer.fail('the labels should have 1 dimension '
-                                                               'your input has shape {0}'
-                                                               .format(labels.size()))
+        assert x.ndimension() == 2, self.msg_printer.fail(
+            "the input should have 2 dimensions  d"
+            "your input has shape {0}".format(x.size())
+        )
+        assert labels.ndimension() == 1, self.msg_printer.fail(
+            "the labels should have 1 dimension "
+            "your input has shape {0}".format(labels.size())
+        )
 
         encoding = self.encoder(x)
 
@@ -81,13 +90,10 @@ class SimpleClassifier(nn.Module):
         # The normalized probabilities of classification
         normalized_probs = softmax(logits, dim=1)
 
-        output_dict = {
-            'logits': logits,
-            'normalized_probs': normalized_probs
-        }
+        output_dict = {"logits": logits, "normalized_probs": normalized_probs}
 
         if is_training or is_validation:
             loss = self._loss(logits, labels)
-            output_dict['loss'] = loss
+            output_dict["loss"] = loss
 
         return output_dict

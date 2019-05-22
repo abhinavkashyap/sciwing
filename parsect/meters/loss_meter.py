@@ -6,9 +6,7 @@ class LossMeter:
         self.losses = []
         self.batch_sizes = []
 
-    def add_loss(self,
-                 avg_batch_loss: float,
-                 num_instances: int) -> None:
+    def add_loss(self, avg_batch_loss: float, num_instances: int) -> None:
         """
         :param avg_batch_loss: type: float
         The average loss for the entire batch
@@ -21,7 +19,7 @@ class LossMeter:
 
     def get_average(self) -> float:
         if len(self.losses) == 0 or len(self.batch_sizes) == 0:
-            average = None # to indicate absent value
+            average = None  # to indicate absent value
         else:
             average = sum(self.losses) / sum(self.batch_sizes)
 

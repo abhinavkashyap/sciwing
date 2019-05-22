@@ -9,9 +9,8 @@ class Numericalizer:
     pre-processed. This converts the instances into numerical values that can
     be used in modeling
     """
-    def __init__(self,
-                 max_length: int,
-                 vocabulary: Vocab):
+
+    def __init__(self, max_length: int, vocabulary: Vocab):
         """
         :param max_length: type: int
         The maximum length of numericalization
@@ -51,7 +50,7 @@ class Numericalizer:
             len_difference = len_difference - 2
 
             if len_difference < 0:
-                numerical_tokens = numerical_tokens[: len_tokens-abs(len_difference)]
+                numerical_tokens = numerical_tokens[: len_tokens - abs(len_difference)]
 
             # add start and end before padding
             numerical_tokens.insert(0, start_idx)
@@ -62,7 +61,7 @@ class Numericalizer:
 
         else:
             # allow space for <SOS> and <EOS>
-            numerical_tokens = numerical_tokens[: (self.max_length-2)]
+            numerical_tokens = numerical_tokens[: (self.max_length - 2)]
             numerical_tokens.insert(0, start_idx)
             numerical_tokens.append(end_idx)
 
@@ -70,8 +69,9 @@ class Numericalizer:
 
         return len_tokens, numerical_tokens
 
-    def numericalize_batch_instances(self, instances: List[List[str]]) -> (
-            List[int], List[List[int]]):
+    def numericalize_batch_instances(
+        self, instances: List[List[str]]
+    ) -> (List[int], List[List[int]]):
         lengths_batch = []
         numerical_tokens_batch = []
         for instance in instances:
@@ -80,4 +80,3 @@ class Numericalizer:
             numerical_tokens_batch.append(tokens)
 
         return lengths_batch, numerical_tokens_batch
-

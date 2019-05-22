@@ -4,12 +4,13 @@ from wasabi import Printer
 
 
 class BOW_Encoder(nn.Module):
-    def __init__(self,
-                 emb_dim: int,
-                 embedding: torch.nn.Embedding,
-                 dropout_value: float = 0,
-                 aggregation_type='sum'
-                 ):
+    def __init__(
+        self,
+        emb_dim: int,
+        embedding: torch.nn.Embedding,
+        dropout_value: float = 0,
+        aggregation_type="sum",
+    ):
         """
 
         :param emb_dim: type: int
@@ -28,15 +29,14 @@ class BOW_Encoder(nn.Module):
         self.embedding = embedding
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
-        self.valid_aggregation_types = ['sum', 'average']
+        self.valid_aggregation_types = ["sum", "average"]
         self.msg_printer = Printer()
 
         assert self.aggregation_type in self.valid_aggregation_types
 
         self.dropout = nn.Dropout(p=self.dropout_value)
 
-    def forward(self,
-                x: torch.LongTensor) -> torch.FloatTensor:
+    def forward(self, x: torch.LongTensor) -> torch.FloatTensor:
         """
 
         :param x: type: torch.LongTensor
@@ -45,20 +45,20 @@ class BOW_Encoder(nn.Module):
         T - Number of tokens
         :return:
         """
-        assert x.ndimension() == 2, self.msg_printer.fail("The input should be 2 dimennsional, "
-                                                          "you passed a {0}-dimensional input".
-                                                          format(x.size()))
+        assert x.ndimension() == 2, self.msg_printer.fail(
+            "The input should be 2 dimennsional, "
+            "you passed a {0}-dimensional input".format(x.size())
+        )
         # N * T * D
         embeddings = self.embedding(x)
 
         # N * T * D
         embeddings = self.dropout(embeddings)
 
-        if self.aggregation_type == 'sum':
+        if self.aggregation_type == "sum":
             embeddings = torch.sum(embeddings, dim=1)
 
-        elif self.aggregation_type == 'average':
+        elif self.aggregation_type == "average":
             embeddings = torch.mean(embeddings, dim=1)
 
         return embeddings
-

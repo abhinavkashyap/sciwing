@@ -9,17 +9,18 @@ from copy import deepcopy
 
 
 class Vocab:
-    def __init__(self,
-                 instances: List[List[str]],
-                 max_num_words: int,
-                 min_count: int = 1,
-                 unk_token: str = '<UNK>',
-                 pad_token: str = '<PAD>',
-                 start_token: str = '<SOS>',
-                 end_token: str = '<EOS>',
-                 special_token_freq: float = 1e10,
-                 store_location: str = None
-                 ):
+    def __init__(
+        self,
+        instances: List[List[str]],
+        max_num_words: int,
+        min_count: int = 1,
+        unk_token: str = "<UNK>",
+        pad_token: str = "<PAD>",
+        start_token: str = "<SOS>",
+        end_token: str = "<EOS>",
+        special_token_freq: float = 1e10,
+        store_location: str = None,
+    ):
         """
 
         :param instances: type: List[List[str]]
@@ -65,7 +66,7 @@ class Vocab:
             self.unk_token: (self.special_token_freq, 0),
             self.pad_token: (self.special_token_freq, 1),
             self.start_token: (self.special_token_freq, 2),
-            self.end_token: (self.special_token_freq, 3)
+            self.end_token: (self.special_token_freq, 3),
         }
 
     def map_words_to_freq_idx(self) -> Dict[str, Tuple[int, int]]:
@@ -96,8 +97,9 @@ class Vocab:
 
         return vocab
 
-    def clip_on_mincount(self,
-                         vocab: Dict[str, Tuple[int, int]]) -> Dict[str, Tuple[int, int]]:
+    def clip_on_mincount(
+        self, vocab: Dict[str, Tuple[int, int]]
+    ) -> Dict[str, Tuple[int, int]]:
         """
         Clip the vocab based on min count
         We decide to keep the word and it count
@@ -111,8 +113,9 @@ class Vocab:
 
         return vocab
 
-    def clip_on_max_num(self,
-                        vocab: Dict[str, Tuple[int, int]]) -> Dict[str, Tuple[int, int]]:
+    def clip_on_max_num(
+        self, vocab: Dict[str, Tuple[int, int]]
+    ) -> Dict[str, Tuple[int, int]]:
         """
         Clip the vocab based on the maximum number of words
         We return `max_num_words + len(self.special_vocab)` words effectively
@@ -131,12 +134,16 @@ class Vocab:
 
         if self.store_location and os.path.isfile(self.store_location):
             self.load_from_file(self.store_location)
-            self.msg_printer.good('Loaded vocab from file {0}'.format(self.store_location))
+            self.msg_printer.good(
+                "Loaded vocab from file {0}".format(self.store_location)
+            )
 
         else:
             self.msg_printer.info("BUILDING VOCAB")
             vocab = self.map_words_to_freq_idx()
-            self.orig_vocab = deepcopy(vocab)  # dictionary are passed by reference. Be careful
+            self.orig_vocab = deepcopy(
+                vocab
+            )  # dictionary are passed by reference. Be careful
             vocab = self.clip_on_mincount(vocab)
             vocab = self.clip_on_max_num(vocab)
             self.vocab = vocab
@@ -144,14 +151,14 @@ class Vocab:
             self.token2idx = self.get_token2idx_mapping()
 
             if self.store_location:
-                self.msg_printer.info('SAVING VOCAB TO FILE')
+                self.msg_printer.info("SAVING VOCAB TO FILE")
                 self.save_to_file(self.store_location)
             return vocab
-        self.msg_printer.good('Finished vocab loading')
+        self.msg_printer.good("Finished vocab loading")
 
     def get_vocab_len(self) -> int:
         if not self.vocab:
-            raise ValueError('Build vocab first by calling build_vocab()')
+            raise ValueError("Build vocab first by calling build_vocab()")
 
         length = len(set(idx for freq, idx in self.vocab.values()))
         return length
@@ -165,7 +172,7 @@ class Vocab:
 
     def get_token2idx_mapping(self) -> Dict[str, int]:
         if not self.vocab:
-            raise ValueError('Build vocab first by calling build_vocab()')
+            raise ValueError("Build vocab first by calling build_vocab()")
 
         token2idx = {}
         for word, (freq, idx) in self.vocab.items():
@@ -175,15 +182,14 @@ class Vocab:
 
     def get_idx2token_mapping(self) -> Dict[int, str]:
         if not self.vocab:
-            raise ValueError('Build vocab first by calling build_vocab()')
+            raise ValueError("Build vocab first by calling build_vocab()")
 
         idx2words = {}
         for word, (freq, idx) in self.vocab.items():
             idx2words[idx] = word
         return idx2words
 
-    def save_to_file(self,
-                     filename: str):
+    def save_to_file(self, filename: str):
         """
         :param filename: str
         The filename where the result to the file will be stored
@@ -195,35 +201,39 @@ class Vocab:
         """
 
         if not self.vocab:
-            raise ValueError('Build vocab first by calling build_vocab()')
+            raise ValueError("Build vocab first by calling build_vocab()")
 
         vocab_state = dict()
-        vocab_state['options'] = {
-            'max_num_words': self.max_num_words,
-            'min_count': self.min_count,
-            'unk_token': self.unk_token,
-            'pad_token': self.pad_token,
-            'start_token': self.start_token,
-            'end_token': self.end_token,
-            'special_token_freq': self.special_token_freq
+        vocab_state["options"] = {
+            "max_num_words": self.max_num_words,
+            "min_count": self.min_count,
+            "unk_token": self.unk_token,
+            "pad_token": self.pad_token,
+            "start_token": self.start_token,
+            "end_token": self.end_token,
+            "special_token_freq": self.special_token_freq,
         }
-        vocab_state['vocab'] = self.vocab
-        vocab_state['orig_vocab'] = self.orig_vocab
+        vocab_state["vocab"] = self.vocab
+        vocab_state["orig_vocab"] = self.orig_vocab
         try:
-            with open(filename, 'w') as fp:
+            with open(filename, "w") as fp:
                 json.dump(vocab_state, fp)
 
         except FileNotFoundError:
-            print("You passed {0} for the filename. Please check whether "
-                  "the path exists and try again".format(filename))
+            print(
+                "You passed {0} for the filename. Please check whether "
+                "the path exists and try again".format(filename)
+            )
 
-    def load_from_file(self, filename: str) -> Tuple[Dict[str, Any], Dict[str, Tuple[int, int]]]:
+    def load_from_file(
+        self, filename: str
+    ) -> Tuple[Dict[str, Any], Dict[str, Tuple[int, int]]]:
         try:
-            with open(filename, 'r') as fp:
+            with open(filename, "r") as fp:
                 vocab_state = json.load(fp)
-                vocab_options = vocab_state['options']
-                vocab = vocab_state['vocab']
-                orig_vocab = vocab_state['orig_vocab']
+                vocab_options = vocab_state["options"]
+                vocab = vocab_state["vocab"]
+                orig_vocab = vocab_state["orig_vocab"]
 
                 # restore the object
                 # restore all the property values from the file
@@ -232,22 +242,23 @@ class Vocab:
                 self.orig_vocab = orig_vocab
                 self.token2idx = self.get_token2idx_mapping()
                 self.idx2token = self.get_idx2token_mapping()
-                self.max_num_words = vocab_options['max_num_words']
-                self.min_count = vocab_options['min_count']
-                self.unk_token = vocab_options['unk_token']
-                self.pad_token = vocab_options['pad_token']
-                self.start_token = vocab_options['start_token']
-                self.end_token = vocab_options['end_token']
-                self.special_token_freq = vocab_options['special_token_freq']
+                self.max_num_words = vocab_options["max_num_words"]
+                self.min_count = vocab_options["min_count"]
+                self.unk_token = vocab_options["unk_token"]
+                self.pad_token = vocab_options["pad_token"]
+                self.start_token = vocab_options["start_token"]
+                self.end_token = vocab_options["end_token"]
+                self.special_token_freq = vocab_options["special_token_freq"]
 
                 return vocab_options, vocab
         except FileNotFoundError:
-            print("You passed {0} for the filename. Please check whether "
-                  "the path exists and try again. Please pass "
-                  "a json file".format(filename))
+            print(
+                "You passed {0} for the filename. Please check whether "
+                "the path exists and try again. Please pass "
+                "a json file".format(filename)
+            )
 
-    def get_token_from_idx(self,
-                           idx: int) -> str:
+    def get_token_from_idx(self, idx: int) -> str:
         if not self.vocab:
             raise ValueError("Please build the vocab first")
 
@@ -258,13 +269,14 @@ class Vocab:
             return self.idx2token[idx]
         except KeyError:
             vocab_len = self.get_vocab_len()
-            message = "You tried to access idx {0} of the vocab " \
-                      "The length of the vocab is {1}. Please Provide " \
-                      "Number between {2}".format(idx, vocab_len, vocab_len - 1)
+            message = (
+                "You tried to access idx {0} of the vocab "
+                "The length of the vocab is {1}. Please Provide "
+                "Number between {2}".format(idx, vocab_len, vocab_len - 1)
+            )
             raise ValueError(message)
 
-    def get_idx_from_token(self,
-                           token: str) -> int:
+    def get_idx_from_token(self, token: str) -> int:
         if not self.vocab:
             raise ValueError("Please build the vocab first")
 
@@ -276,8 +288,7 @@ class Vocab:
         except KeyError:
             return self.token2idx[self.unk_token]
 
-    def get_topn_frequent_words(self,
-                                n: int = 5) -> List[Tuple[str, int]]:
+    def get_topn_frequent_words(self, n: int = 5) -> List[Tuple[str, int]]:
         idx2token = self.idx2token
         token_freqs = []
         max_n = min(len(self.special_vocab) + n, self.get_vocab_len())
@@ -294,14 +305,12 @@ class Vocab:
         N = 5
         top_n = self.get_topn_frequent_words(n=N)
 
-        data = [('Original vocab length', orig_vocab_len),
-                ('Clipped vocab length', vocab_len),
-                ('Top {0} words'.format(N), top_n)]
+        data = [
+            ("Original vocab length", orig_vocab_len),
+            ("Clipped vocab length", vocab_len),
+            ("Top {0} words".format(N), top_n),
+        ]
         header = ("Stats Description", "#")
-        table_string = wasabi.table(
-            data=data,
-            header=header,
-            divider=True
-        )
+        table_string = wasabi.table(data=data, header=header, divider=True)
         self.msg_printer.divider("VOCAB STATS")
         print(table_string)

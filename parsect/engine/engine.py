@@ -17,20 +17,22 @@ import logging
 
 
 class Engine:
-    def __init__(self,
-                 model: nn.Module,
-                 train_dataset: Dataset,
-                 validation_dataset: Dataset,
-                 test_dataset: Dataset,
-                 optimizer: optim,
-                 batch_size: int,
-                 save_dir: str,
-                 num_epochs: int,
-                 save_every: int,
-                 log_train_metrics_every: int,
-                 tensorboard_logdir: str = None,
-                 metric='accuracy',
-                 track_for_best='loss'):
+    def __init__(
+        self,
+        model: nn.Module,
+        train_dataset: Dataset,
+        validation_dataset: Dataset,
+        test_dataset: Dataset,
+        optimizer: optim,
+        batch_size: int,
+        save_dir: str,
+        num_epochs: int,
+        save_every: int,
+        log_train_metrics_every: int,
+        tensorboard_logdir: str = None,
+        metric="accuracy",
+        track_for_best="loss",
+    ):
         """
         This orchestrates the whole model training. The supervised machine learning
         that needs to be used
@@ -102,51 +104,55 @@ class Engine:
         self.validation_loss_meter = LossMeter()
 
         # get metric calculators
-        self.train_metric_calc, self.validation_metric_calc, \
-        self.test_metric_calc = self.get_metric_calculators()
+        self.train_metric_calc, self.validation_metric_calc, self.test_metric_calc = (
+            self.get_metric_calculators()
+        )
 
-        self.msg_printer.divider('ENGINE STARTING')
-        self.msg_printer.info('Number of training examples {0}'.format(len(self.train_dataset)))
+        self.msg_printer.divider("ENGINE STARTING")
         self.msg_printer.info(
-            'Number of validation examples {0}'.format(len(self.validation_dataset)))
-        self.msg_printer.info('Number of test examples {0}'.format(len(self.test_dataset)))
+            "Number of training examples {0}".format(len(self.train_dataset))
+        )
+        self.msg_printer.info(
+            "Number of validation examples {0}".format(len(self.validation_dataset))
+        )
+        self.msg_printer.info(
+            "Number of test examples {0}".format(len(self.test_dataset))
+        )
         time.sleep(3)
 
         # get the loggers ready
         json_logging.ENABLE_JSON_LOGGING = True
         json_logging.init()
-        self.train_log_filename = os.path.join(self.save_dir, 'train.log')
-        self.validation_log_filename = os.path.join(self.save_dir, 'validation.log')
-        self.test_log_filename = os.path.join(self.save_dir, 'test.log')
+        self.train_log_filename = os.path.join(self.save_dir, "train.log")
+        self.validation_log_filename = os.path.join(self.save_dir, "validation.log")
+        self.test_log_filename = os.path.join(self.save_dir, "test.log")
 
-        self.train_logger = logging.getLogger('train-logger')
-        self.validation_logger = logging.getLogger('validation-logger')
-        self.test_logger = logging.getLogger('test-logger')
+        self.train_logger = logging.getLogger("train-logger")
+        self.validation_logger = logging.getLogger("validation-logger")
+        self.test_logger = logging.getLogger("test-logger")
 
         self.train_logger.setLevel(logging.DEBUG)
         self.train_logger.addHandler(logging.FileHandler(self.train_log_filename))
 
         self.validation_logger.setLevel(logging.DEBUG)
-        self.validation_logger.addHandler(logging.FileHandler(self.validation_log_filename))
+        self.validation_logger.addHandler(
+            logging.FileHandler(self.validation_log_filename)
+        )
 
         self.test_logger.setLevel(logging.DEBUG)
         self.test_logger.addHandler(logging.FileHandler(self.test_log_filename))
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
-            dataset=dataset,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers
+            dataset=dataset, batch_size=self.batch_size, num_workers=self.num_workers
         )
         return loader
 
-    def is_best_lower(self,
-                      current_best=None):
+    def is_best_lower(self, current_best=None):
         return True if current_best < self.best_track_value else False
 
-    def set_best_track_value(self,
-                             current_best=None):
-        if self.track_for_best == 'loss':
+    def set_best_track_value(self, current_best=None):
+        if self.track_for_best == "loss":
             self.best_track_value = np.inf if current_best is None else current_best
 
     def run(self):
@@ -160,8 +166,7 @@ class Engine:
 
         self.test_epoch(epoch_num)
 
-    def train_epoch(self,
-                    epoch_num: int):
+    def train_epoch(self, epoch_num: int):
         """
         Run the training for one epoch
         :param epoch_num: type: int
@@ -175,45 +180,48 @@ class Engine:
         self.train_loss_meter.reset()
         self.train_metric_calc.reset()
 
-        self.msg_printer.info('starting training epoch')
+        self.msg_printer.info("starting training epoch")
         while True:
             try:
                 # N*T, N * 1, N * 1
                 tokens, labels, len_tokens = next(train_iter)
                 batch_size = tokens.size()[0]
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens,
-                                               labels,
-                                               is_training=True,
-                                               is_validation=False,
-                                               is_test=False)
-                self.train_metric_calc.calc_metric(model_forward_out['normalized_probs'],
-                                                   labels)
+                model_forward_out = self.model(
+                    tokens, labels, is_training=True, is_validation=False, is_test=False
+                )
+                self.train_metric_calc.calc_metric(
+                    model_forward_out["normalized_probs"], labels
+                )
 
                 try:
                     self.optimizer.zero_grad()
-                    loss = model_forward_out['loss']
+                    loss = model_forward_out["loss"]
                     loss.backward()
                     self.optimizer.step()
                     self.train_loss_meter.add_loss(loss.item(), batch_size)
 
                 except KeyError:
-                    self.msg_printer.fail('The model output dictionary does not have '
-                                          'a key called loss. Please check to have '
-                                          'loss in the model output')
+                    self.msg_printer.fail(
+                        "The model output dictionary does not have "
+                        "a key called loss. Please check to have "
+                        "loss in the model output"
+                    )
                 num_iterations += 1
                 if (num_iterations + 1) % self.log_train_metrics_every == 0:
                     metrics = self.train_metric_calc.report_metrics()
                     precision_recall_fmeasure = self.train_metric_calc.get_metric()
                     print(metrics)
-                    self.train_logger.info('Training Metrics at iteration {0} - {1}'
-                                           .format(num_iterations + 1, precision_recall_fmeasure))
+                    self.train_logger.info(
+                        "Training Metrics at iteration {0} - {1}".format(
+                            num_iterations + 1, precision_recall_fmeasure
+                        )
+                    )
             except StopIteration:
                 self.train_epoch_end(epoch_num)
                 break
 
-    def train_epoch_end(self,
-                        epoch_num: int):
+    def train_epoch_end(self, epoch_num: int):
         """
 
         :param epoch_num: type: int
@@ -222,26 +230,31 @@ class Engine:
 
         self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num + 1))
         average_loss = self.train_loss_meter.get_average()
-        self.msg_printer.text('Average Loss: {0}'.format(average_loss))
-        self.train_logger.info('Average loss @ Epoch {0} - {1}'
-                               .format(epoch_num + 1, average_loss))
+        self.msg_printer.text("Average Loss: {0}".format(average_loss))
+        self.train_logger.info(
+            "Average loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
+        )
 
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
-            torch.save({
-                'epoch_num': epoch_num,
-                'optimizer_state': self.optimizer.state_dict(),
-                'model_state': self.model.state_dict(),
-                'loss': average_loss
-            }, os.path.join(self.save_dir, 'model_epoch_{0}.pt'.format(epoch_num + 1)))
+            torch.save(
+                {
+                    "epoch_num": epoch_num,
+                    "optimizer_state": self.optimizer.state_dict(),
+                    "model_state": self.model.state_dict(),
+                    "loss": average_loss,
+                },
+                os.path.join(self.save_dir, "model_epoch_{0}.pt".format(epoch_num + 1)),
+            )
 
         # log loss to tensor board
-        self.summaryWriter.add_scalars('train_validation_loss',
-                                       {'train_loss': average_loss or np.inf},
-                                       epoch_num + 1)
+        self.summaryWriter.add_scalars(
+            "train_validation_loss",
+            {"train_loss": average_loss or np.inf},
+            epoch_num + 1,
+        )
 
-    def validation_epoch(self,
-                         epoch_num: int):
+    def validation_epoch(self, epoch_num: int):
         """
         Run the validation
         """
@@ -256,23 +269,19 @@ class Engine:
                 tokens, labels, len_tokens = next(valid_iter)
                 batch_size = tokens.size(0)
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens,
-                                               labels,
-                                               is_training=False,
-                                               is_validation=True,
-                                               is_test=False)
-                loss = model_forward_out['loss']
+                model_forward_out = self.model(
+                    tokens, labels, is_training=False, is_validation=True, is_test=False
+                )
+                loss = model_forward_out["loss"]
                 self.validation_loss_meter.add_loss(loss, batch_size)
                 self.validation_metric_calc.calc_metric(
-                    predicted_probs=model_forward_out['normalized_probs'],
-                    labels=labels
+                    predicted_probs=model_forward_out["normalized_probs"], labels=labels
                 )
             except StopIteration:
                 self.validation_epoch_end(epoch_num)
                 break
 
-    def validation_epoch_end(self,
-                             epoch_num: int):
+    def validation_epoch_end(self, epoch_num: int):
 
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
 
@@ -283,28 +292,34 @@ class Engine:
 
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
 
-        self.validation_logger.info('Validation Metrics @ Epoch {0} - {1}'
-                                    .format(epoch_num + 1, precision_recall_fmeasure))
-        self.validation_logger.info('Validation Loss @ Epoch {0} - {1}'.format(
+        self.validation_logger.info(
+            "Validation Metrics @ Epoch {0} - {1}".format(
+                epoch_num + 1, precision_recall_fmeasure
+            )
+        )
+        self.validation_logger.info(
+            "Validation Loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
+        )
+
+        self.summaryWriter.add_scalars(
+            "train_validation_loss",
+            {"validation_loss": average_loss or np.inf},
             epoch_num + 1,
-            average_loss
-        ))
+        )
 
-        self.summaryWriter.add_scalars('train_validation_loss',
-                                       {'validation_loss': average_loss or np.inf},
-                                       epoch_num + 1)
-
-        if self.track_for_best == 'loss':
+        if self.track_for_best == "loss":
             is_best = self.is_best_lower(average_loss)
-            print('is best {0}'.format(is_best))
+            print("is best {0}".format(is_best))
             if is_best:
                 self.set_best_track_value(average_loss)
-                torch.save({
-                    'epoch_num': epoch_num,
-                    'optimizer_state': self.optimizer.state_dict(),
-                    'model_state': self.model.state_dict(),
-                    'loss': average_loss
-                }, os.path.join(self.save_dir, 'best_model.pt')
+                torch.save(
+                    {
+                        "epoch_num": epoch_num,
+                        "optimizer_state": self.optimizer.state_dict(),
+                        "model_state": self.model.state_dict(),
+                        "loss": average_loss,
+                    },
+                    os.path.join(self.save_dir, "best_model.pt"),
                 )
 
     def test_epoch(self, epoch_num: int):
@@ -314,27 +329,26 @@ class Engine:
             try:
                 tokens, labels, len_tokens = next(test_iter)
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(tokens,
-                                               labels,
-                                               is_training=False,
-                                               is_validation=False,
-                                               is_test=True)
+                model_forward_out = self.model(
+                    tokens, labels, is_training=False, is_validation=False, is_test=True
+                )
                 self.test_metric_calc.calc_metric(
-                    predicted_probs=model_forward_out['normalized_probs'],
-                    labels=labels
+                    predicted_probs=model_forward_out["normalized_probs"], labels=labels
                 )
             except StopIteration:
                 self.test_epoch_end(epoch_num)
                 break
 
-    def test_epoch_end(self,
-                       epoch_num: int):
+    def test_epoch_end(self, epoch_num: int):
         metrics = self.test_metric_calc.report_metrics()
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
         print(metrics)
-        self.test_logger.info('Test Metrics @ Epoch {0} - {1}'
-                              .format(epoch_num + 1, precision_recall_fmeasure))
+        self.test_logger.info(
+            "Test Metrics @ Epoch {0} - {1}".format(
+                epoch_num + 1, precision_recall_fmeasure
+            )
+        )
 
     def get_train_dataset(self):
         return self.train_dataset
@@ -364,13 +378,15 @@ class Engine:
         The model is saved during training. Look at the method `train_epoch_end` for
         more details.
         """
-        self.msg_printer.divider('LOADING MODEL FROM FILE')
-        with self.msg_printer.loading('Loading Pytorch Model from file {0}'.format(filename)):
+        self.msg_printer.divider("LOADING MODEL FROM FILE")
+        with self.msg_printer.loading(
+            "Loading Pytorch Model from file {0}".format(filename)
+        ):
             model_chkpoint = torch.load(filename)
 
-        self.msg_printer.good('Finished Loading the Model')
+        self.msg_printer.good("Finished Loading the Model")
 
-        model_state = model_chkpoint['model_state']
+        model_state = model_chkpoint["model_state"]
         self.model.load_state_dict(model_state)
 
     def get_metric_calculators(self):
@@ -378,7 +394,7 @@ class Engine:
         validation_calculator = None
         test_calculator = None
 
-        if self.metric == 'accuracy':
+        if self.metric == "accuracy":
             train_calculator = PrecisionRecallFMeasure()
             validation_calculator = PrecisionRecallFMeasure()
             test_calculator = PrecisionRecallFMeasure()
@@ -386,7 +402,7 @@ class Engine:
         return train_calculator, validation_calculator, test_calculator
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import parsect.constants as constants
     from parsect.datasets.parsect_dataset import ParsectDataset
     from parsect.modules.bow_encoder import BOW_Encoder
@@ -394,38 +410,38 @@ if __name__ == '__main__':
     from torch.nn import Embedding
 
     FILES = constants.FILES
-    SECT_LABEL_FILE = FILES['SECT_LABEL_FILE']
+    SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
     MAX_NUM_WORDS = 1000
     MAX_LENGTH = 50
-    vocab_store_location = os.path.join('.', 'vocab.json')
+    vocab_store_location = os.path.join(".", "vocab.json")
     DEBUG = True
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
-        dataset_type='train',
+        dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
-        debug=DEBUG
+        debug=DEBUG,
     )
 
     validation_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
-        dataset_type='valid',
+        dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
-        debug=DEBUG
+        debug=DEBUG,
     )
 
     test_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
-        dataset_type='test',
+        dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
-        debug=DEBUG
+        debug=DEBUG,
     )
 
     BATCH_SIZE = 1
@@ -436,28 +452,30 @@ if __name__ == '__main__':
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
     labels = torch.LongTensor([1])
 
-    encoder = BOW_Encoder(emb_dim=EMB_DIM,
-                          embedding=embedding,
-                          dropout_value=0,
-                          aggregation_type='sum')
+    encoder = BOW_Encoder(
+        emb_dim=EMB_DIM, embedding=embedding, dropout_value=0, aggregation_type="sum"
+    )
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)
-    model = SimpleClassifier(encoder=encoder,
-                             encoding_dim=EMB_DIM,
-                             num_classes=NUM_CLASSES,
-                             classification_layer_bias=False
-                             )
+    model = SimpleClassifier(
+        encoder=encoder,
+        encoding_dim=EMB_DIM,
+        num_classes=NUM_CLASSES,
+        classification_layer_bias=False,
+    )
 
     optimizer = optim.SGD(model.parameters(), lr=0.01)
-    engine = Engine(model,
-                    train_dataset,
-                    validation_dataset,
-                    test_dataset,
-                    optimizer=optimizer,
-                    batch_size=BATCH_SIZE,
-                    save_dir=os.path.join('.'),
-                    num_epochs=1,
-                    save_every=1)
+    engine = Engine(
+        model,
+        train_dataset,
+        validation_dataset,
+        test_dataset,
+        optimizer=optimizer,
+        batch_size=BATCH_SIZE,
+        save_dir=os.path.join("."),
+        num_epochs=1,
+        save_every=1,
+    )
 
     # engine.train_epoch_end(0)
     #     # engine.load_model_from_file(
@@ -465,5 +483,5 @@ if __name__ == '__main__':
     #     # )
     engine.run()
     # clean up
-    os.remove('./vocab.json')
-    os.remove(os.path.join(engine.save_dir, 'model_epoch_{0}.pt'.format(1)))
+    os.remove("./vocab.json")
+    os.remove(os.path.join(engine.save_dir, "model_epoch_{0}.pt".format(1)))

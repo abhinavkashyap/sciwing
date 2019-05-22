@@ -1,13 +1,13 @@
 {
-  "EXP_NAME": "test_run_1",
+  "EXP_NAME": "bow_random_emb_lc_3kw_15ml_50d_50e_1e-4lr",
   "MAX_NUM_WORDS": 3000,
   "MAX_LENGTH": 15,
-  "DEBUG": true,
+  "DEBUG": false,
   "DEBUG_DATASET_PROPORTION": 0.01,
-  "BATCH_SIZE": 10,
-  "EMBEDDING_DIMENSION": 10,
-  "LEARNING_RATE": 0.01,
-  "NUM_EPOCHS": 40,
+  "BATCH_SIZE": 32,
+  "EMBEDDING_DIMENSION": 50,
+  "LEARNING_RATE": 1e-4,
+  "NUM_EPOCHS": 50,
   "SAVE_EVERY": 1,
   "LOG_TRAIN_METRICS_EVERY": 50
 }
