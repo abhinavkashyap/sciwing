@@ -27,6 +27,7 @@ class ParsectDataset(Dataset):
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
         embedding_type: str = "glove_6B_50",
+        return_instances: bool = False,
     ):
         """
         :param dataset_type: type: str
@@ -48,7 +49,10 @@ class ParsectDataset(Dataset):
         will be used for debug purposes
         :param embedding_type: type: str
         Pre-loaded embedding type to load.
-
+        :param return_instances: type: bool
+        If this is set, instead of numericalizing the instances,
+        the instances themselves will be returned from __get_item__
+        This is helpful in some cases like Elmo encoder that expect a list of sentences
         """
         self.dataset_type = dataset_type
         self.secthead_label_file = secthead_label_file
@@ -58,6 +62,7 @@ class ParsectDataset(Dataset):
         self.debug = debug
         self.debug_dataset_proportion = debug_dataset_proportion
         self.embedding_type = embedding_type
+        self.return_instances = return_instances
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
@@ -97,16 +102,19 @@ class ParsectDataset(Dataset):
     def __getitem__(self, idx) -> (torch.LongTensor, torch.LongTensor):
         instance = self.instances[idx]
 
-        # real length of tokens, numericalized tokens
-        len_tokens, tokens = self.numericalizer.numericalize_instance(instance)
-        label = self.labels[idx]
-        label_idx = self.label_mapping[label]
+        if not self.return_instances:
+            # real length of tokens, numericalized tokens
+            len_tokens, tokens = self.numericalizer.numericalize_instance(instance)
+            label = self.labels[idx]
+            label_idx = self.label_mapping[label]
 
-        tokens = torch.LongTensor(tokens)
-        label = torch.LongTensor([label_idx])
-        len_tokens = torch.LongTensor([len_tokens])
+            tokens = torch.LongTensor(tokens)
+            label = torch.LongTensor([label_idx])
+            len_tokens = torch.LongTensor([len_tokens])
 
-        return tokens, label, len_tokens
+            return tokens, label, len_tokens
+        else:
+            return instance
 
     def get_lines_labels(self) -> (List[str], List[str]):
         """
