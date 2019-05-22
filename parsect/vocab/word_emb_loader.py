@@ -3,6 +3,7 @@ import parsect.constants as constants
 from typing import Dict
 import numpy as np
 from tqdm import tqdm
+from wasabi import Printer
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -39,6 +40,7 @@ class WordEmbLoader:
 
         self.embedding_filename = self.get_preloaded_filename()
         self.vocab_embedding = {}  # stores the embedding for all words in vocab
+        self.msg_printer = Printer()
 
         if "glove" in self.embedding_type:
             self.vocab_embedding = self.load_glove_embedding()
@@ -79,25 +81,27 @@ class WordEmbLoader:
         """
         embedding_dim = int(self.embedding_type.split("_")[-1])
         glove_embeddings = {}
-        with open(self.embedding_filename, "r") as fp:
-            for line in tqdm(
-                fp, desc="Loading embeddings from file {0}".format(self.embedding_type)
-            ):
-                values = line.split()
-                word = values[0]
-                embedding = np.array([float(value) for value in values[1:]])
-                glove_embeddings[word] = embedding
+        with self.msg_printer.loading('Loading GLOVE embeddings'):
+            with open(self.embedding_filename, "r") as fp:
+                for line in tqdm(
+                    fp, desc="Loading embeddings from file {0}".format(self.embedding_type)
+                ):
+                    values = line.split()
+                    word = values[0]
+                    embedding = np.array([float(value) for value in values[1:]])
+                    glove_embeddings[word] = embedding
 
-        tokens = self.token2idx_mapping.keys()
+            tokens = self.token2idx_mapping.keys()
 
-        vocab_embeddings = {}
+            vocab_embeddings = {}
 
-        for token in tokens:
-            try:
-                emb = glove_embeddings[token]
-            except KeyError:
-                emb = np.zeros(embedding_dim)
+            for token in tokens:
+                try:
+                    emb = glove_embeddings[token]
+                except KeyError:
+                    emb = np.zeros(embedding_dim)
 
-            vocab_embeddings[token] = emb
+                vocab_embeddings[token] = emb
 
+        self.msg_printer.good(f'Loaded Glove embeddings - {self.embedding_type}')
         return vocab_embeddings
