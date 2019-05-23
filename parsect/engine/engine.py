@@ -14,6 +14,7 @@ import numpy as np
 import time
 import json_logging
 import logging
+from torch.utils.data._utils.collate import default_collate
 
 
 class Engine:
@@ -32,7 +33,7 @@ class Engine:
         tensorboard_logdir: str = None,
         metric: str = "accuracy",
         track_for_best: str = "loss",
-        collate_fn: Callable[[List[Any]], List[Any]] = None,
+        collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
     ):
         """
         This orchestrates the whole model training. The supervised machine learning
