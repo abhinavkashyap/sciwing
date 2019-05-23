@@ -37,7 +37,7 @@ class TestWordEmbLoader:
 
             assert os.path.isfile(preloaded_filename)
 
-    def test_all_vocab_words_have_embedding(self, setup_word_emb_loader):
+    def test_all_vocab_words_have_glove_embedding(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
         emb_loader = WordEmbLoader(
             token2idx=vocab.get_token2idx_mapping(), embedding_type="glove_6B_50"
@@ -47,4 +47,13 @@ class TestWordEmbLoader:
 
         words = vocab_embedding.keys()
 
+        assert len(words) == vocab.get_vocab_len()
+
+    def test_all_vocab_words_have_random_embeddings(self, setup_word_emb_loader):
+        vocab = setup_word_emb_loader
+        emb_loader = WordEmbLoader(
+            token2idx=vocab.get_token2idx_mapping(), embedding_type=None
+        )
+        vocab_embedding = emb_loader.vocab_embedding
+        words = vocab_embedding.keys()
         assert len(words) == vocab.get_vocab_len()

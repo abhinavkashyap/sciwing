@@ -8,6 +8,7 @@ import wasabi
 from copy import deepcopy
 from parsect.vocab.word_emb_loader import WordEmbLoader
 import torch
+from typing import Union
 
 
 class Vocab:
@@ -22,7 +23,8 @@ class Vocab:
         end_token: str = "<EOS>",
         special_token_freq: float = 1e10,
         store_location: str = None,
-        embedding_type: str = "glove_6B_50",
+        embedding_type: Union[str, None] = None,
+        embedding_dimension: Union[int, None] = None,
     ):
         """
 
@@ -52,6 +54,8 @@ class Vocab:
         The embedding type is the type of pre-trained embedding that will be loaded
         for all the words in the vocab optionally. You can refer to `WordEmbLoder`
         for all the available embedding types
+        :param embedding_dimension: type: int
+        Embedding dimension of the embedding type
         """
         self.instances = instances
         self.max_num_words = max_num_words
@@ -67,6 +71,8 @@ class Vocab:
         self.token2idx = None
         self.store_location = store_location
         self.embedding_type = embedding_type
+        self.embedding_dimension = embedding_dimension
+
         self.msg_printer = Printer()
 
         # store the special tokens
@@ -328,7 +334,9 @@ class Vocab:
             raise ValueError("Please build the vocab first")
 
         embedding_loader = WordEmbLoader(
-            token2idx=self.token2idx, embedding_type=self.embedding_type
+            token2idx=self.token2idx,
+            embedding_type=self.embedding_type,
+            embedding_dimension=self.embedding_dimension,
         )
         indices = [key for key in self.idx2token.keys()]
         indices = sorted(indices)

@@ -3,7 +3,7 @@ import wasabi
 import numpy as np
 import collections
 from torch.utils.data import Dataset
-from typing import List, Dict
+from typing import List, Dict, Union
 import parsect.constants as constants
 from parsect.utils.common import convert_secthead_to_json
 from parsect.vocab.vocab import Vocab
@@ -26,7 +26,8 @@ class ParsectDataset(Dataset):
         vocab_store_location: str,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
-        embedding_type: str = "glove_6B_50",
+        embedding_type: Union[str, None] = None,
+        embedding_dimension: Union[int, None] = None,
         return_instances: bool = False,
     ):
         """
@@ -62,6 +63,7 @@ class ParsectDataset(Dataset):
         self.debug = debug
         self.debug_dataset_proportion = debug_dataset_proportion
         self.embedding_type = embedding_type
+        self.embedding_dimension = embedding_dimension
         self.return_instances = return_instances
 
         self.word_tokenizer = WordTokenizer()
@@ -84,10 +86,11 @@ class ParsectDataset(Dataset):
         self.instances = self.tokenize(self.lines)
 
         self.vocab = Vocab(
-            self.instances,
+            instances=self.instances,
             max_num_words=self.max_num_words,
             store_location=self.store_location,
             embedding_type=self.embedding_type,
+            embedding_dimension=self.embedding_dimension,
         )
         self.vocab.build_vocab()
         self.vocab.print_stats()

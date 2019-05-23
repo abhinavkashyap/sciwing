@@ -3,11 +3,11 @@ from parsect.datasets.parsect_dataset import ParsectDataset
 from parsect.modules.bow_encoder import BOW_Encoder
 import parsect.constants as constants
 import os
-import torch.nn as nn
 import torch.optim as optim
 from parsect.engine.engine import Engine
 import json
 import argparse
+import torch.nn as nn
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -101,6 +101,8 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
+        embedding_type=None,
+        embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     validation_dataset = ParsectDataset(
@@ -111,6 +113,8 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
+        embedding_type=None,
+        embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     test_dataset = ParsectDataset(
@@ -121,12 +125,16 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
+        embedding_type=None,
+        embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
 
-    embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
+    random_embeddings = train_dataset.get_preloaded_embedding()
+    embedding = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
+
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedding=embedding,

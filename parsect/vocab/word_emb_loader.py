@@ -1,6 +1,6 @@
 import os
 import parsect.constants as constants
-from typing import Dict
+from typing import Dict, Union
 import numpy as np
 from tqdm import tqdm
 from wasabi import Printer
@@ -16,20 +16,28 @@ class WordEmbLoader:
 
     """
 
-    def __init__(self, token2idx: Dict, embedding_type: str = "glove_6B_50"):
+    def __init__(
+        self,
+        token2idx: Dict,
+        embedding_type: Union[str, None] = None,
+        embedding_dimension: Union[str, None] = None,
+    ):
         """
 
         :param token2idx: type: Dict
         The mapping between token2idx
-        :param embedding_type: type: List
+        :param embedding_type: type: Union[str, None]
         """
         self.token2idx_mapping = token2idx
-        self.embedding_type = embedding_type
+        self.embedding_type = "random" if embedding_type is None else embedding_type
+        self.embedding_dimension = embedding_dimension
+
         self.allowed_embedding_types = [
             "glove_6B_50",
             "glove_6B_100",
             "glove_6B_200",
             "glove_6B_300",
+            "random",
         ]
 
         assert (
@@ -41,6 +49,9 @@ class WordEmbLoader:
         self.embedding_filename = self.get_preloaded_filename()
         self.vocab_embedding = {}  # stores the embedding for all words in vocab
         self.msg_printer = Printer()
+
+        if "random" in self.embedding_type:
+            self.vocab_embedding = self.load_random_embedding()
 
         if "glove" in self.embedding_type:
             self.vocab_embedding = self.load_glove_embedding()
@@ -105,4 +116,19 @@ class WordEmbLoader:
                 vocab_embeddings[token] = emb
 
         self.msg_printer.good(f"Loaded Glove embeddings - {self.embedding_type}")
+        return vocab_embeddings
+
+    def load_random_embedding(self) -> Dict[str, np.array]:
+        tokens = self.token2idx_mapping.keys()
+
+        vocab_embeddings = {}
+
+        with self.msg_printer.loading("Loading Random word embeddings"):
+            for token in tokens:
+                emb = np.random.normal(
+                    loc=-0.1, scale=0.1, size=self.embedding_dimension
+                )
+                vocab_embeddings[token] = emb
+
+        self.msg_printer.good("Finished loading Random word Embedding")
         return vocab_embeddings

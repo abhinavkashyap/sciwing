@@ -254,3 +254,16 @@ class TestVocab:
         vocab.build_vocab()
         embedding = vocab.load_embedding()
         assert embedding.size(0) == vocab.get_vocab_len()
+
+    def test_random_embeddinng_has_2dimensions(self, instances):
+        single_instance = instances["single_instance"]
+        MAX_NUM_WORDS = 100
+        vocab = Vocab(
+            instances=single_instance,
+            max_num_words=MAX_NUM_WORDS,
+            embedding_type=None,
+            embedding_dimension=300,
+        )
+        vocab.build_vocab()
+        embeddings = vocab.load_embedding()
+        assert embeddings.ndimension() == 2
