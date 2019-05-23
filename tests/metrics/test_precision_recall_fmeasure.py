@@ -11,6 +11,15 @@ def setup_data_basecase():
     expected_precision = {0: 1.0, 1: 1.0}
     expected_recall = {0: 1.0, 1: 1.0}
     expected_fmeasure = {0: 1.0, 1: 1.0}
+    expected_macro_precision = 1.0
+    expected_macro_recall = 1.0
+    expected_macro_fscore = 1.0
+    expected_num_tps = {0: 1.0, 1: 1.0}
+    expected_num_fps = {0: 0.0, 1: 0.0}
+    expected_num_fns = {0: 0.0, 1: 0.0}
+    expected_micro_precision = 1.0
+    expected_micro_recall = 1.0
+    expected_micro_fscore = 1.0
 
     accuracy = PrecisionRecallFMeasure()
     return (
@@ -21,6 +30,15 @@ def setup_data_basecase():
             "expected_precision": expected_precision,
             "expected_recall": expected_recall,
             "expected_fscore": expected_fmeasure,
+            "expected_macro_precision": expected_macro_precision,
+            "expected_macro_recall": expected_macro_recall,
+            "expected_macro_fscore": expected_macro_fscore,
+            "expected_num_tps": expected_num_tps,
+            "expected_num_fps": expected_num_fps,
+            "expected_num_fns": expected_num_fns,
+            "expected_micro_precision": expected_micro_precision,
+            "expected_micro_recall": expected_micro_recall,
+            "expected_micro_fscore": expected_micro_fscore,
         },
     )
 
@@ -166,3 +184,38 @@ class TestAccuracy:
 
         for class_label, fscore_value in fscore.items():
             assert fscore_value == expected_fscore[class_label]
+
+    def test_macro_scores_basecase(self, setup_data_basecase):
+        predicted_probs, labels, accuracy, expected = setup_data_basecase
+        expected_macro_precision = expected["expected_macro_precision"]
+        expected_macro_recall = expected["expected_macro_recall"]
+        expected_macro_fscore = expected["expected_macro_fscore"]
+        expected_num_tps = expected["expected_num_tps"]
+        expected_num_fps = expected["expected_num_fps"]
+        expected_num_fns = expected["expected_num_fns"]
+        expected_micro_precision = expected["expected_micro_precision"]
+        expected_micro_recall = expected["expected_micro_recall"]
+        expected_micro_fscore = expected["expected_micro_fscore"]
+
+        accuracy.calc_metric(predicted_probs, labels)
+        metrics = accuracy.get_metric()
+
+        macro_precision = metrics["macro_precision"]
+        macro_recall = metrics["macro_recall"]
+        macro_fscore = metrics["macro_fscore"]
+        num_tps = metrics["num_tp"]
+        num_fps = metrics["num_fp"]
+        num_fn = metrics["num_fn"]
+        micro_precision = metrics["micro_precision"]
+        micro_recall = metrics["micro_recall"]
+        micro_fscore = metrics["micro_fscore"]
+
+        assert macro_precision == expected_macro_precision
+        assert macro_recall == expected_macro_recall
+        assert macro_fscore == expected_macro_fscore
+        assert num_tps == expected_num_tps
+        assert num_fps == expected_num_fps
+        assert num_fn == expected_num_fns
+        assert micro_precision == expected_micro_precision
+        assert micro_recall == expected_micro_recall
+        assert micro_fscore == expected_micro_fscore

@@ -189,11 +189,14 @@ class PrecisionRecallFMeasure:
         precision_dict = {}
         recall_dict = {}
         fscore_dict = {}
+        num_tp_dict = {}
+        num_fp_dict = {}
+        num_fn_dict = {}
 
-        for key in self.tp_counter.keys():
-            tp = self.tp_counter[key]
-            fp = self.fp_counter[key]
-            fn = self.fn_counter[key]
+        for class_ in self.tp_counter.keys():
+            tp = self.tp_counter[class_]
+            fp = self.fp_counter[class_]
+            fn = self.fn_counter[class_]
             if tp == 0 and fp == 0:
                 precision = 0
                 self.msg_printer.warn("both tp and fp are 0 .. setting precision to 0")
@@ -216,14 +219,57 @@ class PrecisionRecallFMeasure:
                 fscore = (2 * precision * recall) / (precision + recall)
                 fscore = np.around(fscore, decimals=4)
 
-            precision_dict[key] = precision
-            recall_dict[key] = recall
-            fscore_dict[key] = fscore
+            precision_dict[class_] = precision
+            recall_dict[class_] = recall
+            fscore_dict[class_] = fscore
+            num_tp_dict[class_] = tp
+            num_fp_dict[class_] = fp
+            num_fn_dict[class_] = fn
+
+        # macro scores
+        # for a detailed discussion on micro and macro scores please follow the discussion @
+        # https://datascience.stackexchange.com/questions/15989/micro-average-vs-macro-average-performance-in-a-multiclass-classification-settin
+        all_precisions = [
+            precision_value for precision_value in precision_dict.values()
+        ]
+        all_recalls = [recall_value for recall_value in recall_dict.values()]
+        all_fscores = [fscores_value for fscores_value in fscore_dict.values()]
+
+        # macro scores
+        macro_precision = np.mean(all_precisions)
+        macro_recall = np.mean(all_recalls)
+        macro_fscore = np.mean(all_fscores)
+        macro_precision = np.around(macro_precision, decimals=4)
+        macro_recall = np.around(macro_recall, decimals=4)
+        macro_fscore = np.around(macro_fscore, decimals=4)
+
+        # micro scores
+        all_num_tps = [num_tp for num_tp in num_tp_dict.values()]
+        all_num_fps = [num_fp for num_fp in num_fp_dict.values()]
+        all_num_fns = [num_fn for num_fn in num_fn_dict.values()]
+
+        micro_precision = np.sum(all_num_tps) / np.sum(all_num_tps + all_num_fps)
+        micro_recall = np.sum(all_num_tps) / np.sum(all_num_tps + all_num_fns)
+        micro_fscore = (
+            2 * micro_precision * micro_recall / (micro_precision + micro_recall)
+        )
+        micro_precision = np.around(micro_precision, decimals=4)
+        micro_recall = np.around(micro_recall, decimals=4)
+        micro_fscore = np.around(micro_fscore, decimals=4)
 
         return {
             "precision": precision_dict,
             "recall": recall_dict,
             "fscore": fscore_dict,
+            "num_tp": num_tp_dict,
+            "num_fp": num_fp_dict,
+            "num_fn": num_fn_dict,
+            "macro_precision": macro_precision,
+            "macro_recall": macro_recall,
+            "macro_fscore": macro_fscore,
+            "micro_precision": micro_precision,
+            "micro_recall": micro_recall,
+            "micro_fscore": micro_fscore,
         }
 
     def reset(self) -> None:
@@ -238,6 +284,12 @@ class PrecisionRecallFMeasure:
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
         fscore = accuracy_metrics["fscore"]
+        macro_precision = accuracy_metrics["macro_precision"]
+        macro_recall = accuracy_metrics["macro_recall"]
+        macro_fscore = accuracy_metrics["macro_fscore"]
+        micro_precision = accuracy_metrics["micro_precision"]
+        micro_recall = accuracy_metrics["micro_recall"]
+        micro_fscore = accuracy_metrics["micro_fscore"]
 
         if report_type == "wasabi":
             classes = precision.keys()
@@ -249,6 +301,10 @@ class PrecisionRecallFMeasure:
                 r = recall[class_num]
                 f = fscore[class_num]
                 rows.append(("class_{0}".format(class_num), p, r, f))
+
+            rows.append(["-"] * 4)
+            rows.append(["Macro", macro_precision, macro_recall, macro_fscore])
+            rows.append(["Micro", micro_precision, micro_recall, micro_fscore])
 
             return table(rows, header=header_row, divider=True)
 
@@ -267,3 +323,5 @@ if __name__ == "__main__":
     print("precision", precision_)
     print("recall", recall_)
     print("fmeasure", fscore_)
+
+    print(accuracy.report_metrics())
