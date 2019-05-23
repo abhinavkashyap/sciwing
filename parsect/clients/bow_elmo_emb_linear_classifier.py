@@ -85,7 +85,7 @@ if __name__ == "__main__":
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    EMBEDDING_DIMENSION = config['EMBEDDING_DIMENSION']
+    EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     MAX_NUM_WORDS = 0
     MAX_LENGTH = 0
@@ -139,7 +139,6 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
 
-
     def collate_fn(batch):
         instances = []
         labels = []
@@ -155,7 +154,6 @@ if __name__ == "__main__":
 
         return instances, labels, len_tokens
 
-
     engine = Engine(
         model=model,
         train_dataset=train_dataset,
@@ -168,7 +166,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
-        collate_fn=collate_fn
+        collate_fn=collate_fn,
     )
 
     engine.run()

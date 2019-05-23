@@ -6,29 +6,32 @@ import os
 
 @pytest.fixture()
 def setup_word_emb_loader():
-    instances = [['load', 'vocab']]
+    instances = [["load", "vocab"]]
     vocab = Vocab(instances, max_num_words=1000)
     vocab.build_vocab()
     return vocab
 
 
 class TestWordEmbLoader:
-
     def test_invalid_embedding_type(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
         with pytest.raises(AssertionError):
             emb_loader = WordEmbLoader(
-                token2idx=vocab.get_token2idx_mapping(),
-                embedding_type="notexistent")
+                token2idx=vocab.get_token2idx_mapping(), embedding_type="notexistent"
+            )
 
     def test_preloaded_file_exists(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
-        embedding_types = ['glove_6B_50', 'glove_6B_100', 'glove_6B_200', 'glove_6B_300']
+        embedding_types = [
+            "glove_6B_50",
+            "glove_6B_100",
+            "glove_6B_200",
+            "glove_6B_300",
+        ]
 
         for embedding_type in embedding_types:
             emb_loader = WordEmbLoader(
-                token2idx=vocab.get_token2idx_mapping(),
-                embedding_type=embedding_type
+                token2idx=vocab.get_token2idx_mapping(), embedding_type=embedding_type
             )
             preloaded_filename = emb_loader.get_preloaded_filename()
 
@@ -37,8 +40,7 @@ class TestWordEmbLoader:
     def test_all_vocab_words_have_embedding(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
         emb_loader = WordEmbLoader(
-            token2idx=vocab.get_token2idx_mapping(),
-            embedding_type='glove_6B_50'
+            token2idx=vocab.get_token2idx_mapping(), embedding_type="glove_6B_50"
         )
 
         vocab_embedding = emb_loader.vocab_embedding
@@ -46,4 +48,3 @@ class TestWordEmbLoader:
         words = vocab_embedding.keys()
 
         assert len(words) == vocab.get_vocab_len()
-

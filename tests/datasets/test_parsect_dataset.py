@@ -131,8 +131,9 @@ class TestParsectDataset:
             return instances, labels, len_tokens
 
         train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
-        loader = DataLoader(dataset=train_dataset, batch_size=3, shuffle=False,
-                            collate_fn=collate_fn)
+        loader = DataLoader(
+            dataset=train_dataset, batch_size=3, shuffle=False, collate_fn=collate_fn
+        )
         instances = next(iter(loader))
 
         assert len(instances) == 3

@@ -8,14 +8,14 @@ class TestSpacyWordTokenizer:
         tokenizer = WordTokenizer()
         tokens = tokenizer.tokenize(sample_sentence)
 
-        assert tokens == ['I', 'like', 'big', 'apple', '.']
+        assert tokens == ["I", "like", "big", "apple", "."]
 
     def test_sample_apostrophe_tokenization(self):
         sample_sentence = "I don't like apples."
         tokenizer = WordTokenizer()
         tokens = tokenizer.tokenize(sample_sentence)
 
-        assert tokens == ['I', 'do', "n't", "like", "apples", "."]
+        assert tokens == ["I", "do", "n't", "like", "apples", "."]
 
     def test_len_sample_batch(self):
         sample_sentences = ["I like big apple.", "We process text"]
@@ -25,13 +25,9 @@ class TestSpacyWordTokenizer:
 
     def test_word_tokenization_types(self):
         with pytest.raises(AssertionError):
-            tokenizer = WordTokenizer(tokenizer='moses')
+            tokenizer = WordTokenizer(tokenizer="moses")
 
     # TODO: Remove this after you have implemented nltk tokenization
     def test_other_tokenizer(self):
-        tokenizer = WordTokenizer(tokenizer='nltk')
-        assert tokenizer.tokenize('First string') == None
-
-
-
-
+        tokenizer = WordTokenizer(tokenizer="nltk")
+        assert tokenizer.tokenize("First string") == None

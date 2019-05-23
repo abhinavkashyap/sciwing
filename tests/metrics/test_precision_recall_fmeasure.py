@@ -5,8 +5,7 @@ from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 @pytest.fixture
 def setup_data_basecase():
-    predicted_probs = torch.FloatTensor([[0.1, 0.9],
-                                         [0.7, 0.3]])
+    predicted_probs = torch.FloatTensor([[0.1, 0.9], [0.7, 0.3]])
     labels = torch.LongTensor([1, 0])
 
     expected_precision = {0: 1.0, 1: 1.0}
@@ -14,11 +13,16 @@ def setup_data_basecase():
     expected_fmeasure = {0: 1.0, 1: 1.0}
 
     accuracy = PrecisionRecallFMeasure()
-    return predicted_probs, labels, accuracy, {
-        'expected_precision': expected_precision,
-        'expected_recall': expected_recall,
-        'expected_fscore': expected_fmeasure
-    }
+    return (
+        predicted_probs,
+        labels,
+        accuracy,
+        {
+            "expected_precision": expected_precision,
+            "expected_recall": expected_recall,
+            "expected_fscore": expected_fmeasure,
+        },
+    )
 
 
 @pytest.fixture
@@ -29,8 +33,7 @@ def setup_data_one_true_class_missing():
     The test case here captures the situation
     :return:
     """
-    predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2],
-                                         [0.2, 0.5, 0.3]])
+    predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2], [0.2, 0.5, 0.3]])
     labels = torch.LongTensor([0, 2])
 
     expected_precision = {0: 1.0, 1: 0.0, 2: 0.0}
@@ -39,17 +42,21 @@ def setup_data_one_true_class_missing():
 
     accuracy = PrecisionRecallFMeasure()
 
-    return predicted_probs, labels, accuracy, {
-        'expected_precision': expected_precision,
-        'expected_recall': expected_recall,
-        'expected_fscore': expected_fscore
-    }
+    return (
+        predicted_probs,
+        labels,
+        accuracy,
+        {
+            "expected_precision": expected_precision,
+            "expected_recall": expected_recall,
+            "expected_fscore": expected_fscore,
+        },
+    )
 
 
 @pytest.fixture
 def setup_data_to_test_length():
-    predicted_probs = torch.FloatTensor([[0.1, 0.8, 0.2],
-                                         [0.2, 0.3, 0.5]])
+    predicted_probs = torch.FloatTensor([[0.1, 0.8, 0.2], [0.2, 0.3, 0.5]])
     labels = torch.LongTensor([0, 2])
 
     accuracy = PrecisionRecallFMeasure()
@@ -62,15 +69,15 @@ def setup_data_to_test_length():
 class TestAccuracy:
     def test_overall_accuracy_basecase(self, setup_data_basecase):
         predicted_probs, labels, accuracy, expected = setup_data_basecase
-        expected_precision = expected['expected_precision']
-        expected_recall = expected['expected_recall']
-        expected_fmeasure = expected['expected_fscore']
+        expected_precision = expected["expected_precision"]
+        expected_recall = expected["expected_recall"]
+        expected_fmeasure = expected["expected_fscore"]
 
         accuracy_metrics = accuracy.get_overall_accuracy(predicted_probs, labels)
 
-        precision = accuracy_metrics['precision']
-        recall = accuracy_metrics['recall']
-        fscore = accuracy_metrics['fscore']
+        precision = accuracy_metrics["precision"]
+        recall = accuracy_metrics["recall"]
+        fscore = accuracy_metrics["fscore"]
 
         for class_label, precision_value in precision.items():
             assert precision_value == expected_precision[class_label]
@@ -81,17 +88,19 @@ class TestAccuracy:
         for class_label, fscore_value in fscore.items():
             assert fscore_value == expected_fmeasure[class_label]
 
-    def test_overall_accuracy_one_true_class_missing(self, setup_data_one_true_class_missing):
+    def test_overall_accuracy_one_true_class_missing(
+        self, setup_data_one_true_class_missing
+    ):
         predicted_probs, labels, accuracy, expected = setup_data_one_true_class_missing
-        expected_precision = expected['expected_precision']
-        expected_recall = expected['expected_recall']
-        expected_fscore = expected['expected_fscore']
+        expected_precision = expected["expected_precision"]
+        expected_recall = expected["expected_recall"]
+        expected_fscore = expected["expected_fscore"]
 
         accuracy_metrics = accuracy.get_overall_accuracy(predicted_probs, labels)
 
-        precision = accuracy_metrics['precision']
-        recall = accuracy_metrics['recall']
-        fscore = accuracy_metrics['fscore']
+        precision = accuracy_metrics["precision"]
+        recall = accuracy_metrics["recall"]
+        fscore = accuracy_metrics["fscore"]
 
         for class_label, precision_value in precision.items():
             assert precision_value == expected_precision[class_label]
@@ -106,27 +115,26 @@ class TestAccuracy:
         predicted_probs, labels, accuracy, expected_length = setup_data_to_test_length
 
         metrics = accuracy.get_overall_accuracy(predicted_probs, labels)
-        precision = metrics['precision']
+        precision = metrics["precision"]
 
         assert len(precision.keys()) == expected_length
 
     def test_print_confusion_matrix_works(self, setup_data_basecase):
         predicted_probs, labels, accuracy, expected = setup_data_basecase
-        accuracy.print_confusion_metrics(predicted_probs,
-                                         labels)
+        accuracy.print_confusion_metrics(predicted_probs, labels)
 
     def test_accuracy_basecase(self, setup_data_basecase):
         predicted_probs, labels, accuracy, expected = setup_data_basecase
-        expected_precision = expected['expected_precision']
-        expected_recall = expected['expected_recall']
-        expected_fmeasure = expected['expected_fscore']
+        expected_precision = expected["expected_precision"]
+        expected_recall = expected["expected_recall"]
+        expected_fmeasure = expected["expected_fscore"]
 
         accuracy.calc_metric(predicted_probs, labels)
         accuracy_metrics = accuracy.get_metric()
 
-        precision = accuracy_metrics['precision']
-        recall = accuracy_metrics['recall']
-        fscore = accuracy_metrics['fscore']
+        precision = accuracy_metrics["precision"]
+        recall = accuracy_metrics["recall"]
+        fscore = accuracy_metrics["fscore"]
 
         for class_label, precision_value in precision.items():
             assert precision_value == expected_precision[class_label]
@@ -139,16 +147,16 @@ class TestAccuracy:
 
     def test_accuracy_one_true_class_missing(self, setup_data_one_true_class_missing):
         predicted_probs, labels, accuracy, expected = setup_data_one_true_class_missing
-        expected_precision = expected['expected_precision']
-        expected_recall = expected['expected_recall']
-        expected_fscore = expected['expected_fscore']
+        expected_precision = expected["expected_precision"]
+        expected_recall = expected["expected_recall"]
+        expected_fscore = expected["expected_fscore"]
 
         accuracy.calc_metric(predicted_probs, labels)
         accuracy_metrics = accuracy.get_metric()
 
-        precision = accuracy_metrics['precision']
-        recall = accuracy_metrics['recall']
-        fscore = accuracy_metrics['fscore']
+        precision = accuracy_metrics["precision"]
+        recall = accuracy_metrics["recall"]
+        fscore = accuracy_metrics["fscore"]
 
         for class_label, precision_value in precision.items():
             assert precision_value == expected_precision[class_label]

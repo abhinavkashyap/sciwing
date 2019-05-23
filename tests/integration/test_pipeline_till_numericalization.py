@@ -11,7 +11,7 @@ from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
 
 FILES = constants.FILES
-SECT_LABEL_FILE = FILES['SECT_LABEL_FILE']
+SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 # 1. Convert parsect data to json
@@ -25,7 +25,7 @@ def get_parsect_data():
 @pytest.fixture()
 def get_tokenized_data(get_parsect_data):
     parsect_json = get_parsect_data
-    parsect_lines = parsect_json['parse_sect']
+    parsect_lines = parsect_json["parse_sect"]
     parsect_lines = parsect_lines[:100]
     tokenizer = WordTokenizer()
 
@@ -33,8 +33,8 @@ def get_tokenized_data(get_parsect_data):
     labels = []
 
     for line_json in parsect_lines:
-        text = line_json['text']
-        label = line_json['label']
+        text = line_json["text"]
+        label = line_json["label"]
         lines.append(text)
         labels.append(label)
 
@@ -60,40 +60,43 @@ def get_numericalized_instances(get_preprocessed_instances):
     MAX_LENGTH = 15
     vocab = Vocab(instances, max_num_words=MAX_NUM_WORDS)
     vocab.build_vocab()
-    numericalizer = Numericalizer(max_length=MAX_LENGTH,
-                                  vocabulary=vocab)
-    lengths, numericalized_instances = numericalizer.numericalize_batch_instances(instances[:32])
-    return {'numericalized_instances': numericalized_instances,
-            'labels': labels,
-            'max_length': MAX_LENGTH,
-            'max_num_words': MAX_NUM_WORDS,
-            'vocab': vocab}
+    numericalizer = Numericalizer(max_length=MAX_LENGTH, vocabulary=vocab)
+    lengths, numericalized_instances = numericalizer.numericalize_batch_instances(
+        instances[:32]
+    )
+    return {
+        "numericalized_instances": numericalized_instances,
+        "labels": labels,
+        "max_length": MAX_LENGTH,
+        "max_num_words": MAX_NUM_WORDS,
+        "vocab": vocab,
+    }
 
 
-class TestPipeline():
+class TestPipeline:
     def test_integers(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances['numericalized_instances']
+        numericalized_instances = get_numericalized_instances["numericalized_instances"]
         for instance in numericalized_instances:
             assert all([type(token) == int for token in instance])
 
     def test_max_length(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances['numericalized_instances']
-        max_length = get_numericalized_instances['max_length']
+        numericalized_instances = get_numericalized_instances["numericalized_instances"]
+        max_length = get_numericalized_instances["max_length"]
 
         for instance in numericalized_instances:
             assert len(instance) == max_length
 
     def test_instances_start_with_start_token(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances['numericalized_instances']
-        vocab = get_numericalized_instances['vocab']
+        numericalized_instances = get_numericalized_instances["numericalized_instances"]
+        vocab = get_numericalized_instances["vocab"]
         start_idx = vocab.get_idx_from_token(vocab.start_token)
 
         for instance in numericalized_instances:
             assert instance[0] == start_idx
 
     def test_instances_ends_with_pad_or_end_token(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances['numericalized_instances']
-        vocab = get_numericalized_instances['vocab']
+        numericalized_instances = get_numericalized_instances["numericalized_instances"]
+        vocab = get_numericalized_instances["vocab"]
         end_idx = vocab.get_idx_from_token(vocab.end_token)
         pad_idx = vocab.get_idx_from_token(vocab.pad_token)
 
@@ -101,10 +104,8 @@ class TestPipeline():
             assert instance[-1] == end_idx or instance[-1] == pad_idx
 
     def test_max_vocab(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances['numericalized_instances']
-        vocab = get_numericalized_instances['vocab']
-        MAX_NUM_WORDS = get_numericalized_instances['max_num_words']
+        numericalized_instances = get_numericalized_instances["numericalized_instances"]
+        vocab = get_numericalized_instances["vocab"]
+        MAX_NUM_WORDS = get_numericalized_instances["max_num_words"]
         vocab_len = vocab.get_vocab_len()
         assert vocab_len <= MAX_NUM_WORDS + len(vocab.special_vocab)
-
-
