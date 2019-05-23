@@ -109,15 +109,31 @@ class TestParsectDataset:
         self, setup_parsect_train_dataset_returns_instances
     ):
         train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
-        first_instance = train_dataset[0]
+        first_instance = train_dataset[0][0]
         assert all([type(word) == str for word in first_instance])
 
     def test_loader_returns_list_of_instances(
         self, setup_parsect_train_dataset_returns_instances
     ):
+        def collate_fn(batch):
+            instances = []
+            labels = []
+            len_tokens = []
+
+            for ele in batch:
+                instances.append(ele[0])
+                labels.append(ele[1])
+                len_tokens.append(ele[2])
+
+            labels = torch.stack(labels, dim=0)
+            len_tokens = torch.stack(len_tokens, dim=0)
+
+            return instances, labels, len_tokens
+
         train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
         loader = DataLoader(dataset=train_dataset, batch_size=3, shuffle=False,
-                            collate_fn=lambda batch: batch)
+                            collate_fn=collate_fn)
         instances = next(iter(loader))
+
         assert len(instances) == 3
-        assert type(instances[0]) == list 
+        assert type(instances[0]) == list

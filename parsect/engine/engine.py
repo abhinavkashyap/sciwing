@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
 import multiprocessing
-from typing import Iterator
+from typing import Iterator, Callable, Any, List
 from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
@@ -30,8 +30,9 @@ class Engine:
         save_every: int,
         log_train_metrics_every: int,
         tensorboard_logdir: str = None,
-        metric="accuracy",
-        track_for_best="loss",
+        metric: str = "accuracy",
+        track_for_best: str = "loss",
+        collate_fn: Callable[[List[Any]], List[Any]] = None,
     ):
         """
         This orchestrates the whole model training. The supervised machine learning
@@ -63,6 +64,11 @@ class Engine:
         :param track_for_best: type: str
         This will be tracked in order to determine the best model parameters
         to save
+        :param collate_fn: type: Callable[[List[Any]], List[Any]]
+        - The collate function that gets used with the data loader.
+        -The collate function provides the logic to group a batch of instances
+        - There are more details in `torch.utils.data.DataLoader`.
+        - If None, pytorchs default collate function will be used
         """
 
         self.model = model
@@ -80,6 +86,7 @@ class Engine:
         self.metric = metric
         self.summaryWriter = SummaryWriter(log_dir=tensorboard_logdir)
         self.track_for_best = track_for_best
+        self.collate_fn = collate_fn
         self.best_track_value = None
         self.set_best_track_value(self.best_track_value)
 
@@ -144,7 +151,10 @@ class Engine:
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
-            dataset=dataset, batch_size=self.batch_size, num_workers=self.num_workers
+            dataset=dataset,
+            batch_size=self.batch_size,
+            num_workers=self.num_workers,
+            collate_fn=self.collate_fn,
         )
         return loader
 
@@ -185,7 +195,7 @@ class Engine:
             try:
                 # N*T, N * 1, N * 1
                 tokens, labels, len_tokens = next(train_iter)
-                batch_size = tokens.size()[0]
+                batch_size = labels.size()[0]
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(
                     tokens, labels, is_training=True, is_validation=False, is_test=False

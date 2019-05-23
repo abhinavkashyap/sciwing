@@ -101,20 +101,20 @@ class ParsectDataset(Dataset):
 
     def __getitem__(self, idx) -> (torch.LongTensor, torch.LongTensor):
         instance = self.instances[idx]
+        label = self.labels[idx]
+        label_idx = self.label_mapping[label]
+        label = torch.LongTensor([label_idx])
 
         if not self.return_instances:
             # real length of tokens, numericalized tokens
             len_tokens, tokens = self.numericalizer.numericalize_instance(instance)
-            label = self.labels[idx]
-            label_idx = self.label_mapping[label]
-
             tokens = torch.LongTensor(tokens)
-            label = torch.LongTensor([label_idx])
             len_tokens = torch.LongTensor([len_tokens])
-
             return tokens, label, len_tokens
         else:
-            return instance
+            len_instance = len(instance)
+            len_instance = torch.LongTensor([len_instance])
+            return instance, label, len_instance
 
     def get_lines_labels(self) -> (List[str], List[str]):
         """

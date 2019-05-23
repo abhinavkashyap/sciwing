@@ -68,10 +68,6 @@ class SimpleClassifier(nn.Module):
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
 
-        assert x.ndimension() == 2, self.msg_printer.fail(
-            "the input should have 2 dimensions  d"
-            "your input has shape {0}".format(x.size())
-        )
         assert labels.ndimension() == 1, self.msg_printer.fail(
             "the labels should have 1 dimension "
             "your input has shape {0}".format(labels.size())
