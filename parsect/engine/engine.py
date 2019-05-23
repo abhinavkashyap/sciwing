@@ -277,7 +277,7 @@ class Engine:
         while True:
             try:
                 tokens, labels, len_tokens = next(valid_iter)
-                batch_size = tokens.size(0)
+                batch_size = labels.size(0)
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(
                     tokens, labels, is_training=False, is_validation=True, is_test=False
