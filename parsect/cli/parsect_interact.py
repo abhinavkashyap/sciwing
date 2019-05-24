@@ -4,7 +4,9 @@ from typing import List
 from parsect.clients.random_emb_bow_linear_classifier_infer import (
     get_random_emb_linear_classifier_infer,
 )
-from parsect.clients.glove_emb_bow_linear_classifier_infer import get_glove_emb_linear_classifier_infer
+from parsect.clients.glove_emb_bow_linear_classifier_infer import (
+    get_glove_emb_linear_classifier_infer,
+)
 import wasabi
 import parsect.constants as constants
 import os

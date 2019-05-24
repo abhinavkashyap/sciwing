@@ -97,7 +97,7 @@ class ParsectInference:
             debug_dataset_proportion=self.debug_dataset_proportion,
             embedding_type=self.embedding_type,
             embedding_dimension=self.embedding_dimension,
-            return_instances=self.return_instances
+            return_instances=self.return_instances,
         )
         return test_dataset
 

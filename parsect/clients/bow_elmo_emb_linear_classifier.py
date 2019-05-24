@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # read the hyperparams from config file
     parser = argparse.ArgumentParser(
         description="Bag of words linear classifier. "
-        "with initial random word embeddings"
+        "with initial elmo word embeddings"
     )
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
@@ -53,7 +53,17 @@ if __name__ == "__main__":
         help="Log training metrics every few iterations",
         type=int,
     )
-
+    parser.add_argument("--emb_dim", help="embedding dimension", type=int)
+    parser.add_argument(
+        "--emb_type",
+        help="The type of glove embedding you want. The allowed types are glove_6B_50, glove_6B_100, "
+        "glove_6B_200, glove_6B_300",
+    )
+    parser.add_argument(
+        "--return_instances",
+        help="Set this if the dataset has to return instances",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     config = {
@@ -61,11 +71,13 @@ if __name__ == "__main__":
         "DEBUG": args.debug,
         "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
         "BATCH_SIZE": args.bs,
-        "EMBEDDING_DIMENSION": 1024,
+        "EMBEDDING_DIMENSION": args.emb_dim,
         "LEARNING_RATE": args.lr,
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
+        "EMBEDDING_TYPE": args.emb_type,
+        "RETURN_INSTANCES": args.return_instances,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -86,6 +98,8 @@ if __name__ == "__main__":
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
+    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
+    RETURN_INSTANCES = config["RETURN_INSTANCES"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     MAX_NUM_WORDS = 0
     MAX_LENGTH = 0
@@ -98,7 +112,9 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        return_instances=True,
+        embedding_type=EMBEDDING_TYPE,
+        embedding_dimension=EMBEDDING_DIMENSION,
+        return_instances=RETURN_INSTANCES,
     )
 
     validation_dataset = ParsectDataset(
@@ -109,7 +125,9 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        return_instances=True,
+        embedding_type=EMBEDDING_TYPE,
+        embedding_dimension=EMBEDDING_DIMENSION,
+        return_instances=RETURN_INSTANCES,
     )
 
     test_dataset = ParsectDataset(
@@ -120,14 +138,15 @@ if __name__ == "__main__":
         vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        return_instances=True,
+        embedding_type=EMBEDDING_TYPE,
+        embedding_dimension=EMBEDDING_DIMENSION,
+        return_instances=RETURN_INSTANCES,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    glove_embeddings = train_dataset.get_preloaded_embedding()
+    random_embeddings = train_dataset.get_preloaded_embedding()
 
-    embedding = nn.Embedding.from_pretrained(glove_embeddings, freeze=False)
     encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION, aggregation_type="sum")
 
     model = SimpleClassifier(

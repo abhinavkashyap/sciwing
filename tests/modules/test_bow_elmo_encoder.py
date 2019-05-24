@@ -29,7 +29,7 @@ class TestBowElmoEncoder:
         embedding = bow_elmo_encoder(instances)
         assert embedding.size() == (len_instances, 1024)
 
-    def test_bow_elmo_enncoder_dimension_average(
+    def test_bow_elmo_encoder_dimension_average(
         self, setup_bow_elmo_encoder_agg_average
     ):
         bow_elmo_encoder, instances = setup_bow_elmo_encoder_agg_average

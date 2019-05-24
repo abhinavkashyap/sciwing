@@ -50,6 +50,8 @@ def get_glove_emb_linear_classifier_infer(dirname: str):
     return parsect_inference
 
 
-if __name__ == '__main__':
-    experiment_dirname = os.path.join(OUTPUT_DIR, 'bow_glove_emb_lc_3kw_10ml_50d_10e_1e-3lr')
+if __name__ == "__main__":
+    experiment_dirname = os.path.join(
+        OUTPUT_DIR, "bow_glove_emb_lc_3kw_10ml_50d_10e_1e-3lr"
+    )
     inference_client = get_glove_emb_linear_classifier_infer(experiment_dirname)

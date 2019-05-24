@@ -4,9 +4,10 @@ cd ../clients
 
 python bow_elmo_emb_linear_classifier.py \
 --exp_name "bow_elmo_emb_lc_10e_1e-3lr" \
---debug \
 --debug_dataset_proportion 0.01 \
+--return_instances \
 --bs 32 \
+--emb_dim 1024 \
 --lr 1e-4 \
 --epochs 10 \
 --save_every 1 \
