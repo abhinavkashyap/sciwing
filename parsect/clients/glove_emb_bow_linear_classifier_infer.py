@@ -11,7 +11,7 @@ OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 
 
-def get_random_emb_linear_classifier_infer(dirname: str):
+def get_glove_emb_linear_classifier_infer(dirname: str):
     hyperparam_config_filepath = os.path.join(dirname, "config.json")
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
@@ -23,6 +23,8 @@ def get_random_emb_linear_classifier_infer(dirname: str):
 
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
+    # it does not matter what random embeddings you have here
+    # it will be filled with the learnt parameters while loading the model
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
 
     encoder = BOW_Encoder(
@@ -46,3 +48,8 @@ def get_random_emb_linear_classifier_infer(dirname: str):
     )
 
     return parsect_inference
+
+
+if __name__ == '__main__':
+    experiment_dirname = os.path.join(OUTPUT_DIR, 'bow_glove_emb_lc_3kw_10ml_50d_10e_1e-3lr')
+    inference_client = get_glove_emb_linear_classifier_infer(experiment_dirname)

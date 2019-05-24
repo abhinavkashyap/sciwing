@@ -61,6 +61,9 @@ class ParsectInference:
         self.model_save_dir = config["MODEL_SAVE_DIR"]
         self.vocab_size = config["VOCAB_SIZE"]
         self.num_classes = config["NUM_CLASSES"]
+        self.embedding_type = config.get("EMBEDDING_TYPE", None)
+        self.embedding_dimension = config.get("EMBEDDING_DIMENSION", None)
+        self.return_instances = config.get("RETURN_INSTANCES", None)
         self.msg_printer = Printer()
 
         self.metrics_calculator = PrecisionRecallFMeasure()
@@ -92,6 +95,9 @@ class ParsectInference:
             vocab_store_location=self.vocab_store_location,
             debug=self.debug,
             debug_dataset_proportion=self.debug_dataset_proportion,
+            embedding_type=self.embedding_type,
+            embedding_dimension=self.embedding_dimension,
+            return_instances=self.return_instances
         )
         return test_dataset
 

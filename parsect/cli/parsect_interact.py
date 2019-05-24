@@ -4,6 +4,7 @@ from typing import List
 from parsect.clients.random_emb_bow_linear_classifier_infer import (
     get_random_emb_linear_classifier_infer,
 )
+from parsect.clients.glove_emb_bow_linear_classifier_infer import get_glove_emb_linear_classifier_infer
 import wasabi
 import parsect.constants as constants
 import os
@@ -19,7 +20,10 @@ class ParsectCli:
     """
 
     def __init__(self):
-        self.trained_model_types = ["random embedding-bow encoder-linear classifier"]
+        self.trained_model_types = [
+            "random-embedding-bow-encoder-linear-classifier",
+            "glove-embedding-bow-encoder-linear-classifier",
+        ]
         self.msg_printer = wasabi.Printer()
         self.model_type_answer = self.ask_model_type()
         self.inference_client = self.get_inference()
@@ -42,7 +46,7 @@ class ParsectCli:
 
     def get_inference(self):
         inference = None
-        if self.model_type_answer == "random embedding-bow encoder-linear classifier":
+        if self.model_type_answer == "random-embedding-bow-encoder-linear-classifier":
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
                 if expname.startswith("bow_random_emb_lc"):
@@ -53,6 +57,17 @@ class ParsectCli:
             ).ask()
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_random_emb_linear_classifier_infer(exp_choice)
+        if self.model_type_answer == "glove-embedding-bow-encoder-linear-classifier":
+            choices = []
+            for expname in os.listdir(OUTPUT_DIR):
+                if expname.startswith("bow_glove_emb_lc"):
+                    choices.append(Choice(expname))
+
+            exp_choice = questionary.rawselect(
+                "Please select an experiment", choices=choices, qmark="❓"
+            ).ask()
+            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_glove_emb_linear_classifier_infer(exp_choice)
         return inference
 
     def interact(self):
