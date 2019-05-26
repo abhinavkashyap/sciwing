@@ -7,6 +7,7 @@ PATHS = dict(
     DATA_DIR=os.path.join(ROOT_DIR, "data"),
     OUTPUT_DIR=os.path.join(ROOT_DIR, "outputs"),
     CONFIGS_DIR=os.path.join(ROOT_DIR, "configs"),
+    REPORTS_DIR=os.path.join(ROOT_DIR, "reports")
 )
 
 FILES = dict(SECT_LABEL_FILE=os.path.join(ROOT_DIR, "data", "sectLabel.train.data"))
