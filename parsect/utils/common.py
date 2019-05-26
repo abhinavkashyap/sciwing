@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from tqdm import tqdm
 import json
 from parsect.tokenizers.word_tokenizer import WordTokenizer
@@ -127,6 +127,19 @@ def merge_dictionaries_with_sum(a: Dict, b: Dict) -> Dict:
     return dict(
         list(a.items()) + list(b.items()) + [(k, a[k] + b[k]) for k in set(b) & set(a)]
     )
+
+
+def pack_to_length(tokenized_text: List[str],
+                   length: int,
+                   pad_token: str = "<PAD>") -> List[str]:
+    tokenized_text = tokenized_text[:length]
+    pad_length = length - len(tokenized_text)
+    for i in range(pad_length):
+        tokenized_text.append(pad_token)
+
+    assert len(tokenized_text) == length
+
+    return tokenized_text
 
 
 if __name__ == "__main__":

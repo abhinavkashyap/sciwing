@@ -1,7 +1,7 @@
 import parsect.constants as constants
 from parsect.utils.common import convert_secthead_to_json
 from parsect.utils.common import merge_dictionaries_with_sum
-
+from parsect.utils.common import pack_to_length
 FILES = constants.FILES
 
 SECTLABEL_FILENAME = FILES["SECT_LABEL_FILE"]
@@ -55,3 +55,36 @@ class TestCommon:
         expected = {"a": 3, "b": 6, "c": 0}
         a_b = merge_dictionaries_with_sum(a, b)
         assert a_b == expected
+
+    def test_pack_to_length_text_lower(self):
+        tokenized_text = ['i', 'am', 'going', 'to', 'write', 'tests']
+        length = 10
+        tokenized_text_padded = pack_to_length(
+            tokenized_text=tokenized_text,
+            length=length
+        )
+        assert tokenized_text_padded == ['i', 'am', 'going', 'to', 'write', 'tests'] + ['<PAD>'] * 4
+
+    def test_pack_to_length_text_higher(self):
+        tokenized_text = ['i', 'am', 'going', 'to', 'write', 'tests']
+        length = 3
+        tokenized_text_padded = pack_to_length(
+            tokenized_text=tokenized_text,
+            length=length
+        )
+        assert tokenized_text_padded == ['i', 'am', 'going']
+
+    def test_pack_to_length_text_equal(self):
+        tokenized_text = ['i', 'am', 'going', 'to', 'write', 'tests']
+        length = 6
+        tokenized_text_padded = pack_to_length(
+            tokenized_text=tokenized_text,
+            length=length
+        )
+        assert tokenized_text_padded == tokenized_text
+
+
+
+
+
+
