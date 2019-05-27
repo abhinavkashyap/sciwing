@@ -63,7 +63,7 @@ def generate_report(for_model="bow_random_emb_lc") -> str:
         if directory.startswith(for_model):
             log_filename = os.path.join(OUTPUT_DIR, directory, 'checkpoints', 'test.log')
             log_filenames.append(log_filename)
-            all_models.append(directory)
+            all_models.append(directory.replace(for_model, ""))
 
     all_results = {}
     for model_name, log_filename in zip(all_models, log_filenames):
@@ -118,10 +118,10 @@ if __name__ == "__main__":
     )
     print(bow_elmo_tbl_string)
 
-    random_emb_method_tbl_string = generate_report(for_model="bow_random_emb_lc")
+    random_emb_method_tbl_string = generate_report(for_model="bow_elmo_emb_lc")
 
     bow_random_emb_lc_filename = os.path.join(
-        REPORTS_DIR, "bow_random_emb_lc.md"
+        REPORTS_DIR, "bow_elmo_emb_lc.md"
     )
 
     with open(bow_random_emb_lc_filename, 'w') as fp:
