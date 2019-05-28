@@ -36,7 +36,15 @@ class BowElmoEncoder:
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
+        self.allowed_aggregation_types = ["sum", "average", "last"]
         self.msg_printer = wasabi.Printer()
+
+        assert (
+            self.aggregation_type in self.allowed_aggregation_types
+        ), self.msg_printer.fail(
+            f"For bag of words elmo encoder, the allowable aggregation "
+            f"types are {self.allowed_aggregation_types}. You passed {self.aggregation_type}"
+        )
 
         # load the elmo embedders
         with self.msg_printer.loading("Creating Elmo object"):
@@ -80,6 +88,10 @@ class BowElmoEncoder:
             embedding_ = torch.mean(embedded, dim=1)
             # mean across all the words
             embedding_ = torch.mean(embedding_, dim=1)
+        elif self.aggregation_type == "last":
+            # take the last layer of embeddings
+            # bs, max_len, 1024
+            embedding_ = embedded[:, -1, :, :]
 
         return embedding_
 
