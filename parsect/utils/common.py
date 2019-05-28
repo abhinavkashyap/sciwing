@@ -129,9 +129,9 @@ def merge_dictionaries_with_sum(a: Dict, b: Dict) -> Dict:
     )
 
 
-def pack_to_length(tokenized_text: List[str],
-                   length: int,
-                   pad_token: str = "<PAD>") -> List[str]:
+def pack_to_length(
+    tokenized_text: List[str], length: int, pad_token: str = "<PAD>"
+) -> List[str]:
     tokenized_text = tokenized_text[:length]
     pad_length = length - len(tokenized_text)
     for i in range(pad_length):

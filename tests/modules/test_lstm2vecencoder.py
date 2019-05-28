@@ -23,18 +23,21 @@ def setup_unidirection_concat_zero_embedding():
         hidden_dim=hidden_dimension,
         bidirectional=False,
         combine_strategy=combine_strategy,
-        rnn_bias=False
+        rnn_bias=False,
     )
 
-    return encoder, {
-        'emb_dim': emb_dim,
-        'vocab_size': vocab_size,
-        'hidden_dim': hidden_dimension,
-        'bidirectional': False,
-        'combine_strategy': combine_strategy,
-        'tokens': tokens,
-        'batch_size': batch_size
-    }
+    return (
+        encoder,
+        {
+            "emb_dim": emb_dim,
+            "vocab_size": vocab_size,
+            "hidden_dim": hidden_dimension,
+            "bidirectional": False,
+            "combine_strategy": combine_strategy,
+            "tokens": tokens,
+            "batch_size": batch_size,
+        },
+    )
 
 
 @pytest.fixture
@@ -55,18 +58,21 @@ def setup_unidirection_sum_zero_embedding():
         hidden_dim=hidden_dimension,
         bidirectional=False,
         combine_strategy=combine_strategy,
-        rnn_bias=False
+        rnn_bias=False,
     )
 
-    return encoder, {
-        'emb_dim': emb_dim,
-        'vocab_size': vocab_size,
-        'hidden_dim': hidden_dimension,
-        'bidirectional': False,
-        'combine_strategy': combine_strategy,
-        'tokens': tokens,
-        'batch_size': batch_size
-    }
+    return (
+        encoder,
+        {
+            "emb_dim": emb_dim,
+            "vocab_size": vocab_size,
+            "hidden_dim": hidden_dimension,
+            "bidirectional": False,
+            "combine_strategy": combine_strategy,
+            "tokens": tokens,
+            "batch_size": batch_size,
+        },
+    )
 
 
 @pytest.fixture
@@ -87,18 +93,21 @@ def setup_bidirection_concat_zero_embedding():
         hidden_dim=hidden_dimension,
         bidirectional=True,
         combine_strategy=combine_strategy,
-        rnn_bias=False
+        rnn_bias=False,
     )
 
-    return encoder, {
-        'emb_dim': emb_dim,
-        'vocab_size': vocab_size,
-        'hidden_dim': hidden_dimension,
-        'bidirectional': False,
-        'combine_strategy': combine_strategy,
-        'tokens': tokens,
-        'batch_size': batch_size
-    }
+    return (
+        encoder,
+        {
+            "emb_dim": emb_dim,
+            "vocab_size": vocab_size,
+            "hidden_dim": hidden_dimension,
+            "bidirectional": False,
+            "combine_strategy": combine_strategy,
+            "tokens": tokens,
+            "batch_size": batch_size,
+        },
+    )
 
 
 @pytest.fixture
@@ -119,102 +128,112 @@ def setup_bidirection_sum_zero_embedding():
         hidden_dim=hidden_dimension,
         bidirectional=True,
         combine_strategy=combine_strategy,
-        rnn_bias=False
+        rnn_bias=False,
     )
 
-    return encoder, {
-        'emb_dim': emb_dim,
-        'vocab_size': vocab_size,
-        'hidden_dim': hidden_dimension,
-        'bidirectional': False,
-        'combine_strategy': combine_strategy,
-        'tokens': tokens,
-        'batch_size': batch_size
-    }
+    return (
+        encoder,
+        {
+            "emb_dim": emb_dim,
+            "vocab_size": vocab_size,
+            "hidden_dim": hidden_dimension,
+            "bidirectional": False,
+            "combine_strategy": combine_strategy,
+            "tokens": tokens,
+            "batch_size": batch_size,
+        },
+    )
 
 
 class TestLstm2VecEncoder:
     def test_raises_error_on_wrong_combine_strategy(self):
         with pytest.raises(AssertionError):
             encoder = LSTM2VecEncoder(
-                emb_dim=300,
-                embedding=nn.Embedding(10, 1024),
-                combine_strategy="add"
+                emb_dim=300, embedding=nn.Embedding(10, 1024), combine_strategy="add"
             )
 
-    def test_zero_embedding_unidir_concat_dimension(self, setup_unidirection_concat_zero_embedding):
+    def test_zero_embedding_unidir_concat_dimension(
+        self, setup_unidirection_concat_zero_embedding
+    ):
         encoder, options = setup_unidirection_concat_zero_embedding
-        x = options['tokens']
-        hidden_dim = options['hidden_dim']
-        batch_size = options['batch_size']
+        x = options["tokens"]
+        hidden_dim = options["hidden_dim"]
+        batch_size = options["batch_size"]
         encoding = encoder(x)
         assert encoding.size() == (batch_size, hidden_dim)
 
-    def test_zero_embedding_unidir_concat(self, setup_unidirection_concat_zero_embedding):
+    def test_zero_embedding_unidir_concat(
+        self, setup_unidirection_concat_zero_embedding
+    ):
         encoder, options = setup_unidirection_concat_zero_embedding
-        x = options['tokens']
-        hidden_dim = options['hidden_dim']
-        batch_size = options['batch_size']
+        x = options["tokens"]
+        hidden_dim = options["hidden_dim"]
+        batch_size = options["batch_size"]
         encoding = encoder(x)
         assert torch.all(
             torch.eq(encoding, torch.zeros([batch_size, hidden_dim]))
         ).item()
 
-    def test_zero_embedding_unidir_sum_dimensions(self, setup_unidirection_sum_zero_embedding):
+    def test_zero_embedding_unidir_sum_dimensions(
+        self, setup_unidirection_sum_zero_embedding
+    ):
         encoder, options = setup_unidirection_sum_zero_embedding
-        x = options['tokens']
-        hidden_dim = options['hidden_dim']
-        batch_size = options['batch_size']
+        x = options["tokens"]
+        hidden_dim = options["hidden_dim"]
+        batch_size = options["batch_size"]
         encoding = encoder(x)
         assert encoding.size() == (batch_size, hidden_dim)
 
     def test_zero_embedding_unidir_sum(self, setup_unidirection_concat_zero_embedding):
         encoder, options = setup_unidirection_concat_zero_embedding
-        x = options['tokens']
-        hidden_dim = options['hidden_dim']
-        batch_size = options['batch_size']
+        x = options["tokens"]
+        hidden_dim = options["hidden_dim"]
+        batch_size = options["batch_size"]
         encoding = encoder(x)
         assert torch.all(
             torch.eq(encoding, torch.zeros([batch_size, hidden_dim]))
         ).item()
 
-    def test_zero_embedding_bidir_concat_dimension(self, setup_bidirection_concat_zero_embedding):
+    def test_zero_embedding_bidir_concat_dimension(
+        self, setup_bidirection_concat_zero_embedding
+    ):
         encoder, options = setup_bidirection_concat_zero_embedding
-        batch_size = options['batch_size']
-        hidden_dim = options['hidden_dim']
-        x = options['tokens']
+        batch_size = options["batch_size"]
+        hidden_dim = options["hidden_dim"]
+        x = options["tokens"]
 
         encoding = encoder(x)
         assert encoding.size() == (batch_size, 2 * hidden_dim)
 
     def test_zero_embedding_bidir_concat(self, setup_bidirection_concat_zero_embedding):
         encoder, options = setup_bidirection_concat_zero_embedding
-        batch_size = options['batch_size']
-        hidden_dim = options['hidden_dim']
-        x = options['tokens']
+        batch_size = options["batch_size"]
+        hidden_dim = options["hidden_dim"]
+        x = options["tokens"]
 
         encoding = encoder(x)
         assert torch.all(
             torch.eq(encoding, torch.zeros([batch_size, 2 * hidden_dim]))
         ).item()
 
-    def test_zero_embedding_bidir_sum_dimension(self, setup_bidirection_sum_zero_embedding):
+    def test_zero_embedding_bidir_sum_dimension(
+        self, setup_bidirection_sum_zero_embedding
+    ):
         encoder, options = setup_bidirection_sum_zero_embedding
-        batch_size = options['batch_size']
-        hidden_dim = options['hidden_dim']
-        x = options['tokens']
+        batch_size = options["batch_size"]
+        hidden_dim = options["hidden_dim"]
+        x = options["tokens"]
 
         encoding = encoder(x)
         assert encoding.size() == (batch_size, 1 * hidden_dim)
 
     def test_zero_embedding_bidir_sum(self, setup_bidirection_sum_zero_embedding):
         encoder, options = setup_bidirection_sum_zero_embedding
-        batch_size = options['batch_size']
-        hidden_dim = options['hidden_dim']
-        x = options['tokens']
+        batch_size = options["batch_size"]
+        hidden_dim = options["hidden_dim"]
+        x = options["tokens"]
 
         encoding = encoder(x)
         assert torch.all(
             torch.eq(encoding, torch.zeros([batch_size, 1 * hidden_dim]))
         ).item()
-

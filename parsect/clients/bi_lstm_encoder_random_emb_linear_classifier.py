@@ -60,22 +60,26 @@ if __name__ == "__main__":
         help="The type of glove embedding you want. The allowed types are glove_6B_50, glove_6B_100, "
         "glove_6B_200, glove_6B_300, random",
     )
-    parser.add_argument("--hidden_dim", help="Hidden dimension of the LSTM network", type=int)
     parser.add_argument(
-        "--max_length", help="Maximum length of the inputs to the encoder",
-        type=int
+        "--hidden_dim", help="Hidden dimension of the LSTM network", type=int
     )
     parser.add_argument(
-        "--return_instances", help="Return instances or tokens from parsect dataset",
-        action="store_true"
+        "--max_length", help="Maximum length of the inputs to the encoder", type=int
     )
     parser.add_argument(
-        "--bidirectional", help="Specify Whether the lstm is bidirectional or uni-directional",
-        action="store_true"
+        "--return_instances",
+        help="Return instances or tokens from parsect dataset",
+        action="store_true",
     )
     parser.add_argument(
-        "--combine_strategy", help="How do you want to combine the hidden dimensions of the two "
-                                   "combinations"
+        "--bidirectional",
+        help="Specify Whether the lstm is bidirectional or uni-directional",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--combine_strategy",
+        help="How do you want to combine the hidden dimensions of the two "
+        "combinations",
     )
     args = parser.parse_args()
     config = {
@@ -94,7 +98,7 @@ if __name__ == "__main__":
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
         "RETURN_INSTANCES": args.return_instances,
         "BIDIRECTIONAL": bool(args.bidirectional),
-        "COMBINE_STRATEGY": args.combine_strategy
+        "COMBINE_STRATEGY": args.combine_strategy,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -134,7 +138,7 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES
+        return_instances=RETURN_INSTANCES,
     )
 
     validation_dataset = ParsectDataset(
@@ -147,7 +151,7 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES
+        return_instances=RETURN_INSTANCES,
     )
 
     test_dataset = ParsectDataset(
@@ -160,14 +164,13 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES
+        return_instances=RETURN_INSTANCES,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_embedding()
-    random_embeddings = nn.Embedding.from_pretrained(random_embeddings,
-                                                     freeze=False)
+    random_embeddings = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
     encoder = LSTM2VecEncoder(
         emb_dim=EMBEDDING_DIMENSION,

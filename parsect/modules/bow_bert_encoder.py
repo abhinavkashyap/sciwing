@@ -64,15 +64,17 @@ class BowBertEncoder:
             padded_tokens = pack_to_length(
                 tokenized_text=tokens, length=max_len, pad_token="[PAD]"
             )
-            padded_tokens.insert(0, '[CLS]')
-            padded_tokens.append('[SEP]')
+            padded_tokens.insert(0, "[CLS]")
+            padded_tokens.append("[SEP]")
             padded_tokenized_text.append(padded_tokens)
 
         # convert them to ids based on bert vocab
         indexed_tokens = list(
             map(self.bert_tokenizer.convert_tokens_to_ids, padded_tokenized_text)
         )
-        segment_ids = list(map(lambda tokens_list: [0] * len(tokens_list), indexed_tokens))
+        segment_ids = list(
+            map(lambda tokens_list: [0] * len(tokens_list), indexed_tokens)
+        )
 
         tokens_tensor = torch.tensor(indexed_tokens)
         segment_tensor = torch.tensor(segment_ids)
@@ -102,8 +104,11 @@ class BowBertEncoder:
         return self.forward(x)
 
 
-if __name__ == '__main__':
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+if __name__ == "__main__":
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
     emb_dim = 768
     dropout_value = 0.0
     aggregation_type = "average"
@@ -113,7 +118,7 @@ if __name__ == '__main__':
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
 
     bow_bert_encoder(strings)

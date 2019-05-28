@@ -154,10 +154,12 @@ if __name__ == "__main__":
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_embedding()
 
-    encoder = BowBertEncoder(emb_dim=EMBEDDING_DIMENSION,
-                             dropout_value=0.0,
-                             aggregation_type="average",
-                             bert_type=BERT_TYPE)
+    encoder = BowBertEncoder(
+        emb_dim=EMBEDDING_DIMENSION,
+        dropout_value=0.0,
+        aggregation_type="average",
+        bert_type=BERT_TYPE,
+    )
 
     model = SimpleClassifier(
         encoder=encoder,
@@ -174,7 +176,7 @@ if __name__ == "__main__":
         len_tokens = []
 
         for ele in batch:
-            instances.append(' '.join(ele[0]))
+            instances.append(" ".join(ele[0]))
             labels.append(ele[1])
             len_tokens.append(ele[2])
 

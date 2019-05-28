@@ -12,8 +12,7 @@ ELMO_WEIGHTS_FILE = FILES["ELMO_WEIGHTS_FILE"]
 
 
 class ElmoEmbedder(nn.Module):
-    def __init__(self,
-                 dropout_value: float = 0.0):
+    def __init__(self, dropout_value: float = 0.0):
         super(ElmoEmbedder, self).__init__()
 
         # Sometimes you need two different tensors that are
@@ -23,17 +22,18 @@ class ElmoEmbedder(nn.Module):
         self.dropout_value = dropout_value
         self.msg_printer = wasabi.Printer()
 
-        with self.msg_printer.loading('Loading Elmo Object'):
-            self.elmo: nn.Module = Elmo(options_file=ELMO_OPTIONS_FILE,
-                                        weight_file=ELMO_WEIGHTS_FILE,
-                                        num_output_representations=self.num_output_representations,
-                                        dropout=self.dropout_value)
+        with self.msg_printer.loading("Loading Elmo Object"):
+            self.elmo: nn.Module = Elmo(
+                options_file=ELMO_OPTIONS_FILE,
+                weight_file=ELMO_WEIGHTS_FILE,
+                num_output_representations=self.num_output_representations,
+                dropout=self.dropout_value,
+            )
 
         self.msg_printer.good(f"Finished Loading ELMO object")
 
-    def forward(self,
-                x: List[List[str]]):
+    def forward(self, x: List[List[str]]):
         character_ids = batch_to_ids(x)
         output_dict = self.elmo(character_ids)
-        embeddings = output_dict['elmo_representations'][0]
+        embeddings = output_dict["elmo_representations"][0]
         return embeddings

@@ -13,9 +13,12 @@ def setup_bow_bert_encoder_basic_uncased_sum():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -31,9 +34,12 @@ def setup_bow_bert_encoder_basic_uncased_average():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -49,9 +55,12 @@ def setup_bow_bert_encoder_basic_cased_sum():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -67,9 +76,12 @@ def setup_bow_bert_encoder_basic_cased_average():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -85,9 +97,12 @@ def setup_bow_bert_encoder_large_uncased_sum():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -103,9 +118,12 @@ def setup_bow_bert_encoder_large_uncased_average():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -121,9 +139,12 @@ def setup_bow_bert_encoder_large_cased_sum():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -139,9 +160,12 @@ def setup_bow_bert_encoder_large_cased_average():
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=aggregation_type,
-        bert_type=bert_type
+        bert_type=bert_type,
     )
-    strings = ["Lets start by talking politics", "there are radical ways to test your code"]
+    strings = [
+        "Lets start by talking politics",
+        "there are radical ways to test your code",
+    ]
 
     return bow_bert_encoder, strings
 
@@ -190,5 +214,3 @@ class TestBowBertEncoder:
         bow_bert_encoder, strings = setup_bow_bert_encoder_large_cased_average
         encoding = bow_bert_encoder(strings)
         assert encoding.size() == (2, 1024)
-
-

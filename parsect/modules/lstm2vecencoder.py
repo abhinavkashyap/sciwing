@@ -5,15 +5,16 @@ import wasabi
 
 
 class LSTM2VecEncoder(nn.Module):
-    def __init__(self,
-                 emb_dim: int,
-                 embedding: torch.nn.Embedding,
-                 dropout_value: float = 0.0,
-                 hidden_dim: int = 1024,
-                 bidirectional: bool = False,
-                 combine_strategy: str = "concat",
-                 rnn_bias: bool = True
-                 ):
+    def __init__(
+        self,
+        emb_dim: int,
+        embedding: torch.nn.Embedding,
+        dropout_value: float = 0.0,
+        hidden_dim: int = 1024,
+        bidirectional: bool = False,
+        combine_strategy: str = "concat",
+        rnn_bias: bool = True,
+    ):
         """
 
         :param emb_dim: type: int
@@ -44,11 +45,13 @@ class LSTM2VecEncoder(nn.Module):
         self.rnn_bias = rnn_bias
         self.msg_printer = wasabi.Printer()
 
-
-        assert self.combine_strategy in self.allowed_combine_strategies, \
-            self.msg_printer.fail(f"The combine strategies can be one of "
-                                  f"{self.allowed_combine_strategies}. You passed "
-                                  f"{self.combine_strategy}")
+        assert (
+            self.combine_strategy in self.allowed_combine_strategies
+        ), self.msg_printer.fail(
+            f"The combine strategies can be one of "
+            f"{self.allowed_combine_strategies}. You passed "
+            f"{self.combine_strategy}"
+        )
 
         self.emb_dropout = nn.Dropout(p=self.dropout_value)
         self.rnn = nn.LSTM(
@@ -56,13 +59,15 @@ class LSTM2VecEncoder(nn.Module):
             hidden_size=self.hidden_dimension,
             bias=self.rnn_bias,
             batch_first=True,
-            bidirectional=self.bidirectional
+            bidirectional=self.bidirectional,
         )
 
-    def forward(self,
-                x: torch.FloatTensor,
-                c0: torch.FloatTensor = None,
-                h0: torch.FloatTensor = None) -> torch.FloatTensor:
+    def forward(
+        self,
+        x: torch.FloatTensor,
+        c0: torch.FloatTensor = None,
+        h0: torch.FloatTensor = None,
+    ) -> torch.FloatTensor:
         """
         Takes a sequence of tokens and converts into a vector representation
         There can be different functions to compute the vector representation
@@ -79,9 +84,11 @@ class LSTM2VecEncoder(nn.Module):
         Initial hidden state
         :return: type: Dict[str, Any]
         """
-        assert x.ndimension() == 2, self.msg_printer.fail(f"LSTM2Vec expects a batch of tokens of "
-                                                          f"the shape batch_size * number_of_tokens."
-                                                          f"You passed a tensor of shape {x.shape}")
+        assert x.ndimension() == 2, self.msg_printer.fail(
+            f"LSTM2Vec expects a batch of tokens of "
+            f"the shape batch_size * number_of_tokens."
+            f"You passed a tensor of shape {x.shape}"
+        )
         # batch_size * time steps * embedding dimension
         batch_size = x.size(0)
         embedded_tokens = self.embedding(x)
@@ -113,6 +120,10 @@ class LSTM2VecEncoder(nn.Module):
         return encoding
 
     def get_initial_hidden(self, batch_size):
-        h0 = torch.zeros(self.num_layers * self.num_directions, batch_size, self.hidden_dimension)
-        c0 = torch.zeros(self.num_layers * self.num_directions, batch_size, self.hidden_dimension)
+        h0 = torch.zeros(
+            self.num_layers * self.num_directions, batch_size, self.hidden_dimension
+        )
+        c0 = torch.zeros(
+            self.num_layers * self.num_directions, batch_size, self.hidden_dimension
+        )
         return h0, c0
