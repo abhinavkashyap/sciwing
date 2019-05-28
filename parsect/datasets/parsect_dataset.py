@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 from typing import List, Dict, Union
 import parsect.constants as constants
 from parsect.utils.common import convert_secthead_to_json
+from parsect.utils.common import pack_to_length
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.numericalizer.numericalizer import Numericalizer
@@ -115,6 +116,11 @@ class ParsectDataset(Dataset):
             len_tokens = torch.LongTensor([len_tokens])
             return tokens, label, len_tokens
         else:
+            instance = pack_to_length(
+                tokenized_text=instance,
+                length=self.max_length,
+                pad_token=self.vocab.pad_token,
+            )
             len_instance = len(instance)
             len_instance = torch.LongTensor([len_instance])
             return instance, label, len_instance
