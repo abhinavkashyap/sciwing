@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 from allennlp.commands.elmo import ElmoEmbedder
+from parsect.utils.common import pack_to_length
 import wasabi
-from typing import List
+from typing import List, Iterable
 
 
 class BowElmoEncoder:
@@ -42,33 +43,45 @@ class BowElmoEncoder:
             self.elmo = ElmoEmbedder()
         self.msg_printer.good("Finished Loading Elmo object")
 
-    def forward(self, x: List[str]) -> torch.Tensor:
+    def forward(self, x: Iterable[List[str]]) -> torch.Tensor:
         """
         :param x - The input should be a list of instances
         The words are tokenized
         """
+
+        lens_in_batch = [len(instance) for instance in x]
+        max_len_in_batch = sorted(lens_in_batch, reverse=True)[0]
+
+        padded_instances = []
+        for instance in x:
+            padded_instance = pack_to_length(
+                tokenized_text=instance, length=max_len_in_batch
+            )
+            padded_instances.append(padded_instance)
+
         # [np.array] - A generator of embeddings
         # each array in the list is of the shape (3, #words_in_sentence, 1024)
-        embedded = list(self.elmo.embed_sentences(x))
-        embeddings = []
+        embedded = list(self.elmo.embed_sentences(padded_instances))
 
-        for embedding in embedded:
-            # num words, 1024
-            last_layer_embedding = torch.FloatTensor(embedding[2, :, :])
-            embedding_ = None
+        # bs, 3, #words_in_sentence, 1024
+        embedded = torch.FloatTensor(embedded)
 
-            # aggregate of word embeddings
-            if self.aggregation_type == "sum":
-                embedding_ = torch.sum(last_layer_embedding, dim=0)
-            elif self.aggregation_type == "average":
-                embedding_ = torch.mean(last_layer_embedding, dim=0)
+        embedding_ = None
+        # aggregate of word embeddings
+        if self.aggregation_type == "sum":
+            # sum across all layers
+            # bs, #words_in_sentence, 1024
+            embedding_ = torch.sum(embedded, dim=1)
+            # sum across all words
+            # bs, 1024
+            embedding_ = torch.sum(embedding_, dim=1)
+        elif self.aggregation_type == "average":
+            # mean across all layers
+            embedding_ = torch.mean(embedded, dim=1)
+            # mean across all the words
+            embedding_ = torch.mean(embedding_, dim=1)
 
-            embeddings.append(embedding_)
-
-        # number of sentences * 1024
-        embeddings = torch.stack(embeddings, dim=0)
-
-        return embeddings
+        return embedding_
 
     def __call__(self, x: List[str]):
         return self.forward(x)
