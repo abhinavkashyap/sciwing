@@ -44,6 +44,7 @@ class LSTM2VecEncoder(nn.Module):
         self.rnn_bias = rnn_bias
         self.msg_printer = wasabi.Printer()
 
+
         assert self.combine_strategy in self.allowed_combine_strategies, \
             self.msg_printer.fail(f"The combine strategies can be one of "
                                   f"{self.allowed_combine_strategies}. You passed "
