@@ -83,11 +83,12 @@ class TestParsectDataset:
         lines, labels = train_dataset.get_lines_labels()
         num_lines = len(lines)
         for idx in range(num_lines):
-            assert len(train_dataset[idx][0]) == dataset_options["MAX_LENGTH"]
+            assert len(train_dataset[idx]["tokens"]) == dataset_options["MAX_LENGTH"]
 
     def test_get_class_names_from_indices(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
-        tokens, labels, len_tokens = next(iter(train_dataset))
+        instance_dict = next(iter(train_dataset))
+        labels = instance_dict['label']
         labels_list = labels.tolist()
         true_classnames = train_dataset.get_class_names_from_indices(labels_list)
         assert len(true_classnames) == len(labels_list)
@@ -95,7 +96,8 @@ class TestParsectDataset:
     def test_get_disp_sentence_from_indices(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
         loader = DataLoader(dataset=train_dataset, batch_size=2, shuffle=False)
-        tokens, labels, len_tokens = next(iter(loader))
+        instances_dict = next(iter(loader))
+        tokens = instances_dict['tokens']
         tokens_list = tokens.tolist()
         train_sentence = train_dataset.get_disp_sentence_from_indices(tokens_list[0])
         assert all([True for sentence in train_sentence if type(sentence) == str])
@@ -109,32 +111,17 @@ class TestParsectDataset:
         self, setup_parsect_train_dataset_returns_instances
     ):
         train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
-        first_instance = train_dataset[0][0]
+        first_instance = train_dataset[0]["instance"].split()
         assert all([type(word) == str for word in first_instance])
 
     def test_loader_returns_list_of_instances(
         self, setup_parsect_train_dataset_returns_instances
     ):
-        def collate_fn(batch):
-            instances = []
-            labels = []
-            len_tokens = []
-
-            for ele in batch:
-                instances.append(ele[0])
-                labels.append(ele[1])
-                len_tokens.append(ele[2])
-
-            labels = torch.stack(labels, dim=0)
-            len_tokens = torch.stack(len_tokens, dim=0)
-
-            return instances, labels, len_tokens
-
         train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
         loader = DataLoader(
-            dataset=train_dataset, batch_size=3, shuffle=False, collate_fn=collate_fn
+            dataset=train_dataset, batch_size=3, shuffle=False
         )
-        instances = next(iter(loader))
+        instances_dict = next(iter(loader))
 
-        assert len(instances) == 3
-        assert type(instances[0]) == list
+        assert len(instances_dict["instance"]) == 3
+        assert type(instances_dict["instance"][0]) == str

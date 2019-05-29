@@ -3,7 +3,7 @@ import wasabi
 import numpy as np
 import collections
 from torch.utils.data import Dataset
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Any
 import parsect.constants as constants
 from parsect.utils.common import convert_secthead_to_json
 from parsect.utils.common import pack_to_length
@@ -97,33 +97,37 @@ class ParsectDataset(Dataset):
         self.vocab.print_stats()
 
         self.numericalizer = Numericalizer(
-            max_length=self.max_length, vocabulary=self.vocab
+            vocabulary=self.vocab
         )
 
     def __len__(self) -> int:
         return len(self.instances)
 
-    def __getitem__(self, idx) -> (torch.LongTensor, torch.LongTensor):
+    def __getitem__(self, idx) -> Dict[str, Any]:
         instance = self.instances[idx]
         label = self.labels[idx]
         label_idx = self.label_mapping[label]
+        len_instance = len(instance)
+
+        padded_instance = pack_to_length(
+            tokenized_text=instance,
+            length=self.max_length,
+            pad_token=self.vocab.pad_token
+        )
+
+        tokens = self.numericalizer.numericalize_instance(padded_instance)
+        tokens = torch.LongTensor(tokens)
+        len_tokens = torch.LongTensor([len_instance])
         label = torch.LongTensor([label_idx])
 
-        if not self.return_instances:
-            # real length of tokens, numericalized tokens
-            len_tokens, tokens = self.numericalizer.numericalize_instance(instance)
-            tokens = torch.LongTensor(tokens)
-            len_tokens = torch.LongTensor([len_tokens])
-            return tokens, label, len_tokens
-        else:
-            instance = pack_to_length(
-                tokenized_text=instance,
-                length=self.max_length,
-                pad_token=self.vocab.pad_token,
-            )
-            len_instance = len(instance)
-            len_instance = torch.LongTensor([len_instance])
-            return instance, label, len_instance
+        instance_dict = {
+            "tokens": tokens,
+            "len_tokens": len_tokens,
+            "label": label,
+            "instance": ' '.join(padded_instance)
+        }
+
+        return instance_dict
 
     def get_lines_labels(self) -> (List[str], List[str]):
         """
