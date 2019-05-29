@@ -39,20 +39,14 @@ class SimpleClassifier(nn.Module):
 
     def forward(
         self,
-        x: torch.LongTensor,
-        labels: torch.LongTensor,
+        iter_dict: Dict[str, Any],
         is_training: bool,
         is_validation: bool,
         is_test: bool,
     ) -> Dict[str, Any]:
         """
-        :param x: type: torch.LongTensor
-                  shape: N * T
-                  N - batch size
-                  T - Number of tokens per batch
-        :param labels: type: torch.LongTensor
-                shape: N,
-                N - batch size
+        :param iter_dict: type: Dict[str, Any]
+        iter dict is the dict that is returned by a dataset
         :param is_training: type: bool
         indicates whether the forward method is being called for training
         inn which case we have to calculate a loss or during inference time
@@ -68,6 +62,9 @@ class SimpleClassifier(nn.Module):
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
 
+        labels = iter_dict['label']
+        labels = labels.squeeze(1)
+        x = iter_dict["tokens"]
         assert labels.ndimension() == 1, self.msg_printer.fail(
             "the labels should have 1 dimension "
             "your input has shape {0}".format(labels.size())

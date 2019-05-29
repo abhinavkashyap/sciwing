@@ -15,7 +15,7 @@ def setup_classifier_bs_1():
     VOCAB_SIZE = 10
     NUM_CLASSES = 3
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
-    labels = torch.LongTensor([1])
+    labels = torch.LongTensor([[1]])
     encoder = BOW_Encoder(
         emb_dim=EMB_DIM, embedding=embedding, dropout_value=0, aggregation_type="sum"
     )
@@ -27,16 +27,20 @@ def setup_classifier_bs_1():
         num_classes=NUM_CLASSES,
         classification_layer_bias=False,
     )
-    return tokens, labels, simple_classifier, BATCH_SIZE, NUM_CLASSES
+    iter_dict = {
+        "tokens": tokens,
+        "label": labels
+    }
+    return iter_dict, simple_classifier, BATCH_SIZE, NUM_CLASSES
 
 
 class TestSimpleClassifier:
     def test_classifier_produces_0_logits_for_0_embedding(self, setup_classifier_bs_1):
-        tokens, labels, simple_classifier, batch_size, num_classes = (
+        iter_dict, simple_classifier, batch_size, num_classes = (
             setup_classifier_bs_1
         )
         output = simple_classifier(
-            tokens, labels, is_training=True, is_validation=False, is_test=False
+            iter_dict, is_training=True, is_validation=False, is_test=False
         )
         logits = output["logits"]
         expected_logits = torch.zeros([batch_size, num_classes])
@@ -45,11 +49,11 @@ class TestSimpleClassifier:
     def test_classifier_produces_equal_probs_for_0_embedding(
         self, setup_classifier_bs_1
     ):
-        tokens, labels, simple_classifier, batch_size, num_classes = (
+        iter_dict, simple_classifier, batch_size, num_classes = (
             setup_classifier_bs_1
         )
         output = simple_classifier(
-            tokens, labels, is_training=True, is_validation=False, is_test=False
+            iter_dict, is_training=True, is_validation=False, is_test=False
         )
         probs = output["normalized_probs"]
         expected_probs = torch.ones([batch_size, num_classes]) / num_classes
@@ -58,26 +62,26 @@ class TestSimpleClassifier:
     def test_classifier_produces_correct_initial_loss_for_0_embedding(
         self, setup_classifier_bs_1
     ):
-        tokens, labels, simple_classifier, batch_size, num_classes = (
+        iter_dict, simple_classifier, batch_size, num_classes = (
             setup_classifier_bs_1
         )
         output = simple_classifier(
-            tokens, labels, is_training=True, is_validation=False, is_test=False
+            iter_dict, is_training=True, is_validation=False, is_test=False
         )
         loss = output["loss"].item()
         correct_loss = -np.log(1 / num_classes)
         assert torch.allclose(torch.Tensor([loss]), torch.Tensor([correct_loss]))
 
     def test_classifier_produces_correct_precision(self, setup_classifier_bs_1):
-        tokens, labels, simple_classifier, batch_size, num_classes = (
+        iter_dict, simple_classifier, batch_size, num_classes = (
             setup_classifier_bs_1
         )
         output = simple_classifier(
-            tokens, labels, is_training=True, is_validation=False, is_test=False
+            iter_dict, is_training=True, is_validation=False, is_test=False
         )
         metrics_calc = PrecisionRecallFMeasure()
         metrics_calc.calc_metric(
-            predicted_probs=output["normalized_probs"], labels=labels
+            predicted_probs=output["normalized_probs"], labels=iter_dict['label'].squeeze(1)
         )
         metrics = metrics_calc.get_metric()
         precision = metrics["precision"]
