@@ -10,20 +10,17 @@ class Numericalizer:
     be used in modeling
     """
 
-    def __init__(self, max_length: int, vocabulary: Vocab):
+    def __init__(self, vocabulary: Vocab):
         """
-        :param max_length: type: int
-        The maximum length of numericalization
         :param vocabulary: type: Vocab
         Vocab object that is used to build vocab from instances
         """
-        self.max_length = max_length
         self.vocabulary = vocabulary
 
         if not self.vocabulary.vocab:
             self.vocabulary.build_vocab()
 
-    def numericalize_instance(self, instance: List[str]) -> (int, List[int]):
+    def numericalize_instance(self, instance: List[str]) -> List[int]:
         """
         Takes an instance List[str] and returns the numericalized version of it
         The `self.max_length` constraint is obeyed.
@@ -34,9 +31,6 @@ class Numericalizer:
         """
         numerical_tokens = []
         len_tokens = len(instance)
-        pad_idx = self.vocabulary.get_idx_from_token(self.vocabulary.pad_token)
-        start_idx = self.vocabulary.get_idx_from_token(self.vocabulary.start_token)
-        end_idx = self.vocabulary.get_idx_from_token(self.vocabulary.end_token)
 
         for string in instance:
             idx = self.vocabulary.get_idx_from_token(string)
@@ -44,30 +38,7 @@ class Numericalizer:
 
         assert len(numerical_tokens) == len_tokens
 
-        # pad the output to max length
-        if len_tokens < self.max_length:
-            len_difference = self.max_length - len_tokens
-            len_difference = len_difference - 2
-
-            if len_difference < 0:
-                numerical_tokens = numerical_tokens[: len_tokens - abs(len_difference)]
-
-            # add start and end before padding
-            numerical_tokens.insert(0, start_idx)
-            numerical_tokens.append(end_idx)
-
-            # pad to max_length
-            numerical_tokens.extend([pad_idx] * len_difference)
-
-        else:
-            # allow space for <SOS> and <EOS>
-            numerical_tokens = numerical_tokens[: (self.max_length - 2)]
-            numerical_tokens.insert(0, start_idx)
-            numerical_tokens.append(end_idx)
-
-        assert len(numerical_tokens) == self.max_length
-
-        return len_tokens, numerical_tokens
+        return numerical_tokens
 
     def numericalize_batch_instances(
         self, instances: List[List[str]]
