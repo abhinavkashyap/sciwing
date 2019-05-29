@@ -1,6 +1,5 @@
 import torch.nn as nn
 from parsect.modules.elmo_embedder import ElmoEmbedder
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import torch
 from typing import List
 import wasabi
