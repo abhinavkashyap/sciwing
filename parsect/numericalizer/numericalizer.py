@@ -42,12 +42,10 @@ class Numericalizer:
 
     def numericalize_batch_instances(
         self, instances: List[List[str]]
-    ) -> (List[int], List[List[int]]):
-        lengths_batch = []
+    ) -> List[List[int]]:
         numerical_tokens_batch = []
         for instance in instances:
-            length, tokens = self.numericalize_instance(instance)
-            lengths_batch.append(length)
+            tokens = self.numericalize_instance(instance)
             numerical_tokens_batch.append(tokens)
 
-        return lengths_batch, numerical_tokens_batch
+        return numerical_tokens_batch

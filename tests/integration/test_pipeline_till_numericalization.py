@@ -60,8 +60,8 @@ def get_numericalized_instances(get_preprocessed_instances):
     MAX_LENGTH = 15
     vocab = Vocab(instances, max_num_words=MAX_NUM_WORDS)
     vocab.build_vocab()
-    numericalizer = Numericalizer(max_length=MAX_LENGTH, vocabulary=vocab)
-    lengths, numericalized_instances = numericalizer.numericalize_batch_instances(
+    numericalizer = Numericalizer(vocabulary=vocab)
+    numericalized_instances = numericalizer.numericalize_batch_instances(
         instances[:32]
     )
     return {
@@ -78,30 +78,6 @@ class TestPipeline:
         numericalized_instances = get_numericalized_instances["numericalized_instances"]
         for instance in numericalized_instances:
             assert all([type(token) == int for token in instance])
-
-    def test_max_length(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances["numericalized_instances"]
-        max_length = get_numericalized_instances["max_length"]
-
-        for instance in numericalized_instances:
-            assert len(instance) == max_length
-
-    def test_instances_start_with_start_token(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances["numericalized_instances"]
-        vocab = get_numericalized_instances["vocab"]
-        start_idx = vocab.get_idx_from_token(vocab.start_token)
-
-        for instance in numericalized_instances:
-            assert instance[0] == start_idx
-
-    def test_instances_ends_with_pad_or_end_token(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances["numericalized_instances"]
-        vocab = get_numericalized_instances["vocab"]
-        end_idx = vocab.get_idx_from_token(vocab.end_token)
-        pad_idx = vocab.get_idx_from_token(vocab.pad_token)
-
-        for instance in numericalized_instances:
-            assert instance[-1] == end_idx or instance[-1] == pad_idx
 
     def test_max_vocab(self, get_numericalized_instances):
         numericalized_instances = get_numericalized_instances["numericalized_instances"]

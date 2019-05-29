@@ -108,7 +108,8 @@ class TestEngine:
         train_loader = engine.get_loader(train_dataset)
 
         len_tokens = []
-        for tokens, labels, unpadded_len in train_loader:
+        for iter_dict in train_loader:
+            tokens = iter_dict['tokens']
             len_tokens.append(tokens.size()[1])
 
         # check all lengths are same
@@ -123,7 +124,8 @@ class TestEngine:
 
         len_tokens = []
 
-        for tokens, labels, unpadded_len in validation_loader:
+        for iter_dict in validation_loader:
+            tokens = iter_dict['tokens']
             len_tokens.append(tokens.size()[1])
 
         assert len(set(len_tokens)) == 1
@@ -137,7 +139,8 @@ class TestEngine:
 
         len_tokens = []
 
-        for tokens, labels, unpadded_len in test_loader:
+        for iter_dict in test_loader:
+            tokens = iter_dict['tokens']
             len_tokens.append(tokens.size()[1])
 
         assert len(set(len_tokens)) == 1

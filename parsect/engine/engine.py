@@ -195,11 +195,12 @@ class Engine:
         while True:
             try:
                 # N*T, N * 1, N * 1
-                tokens, labels, len_tokens = next(train_iter)
+                iter_dict = next(train_iter)
+                labels = iter_dict["label"]
                 batch_size = labels.size()[0]
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(
-                    tokens, labels, is_training=True, is_validation=False, is_test=False
+                    iter_dict, is_training=True, is_validation=False, is_test=False
                 )
                 self.train_metric_calc.calc_metric(
                     model_forward_out["normalized_probs"], labels
@@ -277,11 +278,12 @@ class Engine:
 
         while True:
             try:
-                tokens, labels, len_tokens = next(valid_iter)
+                iter_dict = next(valid_iter)
+                labels = iter_dict["label"]
                 batch_size = labels.size(0)
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(
-                    tokens, labels, is_training=False, is_validation=True, is_test=False
+                    iter_dict, is_training=False, is_validation=True, is_test=False
                 )
                 loss = model_forward_out["loss"]
                 self.validation_loss_meter.add_loss(loss, batch_size)
@@ -338,10 +340,11 @@ class Engine:
         test_iter = iter(self.test_loader)
         while True:
             try:
-                tokens, labels, len_tokens = next(test_iter)
+                iter_dict = next(test_iter)
+                labels = iter_dict["label"]
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(
-                    tokens, labels, is_training=False, is_validation=False, is_test=True
+                    iter_dict, is_training=False, is_validation=False, is_test=True
                 )
                 self.test_metric_calc.calc_metric(
                     predicted_probs=model_forward_out["normalized_probs"], labels=labels
