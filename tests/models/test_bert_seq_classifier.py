@@ -17,7 +17,7 @@ def setup_bert_seq_classifier():
         "hugging face makes it easier",
     ]
     labels = torch.LongTensor([[1], [2], [3]])
-    iter_dict = {"raw_instance": raw_instance, "label": labels}
+    iter_dict = {"raw_instance": raw_instance, "label   ": labels}
     options = {"num_classes": num_classes, "batch_size": batch_size}
     classifier = BertSeqClassifier(
         num_classes=num_classes,
