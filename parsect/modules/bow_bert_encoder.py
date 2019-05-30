@@ -62,7 +62,7 @@ class BowBertEncoder:
         padded_tokenized_text = []
         for tokens in tokenized_text:
             padded_tokens = pack_to_length(
-                tokenized_text=tokens, length=max_len, pad_token="[PAD]"
+                tokenized_text=tokens, max_length=max_len, pad_token="[PAD]"
             )
             padded_tokens.insert(0, "[CLS]")
             padded_tokens.append("[SEP]")

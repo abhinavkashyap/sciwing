@@ -131,7 +131,7 @@ def merge_dictionaries_with_sum(a: Dict, b: Dict) -> Dict:
 
 def pack_to_length(
     tokenized_text: List[str],
-    length: int,
+    max_length: int,
     pad_token: str = "<PAD>",
     add_start_end_token: bool = False,
     start_token: str = "<SOS>",
@@ -139,17 +139,18 @@ def pack_to_length(
 ) -> List[str]:
 
     if not add_start_end_token:
-        tokenized_text = tokenized_text[:length]
+        tokenized_text = tokenized_text[:max_length]
     else:
-        tokenized_text = tokenized_text[:length-2]
+        max_length = max_length if max_length > 2 else 2
+        tokenized_text = tokenized_text[:max_length - 2]
         tokenized_text.append(end_token)
         tokenized_text.insert(0, start_token)
 
-    pad_length = length - len(tokenized_text)
+    pad_length = max_length - len(tokenized_text)
     for i in range(pad_length):
         tokenized_text.append(pad_token)
 
-    assert len(tokenized_text) == length
+    assert len(tokenized_text) == max_length
 
     return tokenized_text
 

@@ -1,4 +1,4 @@
-from parsect.models.simpleclassifier import SimpleClassifier
+from parsect.models.bow_bert_linear_classifier import BowBertLinearClassifier
 from parsect.datasets.parsect_dataset import ParsectDataset
 from parsect.modules.bow_bert_encoder import BowBertEncoder
 import parsect.constants as constants
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         bert_type=BERT_TYPE,
     )
 
-    model = SimpleClassifier(
+    model = BowBertLinearClassifier(
         encoder=encoder,
         encoding_dim=EMBEDDING_DIMENSION,
         num_classes=NUM_CLASSES,
@@ -169,21 +169,6 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
-
-    def collate_fn(batch):
-        instances = []
-        labels = []
-        len_tokens = []
-
-        for ele in batch:
-            instances.append(" ".join(ele[0]))
-            labels.append(ele[1])
-            len_tokens.append(ele[2])
-
-        labels = torch.stack(labels, dim=0)
-        len_tokens = torch.stack(len_tokens, dim=0)
-
-        return instances, labels, len_tokens
 
     engine = Engine(
         model=model,
@@ -197,7 +182,6 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
-        collate_fn=collate_fn,
     )
 
     engine.run()

@@ -62,7 +62,7 @@ class TestCommon:
         length = 10
         tokenized_text_padded = pack_to_length(
             tokenized_text=tokenized_text,
-            length=length,
+            max_length=length,
             pad_token="<PAD>",
             add_start_end_token=False,
         )
@@ -76,7 +76,7 @@ class TestCommon:
         length = 3
         tokenized_text_padded = pack_to_length(
             tokenized_text=tokenized_text,
-            length=length,
+            max_length=length,
             pad_token="<PAD>",
             add_start_end_token=False,
         )
@@ -87,7 +87,7 @@ class TestCommon:
         length = 6
         tokenized_text_padded = pack_to_length(
             tokenized_text=tokenized_text,
-            length=length,
+            max_length=length,
             pad_token="<PAD>",
             add_start_end_token=False,
         )
@@ -98,7 +98,7 @@ class TestCommon:
         length = 10
         tokenized_text_padded = pack_to_length(
             tokenized_text=tokenized_text,
-            length=length,
+            max_length=length,
             pad_token="<PAD>",
             add_start_end_token=True,
             start_token="<SOS>",
@@ -115,7 +115,7 @@ class TestCommon:
         length = 3
         tokenized_text_padded = pack_to_length(
             tokenized_text=tokenized_text,
-            length=length,
+            max_length=length,
             pad_token="<PAD>",
             add_start_end_token=True,
             start_token="<SOS>",
@@ -128,10 +128,24 @@ class TestCommon:
         length = 6
         tokenized_text_padded = pack_to_length(
             tokenized_text=tokenized_text,
-            length=length,
+            max_length=length,
             pad_token="<PAD>",
             add_start_end_token=True,
             start_token="<SOS>",
             end_token="<EOS>"
         )
         assert tokenized_text_padded == ["<SOS>", "i", "am", "going", "to", "<EOS>"]
+
+    def test_pack_to_length_max_length_lt_2_add_start_end_token(self):
+        tokenized_text = ["i", "am", "going", "to", "write", "tests"]
+        length = 2
+        tokenized_text_padded = pack_to_length(
+            tokenized_text=tokenized_text,
+            max_length=length,
+            pad_token="<PAD>",
+            add_start_end_token=True,
+            start_token="<SOS>",
+            end_token="<EOS>"
+        )
+
+        assert tokenized_text_padded == ["<SOS>", "<EOS>"]

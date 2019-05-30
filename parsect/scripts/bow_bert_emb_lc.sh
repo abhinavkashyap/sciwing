@@ -3,8 +3,9 @@
 cd ../clients
 
 python bow_bert_emb_linear_classifier.py \
---exp_name "debug_bow_bert_base_cased_emb_lc_10e_1e-2lr" \
+--exp_name "debug_1_bow_bert_base_cased_emb_lc_10e_1e-2lr" \
 --bert_type "bert-large-cased" \
+--debug \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \

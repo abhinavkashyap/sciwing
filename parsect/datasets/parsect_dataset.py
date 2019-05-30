@@ -131,7 +131,7 @@ class ParsectDataset(Dataset):
 
         padded_instance = pack_to_length(
             tokenized_text=instance,
-            length=self.max_length,
+            max_length=self.max_length,
             pad_token=self.vocab.pad_token,
             add_start_end_token=True,
             start_token=self.vocab.start_token,
@@ -148,7 +148,7 @@ class ParsectDataset(Dataset):
             "len_tokens": len_tokens,
             "label": label,
             "instance": ' '.join(padded_instance),
-            'raw instance': ' '.join(instance)
+            'raw_instance': ' '.join(instance)
         }
 
         return instance_dict

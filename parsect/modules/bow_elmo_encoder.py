@@ -63,7 +63,7 @@ class BowElmoEncoder:
         padded_instances = []
         for instance in x:
             padded_instance = pack_to_length(
-                tokenized_text=instance, length=max_len_in_batch
+                tokenized_text=instance, max_length=max_len_in_batch
             )
             padded_instances.append(padded_instance)
 
