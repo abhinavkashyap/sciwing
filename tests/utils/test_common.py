@@ -119,7 +119,7 @@ class TestCommon:
             pad_token="<PAD>",
             add_start_end_token=True,
             start_token="<SOS>",
-            end_token="<EOS>"
+            end_token="<EOS>",
         )
         assert tokenized_text_padded == ["<SOS>", "i", "<EOS>"]
 
@@ -132,7 +132,7 @@ class TestCommon:
             pad_token="<PAD>",
             add_start_end_token=True,
             start_token="<SOS>",
-            end_token="<EOS>"
+            end_token="<EOS>",
         )
         assert tokenized_text_padded == ["<SOS>", "i", "am", "going", "to", "<EOS>"]
 
@@ -145,7 +145,7 @@ class TestCommon:
             pad_token="<PAD>",
             add_start_end_token=True,
             start_token="<SOS>",
-            end_token="<EOS>"
+            end_token="<EOS>",
         )
 
         assert tokenized_text_padded == ["<SOS>", "<EOS>"]

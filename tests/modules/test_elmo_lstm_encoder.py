@@ -49,7 +49,7 @@ def setup_test_elmo_lstm_encoder_concat():
             "BIDIRECTIONAL": BIDIRECTIONAL,
             "COMBINE_STRATEGY": COMBINE_STRATEGY,
             "RNN_BIAS": RNN_BIAS,
-            'HIDDEN_DIM': hidden_dim
+            "HIDDEN_DIM": hidden_dim,
         },
     )
 
@@ -97,33 +97,30 @@ def setup_test_elmo_lstm_encoder_sum():
             "BIDIRECTIONAL": BIDIRECTIONAL,
             "COMBINE_STRATEGY": COMBINE_STRATEGY,
             "RNN_BIAS": RNN_BIAS,
-            'HIDDEN_DIM': hidden_dim
+            "HIDDEN_DIM": hidden_dim,
         },
     )
 
 
 class TestElmoLSTMEncoder:
     def test_encoding_dimension_concat(self, setup_test_elmo_lstm_encoder_concat):
-        tokens, labels, instances, elmo_lstm_encoder, options = setup_test_elmo_lstm_encoder_concat
-        encoding = elmo_lstm_encoder(
-            x=tokens,
-            instances=instances
+        tokens, labels, instances, elmo_lstm_encoder, options = (
+            setup_test_elmo_lstm_encoder_concat
         )
-        batch_size = options['BATCH_SIZE']
-        hidden_dim = options['HIDDEN_DIM']
+        encoding = elmo_lstm_encoder(x=tokens, instances=instances)
+        batch_size = options["BATCH_SIZE"]
+        hidden_dim = options["HIDDEN_DIM"]
 
         # bidirectional concat embedding
         assert encoding.size() == (batch_size, 2 * hidden_dim)
 
     def test_encoding_dimension_sum(self, setup_test_elmo_lstm_encoder_sum):
-        tokens, labels, instances, elmo_lstm_encoder, options = setup_test_elmo_lstm_encoder_sum
-        encoding = elmo_lstm_encoder(
-            x=tokens,
-            instances=instances
+        tokens, labels, instances, elmo_lstm_encoder, options = (
+            setup_test_elmo_lstm_encoder_sum
         )
-        batch_size = options['BATCH_SIZE']
-        hidden_dim = options['HIDDEN_DIM']
+        encoding = elmo_lstm_encoder(x=tokens, instances=instances)
+        batch_size = options["BATCH_SIZE"]
+        hidden_dim = options["HIDDEN_DIM"]
 
         # bidirectional concat embedding
         assert encoding.size() == (batch_size, hidden_dim)
-

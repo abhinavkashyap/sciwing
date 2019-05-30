@@ -88,7 +88,7 @@ class TestParsectDataset:
     def test_get_class_names_from_indices(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
         instance_dict = next(iter(train_dataset))
-        labels = instance_dict['label']
+        labels = instance_dict["label"]
         labels_list = labels.tolist()
         true_classnames = train_dataset.get_class_names_from_indices(labels_list)
         assert len(true_classnames) == len(labels_list)
@@ -97,7 +97,7 @@ class TestParsectDataset:
         train_dataset, dataset_options = setup_parsect_train_dataset
         loader = DataLoader(dataset=train_dataset, batch_size=2, shuffle=False)
         instances_dict = next(iter(loader))
-        tokens = instances_dict['tokens']
+        tokens = instances_dict["tokens"]
         tokens_list = tokens.tolist()
         train_sentence = train_dataset.get_disp_sentence_from_indices(tokens_list[0])
         assert all([True for sentence in train_sentence if type(sentence) == str])
@@ -118,9 +118,7 @@ class TestParsectDataset:
         self, setup_parsect_train_dataset_returns_instances
     ):
         train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
-        loader = DataLoader(
-            dataset=train_dataset, batch_size=3, shuffle=False
-        )
+        loader = DataLoader(dataset=train_dataset, batch_size=3, shuffle=False)
         instances_dict = next(iter(loader))
 
         assert len(instances_dict["instance"]) == 3

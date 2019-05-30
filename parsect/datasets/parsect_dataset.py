@@ -33,7 +33,7 @@ class ParsectDataset(Dataset):
         start_token: str = "<SOS>",
         end_token: str = "<EOS>",
         pad_token: str = "<PAD>",
-        unk_token: str = "<UNK>"
+        unk_token: str = "<UNK>",
     ):
         """
         :param dataset_type: type: str
@@ -116,9 +116,7 @@ class ParsectDataset(Dataset):
         self.vocab.build_vocab()
         self.vocab.print_stats()
 
-        self.numericalizer = Numericalizer(
-            vocabulary=self.vocab
-        )
+        self.numericalizer = Numericalizer(vocabulary=self.vocab)
 
     def __len__(self) -> int:
         return len(self.instances)
@@ -135,7 +133,7 @@ class ParsectDataset(Dataset):
             pad_token=self.vocab.pad_token,
             add_start_end_token=True,
             start_token=self.vocab.start_token,
-            end_token=self.vocab.end_token
+            end_token=self.vocab.end_token,
         )
 
         tokens = self.numericalizer.numericalize_instance(padded_instance)
@@ -147,8 +145,8 @@ class ParsectDataset(Dataset):
             "tokens": tokens,
             "len_tokens": len_tokens,
             "label": label,
-            "instance": ' '.join(padded_instance),
-            'raw_instance': ' '.join(instance)
+            "instance": " ".join(padded_instance),
+            "raw_instance": " ".join(instance),
         }
 
         return instance_dict

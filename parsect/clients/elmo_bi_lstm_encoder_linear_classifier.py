@@ -99,7 +99,7 @@ if __name__ == "__main__":
         "RETURN_INSTANCES": args.return_instances,
         "BIDIRECTIONAL": bool(args.bidirectional),
         "COMBINE_STRATEGY": args.combine_strategy,
-        "ELMO_EMBEDDING_DIMENSION": 1024
+        "ELMO_EMBEDDING_DIMENSION": 1024,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
-    ELMO_EMBEDDING_DIMENSION = config['ELMO_EMBEDDING_DIMENSION']
+    ELMO_EMBEDDING_DIMENSION = config["ELMO_EMBEDDING_DIMENSION"]
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
-        combine_strategy=COMBINE_STRATEGY
+        combine_strategy=COMBINE_STRATEGY,
     )
 
     encoding_dim = 2 * HIDDEN_DIMENSION if BIDIRECTIONAL else HIDDEN_DIMENSION

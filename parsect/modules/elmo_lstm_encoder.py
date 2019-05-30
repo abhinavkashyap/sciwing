@@ -54,8 +54,8 @@ class ElmoLSTMEncoder(nn.Module):
         self,
         x: torch.LongTensor,
         instances: List[List[str]],
-        c0: torch.FloatTensor=None,
-        h0: torch.FloatTensor=None,
+        c0: torch.FloatTensor = None,
+        h0: torch.FloatTensor = None,
     ):
         assert x.size(0) == len(instances), self.msg_printer.fail(
             f"The batch size for tokens "

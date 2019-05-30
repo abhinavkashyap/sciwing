@@ -142,7 +142,7 @@ def pack_to_length(
         tokenized_text = tokenized_text[:max_length]
     else:
         max_length = max_length if max_length > 2 else 2
-        tokenized_text = tokenized_text[:max_length - 2]
+        tokenized_text = tokenized_text[: max_length - 2]
         tokenized_text.append(end_token)
         tokenized_text.insert(0, start_token)
 

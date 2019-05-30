@@ -27,18 +27,13 @@ def setup_classifier_bs_1():
         num_classes=NUM_CLASSES,
         classification_layer_bias=False,
     )
-    iter_dict = {
-        "tokens": tokens,
-        "label": labels
-    }
+    iter_dict = {"tokens": tokens, "label": labels}
     return iter_dict, simple_classifier, BATCH_SIZE, NUM_CLASSES
 
 
 class TestSimpleClassifier:
     def test_classifier_produces_0_logits_for_0_embedding(self, setup_classifier_bs_1):
-        iter_dict, simple_classifier, batch_size, num_classes = (
-            setup_classifier_bs_1
-        )
+        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
@@ -49,9 +44,7 @@ class TestSimpleClassifier:
     def test_classifier_produces_equal_probs_for_0_embedding(
         self, setup_classifier_bs_1
     ):
-        iter_dict, simple_classifier, batch_size, num_classes = (
-            setup_classifier_bs_1
-        )
+        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
@@ -62,9 +55,7 @@ class TestSimpleClassifier:
     def test_classifier_produces_correct_initial_loss_for_0_embedding(
         self, setup_classifier_bs_1
     ):
-        iter_dict, simple_classifier, batch_size, num_classes = (
-            setup_classifier_bs_1
-        )
+        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
@@ -73,15 +64,14 @@ class TestSimpleClassifier:
         assert torch.allclose(torch.Tensor([loss]), torch.Tensor([correct_loss]))
 
     def test_classifier_produces_correct_precision(self, setup_classifier_bs_1):
-        iter_dict, simple_classifier, batch_size, num_classes = (
-            setup_classifier_bs_1
-        )
+        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
         metrics_calc = PrecisionRecallFMeasure()
         metrics_calc.calc_metric(
-            predicted_probs=output["normalized_probs"], labels=iter_dict['label'].squeeze(1)
+            predicted_probs=output["normalized_probs"],
+            labels=iter_dict["label"].squeeze(1),
         )
         metrics = metrics_calc.get_metric()
         precision = metrics["precision"]

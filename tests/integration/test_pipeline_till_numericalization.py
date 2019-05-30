@@ -61,9 +61,7 @@ def get_numericalized_instances(get_preprocessed_instances):
     vocab = Vocab(instances, max_num_words=MAX_NUM_WORDS)
     vocab.build_vocab()
     numericalizer = Numericalizer(vocabulary=vocab)
-    numericalized_instances = numericalizer.numericalize_batch_instances(
-        instances[:32]
-    )
+    numericalized_instances = numericalizer.numericalize_batch_instances(instances[:32])
     return {
         "numericalized_instances": numericalized_instances,
         "labels": labels,

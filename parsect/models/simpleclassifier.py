@@ -62,7 +62,7 @@ class SimpleClassifier(nn.Module):
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
 
-        labels = iter_dict['label']
+        labels = iter_dict["label"]
         labels = labels.squeeze(1)
         x = iter_dict["tokens"]
         assert labels.ndimension() == 1, self.msg_printer.fail(

@@ -53,7 +53,7 @@ def setup_elmo_classifier():
         "BIDIRECTIONAL": bidirectional,
         "COMBINE_STRATEGY": combine_strategy,
         "BATCH_SIZE": BATCH_SIZE,
-        "NUM_CLASSES": NUM_CLASSES
+        "NUM_CLASSES": NUM_CLASSES,
     }
 
     iter_dict = {"tokens": tokens, "label": labels, "instance": instances}
@@ -67,7 +67,7 @@ class TestElmoLSTMClassifier:
         output_dict = elmo_lstm_classifier(
             iter_dict=iter_dict, is_training=True, is_validation=True, is_test=True
         )
-        batch_size = options['BATCH_SIZE']
+        batch_size = options["BATCH_SIZE"]
         num_classes = options["NUM_CLASSES"]
 
-        assert output_dict['logits'].size() == (batch_size, num_classes)
+        assert output_dict["logits"].size() == (batch_size, num_classes)

@@ -7,11 +7,13 @@ from parsect.modules.bow_bert_encoder import BowBertEncoder
 
 
 class BowBertLinearClassifier(nn.Module):
-    def __init__(self,
-                 encoder: BowBertEncoder,
-                 encoding_dim: int,
-                 num_classes: int,
-                 classification_layer_bias: bool = True):
+    def __init__(
+        self,
+        encoder: BowBertEncoder,
+        encoding_dim: int,
+        num_classes: int,
+        classification_layer_bias: bool = True,
+    ):
         super(BowBertLinearClassifier, self).__init__()
         self.encoder = encoder
         self.encoding_dim = encoding_dim
@@ -25,11 +27,11 @@ class BowBertLinearClassifier(nn.Module):
         self.msg_printer = wasabi.Printer()
 
     def forward(
-            self,
-            iter_dict: Dict[str, Any],
-            is_training: bool,
-            is_validation: bool,
-            is_test: bool,
+        self,
+        iter_dict: Dict[str, Any],
+        is_training: bool,
+        is_validation: bool,
+        is_test: bool,
     ) -> Dict[str, Any]:
         """
         :param iter_dict: type: Dict[str, Any]
@@ -49,7 +51,7 @@ class BowBertLinearClassifier(nn.Module):
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
 
-        labels = iter_dict['label']
+        labels = iter_dict["label"]
         labels = labels.squeeze(1)
         x = iter_dict["raw_instance"]
         assert labels.ndimension() == 1, self.msg_printer.fail(
