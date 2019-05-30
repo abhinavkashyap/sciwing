@@ -30,6 +30,10 @@ class ParsectDataset(Dataset):
         embedding_type: Union[str, None] = None,
         embedding_dimension: Union[int, None] = None,
         return_instances: bool = False,
+        start_token: str = "<SOS>",
+        end_token: str = "<EOS>",
+        pad_token: str = "<PAD>",
+        unk_token: str = "<UNK>"
     ):
         """
         :param dataset_type: type: str
@@ -55,6 +59,14 @@ class ParsectDataset(Dataset):
         If this is set, instead of numericalizing the instances,
         the instances themselves will be returned from __get_item__
         This is helpful in some cases like Elmo encoder that expect a list of sentences
+        :param start_token: type: str
+        The start token is the token appended to the beginning of the list of tokens
+        :param end_token: type: str
+        The end token is the token appended to the end of the list of tokens
+        :param pad_token: type: str
+        The pad token is used when the length of the input is less than maximum length
+        :param unk_token: type: str
+        unk is the token that is used when the word is OOV
         """
         self.dataset_type = dataset_type
         self.secthead_label_file = secthead_label_file
@@ -66,6 +78,10 @@ class ParsectDataset(Dataset):
         self.embedding_type = embedding_type
         self.embedding_dimension = embedding_dimension
         self.return_instances = return_instances
+        self.start_token = start_token
+        self.end_token = end_token
+        self.pad_token = pad_token
+        self.unk_token = unk_token
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
@@ -89,6 +105,10 @@ class ParsectDataset(Dataset):
         self.vocab = Vocab(
             instances=self.instances,
             max_num_words=self.max_num_words,
+            unk_token=self.unk_token,
+            pad_token=self.pad_token,
+            start_token=self.start_token,
+            end_token=self.end_token,
             store_location=self.store_location,
             embedding_type=self.embedding_type,
             embedding_dimension=self.embedding_dimension,
@@ -127,7 +147,8 @@ class ParsectDataset(Dataset):
             "tokens": tokens,
             "len_tokens": len_tokens,
             "label": label,
-            "instance": ' '.join(padded_instance)
+            "instance": ' '.join(padded_instance),
+            'raw instance': ' '.join(instance)
         }
 
         return instance_dict
