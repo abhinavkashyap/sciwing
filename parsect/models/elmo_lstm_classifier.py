@@ -49,7 +49,11 @@ class ElmoLSTMClassifier(nn.Module):
             "the labels should have 1 dimension "
             "your input has shape {0}".format(labels.size())
         )
-        encoding = self.elmo_lstm_encoder(x=iter_dict["tokens"], instances=iter_dict["instance"])
+        tokens = iter_dict["tokens"]
+        instance = iter_dict["instance"]  # List[str]
+        instance = list(map(lambda instance_str: instance_str.split(), instance))
+
+        encoding = self.elmo_lstm_encoder(x=tokens, instances=instance)
 
         # N * C
         # N - batch size

@@ -24,7 +24,7 @@ def setup_elmo_classifier():
     tokens = np.random.randint(0, vocab_size - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)
     labels = torch.LongTensor([[1]])
-    instances = ["i like to test this".split()]
+    instances = ["i like to test this"]
 
     elmo_lstm_encoder = ElmoLSTMEncoder(
         elmo_emb_dim=elmo_emb_dim,
