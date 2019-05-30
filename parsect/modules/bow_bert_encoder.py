@@ -62,10 +62,13 @@ class BowBertEncoder:
         padded_tokenized_text = []
         for tokens in tokenized_text:
             padded_tokens = pack_to_length(
-                tokenized_text=tokens, max_length=max_len, pad_token="[PAD]"
+                tokenized_text=tokens,
+                max_length=max_len,
+                pad_token="[PAD]",
+                add_start_end_token=True,
+                start_token="[CLS]",
+                end_token="[SEP]",
             )
-            padded_tokens.insert(0, "[CLS]")
-            padded_tokens.append("[SEP]")
             padded_tokenized_text.append(padded_tokens)
 
         # convert them to ids based on bert vocab
