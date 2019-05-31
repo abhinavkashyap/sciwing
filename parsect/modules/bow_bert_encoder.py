@@ -3,6 +3,11 @@ from pytorch_pretrained_bert import BertTokenizer, BertModel
 from parsect.utils.common import pack_to_length
 from typing import List
 import wasabi
+import parsect.constants as constants
+import os
+
+PATHS = constants.PATHS
+MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 
 
 class BowBertEncoder:
@@ -39,14 +44,37 @@ class BowBertEncoder:
             "bert-large-uncased",
             "bert-base-cased",
             "bert-large-cased",
+            "scibert-base-cased",
+            "scibert-sci-cased",
+            "scibert-base-uncased",
+            "scibert-sci-uncased"
         ]
+        self.scibert_foldername_mapping = {
+            'scibert-base-cased': 'scibert_basevocab_cased',
+            'scibert-sci-cased': 'scibert_scivocab_cased',
+            'scibert-base-uncased': 'scibert_basevocab_uncased',
+            'scibert-sci-uncased': 'scibert_scivocab_uncased'
+        }
+        self.model_type_or_folder_url = None
+        self.vocab_type_or_filename = None
 
         assert self.bert_type in self.allowed_bert_types
 
+        if "scibert" in self.bert_type:
+            print('entering the scibert if clause because name matches')
+            foldername = self.scibert_foldername_mapping[self.bert_type]
+            self.model_type_or_folder_url = os.path.join(MODELS_CACHE_DIR, foldername, 'weights.tar.gz')
+            self.vocab_type_or_filename = os.path.join(MODELS_CACHE_DIR,foldername, 'vocab.txt')
+            print(self.model_type_or_folder_url)
+
+        else:
+            self.model_type_or_folder_url = self.bert_type
+            self.vocab_type_or_filename = self.bert_type
+
         # load the bert model
         with self.msg_printer.loading("Loading Bert tokenizer and model"):
-            self.bert_tokenizer = BertTokenizer.from_pretrained(self.bert_type)
-            self.model = BertModel.from_pretrained(self.bert_type)
+            self.bert_tokenizer = BertTokenizer.from_pretrained(self.vocab_type_or_filename)
+            self.model = BertModel.from_pretrained(self.model_type_or_folder_url)
             self.model.eval()
 
         self.msg_printer.good(f"Finished Loading {self.bert_type} model and tokenizer")

@@ -1,13 +1,14 @@
 import os
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
-
+UPROOT_DIR = os.path.dirname(os.path.dirname(__file__))
 
 PATHS = dict(
     DATA_DIR=os.path.join(ROOT_DIR, "data"),
     OUTPUT_DIR=os.path.join(ROOT_DIR, "outputs"),
     CONFIGS_DIR=os.path.join(ROOT_DIR, "configs"),
     REPORTS_DIR=os.path.join(ROOT_DIR, "reports"),
+    MODELS_CACHE_DIR=os.path.join(UPROOT_DIR, '.model_cache')
 )
 
 FILES = dict(
