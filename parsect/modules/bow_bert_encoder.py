@@ -61,12 +61,9 @@ class BowBertEncoder:
         assert self.bert_type in self.allowed_bert_types
 
         if "scibert" in self.bert_type:
-            print('entering the scibert if clause because name matches')
             foldername = self.scibert_foldername_mapping[self.bert_type]
             self.model_type_or_folder_url = os.path.join(MODELS_CACHE_DIR, foldername, 'weights.tar.gz')
             self.vocab_type_or_filename = os.path.join(MODELS_CACHE_DIR,foldername, 'vocab.txt')
-            print(self.model_type_or_folder_url)
-
         else:
             self.model_type_or_folder_url = self.bert_type
             self.vocab_type_or_filename = self.bert_type
