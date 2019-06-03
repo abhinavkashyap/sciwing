@@ -26,6 +26,11 @@ if __name__ == "__main__":
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
     parser.add_argument(
+        "--device",
+        help="Specify the device on which models and tensors reside",
+        type=str,
+    )
+    parser.add_argument(
         "--max_num_words",
         help="Maximum number of words to be considered " "in the vocab",
         type=int,
@@ -68,6 +73,7 @@ if __name__ == "__main__":
 
     config = {
         "EXP_NAME": args.exp_name,
+        "DEVICE": args.device,
         "DEBUG": args.debug,
         "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
         "BATCH_SIZE": args.bs,
@@ -100,6 +106,7 @@ if __name__ == "__main__":
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
     EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     RETURN_INSTANCES = config["RETURN_INSTANCES"]
+    DEVICE = config["DEVICE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     MAX_NUM_WORDS = 0
     MAX_LENGTH = 0
@@ -115,6 +122,7 @@ if __name__ == "__main__":
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
         return_instances=RETURN_INSTANCES,
+        device=torch.device(DEVICE)
     )
 
     validation_dataset = ParsectDataset(
@@ -128,6 +136,7 @@ if __name__ == "__main__":
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
         return_instances=RETURN_INSTANCES,
+        device=torch.device(DEVICE)
     )
 
     test_dataset = ParsectDataset(
@@ -141,6 +150,7 @@ if __name__ == "__main__":
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
         return_instances=RETURN_INSTANCES,
+        device=torch.device(DEVICE)
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()

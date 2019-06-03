@@ -3,7 +3,9 @@
 cd ../clients
 
 python bow_elmo_emb_linear_classifier.py \
---exp_name "bow_elmo_emb_lc_10e_1e-3lr" \
+--exp_name "debug_bow_elmo_emb_lc_10e_1e-3lr" \
+--device cpu \
+--debug \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \
@@ -14,7 +16,9 @@ python bow_elmo_emb_linear_classifier.py \
 --log_train_metrics_every 50
 
 python bow_elmo_emb_linear_classifier.py \
---exp_name "bow_elmo_emb_lc_10e_1e-4lr" \
+--exp_name "debug_bow_elmo_emb_lc_10e_1e-4lr" \
+--device cpu \
+--debug \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \
