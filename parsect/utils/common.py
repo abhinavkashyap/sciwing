@@ -1,10 +1,12 @@
 from typing import Dict, List
 from tqdm import tqdm
-import json
+import requests
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
 from wasabi import Printer
+import zipfile
+from sys import stdout
 
 
 def convert_secthead_to_json(filename: str) -> Dict:
@@ -137,7 +139,6 @@ def pack_to_length(
     start_token: str = "<SOS>",
     end_token: str = "<EOS>",
 ) -> List[str]:
-
     if not add_start_end_token:
         tokenized_text = tokenized_text[:max_length]
     else:
@@ -155,16 +156,35 @@ def pack_to_length(
     return tokenized_text
 
 
-if __name__ == "__main__":
-    import os
-    import parsect.constants as constants
-    import json
+def download_file(url: str, dest_filename: str) -> None:
+    # NOTE the stream=True parameter below
+    msg_printer = Printer()
+    with msg_printer.loading(f'Downloading file {url} to {dest_filename}'):
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(dest_filename, "wb") as f:
+                for chunk in r.iter_content(chunk_size=32768):
+                    if chunk:  # filter out keep-alive new chunks
+                        f.write(chunk)
+    msg_printer.good(f'Finished downloading {url} to {dest_filename}')
 
-    PATHS = constants.PATHS
-    DATA_DIR = PATHS["DATA_DIR"]
-    filename = "sectLabel.train.data"
-    filename = os.path.join(DATA_DIR, filename)
-    secthead_json = write_tokenization_vis_json(filename)
 
-    with open(os.path.join(DATA_DIR, "sectLabel.tokenized.train.json"), "w") as fp:
-        json.dump(secthead_json, fp)
+def extract_zip(filename: str,
+                destination_dir: str):
+    msg_printer = Printer()
+    try:
+        with msg_printer.loading(f'Unzipping file {filename} to {destination_dir}'):
+            stdout.flush()
+            with zipfile.ZipFile(filename, 'r') as z:
+                z.extractall(destination_dir)
+
+        msg_printer.good(f'Finished extraction {filename} to {destination_dir}')
+    except zipfile.BadZipFile:
+        msg_printer.fail('Couldnot extract {filename} to {destination}')
+
+
+if __name__ == '__main__':
+    import pathlib
+    glove_file = pathlib.Path('~/Desktop/glove.6B.zip').expanduser()
+    desktop_path = pathlib.Path('~/Desktop').expanduser()
+    extract_zip(glove_file, desktop_path)
