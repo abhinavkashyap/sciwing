@@ -34,6 +34,7 @@ class ParsectDataset(Dataset):
         end_token: str = "<EOS>",
         pad_token: str = "<PAD>",
         unk_token: str = "<UNK>",
+        device: torch.device=torch.device("cpu")
     ):
         """
         :param dataset_type: type: str
@@ -67,6 +68,7 @@ class ParsectDataset(Dataset):
         The pad token is used when the length of the input is less than maximum length
         :param unk_token: type: str
         unk is the token that is used when the word is OOV
+        :param device: torch.device
         """
         self.dataset_type = dataset_type
         self.secthead_label_file = secthead_label_file
@@ -82,6 +84,7 @@ class ParsectDataset(Dataset):
         self.end_token = end_token
         self.pad_token = pad_token
         self.unk_token = unk_token
+        self.device = device
 
         self.word_tokenizer = WordTokenizer()
         self.label_mapping = self.get_label_mapping()
@@ -140,6 +143,9 @@ class ParsectDataset(Dataset):
         tokens = torch.LongTensor(tokens)
         len_tokens = torch.LongTensor([len_instance])
         label = torch.LongTensor([label_idx])
+
+        tokens = tokens.to(self.device)
+        label = label.to(self.device)
 
         instance_dict = {
             "tokens": tokens,

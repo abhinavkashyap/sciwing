@@ -15,6 +15,7 @@ import time
 import json_logging
 import logging
 from torch.utils.data._utils.collate import default_collate
+import torch
 
 
 class Engine:
@@ -34,6 +35,7 @@ class Engine:
         metric: str = "accuracy",
         track_for_best: str = "loss",
         collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
+        device=torch.device('cpu')
     ):
         """
         This orchestrates the whole model training. The supervised machine learning
@@ -70,6 +72,8 @@ class Engine:
         -The collate function provides the logic to group a batch of instances
         - There are more details in `torch.utils.data.DataLoader`.
         - If None, pytorchs default collate function will be used
+        :param device: torch.device
+        Torch device to which the model and the tensors will be converted
         """
 
         self.model = model
@@ -88,6 +92,7 @@ class Engine:
         self.summaryWriter = SummaryWriter(log_dir=tensorboard_logdir)
         self.track_for_best = track_for_best
         self.collate_fn = collate_fn
+        self.device = device
         self.best_track_value = None
         self.set_best_track_value(self.best_track_value)
 
@@ -97,6 +102,8 @@ class Engine:
         # TODO: For now we randomly sample the dataset to obtain instances, we can have different
         #       sampling strategies. For one, there are BucketIterators, that bucket different
         #       isntances of the same length together
+
+        self.model.to(self.device)
 
         self.train_loader = self.get_loader(self.train_dataset)
         self.validation_loader = self.get_loader(self.validation_dataset)
@@ -129,6 +136,7 @@ class Engine:
         time.sleep(3)
 
         # get the loggers ready
+        # TODO - use loguru - seems simple and has many advantages
         json_logging.ENABLE_JSON_LOGGING = True
         json_logging.init()
         self.train_log_filename = os.path.join(self.save_dir, "train.log")
@@ -417,7 +425,7 @@ class Engine:
         return train_calculator, validation_calculator, test_calculator
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     import parsect.constants as constants
     from parsect.datasets.parsect_dataset import ParsectDataset
     from parsect.modules.bow_encoder import BOW_Encoder
