@@ -122,7 +122,6 @@ if __name__ == "__main__":
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
         return_instances=RETURN_INSTANCES,
-        device=torch.device(DEVICE)
     )
 
     validation_dataset = ParsectDataset(
@@ -136,7 +135,6 @@ if __name__ == "__main__":
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
         return_instances=RETURN_INSTANCES,
-        device=torch.device(DEVICE)
     )
 
     test_dataset = ParsectDataset(
@@ -150,7 +148,6 @@ if __name__ == "__main__":
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
         return_instances=RETURN_INSTANCES,
-        device=torch.device(DEVICE)
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
