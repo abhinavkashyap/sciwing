@@ -1,6 +1,5 @@
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-import torch
 import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
@@ -16,6 +15,7 @@ import json_logging
 import logging
 from torch.utils.data._utils.collate import default_collate
 import torch
+from parsect.utils.tensor import move_to_device
 
 
 class Engine:
@@ -35,7 +35,7 @@ class Engine:
         metric: str = "accuracy",
         track_for_best: str = "loss",
         collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
-        device=torch.device('cpu')
+        device=torch.device("cpu"),
     ):
         """
         This orchestrates the whole model training. The supervised machine learning
@@ -96,7 +96,7 @@ class Engine:
         self.best_track_value = None
         self.set_best_track_value(self.best_track_value)
 
-        self.num_workers = multiprocessing.cpu_count()  # num_workers
+        self.num_workers = 0
 
         # get the data loader
         # TODO: For now we randomly sample the dataset to obtain instances, we can have different
@@ -164,7 +164,7 @@ class Engine:
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             collate_fn=self.collate_fn,
-            pin_memory=True
+            pin_memory=True,
         )
         return loader
 
@@ -205,9 +205,11 @@ class Engine:
             try:
                 # N*T, N * 1, N * 1
                 iter_dict = next(train_iter)
+                iter_dict, move_to_device(obj=iter_dict, cuda_device=self.device)
                 labels = iter_dict["label"]
                 batch_size = labels.size()[0]
                 labels = labels.squeeze(1)
+
                 model_forward_out = self.model(
                     iter_dict, is_training=True, is_validation=False, is_test=False
                 )
@@ -288,9 +290,11 @@ class Engine:
         while True:
             try:
                 iter_dict = next(valid_iter)
+                iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
                 labels = iter_dict["label"]
                 batch_size = labels.size(0)
                 labels = labels.squeeze(1)
+
                 model_forward_out = self.model(
                     iter_dict, is_training=False, is_validation=True, is_test=False
                 )
@@ -350,6 +354,7 @@ class Engine:
         while True:
             try:
                 iter_dict = next(test_iter)
+                iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
                 labels = iter_dict["label"]
                 labels = labels.squeeze(1)
                 model_forward_out = self.model(

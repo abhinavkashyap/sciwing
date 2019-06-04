@@ -159,32 +159,32 @@ def pack_to_length(
 def download_file(url: str, dest_filename: str) -> None:
     # NOTE the stream=True parameter below
     msg_printer = Printer()
-    with msg_printer.loading(f'Downloading file {url} to {dest_filename}'):
+    with msg_printer.loading(f"Downloading file {url} to {dest_filename}"):
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
             with open(dest_filename, "wb") as f:
                 for chunk in r.iter_content(chunk_size=32768):
                     if chunk:  # filter out keep-alive new chunks
                         f.write(chunk)
-    msg_printer.good(f'Finished downloading {url} to {dest_filename}')
+    msg_printer.good(f"Finished downloading {url} to {dest_filename}")
 
 
-def extract_zip(filename: str,
-                destination_dir: str):
+def extract_zip(filename: str, destination_dir: str):
     msg_printer = Printer()
     try:
-        with msg_printer.loading(f'Unzipping file {filename} to {destination_dir}'):
+        with msg_printer.loading(f"Unzipping file {filename} to {destination_dir}"):
             stdout.flush()
-            with zipfile.ZipFile(filename, 'r') as z:
+            with zipfile.ZipFile(filename, "r") as z:
                 z.extractall(destination_dir)
 
-        msg_printer.good(f'Finished extraction {filename} to {destination_dir}')
+        msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
     except zipfile.BadZipFile:
-        msg_printer.fail('Couldnot extract {filename} to {destination}')
+        msg_printer.fail("Couldnot extract {filename} to {destination}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import pathlib
-    glove_file = pathlib.Path('~/Desktop/glove.6B.zip').expanduser()
-    desktop_path = pathlib.Path('~/Desktop').expanduser()
+
+    glove_file = pathlib.Path("~/Desktop/glove.6B.zip").expanduser()
+    desktop_path = pathlib.Path("~/Desktop").expanduser()
     extract_zip(glove_file, desktop_path)
