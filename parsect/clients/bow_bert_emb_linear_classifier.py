@@ -25,6 +25,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
+    parser.add_argument("--device", help="specify the device to run on.", type=str)
     parser.add_argument(
         "--max_num_words",
         help="Maximum number of words to be considered " "in the vocab",
@@ -73,6 +74,7 @@ if __name__ == "__main__":
 
     config = {
         "EXP_NAME": args.exp_name,
+        "DEVICE": args.device,
         "DEBUG": args.debug,
         "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
         "BATCH_SIZE": args.bs,
@@ -108,6 +110,7 @@ if __name__ == "__main__":
     RETURN_INSTANCES = config["RETURN_INSTANCES"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BERT_TYPE = config["BERT_TYPE"]
+    DEVICE = config["DEVICE"]
     MAX_NUM_WORDS = 0
     MAX_LENGTH = 0
 
@@ -182,6 +185,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
+        device=torch.device(DEVICE)
     )
 
     engine.run()
