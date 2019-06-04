@@ -154,7 +154,7 @@ if __name__ == "__main__":
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_embedding()
 
-    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION, aggregation_type="sum")
+    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION, layer_aggregation="sum")
 
     model = BowElmoLinearClassifier(
         encoder=encoder,

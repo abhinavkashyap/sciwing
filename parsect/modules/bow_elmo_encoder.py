@@ -19,7 +19,8 @@ class BowElmoEncoder:
         self,
         emb_dim: int = 1024,
         dropout_value: float = 0.0,
-        aggregation_type: str = "sum",
+        layer_aggregation: str = "sum",
+        word_aggregation: str = "sum"
     ):
         """
 
@@ -28,22 +29,28 @@ class BowElmoEncoder:
         This is fixed in the case of Elmo
         :param dropout_value: type: float
         You can add dropout to the embedding layer
-        :param aggregation_type: type: str
-        sum - sums the embeddings of tokens in an instance
-        average - averages the embedding of tokens in an instance
+        :param layer_aggregation: type: str
+        sum - sums all the layers of elmo embeddings
+        average - average all layers of elmo embedding
+        first - gets the first layer of embeddings only
+        last - gets only last layer of embeddings
+        :param word_aggregation: type: str
+        sum - sum the embeddings across words to obtain sentence embedding
+        average - average the embeddings across words to obtain sentence embedding
         """
         super(BowElmoEncoder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
-        self.aggregation_type = aggregation_type
-        self.allowed_aggregation_types = ["sum", "average", "last"]
+        self.layer_aggregation_type = layer_aggregation
+        self.word_aggregation_type = word_aggregation
+        self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
         self.msg_printer = wasabi.Printer()
 
         assert (
-            self.aggregation_type in self.allowed_aggregation_types
+                self.layer_aggregation_type in self.allowed_layer_aggregation_types
         ), self.msg_printer.fail(
             f"For bag of words elmo encoder, the allowable aggregation "
-            f"types are {self.allowed_aggregation_types}. You passed {self.aggregation_type}"
+            f"types are {self.allowed_layer_aggregation_types}. You passed {self.layer_aggregation_type}"
         )
 
         # load the elmo embedders
@@ -76,22 +83,27 @@ class BowElmoEncoder:
 
         embedding_ = None
         # aggregate of word embeddings
-        if self.aggregation_type == "sum":
-            # sum across all layers
+        if self.layer_aggregation_type == "sum":
             # bs, #words_in_sentence, 1024
             embedding_ = torch.sum(embedded, dim=1)
-            # sum across all words
-            # bs, 1024
-            embedding_ = torch.sum(embedding_, dim=1)
-        elif self.aggregation_type == "average":
+
+        elif self.layer_aggregation_type == "average":
             # mean across all layers
             embedding_ = torch.mean(embedded, dim=1)
-            # mean across all the words
-            embedding_ = torch.mean(embedding_, dim=1)
-        elif self.aggregation_type == "last":
-            # take the last layer of embeddings
+
+        elif self.layer_aggregation_type == "last":
             # bs, max_len, 1024
             embedding_ = embedded[:, -1, :, :]
+
+        elif self.layer_aggregation_type == "first":
+            # bs, max_len, 1024
+            embedding_ = embedded[:, 0, :, :]
+
+        if self.word_aggregation_type == "sum":
+            embedding_ = torch.sum(embedding_, dim=1)
+
+        elif self.word_aggregation_type == "average":
+            embedding_ = torch.mean(embedding_, dim=1)
 
         return embedding_
 
