@@ -4,6 +4,7 @@ from torch.nn import CrossEntropyLoss
 from torch.nn.functional import softmax
 import wasabi
 from typing import Dict, Any
+import torch
 
 
 class BowElmoLinearClassifier(nn.Module):
@@ -40,6 +41,11 @@ class BowElmoLinearClassifier(nn.Module):
         )
 
         encoding = self.encoder(x)
+
+        # TODO: quick fix for cuda situation
+        # ideally have to test by converting the instance to cuda
+
+        encoding = encoding.cuda(labels.get_device()) if labels.is_cuda else encoding
 
         # N * C
         # N - batch size

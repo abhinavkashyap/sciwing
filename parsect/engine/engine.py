@@ -205,7 +205,7 @@ class Engine:
             try:
                 # N*T, N * 1, N * 1
                 iter_dict = next(train_iter)
-                iter_dict, move_to_device(obj=iter_dict, cuda_device=self.device)
+                iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
                 labels = iter_dict["label"]
                 batch_size = labels.size()[0]
                 labels = labels.squeeze(1)
@@ -214,7 +214,7 @@ class Engine:
                     iter_dict, is_training=True, is_validation=False, is_test=False
                 )
                 self.train_metric_calc.calc_metric(
-                    model_forward_out["normalized_probs"], labels
+                    model_forward_out["normalized_probs"].cpu(), labels.cpu()
                 )
 
                 try:
@@ -301,7 +301,8 @@ class Engine:
                 loss = model_forward_out["loss"]
                 self.validation_loss_meter.add_loss(loss, batch_size)
                 self.validation_metric_calc.calc_metric(
-                    predicted_probs=model_forward_out["normalized_probs"], labels=labels
+                    predicted_probs=model_forward_out["normalized_probs"].cpu(),
+                    labels=labels.cpu(),
                 )
             except StopIteration:
                 self.validation_epoch_end(epoch_num)
@@ -361,7 +362,8 @@ class Engine:
                     iter_dict, is_training=False, is_validation=False, is_test=True
                 )
                 self.test_metric_calc.calc_metric(
-                    predicted_probs=model_forward_out["normalized_probs"], labels=labels
+                    predicted_probs=model_forward_out["normalized_probs"].cpu(),
+                    labels=labels.cpu(),
                 )
             except StopIteration:
                 self.test_epoch_end(epoch_num)
