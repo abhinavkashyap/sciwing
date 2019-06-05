@@ -38,7 +38,9 @@ class WordTokenizer:
 
         if self.tokenizer == "spacy":
             doc = self.nlp(text)
-            tokens = [token.text for token in doc]
+            tokens = [
+                token.text for token in doc if bool(token.text.strip())
+            ]  # add token text only if they are not empty
             return tokens
 
     def tokenize_batch(self, texts: List[str]) -> List[List[str]]:

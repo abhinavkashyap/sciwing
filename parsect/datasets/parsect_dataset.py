@@ -131,7 +131,7 @@ class ParsectDataset(Dataset):
             tokenized_text=instance,
             max_length=self.max_length,
             pad_token=self.vocab.pad_token,
-            add_start_end_token=True,
+            add_start_end_token=True,  # TODO: remove hard coded value here
             start_token=self.vocab.start_token,
             end_token=self.vocab.end_token,
         )

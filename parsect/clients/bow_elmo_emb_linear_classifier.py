@@ -26,6 +26,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
     parser.add_argument(
+        "--max_length", help="Specify the maximum length of input", type=int
+    )
+    parser.add_argument(
         "--device",
         help="Specify the device on which models and tensors reside",
         type=str,
@@ -41,6 +44,18 @@ if __name__ == "__main__":
         help="Specify whether this is run on a debug options. The "
         "dataset considered will be small",
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--layer_aggregation",
+        help="Layer aggregation strategy",
+        type=str
+    )
+
+    parser.add_argument(
+        "--word_aggregation",
+        help="word aggregation strategy",
+        type=str
     )
     parser.add_argument(
         "--debug_dataset_proportion",
@@ -73,6 +88,7 @@ if __name__ == "__main__":
 
     config = {
         "EXP_NAME": args.exp_name,
+        "MAX_LENGTH": args.max_length,
         "DEVICE": args.device,
         "DEBUG": args.debug,
         "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
@@ -84,9 +100,12 @@ if __name__ == "__main__":
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
         "EMBEDDING_TYPE": args.emb_type,
         "RETURN_INSTANCES": args.return_instances,
+        "LAYER_AGGREGATION": args.layer_aggregation,
+        "WORD_AGGREGATION": args.word_aggregation
     }
 
     EXP_NAME = config["EXP_NAME"]
+    MAX_LENGTH = config["MAX_LENGTH"]
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
     if not os.path.isdir(EXP_DIR_PATH):
@@ -109,7 +128,8 @@ if __name__ == "__main__":
     DEVICE = config["DEVICE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     MAX_NUM_WORDS = 0
-    MAX_LENGTH = 0
+    LAYER_AGGREGATION = config["LAYER_AGGREGATION"]
+    WORD_AGGREGATION = config["WORD_AGGREGATION"]
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -154,7 +174,7 @@ if __name__ == "__main__":
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_embedding()
 
-    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION, layer_aggregation="sum")
+    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION)
 
     model = BowElmoLinearClassifier(
         encoder=encoder,
@@ -177,7 +197,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     engine.run()

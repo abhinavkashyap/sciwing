@@ -3,15 +3,19 @@
 cd ../clients
 
 python bow_elmo_emb_linear_classifier.py \
---exp_name "bow_elmo_emb_lc_10e_1e-3lr" \
---device cuda:0 \
+--exp_name "debug_bow_elmo_emb_lc_10e_1e-4lr" \
+--max_length 15 \
+--device cpu \
+--debug \
+--layer_aggregation last \
+--word_aggregation sum \
 --debug_dataset_proportion 0.01 \
---bs 32 \
+--bs 10 \
 --emb_dim 1024 \
---lr 1e-3 \
---epochs 10 \
+--lr 1e-4 \
+--epochs 70 \
 --save_every 1 \
---log_train_metrics_every 50
+--log_train_metrics_every 10
 
 
 #python bow_elmo_emb_linear_classifier.py \

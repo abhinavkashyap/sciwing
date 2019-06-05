@@ -63,20 +63,9 @@ class BowElmoEncoder:
         :param x - The input should be a list of instances
         The words are tokenized
         """
-
-        lens_in_batch = [len(instance) for instance in x]
-        max_len_in_batch = sorted(lens_in_batch, reverse=True)[0]
-
-        padded_instances = []
-        for instance in x:
-            padded_instance = pack_to_length(
-                tokenized_text=instance, max_length=max_len_in_batch
-            )
-            padded_instances.append(padded_instance)
-
         # [np.array] - A generator of embeddings
         # each array in the list is of the shape (3, #words_in_sentence, 1024)
-        embedded = list(self.elmo.embed_sentences(padded_instances))
+        embedded = list(self.elmo.embed_sentences(x))
 
         # bs, 3, #words_in_sentence, 1024
         embedded = torch.FloatTensor(embedded)
