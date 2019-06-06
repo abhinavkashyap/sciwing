@@ -10,7 +10,8 @@ import numpy as np
 
 
 class PrecisionRecallFMeasure:
-    def __init__(self):
+    def __init__(self, idx2labelname_mapping: Dict[int, str]):
+        self.idx2labelname_mapping = idx2labelname_mapping
         self.msg_printer = Printer()
 
         # setup counters to calculate true positives, false positives,
@@ -300,7 +301,14 @@ class PrecisionRecallFMeasure:
                 p = precision[class_num]
                 r = recall[class_num]
                 f = fscore[class_num]
-                rows.append(("class_{0}".format(class_num), p, r, f))
+                rows.append(
+                    (
+                        f"cls_{class_num} ({self.idx2labelname_mapping[int(class_num)]})",
+                        p,
+                        r,
+                        f,
+                    )
+                )
 
             rows.append(["-"] * 4)
             rows.append(["Macro", macro_precision, macro_recall, macro_fscore])
@@ -312,8 +320,9 @@ class PrecisionRecallFMeasure:
 if __name__ == "__main__":
     predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2], [0.2, 0.5, 0.3]])
     labels = torch.LongTensor([0, 2])
+    idx2labelname_mapping = {0: 'good class', 1: 'bad class', 2: 'average_class'}
 
-    accuracy = PrecisionRecallFMeasure()
+    accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
 
     accuracy.calc_metric(predicted_probs, labels)
     metrics_ = accuracy.get_metric()

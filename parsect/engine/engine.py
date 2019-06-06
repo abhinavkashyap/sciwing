@@ -98,6 +98,12 @@ class Engine:
 
         self.num_workers = 0
 
+        # TODO: ensure get_label_mapping on all datasets using abc (maybe)
+        self.labelname2idx_mapping = self.train_dataset.get_label_mapping()
+        self.idx2labelname_mapping = {
+            idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
+        }
+
         # get the data loader
         # TODO: For now we randomly sample the dataset to obtain instances, we can have different
         #       sampling strategies. For one, there are BucketIterators, that bucket different
@@ -425,9 +431,15 @@ class Engine:
         test_calculator = None
 
         if self.metric == "accuracy":
-            train_calculator = PrecisionRecallFMeasure()
-            validation_calculator = PrecisionRecallFMeasure()
-            test_calculator = PrecisionRecallFMeasure()
+            train_calculator = PrecisionRecallFMeasure(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
+            validation_calculator = PrecisionRecallFMeasure(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
+            test_calculator = PrecisionRecallFMeasure(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
 
         return train_calculator, validation_calculator, test_calculator
 
