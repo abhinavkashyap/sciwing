@@ -17,6 +17,7 @@ class ElmoLSTMEncoder(nn.Module):
         bidirectional: bool = False,
         combine_strategy: str = "concat",
         rnn_bias: bool = True,
+        device: torch.device = torch.device("cpu")
     ):
         super(ElmoLSTMEncoder, self).__init__()
         self.elmo_emb_dim = elmo_emb_dim
@@ -31,6 +32,7 @@ class ElmoLSTMEncoder(nn.Module):
         self.allowed_combine_strategies = ["sum", "concat"]
         self.num_layers = 1
         self.num_directions = 2 if self.bidirectional else 1
+        self.device = device
         self.msg_printer = wasabi.Printer()
 
         assert (
@@ -99,4 +101,6 @@ class ElmoLSTMEncoder(nn.Module):
         c0 = torch.zeros(
             self.num_layers * self.num_directions, batch_size, self.hidden_dim
         )
+        h0 = h0.to(self.device)
+        c0 = c0.to(self.device)
         return h0, c0

@@ -4,6 +4,7 @@ import parsect.constants as constants
 import torch.nn as nn
 from typing import Iterable, List
 import wasabi
+import torch
 
 FILES = constants.FILES
 
@@ -12,7 +13,8 @@ ELMO_WEIGHTS_FILE = FILES["ELMO_WEIGHTS_FILE"]
 
 
 class ElmoEmbedder(nn.Module):
-    def __init__(self, dropout_value: float = 0.0):
+    def __init__(self, dropout_value: float = 0.0,
+                 device: torch.device=torch.device("cpu")):
         super(ElmoEmbedder, self).__init__()
 
         # Sometimes you need two different tensors that are
@@ -20,6 +22,7 @@ class ElmoEmbedder(nn.Module):
         # TODO: change this in-case you need 2 representations
         self.num_output_representations = 1
         self.dropout_value = dropout_value
+        self.device = device
         self.msg_printer = wasabi.Printer()
 
         with self.msg_printer.loading("Loading Elmo Object"):
@@ -34,6 +37,7 @@ class ElmoEmbedder(nn.Module):
 
     def forward(self, x: List[List[str]]):
         character_ids = batch_to_ids(x)
+        character_ids = character_ids.to(self.device)
         output_dict = self.elmo(character_ids)
         embeddings = output_dict["elmo_representations"][0]
         return embeddings

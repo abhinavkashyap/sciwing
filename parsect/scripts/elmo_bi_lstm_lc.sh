@@ -4,6 +4,7 @@ cd ../clients
 
 python elmo_bi_lstm_encoder_linear_classifier.py \
 --exp_name "debug_elmo_bi_lstm_lc" \
+--device cuda:0 \
 --max_num_words 1000 \
 --max_length 10 \
 --debug \

@@ -4,6 +4,7 @@ import wasabi
 from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
+import torch
 
 
 class ElmoLSTMClassifier(nn.Module):
@@ -13,6 +14,7 @@ class ElmoLSTMClassifier(nn.Module):
         encoding_dim: int,
         num_classes: int,
         classification_layer_bias: bool = True,
+        device: torch.device = torch.device("cpu"),
     ):
         """
 
@@ -24,6 +26,7 @@ class ElmoLSTMClassifier(nn.Module):
         :param classification_layer_bias: type: bool
         Would you want to add bias to the classification layer? set it to true
         This is used for debugging purposes. Use it sparingly
+        :param device: torch.device
         """
         super(ElmoLSTMClassifier, self).__init__()
         self.elmo_lstm_encoder: ElmoLSTMEncoder = elmo_lstm_encoder
@@ -33,6 +36,7 @@ class ElmoLSTMClassifier(nn.Module):
         self.classification_layer = nn.Linear(
             encoding_dim, num_classes, bias=self.classification_layer_bias
         )
+        self.device = device
         self._loss = CrossEntropyLoss()
         self.msg_printer = wasabi.Printer()
 

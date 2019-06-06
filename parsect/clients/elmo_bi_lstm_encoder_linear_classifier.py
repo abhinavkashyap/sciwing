@@ -10,6 +10,7 @@ import torch.optim as optim
 from parsect.engine.engine import Engine
 import json
 import argparse
+import torch
 
 
 FILES = constants.FILES
@@ -26,6 +27,9 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
+
+    parser.add_argument("--device", help="Specify the device where the model is run", type=str)
+
     parser.add_argument(
         "--max_num_words",
         help="Maximum number of words to be considered " "in the vocab",
@@ -84,6 +88,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = {
         "EXP_NAME": args.exp_name,
+        "DEVICE": args.device,
         "MAX_NUM_WORDS": args.max_num_words,
         "MAX_LENGTH": args.max_length,
         "DEBUG": args.debug,
@@ -103,6 +108,7 @@ if __name__ == "__main__":
     }
 
     EXP_NAME = config["EXP_NAME"]
+    DEVICE = config["DEVICE"]
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
     if not os.path.isdir(EXP_DIR_PATH):
@@ -174,7 +180,7 @@ if __name__ == "__main__":
     embeddings = train_dataset.get_preloaded_embedding()
     embeddings = nn.Embedding.from_pretrained(embeddings, freeze=False)
 
-    elmo_embedder = ElmoEmbedder()
+    elmo_embedder = ElmoEmbedder(device=torch.device(DEVICE))
     elmo_lstm_encoder = ElmoLSTMEncoder(
         elmo_emb_dim=ELMO_EMBEDDING_DIMENSION,
         elmo_embedder=elmo_embedder,
@@ -184,6 +190,7 @@ if __name__ == "__main__":
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
+        device=torch.device(DEVICE)
     )
 
     encoding_dim = 2 * HIDDEN_DIMENSION if BIDIRECTIONAL else HIDDEN_DIMENSION
@@ -192,6 +199,7 @@ if __name__ == "__main__":
         elmo_lstm_encoder=elmo_lstm_encoder,
         encoding_dim=encoding_dim,
         num_classes=NUM_CLASSES,
+        device=torch.device(DEVICE)
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
@@ -208,6 +216,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
+        device=torch.device(DEVICE)
     )
 
     engine.run()
