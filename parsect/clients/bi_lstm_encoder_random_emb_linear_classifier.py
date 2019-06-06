@@ -27,6 +27,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
     parser.add_argument(
+        "--device", help="Adding which device to run the experiment on", type=str
+    )
+    parser.add_argument(
         "--max_num_words",
         help="Maximum number of words to be considered " "in the vocab",
         type=int,
@@ -84,6 +87,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = {
         "EXP_NAME": args.exp_name,
+        "DEVICE": args.device,
         "MAX_NUM_WORDS": args.max_num_words,
         "MAX_LENGTH": args.max_length,
         "DEBUG": args.debug,
@@ -102,6 +106,7 @@ if __name__ == "__main__":
     }
 
     EXP_NAME = config["EXP_NAME"]
+    DEVICE = config["DEVICE"]
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
     if not os.path.isdir(EXP_DIR_PATH):
@@ -203,6 +208,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
+        device=DEVICE
     )
 
     engine.run()
