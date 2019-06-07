@@ -10,6 +10,7 @@ from parsect.clients.glove_emb_bow_linear_classifier_infer import (
 from parsect.clients.elmo_emb_bow_linear_classifier_infer import (
     get_elmo_emb_linear_classifier_infer,
 )
+from parsect.clients.bert_emb_bow_linear_classifier_infer import get_bert_emb_bow_linear_classifier_infer
 import wasabi
 import parsect.constants as constants
 import os
@@ -30,6 +31,7 @@ class ParsectCli:
             "random-embedding-bow-encoder-linear-classifier",
             "glove-embedding-bow-encoder-linear-classifier",
             "elmo-embedding-bow-encoder-linear_classifier",
+            "bert-embedding-bow-encoder-linear-classifier"
         ]
         self.msg_printer = wasabi.Printer()
         self.model_type_answer = self.ask_model_type()
@@ -87,6 +89,17 @@ class ParsectCli:
             ).ask()
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_elmo_emb_linear_classifier_infer(exp_choice)
+        if self.model_type_answer == "bert-embedding-bow-encoder-linear-classifier":
+            choices = []
+            for expname in os.listdir(OUTPUT_DIR):
+                if bool(re.search(".*bow_bert_.*", expname)):
+                    choices.append(Choice(expname))
+
+            exp_choice = questionary.rawselect(
+                "Please select an experiment", choices=choices, qmark="❓"
+            ).ask()
+            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_bert_emb_bow_linear_classifier_infer(exp_choice)
         return inference
 
     def interact(self):

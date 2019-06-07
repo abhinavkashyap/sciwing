@@ -49,7 +49,7 @@ class ParsectInference:
             config = json.load(fp)
 
         self.max_num_words = config.get("MAX_NUM_WORDS", 0)
-        self.max_length = config["MAX_LENGTH"]
+        self.max_length = config.get("MAX_LENGTH", 0)
         self.vocab_store_location = config["VOCAB_STORE_LOCATION"]
         self.debug = config["DEBUG"]
         self.debug_dataset_proportion = config["DEBUG_DATASET_PROPORTION"]
@@ -66,6 +66,10 @@ class ParsectInference:
         self.return_instances = config.get("RETURN_INSTANCES", None)
         self.msg_printer = Printer()
 
+        if self.max_length == 0:
+            self.msg_printer.warn("The saved parameter has max length of 0. You may want to "
+                                  "check this behaviour")
+
         self.test_dataset = self.get_test_dataset()
         self.labelname2idx_mapping = self.test_dataset.get_label_mapping()
         self.idx2labelname_mapping = {
@@ -76,7 +80,9 @@ class ParsectInference:
         )
 
         self.load_model()
-        self.output_analytics = self.run_inference()
+        with self.msg_printer.loading("Running inference on test data"):
+            self.output_analytics = self.run_inference()
+        self.msg_printer.good("Finished running inference on test data")
 
         # create a dataframe with all the information
         self.output_df = pd.DataFrame(
