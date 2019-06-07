@@ -69,7 +69,7 @@ class BowBertEncoder:
             self.vocab_type_or_filename = self.bert_type
 
         # load the bert model
-        with self.msg_printer.loading("Loading Bert tokenizer and model"):
+        with self.msg_printer.loading(" Loading Bert tokenizer and model. "):
             self.bert_tokenizer = BertTokenizer.from_pretrained(self.vocab_type_or_filename)
             self.model = BertModel.from_pretrained(self.model_type_or_folder_url)
             self.model.eval()

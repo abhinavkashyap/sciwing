@@ -33,6 +33,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "--max_length",
+        help="max length of sentences",
+        type=int
+    )
+    parser.add_argument(
         "--debug",
         help="Specify whether this is run on a debug options. The "
         "dataset considered will be small",
@@ -86,6 +91,7 @@ if __name__ == "__main__":
         "EMBEDDING_TYPE": args.emb_type,
         "RETURN_INSTANCES": args.return_instances,
         "BERT_TYPE": args.bert_type,
+        "MAX_LENGTH": args.max_length
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -112,7 +118,7 @@ if __name__ == "__main__":
     BERT_TYPE = config["BERT_TYPE"]
     DEVICE = config["DEVICE"]
     MAX_NUM_WORDS = 0
-    MAX_LENGTH = 0
+    MAX_LENGTH = config["MAX_LENGTH"]
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
