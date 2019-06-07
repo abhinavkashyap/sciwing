@@ -48,7 +48,7 @@ class ParsectInference:
         with open(self.hyperparam_config_filename, "r") as fp:
             config = json.load(fp)
 
-        self.max_num_words = config["MAX_NUM_WORDS"]
+        self.max_num_words = config.get("MAX_NUM_WORDS", 0)
         self.max_length = config["MAX_LENGTH"]
         self.vocab_store_location = config["VOCAB_STORE_LOCATION"]
         self.debug = config["DEBUG"]
@@ -66,8 +66,15 @@ class ParsectInference:
         self.return_instances = config.get("RETURN_INSTANCES", None)
         self.msg_printer = Printer()
 
-        self.metrics_calculator = PrecisionRecallFMeasure()
         self.test_dataset = self.get_test_dataset()
+        self.labelname2idx_mapping = self.test_dataset.get_label_mapping()
+        self.idx2labelname_mapping = {
+            idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
+        }
+        self.metrics_calculator = PrecisionRecallFMeasure(
+            idx2labelname_mapping=self.idx2labelname_mapping
+        )
+
         self.load_model()
         self.output_analytics = self.run_inference()
 
@@ -129,7 +136,9 @@ class ParsectInference:
         predicted_labels_indices = []
         all_pred_probs = []
 
-        for tokens, labels, len_tokens in loader:
+        for iter_dict in loader:
+            tokens = iter_dict["tokens"]
+            labels = iter_dict["label"]
             labels = labels.squeeze(1)
             labels_list = labels.tolist()
 
@@ -139,7 +148,7 @@ class ParsectInference:
             )
 
             model_output_dict = self.model(
-                tokens, labels, is_training=False, is_validation=False, is_test=True
+                iter_dict, is_training=False, is_validation=False, is_test=True
             )
             normalized_probs = model_output_dict["normalized_probs"]
             self.metrics_calculator.calc_metric(

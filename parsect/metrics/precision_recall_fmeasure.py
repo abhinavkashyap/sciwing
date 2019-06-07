@@ -7,6 +7,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
+import pandas as pd
 
 
 class PrecisionRecallFMeasure:
@@ -117,16 +118,26 @@ class PrecisionRecallFMeasure:
 
         classes = unique_labels(true_labels_numpy, top_indices_numpy)
         classes = classes.tolist()
+        classes_with_names = [
+            f"cls_{class_}({self.idx2labelname_mapping[class_]})"
+            for class_ in classes
+        ]
 
-        # insert th
-        confusion_mtrx = np.insert(confusion_mtrx, 0, classes, axis=1)
+        # insert the class names
+        confusion_mtrx = pd.DataFrame(confusion_mtrx)
+        confusion_mtrx.insert(0, "class_name", classes_with_names)
 
         assert len(classes) == confusion_mtrx.shape[1] - 1
 
-        header = ["{0}".format(class_) for class_ in classes]
-        header.insert(0, "pred (cols) / true (rows)")
+        header = [f"{class_}" for class_ in classes]
+        header.insert(0, "pred(cols)/true(rows)")
+        print(header)
 
-        self.msg_printer.table(data=confusion_mtrx, header=header, divider=True)
+        self.msg_printer.table(
+            data=confusion_mtrx.values.tolist(),
+            header=header,
+            divider=True,
+        )
 
     def calc_metric(
         self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
@@ -320,7 +331,7 @@ class PrecisionRecallFMeasure:
 if __name__ == "__main__":
     predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2], [0.2, 0.5, 0.3]])
     labels = torch.LongTensor([0, 2])
-    idx2labelname_mapping = {0: 'good class', 1: 'bad class', 2: 'average_class'}
+    idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
 
     accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
 

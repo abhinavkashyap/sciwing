@@ -101,7 +101,8 @@ if __name__ == "__main__":
         "EMBEDDING_TYPE": args.emb_type,
         "RETURN_INSTANCES": args.return_instances,
         "LAYER_AGGREGATION": args.layer_aggregation,
-        "WORD_AGGREGATION": args.word_aggregation
+        "WORD_AGGREGATION": args.word_aggregation,
+        "MAX_NUM_WORDS": 0
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     RETURN_INSTANCES = config["RETURN_INSTANCES"]
     DEVICE = config["DEVICE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
-    MAX_NUM_WORDS = 0
+    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
     LAYER_AGGREGATION = config["LAYER_AGGREGATION"]
     WORD_AGGREGATION = config["WORD_AGGREGATION"]
 
