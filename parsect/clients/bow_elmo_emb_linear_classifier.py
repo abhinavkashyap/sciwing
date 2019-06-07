@@ -102,7 +102,7 @@ if __name__ == "__main__":
         "RETURN_INSTANCES": args.return_instances,
         "LAYER_AGGREGATION": args.layer_aggregation,
         "WORD_AGGREGATION": args.word_aggregation,
-        "MAX_NUM_WORDS": 0
+        "MAX_NUM_WORDS": args.max_num_words
     }
 
     EXP_NAME = config["EXP_NAME"]
