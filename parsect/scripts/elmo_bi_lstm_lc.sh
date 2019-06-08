@@ -4,7 +4,7 @@ cd ../clients
 
 python elmo_bi_lstm_encoder_linear_classifier.py \
 --exp_name "debug_elmo_bi_lstm_lc" \
---device cuda:0 \
+--device cpu \
 --max_num_words 1000 \
 --max_length 10 \
 --debug \
@@ -16,7 +16,7 @@ python elmo_bi_lstm_encoder_linear_classifier.py \
 --lr 1e-3 \
 --bidirectional \
 --combine_strategy concat \
---epochs 25 \
+--epochs 1 \
 --save_every 1 \
 --log_train_metrics_every 5
 
