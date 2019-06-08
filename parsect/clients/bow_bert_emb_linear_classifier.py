@@ -91,7 +91,8 @@ if __name__ == "__main__":
         "EMBEDDING_TYPE": args.emb_type,
         "RETURN_INSTANCES": args.return_instances,
         "BERT_TYPE": args.bert_type,
-        "MAX_LENGTH": args.max_length
+        "MAX_LENGTH": args.max_length,
+        "MAX_NUM_WORDS": args.max_num_words
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -117,7 +118,7 @@ if __name__ == "__main__":
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BERT_TYPE = config["BERT_TYPE"]
     DEVICE = config["DEVICE"]
-    MAX_NUM_WORDS = 0
+    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
     MAX_LENGTH = config["MAX_LENGTH"]
 
     train_dataset = ParsectDataset(
