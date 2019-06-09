@@ -21,6 +21,7 @@ class BertSeqClassifier(nn.Module):
         emb_dim: int = 768,
         dropout_value: float = 0.0,
         bert_type: str = "bert-base-uncased",
+        device: torch.device = torch.device("cpu")
     ):
         """
         """
@@ -29,6 +30,7 @@ class BertSeqClassifier(nn.Module):
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
         self.bert_type = bert_type
+        self.device = device
         self.msg_printer = wasabi.Printer()
 
         self.allowed_bert_types = [
@@ -67,6 +69,7 @@ class BertSeqClassifier(nn.Module):
             self.model = BertForSequenceClassification.from_pretrained(
                 self.model_type_or_folder_url, self.num_classes
             )
+            self.model.to(self.device)
 
         self.msg_printer.good(f"Finished Loading {self.bert_type} tokenizer and model")
 
@@ -123,6 +126,10 @@ class BertSeqClassifier(nn.Module):
         assert tokens_tensor.size() == (batch_size, max_len)
         assert segment_tensor.size() == (batch_size, max_len)
         assert attention_masks.size() == (batch_size, max_len)
+
+        tokens_tensor = tokens_tensor.to(self.device)
+        segment_tensor = segment_tensor.to(self.device)
+        attention_masks = attention_masks.to(self.device)
 
         logits = self.model(
             input_ids=tokens_tensor,

@@ -5,7 +5,7 @@ cd ../clients
 python bert_seq_classifier_client.py \
 --exp_name "debug_bert_seq_classifier_base_cased_emb_lc_10e_1e-2lr" \
 --bert_type "bert-large-cased" \
---device cpu \
+--device cuda:0 \
 --max_num_words 15000 \
 --max_len 20 \
 --debug \
