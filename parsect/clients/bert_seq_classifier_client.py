@@ -28,6 +28,11 @@ if __name__ == "__main__":
         help="Maximum number of words to be considered " "in the vocab",
         type=int,
     )
+    parser.add_argument(
+        "--max_len",
+        help="Maximum length of sentences to be considered",
+        type=int
+    )
 
     parser.add_argument(
         "--debug",
@@ -67,6 +72,11 @@ if __name__ == "__main__":
         help="Specify the bert model to be used. One of bert-base-uncased, bert-base-cased, "
         "bert-large-uncased, bert-large-cased can be used",
     )
+    parser.add_argument(
+        "--device",
+        help="Device on which the model is run",
+        type=str
+    )
     args = parser.parse_args()
 
     config = {
@@ -82,6 +92,9 @@ if __name__ == "__main__":
         "EMBEDDING_TYPE": args.emb_type,
         "RETURN_INSTANCES": args.return_instances,
         "BERT_TYPE": args.bert_type,
+        "MAX_NUM_WORDS": args.max_num_words,
+        "MAX_LENGTH": args.max_len,
+        "DEVICE": args.device
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -106,8 +119,9 @@ if __name__ == "__main__":
     RETURN_INSTANCES = config["RETURN_INSTANCES"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BERT_TYPE = config["BERT_TYPE"]
-    MAX_NUM_WORDS = 0
-    MAX_LENGTH = 0
+    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
+    MAX_LENGTH = config["MAX_LENGTH"]
+    DEVICE = config["DEVICE"]
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -150,7 +164,6 @@ if __name__ == "__main__":
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    random_embeddings = train_dataset.get_preloaded_embedding()
 
     model = BertSeqClassifier(
         num_classes=NUM_CLASSES,

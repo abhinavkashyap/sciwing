@@ -13,6 +13,7 @@ from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
 from parsect.infer.bert_emb_bow_linear_classifier_infer import get_bert_emb_bow_linear_classifier_infer
 from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_classifier
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
+from parsect.infer.bert_seq_classifier_infer import get_bert_seq_classifier_infer
 import wasabi
 import parsect.constants as constants
 import os
@@ -35,7 +36,8 @@ class ParsectCli:
             "elmo-embedding-bow-encoder-linear_classifier",
             "bert-embedding-bow-encoder-linear-classifier",
             "bi-lstm-random-emb-linear-classifier",
-            "elmo-bilstm-linear-classifier"
+            "elmo-bilstm-linear-classifier",
+            "bert-seq-classifier"
         ]
         self.msg_printer = wasabi.Printer()
         self.model_type_answer = self.ask_model_type()
@@ -125,6 +127,17 @@ class ParsectCli:
             ).ask()
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_elmo_bilstm_lc_infer(exp_choice)
+
+        if self.model_type_answer == "bert-seq-classifier":
+            choices = []
+            for expname in os.listdir(OUTPUT_DIR):
+                if bool(re.search(".*bert_seq_classifier.*", expname)):
+                    choices.append(Choice(expname))
+            exp_choice = questionary.rawselect(
+                "Please select an experiment", choices=choices, qmark="❓"
+            ).ask()
+            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_bert_seq_classifier_infer(exp_choice)
 
         return inference
 
