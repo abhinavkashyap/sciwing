@@ -1,5 +1,5 @@
 import torch
-from typing import Dict
+from typing import Dict, Union
 from wasabi import Printer
 from wasabi import table
 from sklearn.metrics import precision_recall_fscore_support
@@ -59,10 +59,10 @@ class PrecisionRecallFMeasure:
         top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
 
         # convert to 1d numpy
-        top_indices_numpy = top_indices.numpy().ravel()
+        top_indices_numpy = top_indices.cpu().numpy().ravel()
 
         # convert labels to 1 dimension
-        labels_numpy = labels.numpy()
+        labels_numpy = labels.cpu().numpy()
 
         # average: None gives per class precision, recall, fscore and support
         precision, recall, fscore, support = precision_recall_fscore_support(
@@ -109,10 +109,10 @@ class PrecisionRecallFMeasure:
         top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
 
         # convert to 1d numpy
-        top_indices_numpy = top_indices.numpy().ravel()
+        top_indices_numpy = top_indices.cpu().numpy().ravel()
 
         # convert labels to 1 dimension
-        true_labels_numpy = labels.numpy()
+        true_labels_numpy = labels.cpu().numpy()
 
         confusion_mtrx = confusion_matrix(true_labels_numpy, top_indices_numpy)
 
@@ -160,10 +160,10 @@ class PrecisionRecallFMeasure:
         top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
 
         # convert to 1d numpy
-        top_indices_numpy = top_indices.numpy().ravel()
+        top_indices_numpy = top_indices.cpu().numpy().ravel()
 
         # convert labels to 1 dimension
-        labels_numpy = labels.numpy()
+        labels_numpy = labels.cpu().numpy()
 
         confusion_mtrx = confusion_matrix(labels_numpy, top_indices_numpy)
 
@@ -197,7 +197,7 @@ class PrecisionRecallFMeasure:
             self.fn_counter, class_fns_mapping
         )
 
-    def get_metric(self) -> Dict[str, Dict[str, float]]:
+    def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
         precision_dict = {}
         recall_dict = {}
         fscore_dict = {}
@@ -326,6 +326,15 @@ class PrecisionRecallFMeasure:
             rows.append(["Micro", micro_precision, micro_recall, micro_fscore])
 
             return table(rows, header=header_row, divider=True)
+
+        elif report_type == "paper":
+            "Refer to the paper Logical Structure Recovery in Scholarly Articles with " \
+            "Rich Document Features Table 2. It generates just fscores and returns"
+            class_nums = fscore.keys()
+            class_nums = sorted(class_nums, reverse=False)
+            fscores = [fscore[class_num] for class_num in class_nums]
+            fscores.extend([micro_fscore, macro_fscore])
+            return fscores
 
 
 if __name__ == "__main__":

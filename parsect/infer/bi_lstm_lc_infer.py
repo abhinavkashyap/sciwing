@@ -11,7 +11,7 @@ PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
 
-def get_bilstm_lc_classifier(dirname: str):
+def get_bilstm_lc_infer(dirname: str):
     hyperparam_config_filepath = os.path.join(dirname, "config.json")
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
@@ -56,4 +56,4 @@ def get_bilstm_lc_classifier(dirname: str):
 
 if __name__ == '__main__':
     experiment_dirname = os.path.join(OUTPUT_DIR, 'debug_bi_lstm_lc')
-    inference_client = get_bilstm_lc_classifier(experiment_dirname)
+    inference_client = get_bilstm_lc_infer(experiment_dirname)

@@ -11,7 +11,7 @@ from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
     get_elmo_emb_linear_classifier_infer,
 )
 from parsect.infer.bert_emb_bow_linear_classifier_infer import get_bert_emb_bow_linear_classifier_infer
-from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_classifier
+from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_infer
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 from parsect.infer.bert_seq_classifier_infer import get_bert_seq_classifier_infer
 import wasabi
@@ -115,7 +115,7 @@ class ParsectCli:
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
-            inference = get_bilstm_lc_classifier(exp_choice)
+            inference = get_bilstm_lc_infer(exp_choice)
 
         if self.model_type_answer == "elmo-bilstm-linear-classifier":
             choices = []

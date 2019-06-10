@@ -8,6 +8,7 @@ import torch.nn as nn
 from typing import Any, Dict, List, Tuple
 import pandas as pd
 from wasabi import Printer
+from parsect.utils.tensor import move_to_device
 
 FILES = constants.FILES
 
@@ -64,6 +65,7 @@ class ParsectInference:
         self.embedding_type = config.get("EMBEDDING_TYPE", None)
         self.embedding_dimension = config.get("EMBEDDING_DIMENSION", None)
         self.return_instances = config.get("RETURN_INSTANCES", None)
+        self.device = torch.device(config["DEVICE"])
         self.msg_printer = Printer()
 
         if self.max_length == 0:
@@ -123,6 +125,7 @@ class ParsectInference:
             model_state_dict = model_chkpoint["model_state"]
             loss_value = model_chkpoint["loss"]
             self.model.load_state_dict(model_state_dict)
+            self.model.to(self.device)
 
         self.msg_printer.good(
             "Loaded Best Model with loss value {0}".format(loss_value)
@@ -143,12 +146,14 @@ class ParsectInference:
         all_pred_probs = []
 
         for iter_dict in loader:
+            iter_dict = move_to_device(obj=iter_dict,
+                                       cuda_device=self.device)
             tokens = iter_dict["tokens"]
             labels = iter_dict["label"]
             labels = labels.squeeze(1)
             labels_list = labels.tolist()
-
             tokens_list = tokens.tolist()
+
             batch_sentences = list(
                 map(self.test_dataset.get_disp_sentence_from_indices, tokens_list)
             )
@@ -220,3 +225,11 @@ class ParsectInference:
     def print_prf_table(self):
         prf_table = self.metrics_calculator.report_metrics()
         print(prf_table)
+
+    def generate_report_for_paper(self):
+        paper_report = self.metrics_calculator.report_metrics(report_type="paper")
+        class_numbers = sorted(self.idx2labelname_mapping.keys(), reverse=False)
+        row_names = [f"class_{class_num} - ({self.idx2labelname_mapping[class_num]})"
+                     for class_num in class_numbers]
+        row_names.extend([f"Micro-Fscore", f"Macro-Fscore"])
+        return paper_report, row_names

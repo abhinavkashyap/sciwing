@@ -60,7 +60,6 @@ class BowBertLinearClassifier(nn.Module):
         )
 
         encoding = self.encoder(x)
-
         # N * C
         # N - batch size
         # C - number of classes

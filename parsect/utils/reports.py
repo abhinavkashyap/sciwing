@@ -6,7 +6,18 @@ import parsect.constants as constants
 import os
 import pandas as pd
 import numpy as np
-
+from deprecated import deprecated
+import pathlib
+from parsect.infer.random_emb_bow_linear_classifier_infer import (
+    get_random_emb_linear_classifier_infer,
+)
+from parsect.infer.glove_emb_bow_linear_classifier_infer import (
+    get_glove_emb_linear_classifier_infer,
+)
+from parsect.infer.elmo_emb_bow_linear_classifier_infer import get_elmo_emb_linear_classifier_infer
+from parsect.infer.bert_emb_bow_linear_classifier_infer import get_bert_emb_bow_linear_classifier_infer
+from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_infer
+from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 REPORTS_DIR = PATHS["REPORTS_DIR"]
@@ -15,6 +26,11 @@ REPORTS_DIR = PATHS["REPORTS_DIR"]
 # TODO: This method is very specific to how logs
 #   written in parsect engine module. There can
 #   be better ways to log the results
+
+
+@deprecated(
+    reason="This should never be used. Test log may not contain model with best params. This method will be removed"
+)
 def generate_report_from_test_log(log_filename: str, table_header: str) -> str:
     msg_printer = wasabi.Printer()
     tbl_writer = MarkdownTableWriter()
@@ -47,6 +63,9 @@ def generate_report_from_test_log(log_filename: str, table_header: str) -> str:
         msg_printer.fail(f"Did not find a properly formed log " "for {log_filename}")
 
 
+@deprecated(
+    reason="Generates reporst from test logs. Test log may not contain model with best params. This method will be removed"
+)
 def generate_report(for_model="bow_random_emb_lc") -> str:
     """
     Generates the report for the whole model type
@@ -107,22 +126,63 @@ def generate_report(for_model="bow_random_emb_lc") -> str:
     return tbl_string
 
 
+def generate_model_report(for_model: str, output_filename: str):
+    output_dir_path = pathlib.Path(OUTPUT_DIR)
+    all_fscores = {}
+    row_names = None
+    for dirname in output_dir_path.glob(f"{for_model}*"):
+        infer = None
+        if re.search("bow_random.*", for_model):
+            infer = get_random_emb_linear_classifier_infer(dirname)
+        if re.search("bow_glove.*", for_model):
+            infer = get_glove_emb_linear_classifier_infer(dirname)
+        if re.search("bow_elmo_emb.*", for_model):
+            infer = get_elmo_emb_linear_classifier_infer(dirname)
+        if re.search("bow_bert.*", for_model):
+            infer = get_bert_emb_bow_linear_classifier_infer(dirname)
+        if re.search("bow_scibert.*", for_model):
+            infer = get_bert_emb_bow_linear_classifier_infer(dirname)
+        if re.match("bi_lstm_lc.*", for_model):
+            infer = get_bilstm_lc_infer(dirname)
+        if re.match("elmo_bi_lstm_lc.*", for_model):
+            infer = get_elmo_bilstm_lc_infer(dirname)
+
+        fscores, row_names = infer.generate_report_for_paper()
+        all_fscores[dirname.name] = fscores
+
+    fscores_df = pd.DataFrame(all_fscores)
+    fscores_df.index = row_names
+    fscores_df.to_csv(output_filename, index=True,
+                      header=list(fscores_df.columns))
+
+
 if __name__ == "__main__":
-
-    bow_elmo_log_filename = os.path.join(
-        OUTPUT_DIR, "bow_elmo_emb_lc_10e_1e-3lr", "checkpoints", "test.log"
+    # generate_model_report(
+    #     for_model="bow_random_emb_lc",
+    #     output_filename=os.path.join(REPORTS_DIR, "bow_random_report.csv"),
+    # )
+    # generate_model_report(
+    #     for_model="bow_glove_emb_lc",
+    #     output_filename=os.path.join(REPORTS_DIR, "bow_glove_report.csv")
+    # )
+    # generate_model_report(
+    #     for_model="bow_elmo_emb_lc",
+    #     output_filename=os.path.join(REPORTS_DIR, "bow_elmo_report.csv")
+    # )
+    # generate_model_report(
+    #     for_model="bow_bert",
+    #     output_filename=os.path.join(REPORTS_DIR, "bow_bert_report.csv")
+    # )
+    # generate_model_report(
+    #     for_model="bow_scibert",
+    #     output_filename=os.path.join(REPORTS_DIR, "bow_scibert_report.csv")
+    # )
+    # generate_model_report(
+    #     for_model="bi_lstm_lc",
+    #     output_filename=os.path.join(REPORTS_DIR, "bi_lstm_report.csv")
+    # )
+    generate_model_report(
+        for_model="elmo_bi_lstm_lc",
+        output_filename=os.path.join(REPORTS_DIR, "elmo_bi_lstm_lc.csv")
     )
-    bow_elmo_report_table_filename = os.path.join(
-        REPORTS_DIR, "bow_elmo_emb_lc_10e_1e.md"
-    )
-    bow_elmo_tbl_string = generate_report_from_test_log(
-        bow_elmo_log_filename, table_header="bow_elmo_emb_lc_10e_1e"
-    )
-    print(bow_elmo_tbl_string)
 
-    random_emb_method_tbl_string = generate_report(for_model="bow_elmo_emb_lc")
-
-    bow_random_emb_lc_filename = os.path.join(REPORTS_DIR, "bow_elmo_emb_lc.md")
-
-    with open(bow_random_emb_lc_filename, "w") as fp:
-        fp.write(random_emb_method_tbl_string)

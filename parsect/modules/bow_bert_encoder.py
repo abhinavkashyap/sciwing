@@ -73,6 +73,7 @@ class BowBertEncoder:
             self.bert_tokenizer = BertTokenizer.from_pretrained(self.vocab_type_or_filename)
             self.model = BertModel.from_pretrained(self.model_type_or_folder_url)
             self.model.eval()
+            # TODO: patched need to remove this
 
         if torch.cuda.is_available():
             self.model.to(torch.device("cuda:0"))
@@ -113,7 +114,6 @@ class BowBertEncoder:
         # TODO: patched .. need to change it
         tokens_tensor = tokens_tensor.to(torch.device("cuda:0")) if torch.cuda.is_available() else tokens_tensor
         segment_tensor = segment_tensor.to(torch.device("cuda:0")) if torch.cuda.is_available() else segment_tensor
-
 
         with torch.no_grad():
             encoded_layers, _ = self.model(tokens_tensor, segment_tensor)
