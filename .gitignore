@@ -7,3 +7,4 @@ parsect/outputs/*
 # ignore runs directory wherever it is
 runs
 .model_cache
+parsect/reports/*
