@@ -24,7 +24,6 @@ python bow_bert_emb_linear_classifier.py \
 --max_length 20 \
 --max_num_words 15000 \
 --bert_type "bert-large-cased" \
---max_length 0 \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \
@@ -40,7 +39,6 @@ python bow_bert_emb_linear_classifier.py \
 --max_length 20 \
 --max_num_words 15000 \
 --bert_type "bert-large-cased" \
---max_length 0 \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \
@@ -56,7 +54,6 @@ python bow_bert_emb_linear_classifier.py \
 --max_length 20 \
 --max_num_words 15000 \
 --bert_type "bert-large-cased" \
---max_length 0 \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \
@@ -66,14 +63,13 @@ python bow_bert_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
- scibert experiments
+# scibert experiments
 python bow_bert_emb_linear_classifier.py \
 --exp_name "bow_scibert_sci_cased_emb_lc_20e_1e-2lr" \
 --device cuda:0 \
 --max_length 20 \
 --max_num_words 15000 \
 --bert_type "scibert-sci-cased" \
---max_length 0 \
 --debug_dataset_proportion 0.01 \
 --return_instances \
 --bs 32 \
@@ -90,7 +86,6 @@ python bow_bert_emb_linear_classifier.py \
 --max_num_words 15000 \
 --bert_type "scibert-sci-cased" \
 --debug_dataset_proportion 0.01 \
---max_length 0 \
 --return_instances \
 --bs 32 \
 --emb_dim 768 \

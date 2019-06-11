@@ -109,7 +109,7 @@ class ParsectCli:
         if self.model_type_answer == "bi-lstm-random-emb-linear-classifier":
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
-                if bool(re.search("bi_lstm_lc.*", expname)):
+                if bool(re.match("bi_lstm_lc.*", expname)):
                     choices.append(Choice(expname))
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"

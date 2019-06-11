@@ -4,6 +4,7 @@ import parsect.constants as constants
 from parsect.modules.bow_bert_encoder import BowBertEncoder
 from parsect.models.bow_bert_linear_classifier import BowBertLinearClassifier
 from parsect.clients.parsect_inference import ParsectInference
+import torch
 
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
@@ -18,6 +19,7 @@ def get_bert_emb_bow_linear_classifier_infer(dirname: str):
     NUM_CLASSES = config["NUM_CLASSES"]
     BERT_TYPE = config["BERT_TYPE"]
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
+    DEVICE = config["DEVICE"]
 
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
@@ -26,6 +28,7 @@ def get_bert_emb_bow_linear_classifier_infer(dirname: str):
         dropout_value=0.0,
         aggregation_type="average",
         bert_type=BERT_TYPE,
+        device=torch.device(DEVICE)
     )
 
     model = BowBertLinearClassifier(

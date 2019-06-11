@@ -169,6 +169,7 @@ if __name__ == "__main__":
         dropout_value=0.0,
         aggregation_type="average",
         bert_type=BERT_TYPE,
+        device=torch.device(DEVICE)
     )
 
     model = BowBertLinearClassifier(

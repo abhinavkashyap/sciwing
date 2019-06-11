@@ -17,6 +17,7 @@ class BowBertEncoder:
         dropout_value: float = 0.0,
         aggregation_type: str = "sum",
         bert_type: str = "bert-base-uncased",
+        device: torch.device = torch.device("cpu")
     ):
         """
 
@@ -32,12 +33,14 @@ class BowBertEncoder:
         There are different bert models
         bert-base-uncased - 12 layer 768 hidden dimensional
         bert-large-uncased 24 layer 1024 hidden dimensional
+        :param device: torch.device
         """
         super(BowBertEncoder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
         self.bert_type = bert_type
+        self.device = device
         self.msg_printer = wasabi.Printer()
         self.allowed_bert_types = [
             "bert-base-uncased",
@@ -73,10 +76,7 @@ class BowBertEncoder:
             self.bert_tokenizer = BertTokenizer.from_pretrained(self.vocab_type_or_filename)
             self.model = BertModel.from_pretrained(self.model_type_or_folder_url)
             self.model.eval()
-            # TODO: patched need to remove this
-
-        if torch.cuda.is_available():
-            self.model.to(torch.device("cuda:0"))
+            self.model.to(self.device)
 
         self.msg_printer.good(f"Finished Loading {self.bert_type} model and tokenizer")
 
@@ -111,9 +111,8 @@ class BowBertEncoder:
         tokens_tensor = torch.tensor(indexed_tokens)
         segment_tensor = torch.tensor(segment_ids)
 
-        # TODO: patched .. need to change it
-        tokens_tensor = tokens_tensor.to(torch.device("cuda:0")) if torch.cuda.is_available() else tokens_tensor
-        segment_tensor = segment_tensor.to(torch.device("cuda:0")) if torch.cuda.is_available() else segment_tensor
+        tokens_tensor = tokens_tensor.to(self.device)
+        segment_tensor = segment_tensor.to(self.device)
 
         with torch.no_grad():
             encoded_layers, _ = self.model(tokens_tensor, segment_tensor)
