@@ -3,8 +3,11 @@ parsect/data/*
 .idea
 *.egg-info
 parsect/outputs/*
+tests/utils/dummy_folder/*
+tests/utils/dummy_file.txt
 
 # ignore runs directory wherever it is
 runs
 .model_cache
+.aws
 parsect/reports/*
