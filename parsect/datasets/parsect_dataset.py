@@ -268,7 +268,8 @@ class ParsectDataset(Dataset):
         num_instances = len(self.instances)
         all_labels = []
         for idx in range(num_instances):
-            tokens, labels, len_tokens = self[idx]
+            iter_dict = self[idx]
+            labels = iter_dict["label"]
             all_labels.append(labels.item())
 
         labels_stats = dict(collections.Counter(all_labels))
