@@ -68,8 +68,10 @@ class TestSimpleClassifier:
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
-        idx2labelname_mapping = {0: 'good class', 1: 'bad class', 2: 'average_class'}
-        metrics_calc = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
+        idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
+        metrics_calc = PrecisionRecallFMeasure(
+            idx2labelname_mapping=idx2labelname_mapping
+        )
 
         metrics_calc.calc_metric(
             predicted_probs=output["normalized_probs"],

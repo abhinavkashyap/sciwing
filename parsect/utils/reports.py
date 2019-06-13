@@ -14,10 +14,15 @@ from parsect.infer.random_emb_bow_linear_classifier_infer import (
 from parsect.infer.glove_emb_bow_linear_classifier_infer import (
     get_glove_emb_linear_classifier_infer,
 )
-from parsect.infer.elmo_emb_bow_linear_classifier_infer import get_elmo_emb_linear_classifier_infer
-from parsect.infer.bert_emb_bow_linear_classifier_infer import get_bert_emb_bow_linear_classifier_infer
+from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
+    get_elmo_emb_linear_classifier_infer,
+)
+from parsect.infer.bert_emb_bow_linear_classifier_infer import (
+    get_bert_emb_bow_linear_classifier_infer,
+)
 from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_infer
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
+
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 REPORTS_DIR = PATHS["REPORTS_DIR"]
@@ -152,8 +157,7 @@ def generate_model_report(for_model: str, output_filename: str):
 
     fscores_df = pd.DataFrame(all_fscores)
     fscores_df.index = row_names
-    fscores_df.to_csv(output_filename, index=True,
-                      header=list(fscores_df.columns))
+    fscores_df.to_csv(output_filename, index=True, header=list(fscores_df.columns))
 
 
 if __name__ == "__main__":
@@ -183,6 +187,5 @@ if __name__ == "__main__":
     # )
     generate_model_report(
         for_model="elmo_bi_lstm_lc",
-        output_filename=os.path.join(REPORTS_DIR, "elmo_bi_lstm_lc.csv")
+        output_filename=os.path.join(REPORTS_DIR, "elmo_bi_lstm_lc.csv"),
     )
-

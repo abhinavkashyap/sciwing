@@ -13,8 +13,9 @@ ELMO_WEIGHTS_FILE = FILES["ELMO_WEIGHTS_FILE"]
 
 
 class ElmoEmbedder(nn.Module):
-    def __init__(self, dropout_value: float = 0.0,
-                 device: torch.device=torch.device("cpu")):
+    def __init__(
+        self, dropout_value: float = 0.0, device: torch.device = torch.device("cpu")
+    ):
         super(ElmoEmbedder, self).__init__()
 
         # Sometimes you need two different tensors that are

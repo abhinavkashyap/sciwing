@@ -17,7 +17,7 @@ class ElmoLSTMEncoder(nn.Module):
         bidirectional: bool = False,
         combine_strategy: str = "concat",
         rnn_bias: bool = True,
-        device: torch.device = torch.device("cpu")
+        device: torch.device = torch.device("cpu"),
     ):
         super(ElmoLSTMEncoder, self).__init__()
         self.elmo_emb_dim = elmo_emb_dim

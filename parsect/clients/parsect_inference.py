@@ -69,8 +69,10 @@ class ParsectInference:
         self.msg_printer = Printer()
 
         if self.max_length == 0:
-            self.msg_printer.warn("The saved parameter has max length of 0. You may want to "
-                                  "check this behaviour")
+            self.msg_printer.warn(
+                "The saved parameter has max length of 0. You may want to "
+                "check this behaviour"
+            )
 
         self.test_dataset = self.get_test_dataset()
         self.labelname2idx_mapping = self.test_dataset.get_label_mapping()
@@ -146,8 +148,7 @@ class ParsectInference:
         all_pred_probs = []
 
         for iter_dict in loader:
-            iter_dict = move_to_device(obj=iter_dict,
-                                       cuda_device=self.device)
+            iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
             tokens = iter_dict["tokens"]
             labels = iter_dict["label"]
             labels = labels.squeeze(1)
@@ -229,7 +230,9 @@ class ParsectInference:
     def generate_report_for_paper(self):
         paper_report = self.metrics_calculator.report_metrics(report_type="paper")
         class_numbers = sorted(self.idx2labelname_mapping.keys(), reverse=False)
-        row_names = [f"class_{class_num} - ({self.idx2labelname_mapping[class_num]})"
-                     for class_num in class_numbers]
+        row_names = [
+            f"class_{class_num} - ({self.idx2labelname_mapping[class_num]})"
+            for class_num in class_numbers
+        ]
         row_names.extend([f"Micro-Fscore", f"Macro-Fscore"])
         return paper_report, row_names

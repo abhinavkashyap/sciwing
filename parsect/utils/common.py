@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 from tqdm import tqdm
 import requests
 from parsect.tokenizers.word_tokenizer import WordTokenizer
@@ -7,9 +7,10 @@ from parsect.numericalizer.numericalizer import Numericalizer
 from wasabi import Printer
 import zipfile
 from sys import stdout
+import re
 
 
-def convert_secthead_to_json(filename: str) -> Dict:
+def convert_sectlabel_to_json(filename: str) -> Dict:
     """
     Converts the secthead file into json format
     :return:
@@ -57,7 +58,7 @@ def write_tokenization_vis_json(filename: str) -> Dict:
     :param filename: str
     json file name where List[Dict[text, label]] are stored
     """
-    parsect_json = convert_secthead_to_json(filename)
+    parsect_json = convert_sectlabel_to_json(filename)
     parsect_lines = parsect_json["parse_sect"]
 
     print("*" * 80)
@@ -182,9 +183,28 @@ def extract_zip(filename: str, destination_dir: str):
         msg_printer.fail("Couldnot extract {filename} to {destination}")
 
 
-if __name__ == "__main__":
-    import pathlib
+def convert_generic_sect_to_json(filename: str) -> Dict[str, Any]:
+    file_no = 1
+    line_no = 1
+    json_dict = {"generic_sect": []}
+    with open(filename) as fp:
+        for line in fp:
+            if bool(line.strip()):
+                match_obj = re.search("currHeader=(.*)", line.strip())
+                header_label = match_obj.groups()[0]
+                header, label = header_label.split(" ")
+                header = " ".join(header.split("-"))
+                line_no += 1
 
-    glove_file = pathlib.Path("~/Desktop/glove.6B.zip").expanduser()
-    desktop_path = pathlib.Path("~/Desktop").expanduser()
-    extract_zip(glove_file, desktop_path)
+                json_dict["generic_sect"].append(
+                    {
+                        "header": header,
+                        "label": label,
+                        "file_no": file_no,
+                        "line_no": line_no,
+                    }
+                )
+            else:
+                file_no += 1
+
+    return json_dict

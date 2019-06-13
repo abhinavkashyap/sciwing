@@ -24,18 +24,20 @@ def get_bert_seq_classifier_infer(dirname: str):
         num_classes=NUM_CLASSES,
         emb_dim=EMBEDDING_DIMENSION,
         bert_type=BERT_TYPE,
-        dropout_value=0.0
+        dropout_value=0.0,
     )
 
     inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,
-        hyperparam_config_filepath=hyperparam_config_filepath
+        hyperparam_config_filepath=hyperparam_config_filepath,
     )
 
     return inference
 
 
 if __name__ == "__main__":
-    dirname = os.path.join(OUTPUT_DIR, "debug_bert_seq_classifier_base_cased_emb_lc_10e_1e-2lr")
+    dirname = os.path.join(
+        OUTPUT_DIR, "debug_bert_seq_classifier_base_cased_emb_lc_10e_1e-2lr"
+    )
     infer = get_bert_seq_classifier_infer(dirname)

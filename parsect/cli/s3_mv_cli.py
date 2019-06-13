@@ -11,6 +11,7 @@ PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
+
 class S3OutputMove:
     """
     This provides an option to move the model folders to s3
@@ -22,7 +23,9 @@ class S3OutputMove:
         self.s3_config_json_filename = os.path.join(
             AWS_CRED_DIR, "aws_s3_credentials.json"
         )
-        self.s3_util = S3Util(aws_cred_config_json_filename=self.s3_config_json_filename)
+        self.s3_util = S3Util(
+            aws_cred_config_json_filename=self.s3_config_json_filename
+        )
         self.msg_printer = wasabi.Printer()
         self.interact()
 
@@ -53,8 +56,9 @@ class S3OutputMove:
                 with self.msg_printer.loading(f"Uploading {answer} to s3"):
                     folder_name = answer
                     base_folder_name = pathlib.Path(answer).name
-                    self.s3_util.upload_folder(folder_name=answer,
-                                               base_folder_name=base_folder_name)
+                    self.s3_util.upload_folder(
+                        folder_name=answer, base_folder_name=base_folder_name
+                    )
                 self.msg_printer.good(f"Moved folder {answer} to s3")
                 deletion_answer = self.ask_deletion()
                 if deletion_answer == "yes":
@@ -66,11 +70,11 @@ class S3OutputMove:
         deletion_question = questionary.rawselect(
             "Do you also want to delete the file locally. Caution! File will be removed locally",
             qmark="❓",
-            choices = [Choice("yes"), Choice("no")]
+            choices=[Choice("yes"), Choice("no")],
         )
         deletion_answer = deletion_question.ask()
         return deletion_answer
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     s3_move_cli = S3OutputMove(foldername=OUTPUT_DIR)

@@ -41,7 +41,7 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
     encoding_dim = 2 * HIDDEN_DIM if BIDIRECTIONAL else HIDDEN_DIM
 
@@ -49,19 +49,17 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         elmo_lstm_encoder=elmo_lstm_encoder,
         encoding_dim=encoding_dim,
         num_classes=NUM_CLASSES,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,
-        hyperparam_config_filepath=hyperparam_config_filepath
+        hyperparam_config_filepath=hyperparam_config_filepath,
     )
     return inference
 
 
-if __name__ == '__main__':
-    experiment_dirname = os.path.join(
-        OUTPUT_DIR, "debug_elmo_bi_lstm_lc"
-    )
+if __name__ == "__main__":
+    experiment_dirname = os.path.join(OUTPUT_DIR, "debug_elmo_bi_lstm_lc")
     inference_client = get_elmo_bilstm_lc_infer(experiment_dirname)

@@ -8,11 +8,13 @@ import torch
 
 
 class BowElmoLinearClassifier(nn.Module):
-    def __init__(self,
-                 encoder: BowElmoEncoder,
-                 encoding_dim: int,
-                 num_classes: int,
-                 classification_layer_bias: bool = True):
+    def __init__(
+        self,
+        encoder: BowElmoEncoder,
+        encoding_dim: int,
+        num_classes: int,
+        classification_layer_bias: bool = True,
+    ):
         super(BowElmoLinearClassifier, self).__init__()
         self.encoder = encoder
         self.encoding_dim = encoding_dim
@@ -25,14 +27,16 @@ class BowElmoLinearClassifier(nn.Module):
         self._loss = CrossEntropyLoss()
         self.msg_printer = wasabi.Printer()
 
-    def forward(self,
-                iter_dict: Dict[str, Any],
-                is_training: bool,
-                is_validation: bool,
-                is_test: bool) -> Dict[str, Any]:
-        labels = iter_dict['label']
+    def forward(
+        self,
+        iter_dict: Dict[str, Any],
+        is_training: bool,
+        is_validation: bool,
+        is_test: bool,
+    ) -> Dict[str, Any]:
+        labels = iter_dict["label"]
         labels = labels.squeeze(1)
-        x = iter_dict['instance']
+        x = iter_dict["instance"]
         x = [instance.split() for instance in x]
 
         assert labels.ndimension() == 1, self.msg_printer.fail(

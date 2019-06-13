@@ -20,7 +20,7 @@ class BowElmoEncoder:
         emb_dim: int = 1024,
         dropout_value: float = 0.0,
         layer_aggregation: str = "sum",
-        word_aggregation: str = "sum"
+        word_aggregation: str = "sum",
     ):
         """
 
@@ -47,7 +47,7 @@ class BowElmoEncoder:
         self.msg_printer = wasabi.Printer()
 
         assert (
-                self.layer_aggregation_type in self.allowed_layer_aggregation_types
+            self.layer_aggregation_type in self.allowed_layer_aggregation_types
         ), self.msg_printer.fail(
             f"For bag of words elmo encoder, the allowable aggregation "
             f"types are {self.allowed_layer_aggregation_types}. You passed {self.layer_aggregation_type}"

@@ -5,7 +5,7 @@ import collections
 from torch.utils.data import Dataset
 from typing import List, Dict, Union, Any
 import parsect.constants as constants
-from parsect.utils.common import convert_secthead_to_json
+from parsect.utils.common import convert_sectlabel_to_json
 from parsect.utils.common import pack_to_length
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
@@ -98,7 +98,7 @@ class ParsectDataset(Dataset):
             "for dataset types: {0}".format(self.allowable_dataset_types)
         )
 
-        self.parsect_json = convert_secthead_to_json(self.secthead_label_file)
+        self.parsect_json = convert_sectlabel_to_json(self.secthead_label_file)
         self.lines, self.labels = self.get_lines_labels()
         self.instances = self.tokenize(self.lines)
 

@@ -29,9 +29,7 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument(
-        "--max_len",
-        help="Maximum length of sentences to be considered",
-        type=int
+        "--max_len", help="Maximum length of sentences to be considered", type=int
     )
 
     parser.add_argument(
@@ -72,11 +70,7 @@ if __name__ == "__main__":
         help="Specify the bert model to be used. One of bert-base-uncased, bert-base-cased, "
         "bert-large-uncased, bert-large-cased can be used",
     )
-    parser.add_argument(
-        "--device",
-        help="Device on which the model is run",
-        type=str
-    )
+    parser.add_argument("--device", help="Device on which the model is run", type=str)
     args = parser.parse_args()
 
     config = {
@@ -94,7 +88,7 @@ if __name__ == "__main__":
         "BERT_TYPE": args.bert_type,
         "MAX_NUM_WORDS": args.max_num_words,
         "MAX_LENGTH": args.max_len,
-        "DEVICE": args.device
+        "DEVICE": args.device,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -169,7 +163,7 @@ if __name__ == "__main__":
         num_classes=NUM_CLASSES,
         emb_dim=EMBEDDING_DIMENSION,
         dropout_value=0.0,
-        bert_type=BERT_TYPE
+        bert_type=BERT_TYPE,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)

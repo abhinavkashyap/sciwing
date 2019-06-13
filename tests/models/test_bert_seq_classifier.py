@@ -77,4 +77,3 @@ class TestBertSeqClassifier:
         num_classes = options["num_classes"]
 
         assert output_dict["normalized_probs"].size() == (batch_size, num_classes)
-

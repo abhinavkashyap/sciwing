@@ -28,7 +28,7 @@ def get_bert_emb_bow_linear_classifier_infer(dirname: str):
         dropout_value=0.0,
         aggregation_type="average",
         bert_type=BERT_TYPE,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     model = BowBertLinearClassifier(

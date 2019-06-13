@@ -32,11 +32,7 @@ if __name__ == "__main__":
         type=int,
     )
 
-    parser.add_argument(
-        "--max_length",
-        help="max length of sentences",
-        type=int
-    )
+    parser.add_argument("--max_length", help="max length of sentences", type=int)
     parser.add_argument(
         "--debug",
         help="Specify whether this is run on a debug options. The "
@@ -92,7 +88,7 @@ if __name__ == "__main__":
         "RETURN_INSTANCES": args.return_instances,
         "BERT_TYPE": args.bert_type,
         "MAX_LENGTH": args.max_length,
-        "MAX_NUM_WORDS": args.max_num_words
+        "MAX_NUM_WORDS": args.max_num_words,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -169,7 +165,7 @@ if __name__ == "__main__":
         dropout_value=0.0,
         aggregation_type="average",
         bert_type=BERT_TYPE,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     model = BowBertLinearClassifier(
@@ -193,7 +189,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     engine.run()

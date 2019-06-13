@@ -28,7 +28,9 @@ if __name__ == "__main__":
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
 
-    parser.add_argument("--device", help="Specify the device where the model is run", type=str)
+    parser.add_argument(
+        "--device", help="Specify the device where the model is run", type=str
+    )
 
     parser.add_argument(
         "--max_num_words",
@@ -190,7 +192,7 @@ if __name__ == "__main__":
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     encoding_dim = 2 * HIDDEN_DIMENSION if BIDIRECTIONAL else HIDDEN_DIMENSION
@@ -199,7 +201,7 @@ if __name__ == "__main__":
         elmo_lstm_encoder=elmo_lstm_encoder,
         encoding_dim=encoding_dim,
         num_classes=NUM_CLASSES,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
@@ -216,7 +218,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
-        device=torch.device(DEVICE)
+        device=torch.device(DEVICE),
     )
 
     engine.run()

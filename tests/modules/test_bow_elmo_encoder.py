@@ -177,7 +177,9 @@ class TestBowElmoEncoder:
     def test_dimension_agg_first_layer_word_agg_sum(
         self, setup_bow_elmo_encoder_layer_agg_first_word_agg_sum
     ):
-        bow_elmo_encoder, instances = setup_bow_elmo_encoder_layer_agg_first_word_agg_sum
+        bow_elmo_encoder, instances = (
+            setup_bow_elmo_encoder_layer_agg_first_word_agg_sum
+        )
         len_instances = len(instances)
         embedding = bow_elmo_encoder(instances)
         assert embedding.size() == (len_instances, 1024)
@@ -203,17 +205,21 @@ class TestBowElmoEncoder:
         assert embedding.size() == (len_instances, 1024)
 
     def test_dimension_agg_last_word_agg_average(
-            self, setup_bow_elmo_encoder_layer_agg_last_word_agg_average
+        self, setup_bow_elmo_encoder_layer_agg_last_word_agg_average
     ):
-        bow_elmo_encoder, instances = setup_bow_elmo_encoder_layer_agg_last_word_agg_average
+        bow_elmo_encoder, instances = (
+            setup_bow_elmo_encoder_layer_agg_last_word_agg_average
+        )
         len_instances = len(instances)
         embedding = bow_elmo_encoder(instances)
         assert embedding.size() == (len_instances, 1024)
 
     def test_dimension_agg_first_word_agg_average(
-            self, setup_bow_elmo_encoder_layer_agg_first_word_agg_average):
-        bow_elmo_encoder, instances = setup_bow_elmo_encoder_layer_agg_first_word_agg_average
+        self, setup_bow_elmo_encoder_layer_agg_first_word_agg_average
+    ):
+        bow_elmo_encoder, instances = (
+            setup_bow_elmo_encoder_layer_agg_first_word_agg_average
+        )
         len_instances = len(instances)
         embedding = bow_elmo_encoder(instances)
         assert embedding.size() == (len_instances, 1024)
-

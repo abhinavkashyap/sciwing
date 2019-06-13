@@ -94,8 +94,7 @@ class LSTM2VecEncoder(nn.Module):
         embedded_tokens = self.emb_dropout(embedded_tokens)
 
         if h0 is None or c0 is None:
-            h0, c0 = self.get_initial_hidden(batch_size=batch_size,
-                                             device=x.device)
+            h0, c0 = self.get_initial_hidden(batch_size=batch_size, device=x.device)
 
         # output = batch_size, sequence_length, num_layers * num_directions
         # h_n = num_layers * num_directions, batch_size, hidden_dimension
@@ -119,8 +118,7 @@ class LSTM2VecEncoder(nn.Module):
 
         return encoding
 
-    def get_initial_hidden(self, batch_size:int,
-                           device: torch.device):
+    def get_initial_hidden(self, batch_size: int, device: torch.device):
         h0 = torch.zeros(
             self.num_layers * self.num_directions, batch_size, self.hidden_dimension
         )

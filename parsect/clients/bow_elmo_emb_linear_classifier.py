@@ -47,15 +47,11 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--layer_aggregation",
-        help="Layer aggregation strategy",
-        type=str
+        "--layer_aggregation", help="Layer aggregation strategy", type=str
     )
 
     parser.add_argument(
-        "--word_aggregation",
-        help="word aggregation strategy",
-        type=str
+        "--word_aggregation", help="word aggregation strategy", type=str
     )
     parser.add_argument(
         "--debug_dataset_proportion",
@@ -102,7 +98,7 @@ if __name__ == "__main__":
         "RETURN_INSTANCES": args.return_instances,
         "LAYER_AGGREGATION": args.layer_aggregation,
         "WORD_AGGREGATION": args.word_aggregation,
-        "MAX_NUM_WORDS": args.max_num_words
+        "MAX_NUM_WORDS": args.max_num_words,
     }
 
     EXP_NAME = config["EXP_NAME"]

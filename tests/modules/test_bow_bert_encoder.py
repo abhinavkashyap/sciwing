@@ -383,12 +383,16 @@ class TestBowBertEncoder:
         encoding = bow_bert_encoder(strings)
         assert encoding.size() == (2, 1024)
 
-    def test_scibert_base_cased_sum(self, setup_bow_bert_encoder_scibert_base_cased_sum):
+    def test_scibert_base_cased_sum(
+        self, setup_bow_bert_encoder_scibert_base_cased_sum
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_base_cased_sum
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
 
-    def test_scibert_base_cased_average(self,setup_bow_bert_encoder_scibert_base_cased_average):
+    def test_scibert_base_cased_average(
+        self, setup_bow_bert_encoder_scibert_base_cased_average
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_base_cased_average
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
@@ -398,29 +402,37 @@ class TestBowBertEncoder:
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
 
-    def test_scibert_sci_cased_average(self, setup_bow_bert_encoder_scibert_sci_cased_average):
+    def test_scibert_sci_cased_average(
+        self, setup_bow_bert_encoder_scibert_sci_cased_average
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_sci_cased_average
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
 
-    def test_scibert_base_uncased_sum(self, setup_bow_bert_encoder_scibert_base_uncased_sum):
+    def test_scibert_base_uncased_sum(
+        self, setup_bow_bert_encoder_scibert_base_uncased_sum
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_base_uncased_sum
         encoding = encoder(string)
-        assert encoding.size() == (2,  768)
+        assert encoding.size() == (2, 768)
 
-    def test_scibert_base_uncased_average(self, setup_bow_bert_encoder_scibert_base_uncased_average):
+    def test_scibert_base_uncased_average(
+        self, setup_bow_bert_encoder_scibert_base_uncased_average
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_base_uncased_average
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
 
-    def test_scibert_sci_uncased_sum(self, setup_bow_bert_encoder_scibert_sci_uncased_sum):
+    def test_scibert_sci_uncased_sum(
+        self, setup_bow_bert_encoder_scibert_sci_uncased_sum
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_sci_uncased_sum
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
 
-    def test_scibert_sci_uncased_average(self, setup_bow_bert_encoder_scibert_sci_uncased_average):
+    def test_scibert_sci_uncased_average(
+        self, setup_bow_bert_encoder_scibert_sci_uncased_average
+    ):
         encoder, string = setup_bow_bert_encoder_scibert_sci_uncased_average
         encoding = encoder(string)
         assert encoding.size() == (2, 768)
-
-

@@ -1,11 +1,20 @@
 import parsect.constants as constants
-from parsect.utils.common import convert_secthead_to_json
+from parsect.utils.common import convert_sectlabel_to_json
 from parsect.utils.common import merge_dictionaries_with_sum
 from parsect.utils.common import pack_to_length
+from parsect.utils.common import convert_generic_sect_to_json
+import pytest
 
 FILES = constants.FILES
 
 SECTLABEL_FILENAME = FILES["SECT_LABEL_FILE"]
+GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
+
+
+@pytest.fixture
+def get_generic_sect_json():
+    generic_sect_json = convert_generic_sect_to_json(GENERIC_SECTION_TRAIN_FILE)
+    return generic_sect_json
 
 
 class TestCommon:
@@ -15,21 +24,21 @@ class TestCommon:
     """
 
     def test_text_not_empty(self):
-        output_json = convert_secthead_to_json(SECTLABEL_FILENAME)
+        output_json = convert_sectlabel_to_json(SECTLABEL_FILENAME)
         output = output_json["parse_sect"]
 
         text = [bool(each_line["text"]) for each_line in output]
         assert all(text)
 
     def test_label_not_empty(self):
-        output_json = convert_secthead_to_json(SECTLABEL_FILENAME)
+        output_json = convert_sectlabel_to_json(SECTLABEL_FILENAME)
         output = output_json["parse_sect"]
 
         labels = [bool(each_line["label"]) for each_line in output]
         assert all(labels)
 
     def test_filecount(self):
-        output_json = convert_secthead_to_json(SECTLABEL_FILENAME)
+        output_json = convert_sectlabel_to_json(SECTLABEL_FILENAME)
         output = output_json["parse_sect"]
 
         file_numbers = [each_line["file_no"] for each_line in output]
@@ -149,3 +158,68 @@ class TestCommon:
         )
 
         assert tokenized_text_padded == ["<SOS>", "<EOS>"]
+
+    def test_convert_generic_sect_non_empty(self, get_generic_sect_json):
+        """
+        Make sure that the generic section header has both header and label filled
+        """
+        generic_sect_json = get_generic_sect_json
+        lines = generic_sect_json["generic_sect"]
+        for line in lines:
+            header = line["header"]
+            label = line["label"]
+            assert bool(header.strip())
+            assert bool(label.strip())
+
+    def test_generic_sect_num_headers(self, get_generic_sect_json):
+        generic_sect_json = get_generic_sect_json
+        lines = generic_sect_json["generic_sect"]
+        count = [line["line_no"] for line in lines]
+
+        # TODO: remove -209 if you get proper train data. The keyword category is missing
+        assert len(set(count)) == 2366 - (209)
+
+    def test_generic_sect_num_papers(self, get_generic_sect_json):
+        generic_sect_json = get_generic_sect_json
+        lines = generic_sect_json["generic_sect"]
+        file_nos = [line["file_no"] for line in lines]
+        assert len(set(file_nos)) == 211
+
+    def test_generic_sect_label_counts(self, get_generic_sect_json):
+        generic_sect_json = get_generic_sect_json
+        lines = generic_sect_json["generic_sect"]
+        abstract_lines = filter(lambda line: line["label"] == "abstract", lines)
+        categories_lines = filter(
+            lambda line: line["label"] == "categories-and-subject-descriptors", lines
+        )
+        general_terms_lines = filter(
+            lambda line: line["label"] == "general-terms", lines
+        )
+        keywords_lines = filter(lambda line: line["label"] == "keywords", lines)
+        introduction_lines = filter(lambda line: line["label"] == "introduction", lines)
+        background_lines = filter(lambda line: line["label"] == "background", lines)
+        related_work_lines = filter(
+            lambda line: line["label"] == "related-works", lines
+        )
+        methodology_lines = filter(lambda line: line["label"] == "method", lines)
+        evaluation_lines = filter(lambda line: line["label"] == "evaluation", lines)
+        discussion_lines = filter(lambda line: line["label"] == "discussions", lines)
+        conclusion_lines = filter(lambda line: line["label"] == "conclusions", lines)
+        ack_lines = filter(lambda line: line["label"] == "acknowledgments", lines)
+        ref_lines = filter(lambda line: line["label"] == "references", lines)
+
+        assert len(list(abstract_lines)) == 210
+        assert len(list(categories_lines)) == 165
+        assert len(list(general_terms_lines)) == 142
+        assert len(list(introduction_lines)) == 210
+        assert len(list(background_lines)) == 28
+        assert len(list(related_work_lines)) == 105
+        assert len(list(methodology_lines)) == 608
+        assert len(list(evaluation_lines)) == 151
+        assert len(list(discussion_lines)) == 36
+        assert len(list(conclusion_lines)) == 189
+        assert len(list(ack_lines)) == 102
+        assert len(list(ref_lines)) == 211
+
+        # TODO: There are no keyword lines in the file.
+        assert len(list(keywords_lines)) == 0

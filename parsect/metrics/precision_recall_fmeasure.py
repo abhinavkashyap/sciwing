@@ -119,8 +119,7 @@ class PrecisionRecallFMeasure:
         classes = unique_labels(true_labels_numpy, top_indices_numpy)
         classes = classes.tolist()
         classes_with_names = [
-            f"cls_{class_}({self.idx2labelname_mapping[class_]})"
-            for class_ in classes
+            f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
         ]
 
         # insert the class names
@@ -134,9 +133,7 @@ class PrecisionRecallFMeasure:
         print(header)
 
         self.msg_printer.table(
-            data=confusion_mtrx.values.tolist(),
-            header=header,
-            divider=True,
+            data=confusion_mtrx.values.tolist(), header=header, divider=True
         )
 
     def calc_metric(
@@ -328,8 +325,7 @@ class PrecisionRecallFMeasure:
             return table(rows, header=header_row, divider=True)
 
         elif report_type == "paper":
-            "Refer to the paper Logical Structure Recovery in Scholarly Articles with " \
-            "Rich Document Features Table 2. It generates just fscores and returns"
+            "Refer to the paper Logical Structure Recovery in Scholarly Articles with " "Rich Document Features Table 2. It generates just fscores and returns"
             class_nums = fscore.keys()
             class_nums = sorted(class_nums, reverse=False)
             fscores = [fscore[class_num] for class_num in class_nums]

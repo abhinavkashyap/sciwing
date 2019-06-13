@@ -56,22 +56,20 @@ class TestS3Util:
 
     def test_upload_file_doesnot_raise_error(self, setup_s3_util):
         aws_util = setup_s3_util
-        with open('dummy_file.txt', 'w') as fp:
-            fp.write('dummy line \n')
+        with open("dummy_file.txt", "w") as fp:
+            fp.write("dummy line \n")
 
-        aws_util.upload_file('dummy_file.txt')
+        aws_util.upload_file("dummy_file.txt")
 
     def test_upload_with_directory(self, setup_s3_util):
         aws_util = setup_s3_util
-        with open('dummy_file.txt', 'w') as fp:
-            fp.write('dummy line \n')
+        with open("dummy_file.txt", "w") as fp:
+            fp.write("dummy line \n")
 
-        aws_util.upload_file('dummy_file.txt', f'dummy_folder/dummy_file.txt')
+        aws_util.upload_file("dummy_file.txt", f"dummy_folder/dummy_file.txt")
 
     def test_upload_folder(self, setup_s3_util):
         aws_util = setup_s3_util
-        dummy_folder = os.path.join('dummy_folder')
+        dummy_folder = os.path.join("dummy_folder")
 
         aws_util.upload_folder(dummy_folder, base_folder_name=dummy_folder)
-
-

@@ -4,7 +4,7 @@ This tests the pipeline till numericalizatio
 import pytest
 
 import parsect.constants as constants
-from parsect.utils.common import convert_secthead_to_json
+from parsect.utils.common import convert_sectlabel_to_json
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
 from parsect.vocab.vocab import Vocab
@@ -17,7 +17,7 @@ SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 # 1. Convert parsect data to json
 @pytest.fixture()
 def get_parsect_data():
-    parsect_json = convert_secthead_to_json(SECT_LABEL_FILE)
+    parsect_json = convert_sectlabel_to_json(SECT_LABEL_FILE)
     return parsect_json
 
 

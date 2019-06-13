@@ -35,25 +35,25 @@ def get_bilstm_lc_infer(dirname: str):
         embedding=embedding,
         hidden_dim=HIDDEN_DIM,
         combine_strategy=COMBINE_STRATEGY,
-        bidirectional=BIDIRECTIONAL
+        bidirectional=BIDIRECTIONAL,
     )
 
     model = SimpleClassifier(
         encoder=encoder,
         encoding_dim=classifier_encoding_dim,
         num_classes=NUM_CLASSES,
-        classification_layer_bias=True
+        classification_layer_bias=True,
     )
 
     inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,
-        hyperparam_config_filepath=hyperparam_config_filepath
+        hyperparam_config_filepath=hyperparam_config_filepath,
     )
 
     return inference
 
 
-if __name__ == '__main__':
-    experiment_dirname = os.path.join(OUTPUT_DIR, 'debug_bi_lstm_lc')
+if __name__ == "__main__":
+    experiment_dirname = os.path.join(OUTPUT_DIR, "debug_bi_lstm_lc")
     inference_client = get_bilstm_lc_infer(experiment_dirname)

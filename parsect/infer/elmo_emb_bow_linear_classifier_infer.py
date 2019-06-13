@@ -20,9 +20,7 @@ def get_elmo_emb_linear_classifier_infer(dirname: str):
     NUM_CLASSES = config["NUM_CLASSES"]
 
     model = BowElmoLinearClassifier(
-        encoder=encoder,
-        encoding_dim=EMBEDDING_DIM,
-        num_classes=NUM_CLASSES
+        encoder=encoder, encoding_dim=EMBEDDING_DIM, num_classes=NUM_CLASSES
     )
 
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
@@ -31,14 +29,12 @@ def get_elmo_emb_linear_classifier_infer(dirname: str):
     parsect_inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,
-        hyperparam_config_filepath=hyperparam_config_filepath
+        hyperparam_config_filepath=hyperparam_config_filepath,
     )
 
     return parsect_inference
 
 
-if __name__ == '__main__':
-    experiment_dirname = os.path.join(
-        OUTPUT_DIR, "debug_bow_elmo_emb_lc_50e_1e-4lr"
-    )
+if __name__ == "__main__":
+    experiment_dirname = os.path.join(OUTPUT_DIR, "debug_bow_elmo_emb_lc_50e_1e-4lr")
     inference_client = get_elmo_emb_linear_classifier_infer(experiment_dirname)

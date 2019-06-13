@@ -75,17 +75,17 @@ class S3Util:
             self.msg_printer.fail(f"Could not upload file {filename}")
 
     def upload_folder(self, folder_name: str, base_folder_name: str):
-            path = pathlib.Path(folder_name)
-            for file in path.iterdir():
-                if file.is_file():
-                    self.upload_file(
-                        filename=str(file), obj_name=f"{base_folder_name}/{file.name}"
-                    )
-                elif file.is_dir():
-                    self.upload_folder(
-                        folder_name=str(file),
-                        base_folder_name=f"{base_folder_name}/{file.name}",
-                    )
+        path = pathlib.Path(folder_name)
+        for file in path.iterdir():
+            if file.is_file():
+                self.upload_file(
+                    filename=str(file), obj_name=f"{base_folder_name}/{file.name}"
+                )
+            elif file.is_dir():
+                self.upload_folder(
+                    folder_name=str(file),
+                    base_folder_name=f"{base_folder_name}/{file.name}",
+                )
 
 
 if __name__ == "__main__":

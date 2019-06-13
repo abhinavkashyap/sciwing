@@ -7,7 +7,7 @@ from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 def setup_data_basecase():
     predicted_probs = torch.FloatTensor([[0.1, 0.9], [0.7, 0.3]])
     labels = torch.LongTensor([1, 0])
-    idx2labelname_mapping = {0: 'good class', 1: 'bad class'}
+    idx2labelname_mapping = {0: "good class", 1: "bad class"}
 
     expected_precision = {0: 1.0, 1: 1.0}
     expected_recall = {0: 1.0, 1: 1.0}
@@ -53,7 +53,7 @@ def setup_data_one_true_class_missing():
     :return:
     """
     predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2], [0.2, 0.5, 0.3]])
-    idx2labelname_mapping = {0: 'good class', 1: 'bad class', 2: 'average_class'}
+    idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
     labels = torch.LongTensor([0, 2])
 
     expected_precision = {0: 1.0, 1: 0.0, 2: 0.0}
@@ -78,7 +78,7 @@ def setup_data_one_true_class_missing():
 def setup_data_to_test_length():
     predicted_probs = torch.FloatTensor([[0.1, 0.8, 0.2], [0.2, 0.3, 0.5]])
     labels = torch.LongTensor([0, 2])
-    idx2labelname_mapping = {0: 'good class', 1: 'bad class', 2: 'average_class'}
+    idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
 
     accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
 

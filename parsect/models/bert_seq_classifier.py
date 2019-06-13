@@ -11,7 +11,7 @@ from parsect.utils.common import pack_to_length
 import parsect.constants as constants
 
 PATHS = constants.PATHS
-MODELS_CACHE_DIR = PATHS['MODELS_CACHE_DIR']
+MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 
 
 class BertSeqClassifier(nn.Module):
@@ -21,7 +21,7 @@ class BertSeqClassifier(nn.Module):
         emb_dim: int = 768,
         dropout_value: float = 0.0,
         bert_type: str = "bert-base-uncased",
-        device: torch.device = torch.device("cpu")
+        device: torch.device = torch.device("cpu"),
     ):
         """
         """
@@ -41,13 +41,13 @@ class BertSeqClassifier(nn.Module):
             "scibert-base-cased",
             "scibert-sci-cased",
             "scibert-base-uncased",
-            "scibert-sci-uncased"
+            "scibert-sci-uncased",
         ]
         self.scibert_foldername_mapping = {
-            'scibert-base-cased': 'scibert_basevocab_cased',
-            'scibert-sci-cased': 'scibert_scivocab_cased',
-            'scibert-base-uncased': 'scibert_basevocab_uncased',
-            'scibert-sci-uncased': 'scibert_scivocab_uncased'
+            "scibert-base-cased": "scibert_basevocab_cased",
+            "scibert-sci-cased": "scibert_scivocab_cased",
+            "scibert-base-uncased": "scibert_basevocab_uncased",
+            "scibert-sci-uncased": "scibert_scivocab_uncased",
         }
         self.model_type_or_folder_url = None
         self.vocab_type_or_filename = None
@@ -56,16 +56,21 @@ class BertSeqClassifier(nn.Module):
 
         if "scibert" in self.bert_type:
             foldername = self.scibert_foldername_mapping[self.bert_type]
-            self.model_type_or_folder_url = os.path.join(MODELS_CACHE_DIR, foldername,
-                                                         'weights.tar.gz')
-            self.vocab_type_or_filename = os.path.join(MODELS_CACHE_DIR, foldername, 'vocab.txt')
+            self.model_type_or_folder_url = os.path.join(
+                MODELS_CACHE_DIR, foldername, "weights.tar.gz"
+            )
+            self.vocab_type_or_filename = os.path.join(
+                MODELS_CACHE_DIR, foldername, "vocab.txt"
+            )
         else:
             self.model_type_or_folder_url = self.bert_type
             self.vocab_type_or_filename = self.bert_type
 
         # load the bert model
         with self.msg_printer.loading("Loading Bert tokenizer and model"):
-            self.bert_tokenizer = BertTokenizer.from_pretrained(self.vocab_type_or_filename)
+            self.bert_tokenizer = BertTokenizer.from_pretrained(
+                self.vocab_type_or_filename
+            )
             self.model = BertForSequenceClassification.from_pretrained(
                 self.model_type_or_folder_url, self.num_classes
             )
