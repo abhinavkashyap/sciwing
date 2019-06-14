@@ -3,9 +3,11 @@ from parsect.utils.amazon_s3 import S3Util
 import parsect.constants as constants
 import os
 import json
+import pathlib
 
 PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
+TESTS_DIR = PATHS["TESTS_DIR"]
 
 
 @pytest.fixture
@@ -56,20 +58,24 @@ class TestS3Util:
 
     def test_upload_file_doesnot_raise_error(self, setup_s3_util):
         aws_util = setup_s3_util
-        with open("dummy_file.txt", "w") as fp:
+        dummy_file = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
+        dummy_file = str(dummy_file)
+        with open(dummy_file, "w") as fp:
             fp.write("dummy line \n")
 
-        aws_util.upload_file("dummy_file.txt")
+        aws_util.upload_file(dummy_file)
 
     def test_upload_with_directory(self, setup_s3_util):
         aws_util = setup_s3_util
-        with open("dummy_file.txt", "w") as fp:
+        dummy_file = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
+        dummy_file = str(dummy_file)
+        with open(dummy_file, "w") as fp:
             fp.write("dummy line \n")
 
-        aws_util.upload_file("dummy_file.txt", f"dummy_folder/dummy_file.txt")
+        aws_util.upload_file(dummy_file, f"dummy_folder/dummy_file.txt")
 
     def test_upload_folder(self, setup_s3_util):
         aws_util = setup_s3_util
-        dummy_folder = os.path.join("dummy_folder")
+        dummy_folder = str(pathlib.Path(TESTS_DIR, "utils", "dummy_folder"))
 
         aws_util.upload_folder(dummy_folder, base_folder_name=dummy_folder)

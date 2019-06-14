@@ -10,6 +10,7 @@ PATHS = dict(
     REPORTS_DIR=os.path.join(ROOT_DIR, "reports"),
     MODELS_CACHE_DIR=os.path.join(UPROOT_DIR, ".model_cache"),
     AWS_CRED_DIR=os.path.join(UPROOT_DIR, ".aws"),
+    TESTS_DIR=os.path.join(UPROOT_DIR, "tests"),
 )
 
 FILES = dict(
