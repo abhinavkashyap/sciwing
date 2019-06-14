@@ -6,6 +6,7 @@ from collections import namedtuple
 from botocore.exceptions import ClientError
 import pathlib
 import os
+import re
 
 PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
@@ -113,6 +114,21 @@ class S3Util:
                 os.makedirs(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}")
             bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
 
+    def search_folders_with(self, pattern):
+        bucket = self.s3_resource.Bucket(self.credentials.bucket_name)
+        foldernames = []
+        for obj in bucket.objects.all():
+            foldernames.append(obj.key.split("/")[0])
+
+        foldernames = list(set(foldernames))
+        filtered_folder_names = []
+        for foldername in foldernames:
+            obj = re.search(pattern, foldername)
+            if obj is not None:
+                filtered_folder_names.append(foldername)
+
+        return filtered_folder_names
+
 
 if __name__ == "__main__":
     import os
@@ -128,10 +144,11 @@ if __name__ == "__main__":
         )
     )
 
-    msg_printer = wasabi.Printer()
-    with msg_printer.loading(f"Uploading folder {bow_random_experiment_folder}"):
-        util.upload_folder(
-            folder_name=bow_random_experiment_folder,
-            base_folder_name=os.path.basename(bow_random_experiment_folder),
-        )
-    msg_printer.good(f"Finished uploading folder {bow_random_experiment_folder}")
+    # msg_printer = wasabi.Printer()
+    # with msg_printer.loading(f"Uploading folder {bow_random_experiment_folder}"):
+    #     util.upload_folder(
+    #         folder_name=bow_random_experiment_folder,
+    #         base_folder_name=os.path.basename(bow_random_experiment_folder),
+    #     )
+    # msg_printer.good(f"Finished uploading folder {bow_random_experiment_folder}")
+    print(util.search_folders_with("elmo_bi_lstm_lc.*"))

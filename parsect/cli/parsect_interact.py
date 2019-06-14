@@ -18,12 +18,14 @@ from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 from parsect.infer.bert_seq_classifier_infer import get_bert_seq_classifier_infer
 import wasabi
 import parsect.constants as constants
+from parsect.utils.amazon_s3 import S3Util
 import os
 import re
 
 PATHS = constants.PATHS
 
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
+AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
 
 
 class ParsectCli:
@@ -41,6 +43,7 @@ class ParsectCli:
             "elmo-bilstm-linear-classifier",
             "bert-seq-classifier",
         ]
+        self.s3util = S3Util(os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json"))
         self.msg_printer = wasabi.Printer()
         self.model_type_answer = self.ask_model_type()
         self.inference_client = self.get_inference()
@@ -69,20 +72,44 @@ class ParsectCli:
                 if expname.startswith("bow_random_emb_lc"):
                     choices.append(Choice(expname))
 
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bow_random.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
-            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
-            inference = get_random_emb_linear_classifier_infer(exp_choice)
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
+            exp_dir = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_random_emb_linear_classifier_infer(exp_dir)
         if self.model_type_answer == "glove-embedding-bow-encoder-linear-classifier":
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
                 if expname.startswith("bow_glove_emb_lc"):
                     choices.append(Choice(expname))
 
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bow_glove_emb.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_glove_emb_linear_classifier_infer(exp_choice)
 
@@ -92,30 +119,68 @@ class ParsectCli:
                 if bool(re.search(".*bow_elmo_emb_lc_.*", expname)):
                     choices.append(Choice(expname))
 
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bow_elmo_emb.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_elmo_emb_linear_classifier_infer(exp_choice)
+
         if self.model_type_answer == "bert-embedding-bow-encoder-linear-classifier":
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
                 if bool(re.search(".*bow_bert_.*", expname)):
                     choices.append(Choice(expname))
 
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bow_bert_.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_bert_emb_bow_linear_classifier_infer(exp_choice)
+
         if self.model_type_answer == "bi-lstm-random-emb-linear-classifier":
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
                 if bool(re.match("bi_lstm_lc.*", expname)):
                     choices.append(Choice(expname))
+            # search in s3
+            folder_names = self.s3util.search_folders_with("bi_lstm_lc.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_bilstm_lc_infer(exp_choice)
 
@@ -124,9 +189,22 @@ class ParsectCli:
             for expname in os.listdir(OUTPUT_DIR):
                 if bool(re.search(".*elmo_bi_lstm_lc.*", expname)):
                     choices.append(Choice(expname))
+
+            # search in s3
+            folder_names = self.s3util.search_folders_with("elmo_bi_lstm_lc.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_elmo_bilstm_lc_infer(exp_choice)
 
@@ -135,9 +213,21 @@ class ParsectCli:
             for expname in os.listdir(OUTPUT_DIR):
                 if bool(re.search(".*bert_seq_classifier.*", expname)):
                     choices.append(Choice(expname))
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bert_seq_classifier.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
             exp_choice = questionary.rawselect(
                 "Please select an experiment", choices=choices, qmark="❓"
             ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_bert_seq_classifier_infer(exp_choice)
 

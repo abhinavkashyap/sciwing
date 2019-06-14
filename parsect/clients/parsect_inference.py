@@ -65,7 +65,7 @@ class ParsectInference:
         self.embedding_type = config.get("EMBEDDING_TYPE", None)
         self.embedding_dimension = config.get("EMBEDDING_DIMENSION", None)
         self.return_instances = config.get("RETURN_INSTANCES", None)
-        self.device = torch.device(config["DEVICE"])
+        self.device = torch.device(config.get("DEVICE", "cpu"))
         self.msg_printer = Printer()
 
         if self.max_length == 0:
