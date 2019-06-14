@@ -5,9 +5,11 @@ import json
 from collections import namedtuple
 from botocore.exceptions import ClientError
 import pathlib
+import os
 
 PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
+OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
 
 class S3Util:
@@ -17,6 +19,7 @@ class S3Util:
 
         self.credentials = self.load_credentials()
         self.s3_client = self.get_client()
+        self.s3_resource = self.get_resource()
 
     def load_credentials(self):
         with open(self.aws_cred_config_json_filename) as fp:
@@ -57,6 +60,18 @@ class S3Util:
         except ClientError:
             self.msg_printer.fail(f"Failed to connect to s3 instance")
 
+    def get_resource(self):
+        try:
+            s3_resource = boto3.resource(
+                "s3",
+                region_name=self.credentials.region,
+                aws_access_key_id=self.credentials.access_key,
+                aws_secret_access_key=self.credentials.access_secret,
+            )
+            return s3_resource
+        except ClientError:
+            self.msg_printer.fail(f"Failed to get the s3 resource")
+
     def upload_file(self, filename: str, obj_name: str = None):
         """
 
@@ -86,6 +101,17 @@ class S3Util:
                     folder_name=str(file),
                     base_folder_name=f"{base_folder_name}/{file.name}",
                 )
+
+    def download_file(self, filename_s3: str, local_filename: str):
+        object = self.s3_resource.Object(self.credentials.bucket_name, filename_s3)
+        object.download_file(local_filename)
+
+    def download_folder(self, folder_name_s3: str):
+        bucket = self.s3_resource.Bucket(self.credentials.bucket_name)
+        for key in bucket.objects.filter(Prefix=folder_name_s3):
+            if not os.path.exists(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}"):
+                os.makedirs(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}")
+            bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
 
 
 if __name__ == "__main__":

@@ -43,6 +43,13 @@ class TestS3Util:
         except:
             pytest.fail("Failed to get s3 client")
 
+    def test_s3_resource_gets_successfully(self, setup_s3_util):
+        aws_util = setup_s3_util
+        try:
+            aws_util.get_resource()
+        except:
+            pytest.fail("Failed to get s3 resource")
+
     def test_s3_bucket_names(self, setup_s3_util):
         """
         Test whether s3 has expected buckets
@@ -79,3 +86,25 @@ class TestS3Util:
         dummy_folder = str(pathlib.Path(TESTS_DIR, "utils", "dummy_folder"))
 
         aws_util.upload_folder(dummy_folder, base_folder_name=dummy_folder)
+
+    def test_download_file(self, setup_s3_util):
+        util = setup_s3_util
+        try:
+            util.download_file("dummy_file.txt", "dummy_file.txt")
+        except:
+            pytest.fail(f"Failed to download file dummy_file.txt")
+
+    def test_download_folder(self, setup_s3_util):
+        util = setup_s3_util
+        try:
+            util.download_folder("dummy_folder")
+        except:
+            pytest.fail(f"Could not downlaod dummy_folder from s3")
+
+    def test_download_debug_random(self, setup_s3_util):
+        """Test whether a dummy model folder can be downloaded"""
+        util = setup_s3_util
+        try:
+            util.download_folder("debug_bow_random")
+        except:
+            pytest.fail(f"Could not download debug_bow_random folder from s3")
