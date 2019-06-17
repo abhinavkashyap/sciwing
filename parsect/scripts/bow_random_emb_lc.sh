@@ -2,7 +2,7 @@
 
 cd ../clients
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "debug_bow_random" \
 --max_num_words 3000 \
 --max_length 15 \
@@ -15,7 +15,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_3kw_15ml_50d_10e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 15 \
@@ -27,7 +27,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_3kw_15ml_50d_15e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 15 \
@@ -39,7 +39,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_3kw_15ml_50d_20e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 15 \
@@ -51,7 +51,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_3kw_15ml_50d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 15 \
@@ -63,7 +63,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_3kw_15ml_75d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 15 \
@@ -75,7 +75,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_4kw_15ml_50d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \
@@ -87,7 +87,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_4kw_10ml_75d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
@@ -99,7 +99,7 @@ python bow_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_random_emb_linear_classifier.py \
+python bow_random_emb_lc_parsect.py \
 --exp_name "bow_random_emb_lc_4kw_15ml_75d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \

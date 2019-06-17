@@ -265,3 +265,6 @@ class GenericSectDataset(Dataset):
                 self.dataset_type, len(self)
             )
         )
+
+    def get_num_classes(self):
+        return len(self.label2idx.keys())
