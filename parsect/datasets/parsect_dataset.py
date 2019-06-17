@@ -10,8 +10,10 @@ from parsect.utils.common import pack_to_length
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.numericalizer.numericalizer import Numericalizer
-
+from sklearn.model_selection import StratifiedShuffleSplit
 from wasabi import Printer
+import numpy as np
+from deprecated import deprecated
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
@@ -34,6 +36,9 @@ class ParsectDataset(Dataset):
         end_token: str = "<EOS>",
         pad_token: str = "<PAD>",
         unk_token: str = "<UNK>",
+        train_size: float = 0.8,
+        test_size: float = 0.2,
+        validation_size: float = 0.5,
     ):
         """
         :param dataset_type: type: str
@@ -82,11 +87,14 @@ class ParsectDataset(Dataset):
         self.end_token = end_token
         self.pad_token = pad_token
         self.unk_token = unk_token
+        self.train_size = train_size
+        self.validation_size = validation_size
+        self.test_size = test_size
 
         self.word_tokenizer = WordTokenizer()
-        self.label_mapping = self.get_label_mapping()
+        self.classname2idx = self.get_label_mapping()
         self.idx2classname = {
-            idx: classname for classname, idx in self.label_mapping.items()
+            idx: classname for classname, idx in self.classname2idx.items()
         }
         self.allowable_dataset_types = ["train", "valid", "test"]
         self.msg_printer = Printer()
@@ -99,7 +107,7 @@ class ParsectDataset(Dataset):
         )
 
         self.parsect_json = convert_sectlabel_to_json(self.secthead_label_file)
-        self.lines, self.labels = self.get_lines_labels()
+        self.lines, self.labels = self.get_lines_labels_stratified()
         self.instances = self.tokenize(self.lines)
 
         self.vocab = Vocab(
@@ -124,7 +132,7 @@ class ParsectDataset(Dataset):
     def __getitem__(self, idx) -> Dict[str, Any]:
         instance = self.instances[idx]
         label = self.labels[idx]
-        label_idx = self.label_mapping[label]
+        label_idx = self.classname2idx[label]
         len_instance = len(instance)
 
         padded_instance = pack_to_length(
@@ -151,6 +159,7 @@ class ParsectDataset(Dataset):
 
         return instance_dict
 
+    @deprecated(reason="Deprecated because of bad train-valid-test split.")
     def get_lines_labels(self) -> (List[str], List[str]):
         """
         Returns the appropriate lines depending on the type of dataset
@@ -205,6 +214,51 @@ class ParsectDataset(Dataset):
 
         return texts, labels
 
+    def get_lines_labels_stratified(self) -> (List[str], List[str]):
+        texts = []
+        labels = []
+        parsect_json = self.parsect_json["parse_sect"]
+
+        for line_json in parsect_json:
+            text = line_json["text"]
+            label = line_json["label"]
+
+            texts.append(text)
+            labels.append(label)
+
+        (train_lines, train_labels), (validation_lines, validation_labels), (
+            test_lines,
+            test_labels,
+        ) = self.get_train_valid_test_split(texts, labels)
+
+        if self.dataset_type == "train":
+            texts = train_lines
+            labels = train_labels
+        elif self.dataset_type == "valid":
+            texts = validation_lines
+            labels = validation_labels
+        elif self.dataset_type == "test":
+            texts = test_lines
+            labels = test_labels
+
+        if self.debug:
+            # randomly sample `self.debug_dataset_proportion`  samples and return
+            num_text = len(texts)
+            np.random.seed(1729)  # so we can debug deterministically
+            random_ints = np.random.randint(
+                0, num_text - 1, size=int(self.debug_dataset_proportion * num_text)
+            )
+            random_ints = list(random_ints)
+            sample_texts = []
+            sample_labels = []
+            for random_int in random_ints:
+                sample_texts.append(texts[random_int])
+                sample_labels.append(labels[random_int])
+            texts = sample_texts
+            labels = sample_labels
+
+        return texts, labels
+
     def tokenize(self, lines: List[str]) -> List[List[str]]:
         """
         :param lines: type: List[str]
@@ -246,7 +300,7 @@ class ParsectDataset(Dataset):
         return categories
 
     def get_num_classes(self) -> int:
-        return len(self.label_mapping.keys())
+        return len(self.classname2idx.keys())
 
     def get_class_names_from_indices(self, indices: List):
         return [self.idx2classname[idx] for idx in indices]
@@ -291,6 +345,69 @@ class ParsectDataset(Dataset):
 
     def get_preloaded_embedding(self) -> torch.FloatTensor:
         return self.vocab.load_embedding()
+
+    def get_train_valid_test_split(
+        self, lines: List[str], labels: List[str]
+    ) -> ((List[str], List[str]), (List[str], List[str]), (List[str], List[str])):
+        len_lines = len(lines)
+        len_labels = len(labels)
+
+        assert len_lines == len_labels
+
+        train_test_spliiter = StratifiedShuffleSplit(
+            n_splits=1,
+            test_size=self.test_size,
+            train_size=self.train_size,
+            random_state=1729,
+        )
+
+        features = np.random.rand(len_lines)
+        labels_idx_array = np.array([self.classname2idx[label] for label in labels])
+
+        splits = list(train_test_spliiter.split(features, labels_idx_array))
+        train_indices, test_valid_indices = splits[0]
+
+        train_lines = [lines[idx] for idx in train_indices]
+        train_labels = [labels[idx] for idx in train_indices]
+
+        test_valid_lines = [lines[idx] for idx in test_valid_indices]
+        test_valid_labels = [labels[idx] for idx in test_valid_indices]
+
+        validation_test_splitter = StratifiedShuffleSplit(
+            n_splits=1,
+            test_size=self.validation_size,
+            train_size=1 - self.validation_size,
+            random_state=1729,
+        )
+
+        len_test_valid_lines = len(test_valid_lines)
+        len_test_valid_labels = len(test_valid_labels)
+
+        assert len_test_valid_labels == len_test_valid_lines
+
+        test_valid_features = np.random.rand(len_test_valid_lines)
+        test_valid_labels_idx_array = np.array(
+            [self.classname2idx[label] for label in test_valid_labels]
+        )
+
+        test_valid_splits = list(
+            validation_test_splitter.split(
+                test_valid_features, test_valid_labels_idx_array
+            )
+        )
+        test_indices, validation_indices = test_valid_splits[0]
+
+        test_lines = [test_valid_lines[idx] for idx in test_indices]
+        test_labels = [test_valid_labels[idx] for idx in test_indices]
+
+        validation_lines = [test_valid_lines[idx] for idx in validation_indices]
+        validation_labels = [test_valid_labels[idx] for idx in validation_indices]
+
+        return (
+            (train_lines, train_labels),
+            (validation_lines, validation_labels),
+            (test_lines, test_labels),
+        )
 
 
 if __name__ == "__main__":

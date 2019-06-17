@@ -23,6 +23,9 @@ def setup_parsect_train_dataset(tmpdir):
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
         debug=DEBUG,
+        train_size=0.8,
+        test_size=0.2,
+        validation_size=0.5,
     )
 
     return (
@@ -71,12 +74,12 @@ class TestParsectDataset:
     def test_no_line_empty(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
         lines, labels = train_dataset.get_lines_labels()
-        assert all([line != "" for line in lines])
+        assert all([bool(line.strip()) for line in lines])
 
     def test_no_label_empty(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
         lines, labels = train_dataset.get_lines_labels()
-        assert all([label != "" for label in labels])
+        assert all([bool(label.strip()) for label in labels])
 
     def test_tokens_max_length(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
@@ -123,3 +126,29 @@ class TestParsectDataset:
 
         assert len(instances_dict["instance"]) == 3
         assert type(instances_dict["instance"][0]) == str
+
+    def test_stratified_split(self, setup_parsect_train_dataset):
+        dataset, options = setup_parsect_train_dataset
+        lines = ["a"] * 100
+        labels = ["title"] * 100
+
+        (
+            (train_lines, train_labels),
+            (validation_lines, validation_labels),
+            (test_lines, test_labels),
+        ) = dataset.get_train_valid_test_split(lines, labels)
+
+        assert len(train_lines) == 80
+        assert len(train_labels) == 80
+        assert len(validation_lines) == 10
+        assert len(validation_labels) == 10
+        assert len(test_lines) == 10
+        assert len(test_labels) == 10
+
+    def test_get_lines_labels_stratified(self, setup_parsect_train_dataset):
+        dataset, options = setup_parsect_train_dataset
+        dataset.debug_dataset_proportion = 1
+
+        lines, labels = dataset.get_lines_labels_stratified()
+        assert all([bool(line.strip()) for line in lines])
+        assert all([bool(label.strip()) for label in labels])
