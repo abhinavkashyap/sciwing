@@ -2,7 +2,7 @@
 
 cd ../clients
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "debug_bi_lstm_lc" \
 --device cpu \
 --max_num_words 1000 \
@@ -21,7 +21,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --log_train_metrics_every 50
 
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_1kw_ml10_300drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 1000 \
@@ -38,7 +38,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_2kw_ml10_300drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 2000 \
@@ -56,7 +56,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --log_train_metrics_every 50
 
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_5kw_ml10_300drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 5000 \
@@ -73,7 +73,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_8kw_ml10_300drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 8000 \
@@ -90,7 +90,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_5kw_ml15_300drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 5000 \
@@ -107,7 +107,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_5kw_ml20_300drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 5000 \
@@ -125,7 +125,7 @@ python bi_lstm_encoder_random_emb_linear_classifier.py \
 --log_train_metrics_every 50
 
 
-python bi_lstm_encoder_random_emb_linear_classifier.py \
+python bi_lstm_encoder_random_emb_lc_parsect.py \
 --exp_name "bi_lstm_lc_5kw_ml20_150drandom_512h_1e-3lr_bidir_concat_40e" \
 --device cuda:0 \
 --max_num_words 5000 \
