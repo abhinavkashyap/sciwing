@@ -11,7 +11,8 @@ from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
 from parsect.infer.bert_emb_bow_linear_classifier_infer import (
     get_bert_emb_bow_linear_classifier_infer,
 )
-from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_infer
+from parsect.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
+from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 from parsect.infer.bert_seq_classifier_infer import get_bert_seq_classifier_infer
 from parsect.infer.bow_random_emb_lc_genericsect_infer import (
@@ -45,7 +46,8 @@ class ParsectCli:
             "genericsect-glove-embedding-bow-encoder-linear-classifier",
             "elmo-embedding-bow-encoder-linear_classifier",
             "bert-embedding-bow-encoder-linear-classifier",
-            "bi-lstm-random-emb-linear-classifier",
+            "bi-lstm-random-emb-linear-classifier-parsect",
+            "bi-lstm-random-emb-linear-classifier-gensect",
             "elmo-bilstm-linear-classifier",
             "bert-seq-classifier",
         ]
@@ -232,7 +234,7 @@ class ParsectCli:
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_bert_emb_bow_linear_classifier_infer(exp_choice)
 
-        if self.model_type_answer == "bi-lstm-random-emb-linear-classifier":
+        if self.model_type_answer == "bi-lstm-random-emb-linear-classifier-parsect":
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
                 if bool(re.match("bi_lstm_lc.*", expname)):
@@ -253,7 +255,30 @@ class ParsectCli:
                     self.s3util.download_folder(exp_choice)
 
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
-            inference = get_bilstm_lc_infer(exp_choice)
+            inference = get_bilstm_lc_infer_parsect(exp_choice)
+
+        if self.model_type_answer == "bi-lstm-random-emb-linear-classifier-gensect":
+            choices = []
+            for expname in os.listdir(OUTPUT_DIR):
+                if bool(re.match(".*bi_lstm_lc_gensect.*", expname)):
+                    choices.append(Choice(expname))
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bi_lstm_lc_gensect.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
+            exp_choice = questionary.rawselect(
+                "Please select an experiment", choices=choices, qmark="❓"
+            ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
+            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_bilstm_lc_infer_gensect(exp_choice)
 
         if self.model_type_answer == "elmo-bilstm-linear-classifier":
             choices = []

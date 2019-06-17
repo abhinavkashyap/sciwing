@@ -1,12 +1,7 @@
-import json
 import re
-import wasabi
-from pytablewriter import MarkdownTableWriter
 import parsect.constants as constants
 import os
 import pandas as pd
-import numpy as np
-from deprecated import deprecated
 import pathlib
 from parsect.infer.bow_random_emb_lc_parsect_infer import (
     get_random_emb_linear_classifier_infer_parsect,
@@ -18,7 +13,7 @@ from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
 from parsect.infer.bert_emb_bow_linear_classifier_infer import (
     get_bert_emb_bow_linear_classifier_infer,
 )
-from parsect.infer.bi_lstm_lc_infer import get_bilstm_lc_infer
+from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 
 PATHS = constants.PATHS
@@ -43,7 +38,7 @@ def generate_model_report(for_model: str, output_filename: str):
         if re.search("bow_scibert.*", for_model):
             infer = get_bert_emb_bow_linear_classifier_infer(dirname)
         if re.match("bi_lstm_lc.*", for_model):
-            infer = get_bilstm_lc_infer(dirname)
+            infer = get_bilstm_lc_infer_parsect(dirname)
         if re.match("elmo_bi_lstm_lc.*", for_model):
             infer = get_elmo_bilstm_lc_infer(dirname)
 
