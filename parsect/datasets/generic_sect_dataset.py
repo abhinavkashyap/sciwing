@@ -272,7 +272,7 @@ class GenericSectDataset(Dataset):
     def get_class_names_from_indices(self, indices: List):
         return [self.idx2label[idx] for idx in indices]
 
-    def disp_sentences_from_indices(self, indices: List) -> str:
+    def get_disp_sentence_from_indices(self, indices: List) -> str:
         token = [
             self.vocab.get_token_from_idx(idx)
             for idx in indices

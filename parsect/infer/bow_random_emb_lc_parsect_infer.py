@@ -14,7 +14,7 @@ CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-def get_random_emb_linear_classifier_infer(dirname: str):
+def get_random_emb_linear_classifier_infer_parsect(dirname: str):
     hyperparam_config_filepath = os.path.join(dirname, "config.json")
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
