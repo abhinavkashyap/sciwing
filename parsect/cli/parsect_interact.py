@@ -4,9 +4,7 @@ from typing import List
 from parsect.infer.bow_random_emb_lc_parsect_infer import (
     get_random_emb_linear_classifier_infer_parsect,
 )
-from parsect.infer.glove_emb_bow_linear_classifier_infer import (
-    get_glove_emb_linear_classifier_infer,
-)
+from parsect.infer.bow_glove_emb_lc_parsect_infer import get_glove_emb_lc_parsect_infer
 from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
     get_elmo_emb_linear_classifier_infer,
 )
@@ -148,7 +146,7 @@ class ParsectCli:
                     self.s3util.download_folder(exp_choice)
 
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
-            inference = get_glove_emb_linear_classifier_infer(exp_choice)
+            inference = get_glove_emb_lc_parsect_infer(exp_choice)
 
         if self.model_type_answer == "elmo-embedding-bow-encoder-linear_classifier":
             choices = []

@@ -11,9 +11,7 @@ import pathlib
 from parsect.infer.bow_random_emb_lc_parsect_infer import (
     get_random_emb_linear_classifier_infer_parsect,
 )
-from parsect.infer.glove_emb_bow_linear_classifier_infer import (
-    get_glove_emb_linear_classifier_infer,
-)
+from parsect.infer.bow_glove_emb_lc_parsect_infer import get_glove_emb_lc_parsect_infer
 from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
     get_elmo_emb_linear_classifier_infer,
 )
@@ -37,7 +35,7 @@ def generate_model_report(for_model: str, output_filename: str):
         if re.search("bow_random.*", for_model):
             infer = get_random_emb_linear_classifier_infer_parsect(dirname)
         if re.search("bow_glove.*", for_model):
-            infer = get_glove_emb_linear_classifier_infer(dirname)
+            infer = get_glove_emb_lc_parsect_infer(dirname)
         if re.search("bow_elmo_emb.*", for_model):
             infer = get_elmo_emb_linear_classifier_infer(dirname)
         if re.search("bow_bert.*", for_model):
