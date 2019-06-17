@@ -31,7 +31,11 @@ class ParsectInference:
     """
 
     def __init__(
-        self, model: nn.Module, model_filepath: str, hyperparam_config_filepath: str
+        self,
+        model: nn.Module,
+        model_filepath: str,
+        hyperparam_config_filepath: str,
+        dataset,
     ):
         """
         :param model: type: torch.nn.Module
@@ -45,6 +49,7 @@ class ParsectInference:
         self.model = model
         self.model_filepath = model_filepath
         self.hyperparam_config_filename = hyperparam_config_filepath
+        self.test_dataset = dataset
 
         with open(self.hyperparam_config_filename, "r") as fp:
             config = json.load(fp)
@@ -74,7 +79,6 @@ class ParsectInference:
                 "check this behaviour"
             )
 
-        self.test_dataset = self.get_test_dataset()
         self.labelname2idx_mapping = self.test_dataset.get_label_mapping()
         self.idx2labelname_mapping = {
             idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
@@ -102,21 +106,6 @@ class ParsectInference:
                 ],
             }
         )
-
-    def get_test_dataset(self) -> ParsectDataset:
-        test_dataset = ParsectDataset(
-            secthead_label_file=SECT_LABEL_FILE,
-            dataset_type="test",
-            max_num_words=self.max_num_words,
-            max_length=self.max_length,
-            vocab_store_location=self.vocab_store_location,
-            debug=self.debug,
-            debug_dataset_proportion=self.debug_dataset_proportion,
-            embedding_type=self.embedding_type,
-            embedding_dimension=self.embedding_dimension,
-            return_instances=self.return_instances,
-        )
-        return test_dataset
 
     def load_model(self):
 

@@ -1,9 +1,7 @@
 import questionary
 from questionary import Choice
 from typing import List
-from parsect.infer.random_emb_bow_linear_classifier_infer import (
-    get_random_emb_linear_classifier_infer,
-)
+from parsect.infer.bow_random_emb_lc_infer import get_random_emb_linear_classifier_infer
 from parsect.infer.glove_emb_bow_linear_classifier_infer import (
     get_glove_emb_linear_classifier_infer,
 )

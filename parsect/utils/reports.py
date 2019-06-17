@@ -8,9 +8,7 @@ import pandas as pd
 import numpy as np
 from deprecated import deprecated
 import pathlib
-from parsect.infer.random_emb_bow_linear_classifier_infer import (
-    get_random_emb_linear_classifier_infer,
-)
+from parsect.infer.bow_random_emb_lc_infer import get_random_emb_linear_classifier_infer
 from parsect.infer.glove_emb_bow_linear_classifier_infer import (
     get_glove_emb_linear_classifier_infer,
 )

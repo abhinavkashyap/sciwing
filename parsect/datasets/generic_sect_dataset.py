@@ -268,3 +268,15 @@ class GenericSectDataset(Dataset):
 
     def get_num_classes(self):
         return len(self.label2idx.keys())
+
+    def get_class_names_from_indices(self, indices: List):
+        return [self.idx2label[idx] for idx in indices]
+
+    def disp_sentences_from_indices(self, indices: List) -> str:
+        token = [
+            self.vocab.get_token_from_idx(idx)
+            for idx in indices
+            if idx != self.vocab.special_vocab[self.vocab.pad_token]
+        ]
+        sentence = " ".join(token)
+        return sentence
