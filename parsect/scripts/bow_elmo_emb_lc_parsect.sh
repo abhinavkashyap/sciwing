@@ -2,7 +2,7 @@
 
 cd ../clients
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "debug_bow_elmo_emb_lc_50e_1e-4lr" \
 --max_length 15 \
 --max_num_words 15000 \
@@ -18,7 +18,7 @@ python bow_elmo_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 10
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "bow_elmo_emb_lc_layeragg_last_wordagg_sum_10e_1e-3lr" \
 --max_length 15 \
 --max_num_words 15000 \
@@ -33,7 +33,7 @@ python bow_elmo_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 10
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "bow_elmo_emb_lc_layeragg_last_wordagg_sum_40e_1e-4lr" \
 --max_length 15 \
 --max_num_words 15000 \
@@ -49,7 +49,7 @@ python bow_elmo_emb_linear_classifier.py \
 --log_train_metrics_every 10
 
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "bow_elmo_emb_lc_layeragg_first_wordagg_sum_20e_1e-4lr" \
 --max_length 15 \
 --device cuda:0 \
@@ -64,7 +64,7 @@ python bow_elmo_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "bow_elmo_emb_lc_layeragg_first_wordagg_sum_40e_1e-4lr" \
 --max_length 15 \
 --device cuda:0 \
@@ -80,7 +80,7 @@ python bow_elmo_emb_linear_classifier.py \
 --log_train_metrics_every 50
 
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "bow_elmo_emb_lc_layeragg_first_wordagg_average_40e_1e-4lr" \
 --max_length 15 \
 --max_num_words 15000 \
@@ -96,7 +96,7 @@ python bow_elmo_emb_linear_classifier.py \
 --log_train_metrics_every 50
 
 
-python bow_elmo_emb_linear_classifier.py \
+python bow_elmo_emb_lc_parsect.py \
 --exp_name "bow_elmo_emb_lc_layeragg_average_wordagg_sum_40e_1e-4lr" \
 --max_length 15 \
 --max_num_words 15000 \

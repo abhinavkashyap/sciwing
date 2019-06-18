@@ -5,9 +5,8 @@ from parsect.infer.bow_random_emb_lc_parsect_infer import (
     get_random_emb_linear_classifier_infer_parsect,
 )
 from parsect.infer.bow_glove_emb_lc_parsect_infer import get_glove_emb_lc_parsect_infer
-from parsect.infer.elmo_emb_bow_linear_classifier_infer import (
-    get_elmo_emb_linear_classifier_infer,
-)
+from parsect.infer.bow_elmo_emb_lc_parsect_infer import get_elmo_emb_lc_infer_parsect
+from parsect.infer.bow_elmo_emb_lc_gensect_infer import get_elmo_emb_lc_infer_gensect
 from parsect.infer.bert_emb_bow_linear_classifier_infer import (
     get_bert_emb_bow_linear_classifier_infer,
 )
@@ -44,7 +43,8 @@ class ParsectCli:
             "genericsect-random-embedding-bow-encoder-linear-classifier",
             "parsect-glove-embedding-bow-encoder-linear-classifier",
             "genericsect-glove-embedding-bow-encoder-linear-classifier",
-            "elmo-embedding-bow-encoder-linear_classifier",
+            "elmo-embedding-bow-encoder-linear-classifier-parsect",
+            "elmo-embedding-bow-encoder-linear-classifier-gensect",
             "bert-embedding-bow-encoder-linear-classifier",
             "bi-lstm-random-emb-linear-classifier-parsect",
             "bi-lstm-random-emb-linear-classifier-gensect",
@@ -186,7 +186,10 @@ class ParsectCli:
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
             inference = get_glove_emb_lc_genericsect_infer(exp_choice)
 
-        if self.model_type_answer == "elmo-embedding-bow-encoder-linear_classifier":
+        if (
+            self.model_type_answer
+            == "elmo-embedding-bow-encoder-linear-classifier-parsect"
+        ):
             choices = []
             for expname in os.listdir(OUTPUT_DIR):
                 if bool(re.search(".*bow_elmo_emb_lc_.*", expname)):
@@ -208,7 +211,34 @@ class ParsectCli:
                     self.s3util.download_folder(exp_choice)
 
             exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
-            inference = get_elmo_emb_linear_classifier_infer(exp_choice)
+            inference = get_elmo_emb_lc_infer_parsect(exp_choice)
+
+        if (
+            self.model_type_answer
+            == "elmo-embedding-bow-encoder-linear-classifier-gensect"
+        ):
+            choices = []
+            for expname in os.listdir(OUTPUT_DIR):
+                if bool(re.search(".*bow_elmo_gensect.*", expname)):
+                    choices.append(Choice(expname))
+
+            # search in s3
+            folder_names = self.s3util.search_folders_with(".*bow_elmo_gensect.*")
+            for folder_name in folder_names:
+                choices.append(Choice(folder_name))
+
+            exp_choice = questionary.rawselect(
+                "Please select an experiment", choices=choices, qmark="❓"
+            ).ask()
+
+            if not os.path.isdir(os.path.join(OUTPUT_DIR, exp_choice)):
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_choice} from s3"
+                ):
+                    self.s3util.download_folder(exp_choice)
+
+            exp_choice = os.path.join(OUTPUT_DIR, exp_choice)
+            inference = get_elmo_emb_lc_infer_gensect(exp_choice)
 
         if self.model_type_answer == "bert-embedding-bow-encoder-linear-classifier":
             choices = []

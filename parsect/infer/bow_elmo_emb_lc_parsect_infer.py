@@ -9,7 +9,7 @@ PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
 
-def get_elmo_emb_linear_classifier_infer(dirname: str):
+def get_elmo_emb_lc_infer_parsect(dirname: str):
     hyperparam_config_filepath = os.path.join(dirname, "config.json")
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
@@ -37,4 +37,4 @@ def get_elmo_emb_linear_classifier_infer(dirname: str):
 
 if __name__ == "__main__":
     experiment_dirname = os.path.join(OUTPUT_DIR, "debug_bow_elmo_emb_lc_50e_1e-4lr")
-    inference_client = get_elmo_emb_linear_classifier_infer(experiment_dirname)
+    inference_client = get_elmo_emb_lc_infer_parsect(experiment_dirname)
