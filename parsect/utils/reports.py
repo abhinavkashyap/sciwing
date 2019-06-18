@@ -8,8 +8,8 @@ from parsect.infer.bow_random_emb_lc_parsect_infer import (
 )
 from parsect.infer.bow_glove_emb_lc_parsect_infer import get_glove_emb_lc_parsect_infer
 from parsect.infer.bow_elmo_emb_lc_parsect_infer import get_elmo_emb_lc_infer_parsect
-from parsect.infer.bert_emb_bow_linear_classifier_infer import (
-    get_bert_emb_bow_linear_classifier_infer,
+from parsect.infer.bow_bert_emb_lc_parsect_infer import (
+    get_bow_bert_emb_lc_parsect_infer,
 )
 from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
@@ -32,9 +32,9 @@ def generate_model_report(for_model: str, output_filename: str):
         if re.search("bow_elmo_emb.*", for_model):
             infer = get_elmo_emb_lc_infer_parsect(dirname)
         if re.search("bow_bert.*", for_model):
-            infer = get_bert_emb_bow_linear_classifier_infer(dirname)
+            infer = get_bow_bert_emb_lc_parsect_infer(dirname)
         if re.search("bow_scibert.*", for_model):
-            infer = get_bert_emb_bow_linear_classifier_infer(dirname)
+            infer = get_bow_bert_emb_lc_parsect_infer(dirname)
         if re.match("bi_lstm_lc.*", for_model):
             infer = get_bilstm_lc_infer_parsect(dirname)
         if re.match("elmo_bi_lstm_lc.*", for_model):
