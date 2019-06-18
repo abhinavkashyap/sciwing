@@ -3,13 +3,16 @@ import os
 from parsect.models.elmo_lstm_classifier import ElmoLSTMClassifier
 from parsect.modules.elmo_lstm_encoder import ElmoLSTMEncoder
 from parsect.modules.elmo_embedder import ElmoEmbedder
+from parsect.datasets.parsect_dataset import ParsectDataset
 from parsect.clients.parsect_inference import ParsectInference
 import json
 import torch
 import torch.nn as nn
 
 PATHS = constants.PATHS
+FILES = constants.FILES
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
+SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 def get_elmo_bilstm_lc_infer(dirname: str):
@@ -18,6 +21,7 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         config = json.load(fp)
 
     EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
+    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     DEVICE = config["DEVICE"]
     ELMO_EMBEDDING_DIMENSION = config["ELMO_EMBEDDING_DIMENSION"]
     EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
@@ -27,6 +31,12 @@ def get_elmo_bilstm_lc_infer(dirname: str):
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
     NUM_CLASSES = config["NUM_CLASSES"]
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
+    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
+    MAX_LENGTH = config["MAX_LENGTH"]
+    vocab_store_location = config["VOCAB_STORE_LOCATION"]
+    DEBUG = config["DEBUG"]
+    DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
+
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIM)
@@ -52,10 +62,23 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         device=torch.device(DEVICE),
     )
 
+    dataset = ParsectDataset(
+        secthead_label_file=SECT_LABEL_FILE,
+        dataset_type="test",
+        max_num_words=MAX_NUM_WORDS,
+        max_length=MAX_LENGTH,
+        vocab_store_location=vocab_store_location,
+        debug=DEBUG,
+        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
+        embedding_type=EMBEDDING_TYPE,
+        embedding_dimension=EMBEDDING_DIM,
+    )
+
     inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,
+        dataset=dataset,
     )
     return inference
 
