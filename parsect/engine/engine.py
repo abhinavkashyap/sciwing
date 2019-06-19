@@ -301,9 +301,10 @@ class Engine:
                 batch_size = labels.size(0)
                 labels = labels.squeeze(1)
 
-                model_forward_out = self.model(
-                    iter_dict, is_training=False, is_validation=True, is_test=False
-                )
+                with torch.no_grad():
+                    model_forward_out = self.model(
+                        iter_dict, is_training=False, is_validation=True, is_test=False
+                    )
                 loss = model_forward_out["loss"]
                 self.validation_loss_meter.add_loss(loss, batch_size)
                 self.validation_metric_calc.calc_metric(
@@ -364,9 +365,11 @@ class Engine:
                 iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
                 labels = iter_dict["label"]
                 labels = labels.squeeze(1)
-                model_forward_out = self.model(
-                    iter_dict, is_training=False, is_validation=False, is_test=True
-                )
+
+                with torch.no_grad():
+                    model_forward_out = self.model(
+                        iter_dict, is_training=False, is_validation=False, is_test=True
+                    )
                 self.test_metric_calc.calc_metric(
                     predicted_probs=model_forward_out["normalized_probs"].cpu(),
                     labels=labels.cpu(),
