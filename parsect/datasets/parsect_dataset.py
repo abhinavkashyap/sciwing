@@ -31,7 +31,6 @@ class ParsectDataset(Dataset):
         debug_dataset_proportion: float = 0.1,
         embedding_type: Union[str, None] = None,
         embedding_dimension: Union[int, None] = None,
-        return_instances: bool = False,
         start_token: str = "<SOS>",
         end_token: str = "<EOS>",
         pad_token: str = "<PAD>",
@@ -39,6 +38,8 @@ class ParsectDataset(Dataset):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
+        tokenizer=WordTokenizer(),
+        tokenization_type="vanilla",
     ):
         """
         :param dataset_type: type: str
@@ -72,6 +73,19 @@ class ParsectDataset(Dataset):
         The pad token is used when the length of the input is less than maximum length
         :param unk_token: type: str
         unk is the token that is used when the word is OOV
+        :param train_size: float
+        The proportion of the dataset that is used for training
+        :param test_size: float
+        The proportion of the dataset that is used for testing
+        :param validation_size: float
+        The proportion of the test dataset that is used for validation
+        :param tokenizer
+        The tokenizer that will be used to tokenize text
+        :param tokenization_type: str
+        Allowed type (vanilla, bert)
+        Two types of tokenization are allowed. Either vanilla tokenization that is based on spacy.
+        The default is WordTokenizer()
+        If bert, then bert tokenization is performed and additional fields will be included in the output
         """
         self.dataset_type = dataset_type
         self.secthead_label_file = secthead_label_file
@@ -82,7 +96,6 @@ class ParsectDataset(Dataset):
         self.debug_dataset_proportion = debug_dataset_proportion
         self.embedding_type = embedding_type
         self.embedding_dimension = embedding_dimension
-        self.return_instances = return_instances
         self.start_token = start_token
         self.end_token = end_token
         self.pad_token = pad_token
@@ -90,8 +103,8 @@ class ParsectDataset(Dataset):
         self.train_size = train_size
         self.validation_size = validation_size
         self.test_size = test_size
-
-        self.word_tokenizer = WordTokenizer()
+        self.tokenizer = tokenizer
+        self.tokenization_type = tokenization_type
         self.classname2idx = self.get_label_mapping()
         self.idx2classname = {
             idx: classname for classname, idx in self.classname2idx.items()
@@ -145,6 +158,16 @@ class ParsectDataset(Dataset):
         )
 
         tokens = self.numericalizer.numericalize_instance(padded_instance)
+
+        bert_tokens = -1
+        segment_ids = -1
+
+        if self.tokenization_type == "bert":
+            bert_tokens = self.tokenizer.convert_tokens_to_ids(padded_instance)
+            segment_ids = [0] * len(padded_instance)
+            bert_tokens = torch.LongTensor(bert_tokens)
+            segment_ids = torch.LongTensor(segment_ids)
+
         tokens = torch.LongTensor(tokens)
         len_tokens = torch.LongTensor([len_instance])
         label = torch.LongTensor([label_idx])
@@ -155,6 +178,8 @@ class ParsectDataset(Dataset):
             "label": label,
             "instance": " ".join(padded_instance),
             "raw_instance": " ".join(instance),
+            "bert_tokens": bert_tokens,
+            "segment_ids": segment_ids,
         }
 
         return instance_dict
@@ -265,7 +290,7 @@ class ParsectDataset(Dataset):
         These are text spans that will be tokenized
         :return: instances type: List[List[str]]
         """
-        instances = self.word_tokenizer.tokenize_batch(lines)
+        instances = list(map(lambda line: self.tokenizer.tokenize(line), lines))
         return instances
 
     @staticmethod

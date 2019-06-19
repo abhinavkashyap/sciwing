@@ -5,7 +5,7 @@ cd ../clients
 python bert_seq_classifier_client.py \
 --exp_name "debug_bert_seq_classifier_gpu" \
 --bert_type "bert-large-cased" \
---device cuda \
+--device cuda:0 \
 --max_num_words 15000 \
 --max_len 20 \
 --debug \
