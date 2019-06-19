@@ -1,5 +1,4 @@
 from pytorch_pretrained_bert import BertForSequenceClassification
-from pytorch_pretrained_bert import BertTokenizer
 from torch.nn import CrossEntropyLoss
 from torch.nn.functional import softmax
 from typing import Dict, Any

@@ -159,8 +159,8 @@ class ParsectDataset(Dataset):
 
         tokens = self.numericalizer.numericalize_instance(padded_instance)
 
-        bert_tokens = -1
-        segment_ids = -1
+        bert_tokens = -1  # -1 indicates no bert tokens
+        segment_ids = -1  # -1 indicates no bert tokens
 
         if self.tokenization_type == "bert":
             bert_tokens = self.tokenizer.convert_tokens_to_ids(padded_instance)
@@ -437,37 +437,37 @@ class ParsectDataset(Dataset):
 
 if __name__ == "__main__":
     import os
+    from pytorch_pretrained_bert.tokenization import BertTokenizer
 
     vocab_store_location = os.path.join(".", "vocab.json")
-    DEBUG = False
+    DEBUG = True
     MAX_NUM_WORDS = 500
+    MAX_LENGTH = 10
+    DEBUG_DATASET_PROPORTION = 0.1
+
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=15,
+        max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
         debug=DEBUG,
+        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
+        train_size=0.8,
+        test_size=0.2,
+        validation_size=0.5,
+        tokenization_type="bert",
+        tokenizer=BertTokenizer.from_pretrained("bert-base-cased"),
+        start_token="[CLS]",
+        end_token="[SEP]",
+        pad_token="[PAD]",
     )
 
-    validation_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
-        dataset_type="valid",
-        max_num_words=MAX_NUM_WORDS,
-        max_length=15,
-        vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-    )
-
-    test_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
-        dataset_type="test",
-        max_num_words=MAX_NUM_WORDS,
-        max_length=15,
-        vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-    )
     train_dataset.get_stats()
-    validation_dataset.get_stats()
-    test_dataset.get_stats()
+
+    idx = 1000
+    print(f"bert tokens: {train_dataset[idx]['bert_tokens']}")
+    print(f"raw instance: {train_dataset[idx]['raw_instance']}")
+    print(f"segment ids: {train_dataset[idx]['segment_ids']}")
+
     os.remove(vocab_store_location)
