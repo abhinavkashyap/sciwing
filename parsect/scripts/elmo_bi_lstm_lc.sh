@@ -121,7 +121,7 @@ python elmo_bi_lstm_encoder_linear_classifier.py \
 --bidirectional \
 --combine_strategy concat \
 --epochs 20 \
---save_every 1 \
+--save_every 5 \
 --log_train_metrics_every 50
 
 
@@ -139,7 +139,7 @@ python elmo_bi_lstm_encoder_linear_classifier.py \
 --bidirectional \
 --combine_strategy concat \
 --epochs 20 \
---save_every 1 \
+--save_every 5 \
 --log_train_metrics_every 50
 
 python elmo_bi_lstm_encoder_linear_classifier.py \
@@ -156,7 +156,7 @@ python elmo_bi_lstm_encoder_linear_classifier.py \
 --bidirectional \
 --combine_strategy concat \
 --epochs 20 \
---save_every 1 \
+--save_every 5 \
 --log_train_metrics_every 50
 
 python elmo_bi_lstm_encoder_linear_classifier.py \
@@ -173,7 +173,7 @@ python elmo_bi_lstm_encoder_linear_classifier.py \
 --bidirectional \
 --combine_strategy concat \
 --epochs 20 \
---save_every 1 \
+--save_every 5 \
 --log_train_metrics_every 50
 
 

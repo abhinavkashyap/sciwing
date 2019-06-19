@@ -2,7 +2,7 @@ from parsect.models.bert_seq_classifier import BertSeqClassifier
 from parsect.datasets.parsect_dataset import ParsectDataset
 import parsect.constants as constants
 import os
-
+import torch
 import torch.optim as optim
 from parsect.engine.engine import Engine
 import json
@@ -61,11 +61,6 @@ if __name__ == "__main__":
         "glove_6B_200, glove_6B_300",
     )
     parser.add_argument(
-        "--return_instances",
-        help="Set this if the dataset has to return instances",
-        action="store_true",
-    )
-    parser.add_argument(
         "--bert_type",
         help="Specify the bert model to be used. One of bert-base-uncased, bert-base-cased, "
         "bert-large-uncased, bert-large-cased can be used",
@@ -84,7 +79,6 @@ if __name__ == "__main__":
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
         "EMBEDDING_TYPE": args.emb_type,
-        "RETURN_INSTANCES": args.return_instances,
         "BERT_TYPE": args.bert_type,
         "MAX_NUM_WORDS": args.max_num_words,
         "MAX_LENGTH": args.max_len,
@@ -110,7 +104,6 @@ if __name__ == "__main__":
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
     EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
-    RETURN_INSTANCES = config["RETURN_INSTANCES"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BERT_TYPE = config["BERT_TYPE"]
     MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
@@ -127,7 +120,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     validation_dataset = ParsectDataset(
@@ -140,7 +132,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     test_dataset = ParsectDataset(
@@ -153,7 +144,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
@@ -164,6 +154,7 @@ if __name__ == "__main__":
         emb_dim=EMBEDDING_DIMENSION,
         dropout_value=0.0,
         bert_type=BERT_TYPE,
+        device=torch.device(DEVICE),
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
@@ -180,6 +171,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
+        device=torch.device(DEVICE),
     )
 
     engine.run()

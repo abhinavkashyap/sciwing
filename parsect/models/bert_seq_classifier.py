@@ -9,6 +9,7 @@ import torch
 import os
 from parsect.utils.common import pack_to_length
 import parsect.constants as constants
+import time
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -74,7 +75,6 @@ class BertSeqClassifier(nn.Module):
             self.model = BertForSequenceClassification.from_pretrained(
                 self.model_type_or_folder_url, self.num_classes
             )
-            self.model.to(self.device)
 
         self.msg_printer.good(f"Finished Loading {self.bert_type} tokenizer and model")
 
