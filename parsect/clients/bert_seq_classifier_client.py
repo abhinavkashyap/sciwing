@@ -7,8 +7,7 @@ import torch.optim as optim
 from parsect.engine.engine import Engine
 import json
 import argparse
-import wasabi
-from pytorch_pretrained_bert.tokenization import BertTokenizer
+from parsect.tokenizers.bert_tokenizer import TokenizerForBert
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -111,9 +110,7 @@ if __name__ == "__main__":
     MAX_LENGTH = config["MAX_LENGTH"]
     DEVICE = config["DEVICE"]
 
-    msg_printer = wasabi.Printer()
-    with msg_printer.loading(f"Loading Bert Tokenizer type {BERT_TYPE}"):
-        bert_tokenizer = BertTokenizer.from_pretrained(BERT_TYPE)
+    bert_tokenizer = TokenizerForBert(bert_type=BERT_TYPE)
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,

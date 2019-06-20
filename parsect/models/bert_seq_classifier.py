@@ -1,4 +1,5 @@
 from pytorch_pretrained_bert import BertForSequenceClassification
+from pytorch_pretrained_bert.tokenization import BertTokenizer
 from torch.nn import CrossEntropyLoss
 from torch.nn.functional import softmax
 from typing import Dict, Any
@@ -57,12 +58,8 @@ class BertSeqClassifier(nn.Module):
             self.model_type_or_folder_url = os.path.join(
                 MODELS_CACHE_DIR, foldername, "weights.tar.gz"
             )
-            self.vocab_type_or_filename = os.path.join(
-                MODELS_CACHE_DIR, foldername, "vocab.txt"
-            )
         else:
             self.model_type_or_folder_url = self.bert_type
-            self.vocab_type_or_filename = self.bert_type
 
         # load the bert model
         with self.msg_printer.loading("Loading Bert model"):

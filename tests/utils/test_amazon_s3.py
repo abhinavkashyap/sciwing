@@ -65,21 +65,19 @@ class TestS3Util:
 
     def test_upload_file_doesnot_raise_error(self, setup_s3_util):
         aws_util = setup_s3_util
-        dummy_file = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
-        dummy_file = str(dummy_file)
-        with open(dummy_file, "w") as fp:
+        dummy_path = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
+        with open(dummy_path, "w") as fp:
             fp.write("dummy line \n")
 
-        aws_util.upload_file(dummy_file)
+        aws_util.upload_file(str(dummy_path), dummy_path.name)
 
     def test_upload_with_directory(self, setup_s3_util):
         aws_util = setup_s3_util
-        dummy_file = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
-        dummy_file = str(dummy_file)
-        with open(dummy_file, "w") as fp:
+        dummy_file_path = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
+        with open(dummy_file_path, "w") as fp:
             fp.write("dummy line \n")
 
-        aws_util.upload_file(dummy_file, f"dummy_folder/dummy_file.txt")
+        aws_util.upload_file(str(dummy_file_path), f"dummy_folder/dummy_file.txt")
 
     def test_upload_folder(self, setup_s3_util):
         aws_util = setup_s3_util
