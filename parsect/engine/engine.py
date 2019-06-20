@@ -343,7 +343,7 @@ class Engine:
 
         if self.track_for_best == "loss":
             is_best = self.is_best_lower(average_loss)
-            print("is best {0}".format(is_best))
+            self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
             if is_best:
                 self.set_best_track_value(average_loss)
                 torch.save(
@@ -357,6 +357,8 @@ class Engine:
                 )
 
     def test_epoch(self, epoch_num: int):
+        self.msg_printer.divider("Running on test batch")
+        self.load_model_from_file(os.path.join(self.save_dir, "best_model.pt"))
         self.model.eval()
         test_iter = iter(self.test_loader)
         while True:
