@@ -117,6 +117,7 @@ class ParsectInference:
             loss_value = model_chkpoint["loss"]
             self.model.load_state_dict(model_state_dict)
             self.model.to(self.device)
+            self.model.eval()
 
         self.msg_printer.good(
             "Loaded Best Model with loss value {0}".format(loss_value)
@@ -148,9 +149,10 @@ class ParsectInference:
                 map(self.test_dataset.get_disp_sentence_from_indices, tokens_list)
             )
 
-            model_output_dict = self.model(
-                iter_dict, is_training=False, is_validation=False, is_test=True
-            )
+            with torch.no_grad():
+                model_output_dict = self.model(
+                    iter_dict, is_training=False, is_validation=False, is_test=True
+                )
             normalized_probs = model_output_dict["normalized_probs"]
             self.metrics_calculator.calc_metric(
                 predicted_probs=normalized_probs, labels=labels
