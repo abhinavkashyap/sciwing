@@ -5,7 +5,6 @@ import json
 from collections import namedtuple
 from botocore.exceptions import ClientError
 import pathlib
-import os
 import re
 
 PATHS = constants.PATHS
@@ -123,7 +122,7 @@ class S3Util:
         foldernames = list(set(foldernames))
         filtered_folder_names = []
         for foldername in foldernames:
-            obj = re.search(pattern, foldername)
+            obj = re.match(pattern, foldername)
             if obj is not None:
                 filtered_folder_names.append(foldername)
 
