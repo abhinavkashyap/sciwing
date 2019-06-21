@@ -2,8 +2,10 @@
 
 cd ../clients
 
+EXPERIMENT_PREFIX="parsect_bow_random_emb_lc"
+
 python bow_random_emb_lc_parsect.py \
---exp_name "debug_bow_random" \
+--exp_name "debug_"${EXPERIMENT_PREFIX} \
 --max_num_words 3000 \
 --max_length 15 \
 --debug \
@@ -16,7 +18,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_3kw_15ml_50d_10e_1e-3lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_3kw_15ml_50d_10e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \
@@ -28,7 +30,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_3kw_15ml_50d_15e_1e-3lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_3kw_15ml_50d_15e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \
@@ -40,7 +42,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_3kw_15ml_50d_20e_1e-3lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_3kw_15ml_50d_20e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \
@@ -52,7 +54,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_3kw_15ml_50d_50e_1e-4lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_3kw_15ml_50d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \
@@ -64,7 +66,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_3kw_15ml_75d_50e_1e-4lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_3kw_15ml_75d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \
@@ -76,7 +78,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_4kw_15ml_50d_50e_1e-4lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_4kw_15ml_50d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \
@@ -88,7 +90,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_4kw_10ml_75d_50e_1e-4lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_4kw_10ml_75d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
 --debug_dataset_proportion 0.01 \
@@ -100,7 +102,7 @@ python bow_random_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_random_emb_lc_parsect.py \
---exp_name "bow_random_emb_lc_4kw_15ml_75d_50e_1e-4lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_4kw_15ml_75d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \
 --debug_dataset_proportion 0.01 \

@@ -2,8 +2,10 @@
 
 cd ../clients
 
+EXPERIMENT_PATH="gensect_bow_elmo_emb_lc"
+
 python bow_elmo_emb_lc_gensect.py \
---exp_name "debug_bow_elmo_gensect" \
+--exp_name "debug_"${EXPERIMENT_PATH} \
 --max_length 15 \
 --max_num_words 15000 \
 --device cpu \
@@ -19,7 +21,7 @@ python bow_elmo_emb_lc_gensect.py \
 --log_train_metrics_every 10
 
 python bow_elmo_emb_lc_gensect.py \
---exp_name "bow_elmo_gensect_ml5_layeragg_last_wordagg_sum_20e_1e-4lr" \
+--exp_name ${EXPERIMENT_PATH}"_ml5_layeragg_last_wordagg_sum_20e_1e-4lr" \
 --max_length 5 \
 --max_num_words 15000 \
 --device cuda:0 \
@@ -34,7 +36,7 @@ python bow_elmo_emb_lc_gensect.py \
 --log_train_metrics_every 10
 
 python bow_elmo_emb_lc_gensect.py \
---exp_name "bow_elmo_gensect_ml5_layeragg_first_word_agg_average_20e_1e-4lr" \
+--exp_name ${EXPERIMENT_PATH}"_ml5_layeragg_first_word_agg_average_20e_1e-4lr" \
 --max_length 5 \
 --max_num_words 15000 \
 --device cuda:0 \

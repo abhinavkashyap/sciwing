@@ -3,7 +3,7 @@ import json
 from parsect.models.bert_seq_classifier import BertSeqClassifier
 from parsect.clients.parsect_inference import ParsectInference
 from parsect.datasets.parsect_dataset import ParsectDataset
-from pytorch_pretrained_bert.tokenization import BertTokenizer
+from parsect.tokenizers.bert_tokenizer import TokenizerForBert
 import os
 
 PATHS = constants.PATHS
@@ -37,7 +37,7 @@ def get_bert_seq_classifier_infer(dirname: str):
         dropout_value=0.0,
     )
 
-    bert_tokenizer = BertTokenizer.from_pretrained(BERT_TYPE)
+    bert_tokenizer = TokenizerForBert(bert_type=BERT_TYPE)
     dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
         dataset_type="test",

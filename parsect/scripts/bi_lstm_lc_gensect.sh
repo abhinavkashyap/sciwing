@@ -2,26 +2,28 @@
 
 cd ../clients
 
-#python bi_lstm_encoder_random_emb_lc_gensect.py \
-#--exp_name "debug_bi_lstm_lc_gensect" \
-#--device cuda:0 \
-#--max_num_words 1000 \
-#--max_length 10 \
-#--debug \
-#--debug_dataset_proportion 0.01 \
-#--bs 32 \
-#--emb_type random \
-#--emb_dim 300 \
-#--hidden_dim 512 \
-#--lr 1e-3 \
-#--bidirectional \
-#--combine_strategy concat \
-#--epochs 30 \
-#--save_every 1 \
-#--log_train_metrics_every 50
+EXPERIMENT_PREFIX="gensect_bi_lstm_lc"
 
 python bi_lstm_encoder_random_emb_lc_gensect.py \
---exp_name "bi_lstm_lc_gensect_100w_ml5_100d_100h_1e-3lr_30e" \
+--exp_name "debug_"${EXPERIMENT_PREFIX} \
+--device cuda:0 \
+--max_num_words 1000 \
+--max_length 10 \
+--debug \
+--debug_dataset_proportion 0.01 \
+--bs 32 \
+--emb_type random \
+--emb_dim 300 \
+--hidden_dim 512 \
+--lr 1e-3 \
+--bidirectional \
+--combine_strategy concat \
+--epochs 30 \
+--save_every 1 \
+--log_train_metrics_every 50
+
+python bi_lstm_encoder_random_emb_lc_gensect.py \
+--exp_name ${EXPERIMENT_PREFIX}"_100w_ml5_100d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 100 \
 --max_length 5 \
@@ -38,7 +40,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --log_train_metrics_every 50
 
 python bi_lstm_encoder_random_emb_lc_gensect.py \
---exp_name "bi_lstm_lc_gensect_400w_ml5_100d_100h_1e-3lr_30e" \
+--exp_name ${EXPERIMENT_PREFIX}"_400w_ml5_100d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 400 \
 --max_length 5 \
@@ -55,7 +57,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --log_train_metrics_every 50
 
 python bi_lstm_encoder_random_emb_lc_gensect.py \
---exp_name "bi_lstm_lc_gensect_900w_ml5_100d_100h_1e-3lr_30e" \
+--exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_100d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 900 \
 --max_length 5 \
@@ -72,7 +74,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --log_train_metrics_every 50
 
 python bi_lstm_encoder_random_emb_lc_gensect.py \
---exp_name "bi_lstm_lc_gensect_900w_ml5_150d_100h_1e-3lr_30e" \
+--exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_150d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 900 \
 --max_length 5 \

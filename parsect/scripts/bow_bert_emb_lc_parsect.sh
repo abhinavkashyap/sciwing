@@ -2,8 +2,10 @@
 
 cd ../clients
 
+EXPERIMENT_PREFIX="parsect_bow_bert"
+
 python bow_bert_emb_lc_parsect.py \
---exp_name "debug_bow_bert_base_cased_emb_lc_10e_1e-2lr" \
+--exp_name "debug_"${EXPERIMENT_PREFIX} \
 --device cpu \
 --bert_type "bert-large-cased" \
 --max_length 20 \
@@ -19,7 +21,7 @@ python bow_bert_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_bert_emb_lc_parsect.py \
---exp_name "bow_bert_base_cased_emb_lc_10e_1e-2lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_base_cased_emb_lc_10e_1e-2lr" \
 --device cuda:0 \
 --max_length 20 \
 --max_num_words 15000 \
@@ -34,7 +36,7 @@ python bow_bert_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_bert_emb_lc_parsect.py \
---exp_name "bow_bert_large_cased_emb_lc_20e_1e-2lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_large_cased_emb_lc_20e_1e-2lr" \
 --device cuda:0 \
 --max_length 20 \
 --max_num_words 15000 \
@@ -49,7 +51,7 @@ python bow_bert_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_bert_emb_lc_parsect.py \
---exp_name "bow_bert_large_cased_emb_lc_40e_1e-3lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_large_cased_emb_lc_40e_1e-3lr" \
 --device cuda:0 \
 --max_length 20 \
 --max_num_words 15000 \
@@ -65,7 +67,7 @@ python bow_bert_emb_lc_parsect.py \
 
 # scibert experiments
 python bow_bert_emb_lc_parsect.py \
---exp_name "bow_scibert_sci_cased_emb_lc_20e_1e-2lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_sci_cased_emb_lc_20e_1e-2lr" \
 --device cuda:0 \
 --max_length 20 \
 --max_num_words 15000 \
@@ -80,7 +82,7 @@ python bow_bert_emb_lc_parsect.py \
 --log_train_metrics_every 50
 
 python bow_bert_emb_lc_parsect.py \
---exp_name "bow_scibert_sci_cased_emb_lc_40e_1e-3lr" \
+--exp_name ${EXPERIMENT_PREFIX}"_sci_cased_emb_lc_40e_1e-3lr" \
 --device cuda:0 \
 --max_length 20 \
 --max_num_words 15000 \
