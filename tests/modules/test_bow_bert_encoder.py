@@ -1,19 +1,34 @@
 import pytest
 from parsect.modules.bow_bert_encoder import BowBertEncoder
+import itertools
+
+bert_base_types = [
+    "bert-base-uncased",
+    "bert-base-cased",
+    "scibert-base-cased",
+    "scibert-sci-cased",
+    "scibert-base-uncased",
+    "scibert-sci-uncased",
+]
+
+bert_large_types = ["bert-large-uncased", "bert-large-cased"]
+
+aggregation_types = ["sum", "average"]
+
+bert_base_type_agg_type = list(itertools.product(bert_base_types, aggregation_types))
+bert_large_type_agg_type = list(itertools.product(bert_large_types, aggregation_types))
 
 
-@pytest.fixture
-def setup_bow_bert_encoder_basic_uncased_sum():
+@pytest.fixture(scope="module", params=bert_base_type_agg_type)
+def setup_bow_bert_encoder_base_type(request):
     emb_dim = 768
     dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "bert-base-uncased"
 
     bow_bert_encoder = BowBertEncoder(
         emb_dim=emb_dim,
         dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
+        aggregation_type=request.param[1],
+        bert_type=request.param[0],
     )
     strings = [
         "Lets start by talking politics",
@@ -23,312 +38,16 @@ def setup_bow_bert_encoder_basic_uncased_sum():
     return bow_bert_encoder, strings
 
 
-@pytest.fixture
-def setup_bow_bert_encoder_basic_uncased_average():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "bert-base-uncased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_basic_cased_sum():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "bert-base-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_basic_cased_average():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "bert-base-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_large_uncased_sum():
+@pytest.fixture(scope="module", params=bert_large_type_agg_type)
+def setup_bow_bert_encoder_large_type(request):
     emb_dim = 1024
     dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "bert-large-uncased"
 
     bow_bert_encoder = BowBertEncoder(
         emb_dim=emb_dim,
         dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_large_uncased_average():
-    emb_dim = 1024
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "bert-large-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_large_cased_sum():
-    emb_dim = 1024
-    dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "bert-large-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_large_cased_average():
-    emb_dim = 1024
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "bert-large-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_base_cased_sum():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "scibert-base-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_base_cased_average():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "scibert-base-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_sci_cased_sum():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "scibert-sci-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_sci_cased_average():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "scibert-sci-cased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_base_uncased_sum():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "scibert-base-uncased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_base_uncased_average():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "scibert-base-uncased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_sci_uncased_sum():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "sum"
-    bert_type = "scibert-sci-uncased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
-    )
-    strings = [
-        "Lets start by talking politics",
-        "there are radical ways to test your code",
-    ]
-
-    return bow_bert_encoder, strings
-
-
-@pytest.fixture
-def setup_bow_bert_encoder_scibert_sci_uncased_average():
-    emb_dim = 768
-    dropout_value = 0.0
-    aggregation_type = "average"
-    bert_type = "scibert-sci-uncased"
-
-    bow_bert_encoder = BowBertEncoder(
-        emb_dim=emb_dim,
-        dropout_value=dropout_value,
-        aggregation_type=aggregation_type,
-        bert_type=bert_type,
+        aggregation_type=request.param[1],
+        bert_type=request.param[0],
     )
     strings = [
         "Lets start by talking politics",
@@ -339,100 +58,20 @@ def setup_bow_bert_encoder_scibert_sci_uncased_average():
 
 
 class TestBowBertEncoder:
-    def test_base_uncased_sum(self, setup_bow_bert_encoder_basic_uncased_sum):
+    def test_bow_bert_encoder_base_type(self, setup_bow_bert_encoder_base_type):
         """
             The bow bert encoder should return a single instance
             that is the sum of the word embeddings of the instance
         """
-        bow_bert_encoder, strings = setup_bow_bert_encoder_basic_uncased_sum
+        bow_bert_encoder, strings = setup_bow_bert_encoder_base_type
         encoding = bow_bert_encoder(strings)
         assert encoding.size() == (2, 768)
 
-    def test_base_uncased_average(self, setup_bow_bert_encoder_basic_uncased_average):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_basic_uncased_average
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 768)
-
-    def test_base_cased_sum(self, setup_bow_bert_encoder_basic_cased_sum):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_basic_cased_sum
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 768)
-
-    def test_base_cased_average(self, setup_bow_bert_encoder_basic_cased_average):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_basic_cased_average
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 768)
-
-    def test_large_uncased_sum(self, setup_bow_bert_encoder_large_uncased_sum):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_large_uncased_sum
+    def test_bow_bert_encoder_large_type(self, setup_bow_bert_encoder_large_type):
+        """
+            The bow bert encoder should return a single instance
+            that is the sum of the word embeddings of the instance
+        """
+        bow_bert_encoder, strings = setup_bow_bert_encoder_large_type
         encoding = bow_bert_encoder(strings)
         assert encoding.size() == (2, 1024)
-
-    def test_large_uncased_average(self, setup_bow_bert_encoder_large_uncased_average):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_large_uncased_average
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 1024)
-
-    def test_large_cased_sum(self, setup_bow_bert_encoder_large_cased_sum):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_large_cased_sum
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 1024)
-
-    def test_large_cased_average(self, setup_bow_bert_encoder_large_cased_average):
-        bow_bert_encoder, strings = setup_bow_bert_encoder_large_cased_average
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 1024)
-
-    def test_scibert_base_cased_sum(
-        self, setup_bow_bert_encoder_scibert_base_cased_sum
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_base_cased_sum
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_base_cased_average(
-        self, setup_bow_bert_encoder_scibert_base_cased_average
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_base_cased_average
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_sci_cased_sum(self, setup_bow_bert_encoder_scibert_sci_cased_sum):
-        encoder, string = setup_bow_bert_encoder_scibert_sci_cased_sum
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_sci_cased_average(
-        self, setup_bow_bert_encoder_scibert_sci_cased_average
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_sci_cased_average
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_base_uncased_sum(
-        self, setup_bow_bert_encoder_scibert_base_uncased_sum
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_base_uncased_sum
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_base_uncased_average(
-        self, setup_bow_bert_encoder_scibert_base_uncased_average
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_base_uncased_average
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_sci_uncased_sum(
-        self, setup_bow_bert_encoder_scibert_sci_uncased_sum
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_sci_uncased_sum
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
-
-    def test_scibert_sci_uncased_average(
-        self, setup_bow_bert_encoder_scibert_sci_uncased_average
-    ):
-        encoder, string = setup_bow_bert_encoder_scibert_sci_uncased_average
-        encoding = encoder(string)
-        assert encoding.size() == (2, 768)
