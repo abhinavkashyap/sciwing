@@ -6,6 +6,7 @@ from collections import namedtuple
 from botocore.exceptions import ClientError
 import pathlib
 import re
+import os
 
 PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
@@ -106,12 +107,31 @@ class S3Util:
         object = self.s3_resource.Object(self.credentials.bucket_name, filename_s3)
         object.download_file(local_filename)
 
-    def download_folder(self, folder_name_s3: str):
+    def download_folder(
+        self,
+        folder_name_s3: str,
+        download_only_best_checkpoint: bool = False,
+        chkpoints_foldername: str = "checkpoints",
+        best_model_filename="best_model.pt",
+    ):
         bucket = self.s3_resource.Bucket(self.credentials.bucket_name)
+        if len(list(bucket.objects.filter(Prefix=folder_name_s3))) == 0:
+            raise FileNotFoundError(f"Failed to find folder {folder_name_s3}")
+
         for key in bucket.objects.filter(Prefix=folder_name_s3):
+            print(key.key)
             if not os.path.exists(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}"):
                 os.makedirs(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}")
-            bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
+            if download_only_best_checkpoint:
+                if re.search(chkpoints_foldername, key.key):
+                    print("found checkopints folder")
+                    if re.search(best_model_filename, key.key):
+                        print("downloading best model")
+                        bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
+                else:
+                    bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
+            else:
+                bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
 
     def search_folders_with(self, pattern):
         bucket = self.s3_resource.Bucket(self.credentials.bucket_name)

@@ -4,10 +4,13 @@ import parsect.constants as constants
 import os
 import json
 import pathlib
+import shutil
+
 
 PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
 TESTS_DIR = PATHS["TESTS_DIR"]
+OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
 
 @pytest.fixture
@@ -15,6 +18,26 @@ def setup_s3_util():
     aws_config_filename = os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json")
     util = S3Util(aws_cred_config_json_filename=aws_config_filename)
     return util
+
+
+@pytest.fixture
+def create_dummy_folder_in_test_folder():
+    dummy_folder_path = pathlib.Path(TESTS_DIR, "utils", "dummy_folder")
+    dummy_folder_path.mkdir(exist_ok=True)
+    dummy_file_path = dummy_folder_path.joinpath("dummy_file.txt")
+
+    with open(dummy_file_path, "w") as fp:
+        fp.write("dummy line")
+
+    return dummy_folder_path
+
+
+@pytest.fixture
+def create_dummy_file_in_test_folder():
+    dummy_file_path = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
+    with open(dummy_file_path, "w") as fp:
+        fp.write("dummy line \n")
+    return dummy_file_path
 
 
 class TestS3Util:
@@ -63,32 +86,34 @@ class TestS3Util:
 
         assert "parsect-models" in bucket_names
 
-    def test_upload_file_doesnot_raise_error(self, setup_s3_util):
+    def test_upload_file_doesnot_raise_error(
+        self, setup_s3_util, create_dummy_file_in_test_folder
+    ):
         aws_util = setup_s3_util
-        dummy_path = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
-        with open(dummy_path, "w") as fp:
-            fp.write("dummy line \n")
+        dummy_path = create_dummy_file_in_test_folder
 
-        aws_util.upload_file(str(dummy_path), dummy_path.name)
+        aws_util.upload_file(filename=str(dummy_path), obj_name=dummy_path.name)
 
-    def test_upload_with_directory(self, setup_s3_util):
+    def test_upload_with_directory(
+        self, setup_s3_util, create_dummy_file_in_test_folder
+    ):
         aws_util = setup_s3_util
-        dummy_file_path = pathlib.Path(TESTS_DIR, "utils", "dummy_file.txt")
-        with open(dummy_file_path, "w") as fp:
-            fp.write("dummy line \n")
-
+        dummy_file_path = create_dummy_file_in_test_folder
         aws_util.upload_file(str(dummy_file_path), f"dummy_folder/dummy_file.txt")
 
-    def test_upload_folder(self, setup_s3_util):
+    def test_upload_folder(self, setup_s3_util, create_dummy_folder_in_test_folder):
         aws_util = setup_s3_util
-        dummy_folder = str(pathlib.Path(TESTS_DIR, "utils", "dummy_folder"))
+        dummy_folder = create_dummy_folder_in_test_folder
 
         aws_util.upload_folder(dummy_folder, base_folder_name=dummy_folder)
 
     def test_download_file(self, setup_s3_util):
         util = setup_s3_util
+        output_dir_path = pathlib.Path(OUTPUT_DIR)
         try:
-            util.download_file("dummy_file.txt", "dummy_file.txt")
+            util.download_file(
+                "dummy_file.txt", f"{str(output_dir_path)}/dummy_file.txt"
+            )
         except:
             pytest.fail(f"Failed to download file dummy_file.txt")
 
@@ -102,7 +127,45 @@ class TestS3Util:
     def test_download_debug_random(self, setup_s3_util):
         """Test whether a dummy model folder can be downloaded"""
         util = setup_s3_util
-        try:
-            util.download_folder("debug_bow_random")
-        except:
-            pytest.fail(f"Could not download debug_bow_random folder from s3")
+        output_dir_path = pathlib.Path(OUTPUT_DIR)
+        parsect_bow_random_debug_folder = output_dir_path.joinpath(
+            "debug_parsect_bow_random_emb_lc"
+        )
+        if parsect_bow_random_debug_folder.is_dir():
+            shutil.rmtree(parsect_bow_random_debug_folder)
+
+        util.download_folder("debug_parsect_bow_random_emb_lc")
+        assert parsect_bow_random_debug_folder.is_dir()
+        assert parsect_bow_random_debug_folder.joinpath("config.json").is_file()
+        assert parsect_bow_random_debug_folder.joinpath("vocab.json").is_file()
+
+    def test_download_folder_if_not_exists_raises_error(self, setup_s3_util):
+        util = setup_s3_util
+
+        with pytest.raises(FileNotFoundError):
+            util.download_folder("debug_not_exists")
+
+    def test_download_only_best_model(self, setup_s3_util):
+        """Test whether a dummy model folder can be downloaded"""
+        util = setup_s3_util
+        output_dir_path = pathlib.Path(OUTPUT_DIR)
+        parsect_bow_random_debug_folder = output_dir_path.joinpath(
+            "debug_parsect_bow_random_emb_lc"
+        )
+        if parsect_bow_random_debug_folder.is_dir():
+            shutil.rmtree(parsect_bow_random_debug_folder)
+
+        util.download_folder(
+            "debug_parsect_bow_random_emb_lc", download_only_best_checkpoint=True
+        )
+
+        files = [
+            file
+            for file in parsect_bow_random_debug_folder.joinpath(
+                "checkpoints"
+            ).iterdir()
+        ]
+        assert len(files) == 1
+        assert files[0].name == "best_model.pt"
+        assert parsect_bow_random_debug_folder.joinpath("vocab.json").is_file()
+        assert parsect_bow_random_debug_folder.joinpath("config.json").is_file()
