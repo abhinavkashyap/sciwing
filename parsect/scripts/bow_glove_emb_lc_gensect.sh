@@ -3,8 +3,9 @@
 cd ../clients
 
 EXPERIMENT_PREFIX="gensect_bow_glove_emb_lc"
+SCRIPT_FILE="bow_glove_emb_lc_gensect.py"
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name "debug_"${EXPERIMENT_PREFIX} \
 --max_num_words 3000 \
 --max_length 10 \
@@ -18,7 +19,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_300w_ml5_50d_40e" \
 --max_num_words 300 \
 --max_length 5 \
@@ -32,7 +33,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_400w_ml5_50d_40e" \
 --max_num_words 400 \
 --max_length 5 \
@@ -46,7 +47,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_600w_ml5_50d_40e" \
 --max_num_words 400 \
 --max_length 5 \
@@ -60,7 +61,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_50d_40e" \
 --max_num_words 900 \
 --max_length 5 \
@@ -74,7 +75,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_300w_ml5_100d_40e" \
 --max_num_words 300 \
 --max_length 5 \
@@ -88,7 +89,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_600w_ml5_100d_40e" \
 --max_num_words 600 \
 --max_length 5 \
@@ -102,7 +103,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_600w_ml5_100d_40e" \
 --max_num_words 600 \
 --max_length 5 \
@@ -117,7 +118,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --log_train_metrics_every 50
 
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_100d_40e" \
 --max_num_words 900 \
 --max_length 5 \
@@ -132,7 +133,7 @@ python bow_glove_emb_lc_generic_sect.py \
 --log_train_metrics_every 50
 
 
-python bow_glove_emb_lc_generic_sect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_200d_40e" \
 --max_num_words 900 \
 --max_length 5 \

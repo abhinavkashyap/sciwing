@@ -3,8 +3,9 @@
 cd ../clients
 
 EXPERIMENT_PREFIX="parsect_bow_glove_emb_lc"
+CLIENT_FILE="bow_glove_emb_lc_parsect.py"
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_lc_3kw_10ml_50d_10e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 10 \
@@ -17,7 +18,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_lc_3kw_10ml_50d_15e_1e-3lr" \
 --max_num_words 3000 \
 --max_length 10 \
@@ -30,7 +31,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_lc_3kw_10ml_50d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 10 \
@@ -43,7 +44,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_4kw_10ml_50d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
@@ -56,7 +57,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_4kw_10ml_50d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
@@ -69,7 +70,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_3kw_10ml_100d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 10 \
@@ -82,7 +83,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_4kw_10ml_100d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
@@ -95,7 +96,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_4kw_15ml_100d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \
@@ -108,7 +109,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_5kw_10ml_100d_50e_1e-4lr" \
 --max_num_words 5000 \
 --max_length 10 \
@@ -121,7 +122,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_5kw_15ml_100d_50e_1e-4lr" \
 --max_num_words 5000 \
 --max_length 15 \
@@ -134,7 +135,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_lc_3kw_10ml_200d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 10 \
@@ -147,7 +148,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_lc_4kw_10ml_200d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
@@ -160,7 +161,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_lc_4kw_15ml_200d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \
@@ -173,7 +174,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_5kw_10ml_200d_50e_1e-4lr" \
 --max_num_words 5000 \
 --max_length 10 \
@@ -186,7 +187,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_5kw_15ml_200d_50e_1e-4lr" \
 --max_num_words 5000 \
 --max_length 15 \
@@ -199,7 +200,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_3kw_10ml_300d_50e_1e-4lr" \
 --max_num_words 3000 \
 --max_length 10 \
@@ -212,7 +213,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_4kw_10ml_300d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 10 \
@@ -225,7 +226,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_4kw_15ml_300d_50e_1e-4lr" \
 --max_num_words 4000 \
 --max_length 15 \
@@ -238,7 +239,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_5kw_10ml_300d_50e_1e-4lr" \
 --max_num_words 5000 \
 --max_length 10 \
@@ -251,7 +252,7 @@ python bow_glove_emb_linear_classifier.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_glove_emb_linear_classifier.py \
+python ${CLIENT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_5kw_15ml_300d_50e_1e-4lr" \
 --max_num_words 5000 \
 --max_length 15 \

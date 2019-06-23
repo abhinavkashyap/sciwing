@@ -1,7 +1,5 @@
 import torch
-import torch.nn as nn
 from allennlp.commands.elmo import ElmoEmbedder
-from parsect.utils.common import pack_to_length
 import wasabi
 from typing import List, Iterable
 
@@ -21,6 +19,7 @@ class BowElmoEncoder:
         dropout_value: float = 0.0,
         layer_aggregation: str = "sum",
         word_aggregation: str = "sum",
+        cuda_device_id: int = -1,
     ):
         """
 
@@ -37,6 +36,8 @@ class BowElmoEncoder:
         :param word_aggregation: type: str
         sum - sum the embeddings across words to obtain sentence embedding
         average - average the embeddings across words to obtain sentence embedding
+        :param cuda_device_id: type: int
+        Cuda device that is used to run the model
         """
         super(BowElmoEncoder, self).__init__()
         self.emb_dim = emb_dim
@@ -44,6 +45,7 @@ class BowElmoEncoder:
         self.layer_aggregation_type = layer_aggregation
         self.word_aggregation_type = word_aggregation
         self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
+        self.cuda_device_id = cuda_device_id
         self.msg_printer = wasabi.Printer()
 
         assert (
@@ -55,7 +57,7 @@ class BowElmoEncoder:
 
         # load the elmo embedders
         with self.msg_printer.loading("Creating Elmo object"):
-            self.elmo = ElmoEmbedder()
+            self.elmo = ElmoEmbedder(cuda_device=self.cuda_device_id)
         self.msg_printer.good("Finished Loading Elmo object")
 
     def forward(self, x: Iterable[List[str]]) -> torch.Tensor:

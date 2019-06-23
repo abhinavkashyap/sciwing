@@ -3,8 +3,9 @@
 cd ../clients
 
 EXPERIMENT_PREFIX="gensect_bi_lstm_lc"
+SCRIPT_FILE="bi_lstm_encoder_random_emb_lc_gensect.py"
 
-python bi_lstm_encoder_random_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name "debug_"${EXPERIMENT_PREFIX} \
 --device cuda:0 \
 --max_num_words 1000 \
@@ -22,7 +23,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_100w_ml5_100d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 100 \
@@ -39,7 +40,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_400w_ml5_100d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 400 \
@@ -56,7 +57,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_100d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 900 \
@@ -73,7 +74,7 @@ python bi_lstm_encoder_random_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bi_lstm_encoder_random_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_900w_ml5_150d_100h_1e-3lr_30e" \
 --device cuda:0 \
 --max_num_words 900 \

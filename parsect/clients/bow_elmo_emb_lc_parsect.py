@@ -8,6 +8,7 @@ from parsect.engine.engine import Engine
 import json
 import argparse
 import torch
+import re
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -137,7 +138,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     validation_dataset = ParsectDataset(
@@ -150,7 +150,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     test_dataset = ParsectDataset(
@@ -163,14 +162,18 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_embedding()
 
-    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION)
+    encoder = BowElmoEncoder(
+        emb_dim=EMBEDDING_DIMENSION,
+        layer_aggregation=LAYER_AGGREGATION,
+        word_aggregation=WORD_AGGREGATION,
+        cuda_device_id=0 if re.match("cuda", DEVICE) else -1,
+    )
 
     model = BowElmoLinearClassifier(
         encoder=encoder,

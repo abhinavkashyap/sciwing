@@ -3,8 +3,10 @@
 cd ../clients
 
 EXPERIMENT_PREFIX="gensect_bow_bert"
+SCRIPT_FILE="bow_bert_emb_lc_gensect.py"
 
-python bow_bert_emb_lc_gensect.py \
+
+python ${SCRIPT_FILE} \
 --exp_name "debug_"${EXPERIMENT_PREFIX} \
 --device cpu \
 --bert_type "bert-large-cased" \
@@ -19,7 +21,7 @@ python bow_bert_emb_lc_gensect.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bow_bert_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_base_cased_1e-2lr_10e" \
 --device cuda:0 \
 --bert_type "bert-base-cased" \
@@ -33,7 +35,7 @@ python bow_bert_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_bert_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_large_cased_1e-2lr_10e" \
 --device cuda:0 \
 --bert_type "bert-large-cased" \
@@ -47,7 +49,7 @@ python bow_bert_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_bert_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_large_uncased_1e-2lr_10e" \
 --device cuda:0 \
 --bert_type "bert-large-uncased" \
@@ -61,7 +63,7 @@ python bow_bert_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_bert_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_sci_cased_1e-2lr_10e" \
 --device cuda:0 \
 --bert_type "scibert-sci-cased" \
@@ -75,7 +77,7 @@ python bow_bert_emb_lc_gensect.py \
 --save_every 5 \
 --log_train_metrics_every 50
 
-python bow_bert_emb_lc_gensect.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_sci_uncased_1e-2lr_10e" \
 --device cuda:0 \
 --bert_type "scibert-sci-uncased" \

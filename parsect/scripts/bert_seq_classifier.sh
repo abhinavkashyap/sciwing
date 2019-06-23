@@ -3,8 +3,9 @@
 cd ../clients
 
 EXPERIMENT_PREFIX="parsect_bert_seq"
+SCRIPT_FILE="bert_seq_classifier_client.py"
 
-python bert_seq_classifier_client.py \
+python ${SCRIPT_FILE} \
 --exp_name "debug_"${EXPERIMENT_PREFIX} \
 --bert_type "bert-base-uncased" \
 --device cuda:0 \
@@ -19,7 +20,7 @@ python bert_seq_classifier_client.py \
 --save_every 15 \
 --log_train_metrics_every 1
 
-python bert_seq_classifier_client.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_large_cased_emb_20e_1e-4lr" \
 --bert_type "bert-large-cased" \
 --device cuda:0 \
@@ -33,7 +34,7 @@ python bert_seq_classifier_client.py \
 --save_every 1 \
 --log_train_metrics_every 50
 
-python bert_seq_classifier_client.py \
+python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_sci_uncased_emb_lc_10e_1e-4lr" \
 --bert_type "scibert-sci-uncased" \
 --device cuda:0 \
