@@ -3,18 +3,27 @@ from parsect.utils.common import convert_sectlabel_to_json
 from parsect.utils.common import merge_dictionaries_with_sum
 from parsect.utils.common import pack_to_length
 from parsect.utils.common import convert_generic_sect_to_json
+from parsect.utils.common import convert_parscit_to_conll
 import pytest
+import pathlib
 
 FILES = constants.FILES
 
 SECTLABEL_FILENAME = FILES["SECT_LABEL_FILE"]
 GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
+PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
 
 
 @pytest.fixture
 def get_generic_sect_json():
     generic_sect_json = convert_generic_sect_to_json(GENERIC_SECTION_TRAIN_FILE)
     return generic_sect_json
+
+
+@pytest.fixture
+def get_conll_lines():
+    conll_lines = convert_parscit_to_conll(pathlib.Path(PARSCIT_TRAIN_FILE))
+    return conll_lines
 
 
 class TestCommon:
@@ -223,3 +232,13 @@ class TestCommon:
 
         # TODO: There are no keyword lines in the file.
         assert len(list(keywords_lines)) == 0
+
+    def test_convert_parscit_to_conll_format_gets_data(self, get_conll_lines):
+        lines = get_conll_lines
+        lines = [bool(line.strip()) for line in lines]
+        assert sum(lines) > 0
+
+    def test_convert_parscit_conll_has_4_columns(self, get_conll_lines):
+        lines = get_conll_lines
+        lines = [line for line in lines if bool(line.strip())]
+        assert all([len(line.split()) == 4 for line in lines])

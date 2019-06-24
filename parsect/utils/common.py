@@ -8,6 +8,7 @@ from wasabi import Printer
 import zipfile
 from sys import stdout
 import re
+import pathlib
 
 
 def convert_sectlabel_to_json(filename: str) -> Dict:
@@ -208,3 +209,48 @@ def convert_generic_sect_to_json(filename: str) -> Dict[str, Any]:
                 file_no += 1
 
     return json_dict
+
+
+def convert_parscit_to_conll(parscit_train_filepath: pathlib.Path) -> List[str]:
+    """
+    Convert the parscit data available at
+    "https://github.com/knmnyn/ParsCit/blob/master/crfpp/traindata/parsCit.train.data"
+    to a CONLL dummy version
+    This is done so that we can use it with AllenNLPs built in data reader called
+    conll2013 dataset reader
+    :param parscit_train_filepath: type: pathlib.Path
+    The path where the train file path is stored
+    :return: None
+    """
+    printer = Printer()
+    conll_lines = []
+    with printer.loading(f"Converting {parscit_train_filepath.name} to conll format"):
+        with open(str(parscit_train_filepath), "r", encoding="utf-8") as fp:
+            for line in fp:
+                if bool(line.strip()):
+                    fields = line.strip().split()
+                    word = fields[0]
+                    tag = fields[-1]
+                    word = word.strip()
+                    tag = tag.strip()
+                    conll_line = " ".join([word] + [tag] * 3)
+                    conll_lines.append(conll_line)
+                else:
+                    conll_lines.append("")
+
+    printer.good(
+        f"Successfully converted {parscit_train_filepath.name} to conll format"
+    )
+    return conll_lines
+
+
+if __name__ == "__main__":
+    import parsect.constants as constants
+
+    PATHS = constants.PATHS
+    DATA_DIR = PATHS["DATA_DIR"]
+    parscit_train_data_file = pathlib.Path(DATA_DIR, "parsCit.train.data")
+    output_train_data_file = pathlib.Path(DATA_DIR, "parscit.train.conll_fmt.data")
+    conll_lines = convert_parscit_to_conll(parscit_train_data_file)
+    with open(output_train_data_file, "w") as fp:
+        fp.writelines("\n".join(conll_lines))
