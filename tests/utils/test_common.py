@@ -22,8 +22,8 @@ def get_generic_sect_json():
 
 @pytest.fixture
 def get_conll_lines():
-    conll_lines = convert_parscit_to_conll(pathlib.Path(PARSCIT_TRAIN_FILE))
-    return conll_lines
+    citation_strings = convert_parscit_to_conll(pathlib.Path(PARSCIT_TRAIN_FILE))
+    return citation_strings
 
 
 class TestCommon:
@@ -234,11 +234,13 @@ class TestCommon:
         assert len(list(keywords_lines)) == 0
 
     def test_convert_parscit_to_conll_format_gets_data(self, get_conll_lines):
-        lines = get_conll_lines
-        lines = [bool(line.strip()) for line in lines]
+        citations = get_conll_lines
+        lines = [bool(citation["citation_string"].strip()) for citation in citations]
         assert sum(lines) > 0
 
     def test_convert_parscit_conll_has_4_columns(self, get_conll_lines):
-        lines = get_conll_lines
-        lines = [line for line in lines if bool(line.strip())]
+        citations = get_conll_lines
+        lines = []
+        for citation in citations:
+            lines.extend(citation["word_tags"])
         assert all([len(line.split()) == 4 for line in lines])

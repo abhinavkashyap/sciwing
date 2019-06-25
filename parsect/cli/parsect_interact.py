@@ -189,7 +189,9 @@ class ParsectCli:
             with self.msg_printer.loading(
                 f"Downloading experiment {exp_choice} from s3"
             ):
-                self.s3util.download_folder(exp_choice)
+                self.s3util.download_folder(
+                    exp_choice, download_only_best_checkpoint=True
+                )
         return str(output_dirpath.joinpath(exp_choice_path))
 
     def get_experiments_folder_names(self) -> List[str]:
@@ -217,10 +219,25 @@ class ParsectCli:
 
     def generate_report(self):
         experiment_dirnames = self.get_experiments_folder_names()
+
+        if len(experiment_dirnames) == 0:
+            self.msg_printer.fail(
+                f"There are no experiments for the model type {self.model_type_answer}"
+            )
+            exit(1)
+
         all_fscores = {}
         row_names = None
         for exp_dirname in experiment_dirnames:
             folder_path = pathlib.Path(OUTPUT_DIR, exp_dirname)
+            if not folder_path.is_dir():
+                with self.msg_printer.loading(
+                    f"Downloading experiment {exp_dirname} from s3"
+                ):
+                    self.s3util.download_folder(
+                        exp_dirname, download_only_best_checkpoint=True
+                    )
+
             inference_func = self.model_type2inf_func[self.model_type_answer]
             inference_client = inference_func(str(folder_path))
             fscores, row_names = inference_client.generate_report_for_paper()

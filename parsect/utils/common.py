@@ -9,6 +9,12 @@ import zipfile
 from sys import stdout
 import re
 import pathlib
+from sklearn.model_selection import KFold
+import numpy as np
+import parsect.constants as constants
+
+PATHS = constants.PATHS
+DATA_DIR = PATHS["DATA_DIR"]
 
 
 def convert_sectlabel_to_json(filename: str) -> Dict:
@@ -211,7 +217,9 @@ def convert_generic_sect_to_json(filename: str) -> Dict[str, Any]:
     return json_dict
 
 
-def convert_parscit_to_conll(parscit_train_filepath: pathlib.Path) -> List[str]:
+def convert_parscit_to_conll(
+    parscit_train_filepath: pathlib.Path
+) -> List[Dict[str, Any]]:
     """
     Convert the parscit data available at
     "https://github.com/knmnyn/ParsCit/blob/master/crfpp/traindata/parsCit.train.data"
@@ -223,7 +231,9 @@ def convert_parscit_to_conll(parscit_train_filepath: pathlib.Path) -> List[str]:
     :return: None
     """
     printer = Printer()
-    conll_lines = []
+    citation_string = []
+    word_tags = []
+    output_list = []
     with printer.loading(f"Converting {parscit_train_filepath.name} to conll format"):
         with open(str(parscit_train_filepath), "r", encoding="utf-8") as fp:
             for line in fp:
@@ -232,25 +242,76 @@ def convert_parscit_to_conll(parscit_train_filepath: pathlib.Path) -> List[str]:
                     word = fields[0]
                     tag = fields[-1]
                     word = word.strip()
-                    tag = tag.strip()
-                    conll_line = " ".join([word] + [tag] * 3)
-                    conll_lines.append(conll_line)
+                    tag = f"B-{tag.strip()}"
+                    word_tag = " ".join([word] + [tag] * 3)
+                    citation_string.append(word)
+                    word_tags.append(word_tag)
                 else:
-                    conll_lines.append("")
+                    citation_string = " ".join(citation_string)
+                    output_list.append(
+                        {"word_tags": word_tags, "citation_string": citation_string}
+                    )
+                    citation_string = []
+                    word_tags = []
 
     printer.good(
         f"Successfully converted {parscit_train_filepath.name} to conll format"
     )
-    return conll_lines
+    return output_list
+
+
+def write_nfold_parscit_train_test(
+    parscit_train_filepath: pathlib.Path, nsplits: int = 2
+) -> bool:
+    """
+    This method writes different train and test citations file that can be given
+    to conll2013 dataset reader of allennlp
+    This method is mainly used to train the lstm-crf model
+    :param parscit_train_filepath: type: pathlib.Path
+    :param nsplits: type: int
+    Number of kfold splits.
+    :return: bool
+    Indicates that the file has been written
+    """
+    citations = convert_parscit_to_conll(parscit_train_filepath=parscit_train_filepath)
+    len_citations = len(citations)
+    kf = KFold(n_splits=nsplits, shuffle=True, random_state=1729)
+    splits = kf.split(np.arange(len_citations))
+    data_dir = pathlib.Path(DATA_DIR)
+
+    train_conll_citations_path = data_dir.joinpath("parscit_train_conll.txt")
+    test_conll_citations_path = data_dir.joinpath("parscit_test_conll.txt")
+
+    for train_indices, test_indices in splits:
+        train_citations = [citations[train_idx] for train_idx in train_indices]
+        test_citations = [citations[test_idx] for test_idx in test_indices]
+
+        # write the file
+        with open(train_conll_citations_path, "w") as fp:
+            for train_citation in train_citations:
+                word_tags = train_citation["word_tags"]
+                fp.write("\n".join(word_tags))
+                fp.write("\n \n")
+
+        with open(test_conll_citations_path, "w") as fp:
+            for test_citation in test_citations:
+                word_tags = test_citation["word_tags"]
+                fp.write("\n".join(word_tags))
+                fp.write("\n \n")
+
+        yield True
 
 
 if __name__ == "__main__":
     import parsect.constants as constants
 
-    PATHS = constants.PATHS
-    DATA_DIR = PATHS["DATA_DIR"]
     parscit_train_data_file = pathlib.Path(DATA_DIR, "parsCit.train.data")
     output_train_data_file = pathlib.Path(DATA_DIR, "parscit.train.conll_fmt.data")
-    conll_lines = convert_parscit_to_conll(parscit_train_data_file)
-    with open(output_train_data_file, "w") as fp:
-        fp.writelines("\n".join(conll_lines))
+    conll_citations = convert_parscit_to_conll(parscit_train_data_file)
+    print(len(conll_citations))
+    print(f"Example citation string: {conll_citations[0]['citation_string']}")
+
+    for is_success in write_nfold_parscit_train_test(
+        parscit_train_filepath=parscit_train_data_file
+    ):
+        print(f"Wrote the train test conll parscit file successfully? {is_success}")

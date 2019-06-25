@@ -32,7 +32,7 @@ python ${SCRIPT_FILE} \
 --bs 32 \
 --emb_type random \
 --emb_dim 100 \
---hidden_dim 100h \
+--hidden_dim 100 \
 --lr 1e-3 \
 --bidirectional \
 --combine_strategy concat \

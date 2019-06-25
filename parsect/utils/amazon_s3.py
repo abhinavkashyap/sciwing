@@ -119,14 +119,11 @@ class S3Util:
             raise FileNotFoundError(f"Failed to find folder {folder_name_s3}")
 
         for key in bucket.objects.filter(Prefix=folder_name_s3):
-            print(key.key)
             if not os.path.exists(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}"):
                 os.makedirs(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}")
             if download_only_best_checkpoint:
                 if re.search(chkpoints_foldername, key.key):
-                    print("found checkopints folder")
                     if re.search(best_model_filename, key.key):
-                        print("downloading best model")
                         bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
                 else:
                     bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
