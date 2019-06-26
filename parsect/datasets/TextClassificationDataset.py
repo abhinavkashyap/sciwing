@@ -99,8 +99,9 @@ class TextClassificationDataset(metaclass=ABCMeta):
             "for dataset types: {0}".format(self.allowable_dataset_types)
         )
 
+    @staticmethod
     @abstractmethod
-    def get_label_mapping(self) -> Dict[str, int]:
+    def get_classname2idx() -> Dict[str, int]:
         pass
 
     @abstractmethod

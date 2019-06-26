@@ -3,7 +3,6 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
-import multiprocessing
 from typing import Iterator, Callable, Any, List
 from parsect.meters.loss_meter import LossMeter
 import os
@@ -98,8 +97,7 @@ class Engine:
 
         self.num_workers = 0
 
-        # TODO: ensure get_label_mapping on all datasets using abc (maybe)
-        self.labelname2idx_mapping = self.train_dataset.get_label_mapping()
+        self.labelname2idx_mapping = self.train_dataset.get_classname2idx()
         self.idx2labelname_mapping = {
             idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
         }

@@ -22,6 +22,9 @@ def setup_engine_test_with_simple_classifier(tmpdir):
     MAX_LENGTH = 50
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
     DEBUG = True
+    BATCH_SIZE = 1
+    NUM_TOKENS = 3
+    EMB_DIM = 300
 
     train_dataset = ParsectDataset(
         secthead_label_file=SECT_LABEL_FILE,
@@ -30,6 +33,8 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
         debug=DEBUG,
+        embedding_type="random",
+        embedding_dimension=EMB_DIM,
     )
 
     validation_dataset = ParsectDataset(
@@ -39,6 +44,8 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
         debug=DEBUG,
+        embedding_type="random",
+        embedding_dimension=EMB_DIM,
     )
 
     test_dataset = ParsectDataset(
@@ -48,11 +55,10 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         max_length=MAX_LENGTH,
         vocab_store_location=vocab_store_location,
         debug=DEBUG,
+        embedding_type="random",
+        embedding_dimension=EMB_DIM,
     )
 
-    BATCH_SIZE = 1
-    NUM_TOKENS = 3
-    EMB_DIM = 300
     VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.vocab.special_vocab)
     NUM_CLASSES = train_dataset.get_num_classes()
     NUM_EPOCHS = 1
@@ -130,7 +136,7 @@ class TestEngine:
 
         assert len(set(len_tokens)) == 1
 
-    def test_test_loader_gets_equal_length_tokens(
+    def test_loader_gets_equal_length_tokens(
         self, setup_engine_test_with_simple_classifier
     ):
         engine, tokens, labels, options = setup_engine_test_with_simple_classifier

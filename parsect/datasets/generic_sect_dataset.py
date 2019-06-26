@@ -59,7 +59,7 @@ class GenericSectDataset(Dataset, TextClassificationDataset):
         self.msg_printer = wasabi.Printer()
         self.add_start_end_token = add_start_end_token
 
-        self.label2idx = self.get_label_mapping()
+        self.label2idx = self.get_classname2idx()
         self.idx2label = {idx: class_name for class_name, idx in self.label2idx.items()}
 
         self.generic_sect_json = convert_generic_sect_to_json(self.filename)
@@ -144,7 +144,7 @@ class GenericSectDataset(Dataset, TextClassificationDataset):
         return self.vocab.load_embedding()
 
     @staticmethod
-    def get_label_mapping() -> Dict[str, int]:
+    def get_classname2idx() -> Dict[str, int]:
         categories = [
             "abstract",
             "categories-and-subject-descriptors",

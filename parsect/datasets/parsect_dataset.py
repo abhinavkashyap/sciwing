@@ -102,7 +102,7 @@ class ParsectDataset(Dataset, TextClassificationDataset):
             tokenizer=tokenizer,
             tokenization_type=tokenization_type,
         )
-        self.classname2idx = self.get_label_mapping()
+        self.classname2idx = self.get_classname2idx()
         self.idx2classname = {
             idx: classname for classname, idx in self.classname2idx.items()
         }
@@ -277,7 +277,7 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         return texts, labels
 
     @staticmethod
-    def get_label_mapping() -> Dict[str, int]:
+    def get_classname2idx() -> Dict[str, int]:
         categories = [
             "address",
             "affiliation",

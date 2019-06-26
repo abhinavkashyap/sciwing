@@ -242,7 +242,7 @@ def convert_parscit_to_conll(
                     word = fields[0]
                     tag = fields[-1]
                     word = word.strip()
-                    tag = f"B-{tag.strip()}"
+                    tag = f"{tag.strip()}"
                     word_tag = " ".join([word] + [tag] * 3)
                     citation_string.append(word)
                     word_tags.append(word_tag)

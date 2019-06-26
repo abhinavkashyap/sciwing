@@ -79,7 +79,7 @@ class ParsectInference:
                 "check this behaviour"
             )
 
-        self.labelname2idx_mapping = self.test_dataset.get_label_mapping()
+        self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
         self.idx2labelname_mapping = {
             idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
         }

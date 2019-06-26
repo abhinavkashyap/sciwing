@@ -102,7 +102,7 @@ def setup_parsect_train_dataset_bert_tokenizer(tmpdir):
 class TestParsectDataset:
     def test_label_mapping_len(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
-        label_mapping = train_dataset.get_label_mapping()
+        label_mapping = train_dataset.get_classname2idx()
         assert len(label_mapping) == 23
 
     def test_no_line_empty(self, setup_parsect_train_dataset):
