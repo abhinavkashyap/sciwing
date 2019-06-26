@@ -123,7 +123,9 @@ class TestGenericSectDataset:
         (train_headers, train_labels), (valid_headers, valid_labels), (
             test_headers,
             test_labels,
-        ) = dataset.get_train_valid_test_split(headers, labels)
+        ) = dataset.get_train_valid_test_stratified_split(
+            headers, labels, dataset.label2idx
+        )
 
         assert len(train_headers) == 80
         assert len(train_labels) == 80
@@ -140,32 +142,32 @@ class TestGenericSectDataset:
 
     def test_no_train_header_empty(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
-        headers, labels = dataset.get_header_labels()
+        headers, labels = dataset.get_lines_labels()
         assert all([bool(header.strip()) for header in headers])
 
     def test_no_train_label_empty(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
-        headers, labels = dataset.get_header_labels()
+        headers, labels = dataset.get_lines_labels()
         assert all([bool(label.strip()) for label in labels])
 
     def test_no_valid_header_empty(self, setup_generic_sect_valid_dataset):
         dataset, options = setup_generic_sect_valid_dataset
-        headers, labels = dataset.get_header_labels()
+        headers, labels = dataset.get_lines_labels()
         assert all([bool(header.strip()) for header in headers])
 
     def test_no_valid_label_empty(self, setup_generic_sect_valid_dataset):
         dataset, options = setup_generic_sect_valid_dataset
-        headers, labels = dataset.get_header_labels()
+        headers, labels = dataset.get_lines_labels()
         assert all([bool(label.strip()) for label in labels])
 
     def test_no_test_header_empty(self, setup_generic_sect_test_dataset):
         dataset, options = setup_generic_sect_test_dataset
-        headers, labels = dataset.get_header_labels()
+        headers, labels = dataset.get_lines_labels()
         assert all([bool(header.strip()) for header in headers])
 
     def test_no_test_label_empty(self, setup_generic_sect_test_dataset):
         dataset, options = setup_generic_sect_test_dataset
-        headers, labels = dataset.get_header_labels()
+        headers, labels = dataset.get_lines_labels()
         assert all([bool(label.strip()) for label in labels])
 
     def test_embedding_has_values(self, setup_generic_sect_train_dataset):

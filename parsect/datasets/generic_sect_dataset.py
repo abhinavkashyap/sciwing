@@ -10,9 +10,10 @@ from parsect.numericalizer.numericalizer import Numericalizer
 from parsect.utils.common import pack_to_length
 import torch
 import collections
+from parsect.datasets.TextClassificationDataset import TextClassificationDataset
 
 
-class GenericSectDataset(Dataset):
+class GenericSectDataset(Dataset, TextClassificationDataset):
     def __init__(
         self,
         generic_sect_filename: str,
@@ -31,42 +32,38 @@ class GenericSectDataset(Dataset):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
+        tokenizer=WordTokenizer(),
+        tokenization_type="vanilla",
         add_start_end_token: bool = True,
     ):
-        super(GenericSectDataset, self).__init__()
-        self.generic_sect_filename = generic_sect_filename
-        self.dataset_type = dataset_type
-        self.max_num_words = max_num_words
-        self.max_length = max_length
-        self.vocab_store_location = vocab_store_location
-        self.debug = debug
-        self.debug_dataset_proportion = debug_dataset_proportion
-        self.embedding_type = embedding_type
-        self.embedding_dimension = embedding_dimension
-        self.start_token = start_token
-        self.end_token = end_token
-        self.pad_token = pad_token
-        self.unk_token = unk_token
-        self.train_size = train_size
-        self.validation_size = validation_size
-        self.test_size = test_size
-        self.add_start_end_token = add_start_end_token
+        super(GenericSectDataset, self).__init__(
+            filename=generic_sect_filename,
+            dataset_type=dataset_type,
+            max_num_words=max_num_words,
+            max_length=max_length,
+            vocab_store_location=vocab_store_location,
+            debug=debug,
+            debug_dataset_proportion=debug_dataset_proportion,
+            embedding_type=embedding_type,
+            embedding_dimension=embedding_dimension,
+            start_token=start_token,
+            end_token=end_token,
+            pad_token=pad_token,
+            unk_token=unk_token,
+            train_size=train_size,
+            test_size=test_size,
+            validation_size=validation_size,
+            tokenizer=tokenizer,
+            tokenization_type=tokenization_type,
+        )
         self.msg_printer = wasabi.Printer()
-
-        self.word_tokenizer = WordTokenizer()
-
-        self.allowable_dataset_types = ["train", "valid", "test"]
-        assert (
-            self.dataset_type in self.allowable_dataset_types
-        ), f"You can pass one of these for dataset type {self.allowable_dataset_types}"
+        self.add_start_end_token = add_start_end_token
 
         self.label2idx = self.get_label_mapping()
         self.idx2label = {idx: class_name for class_name, idx in self.label2idx.items()}
 
-        self.generic_sect_json = convert_generic_sect_to_json(
-            self.generic_sect_filename
-        )
-        self.headers, self.labels = self.get_header_labels()
+        self.generic_sect_json = convert_generic_sect_to_json(self.filename)
+        self.headers, self.labels = self.get_lines_labels()
         self.instances = self.tokenize(self.headers)
 
         self.vocab = Vocab(
@@ -76,7 +73,7 @@ class GenericSectDataset(Dataset):
             pad_token=self.pad_token,
             start_token=self.start_token,
             end_token=self.end_token,
-            store_location=self.vocab_store_location,
+            store_location=self.store_location,
             embedding_type=self.embedding_type,
             embedding_dimension=self.embedding_dimension,
         )
@@ -118,7 +115,7 @@ class GenericSectDataset(Dataset):
 
         return instance_dict
 
-    def get_header_labels(self) -> (List[str], List[str]):
+    def get_lines_labels(self) -> (List[str], List[str]):
         headers = []
         labels = []
 
@@ -134,7 +131,7 @@ class GenericSectDataset(Dataset):
         (train_headers, train_labels), (valid_headers, valid_labels), (
             test_headers,
             test_labels,
-        ) = self.get_train_valid_test_split(headers, labels)
+        ) = self.get_train_valid_test_stratified_split(headers, labels, self.label2idx)
 
         if self.dataset_type == "train":
             return train_headers, train_labels
@@ -166,78 +163,6 @@ class GenericSectDataset(Dataset):
         categories = [(category, idx) for idx, category in enumerate(categories)]
         categories = dict(categories)
         return categories
-
-    def get_train_valid_test_split(
-        self, headers: List[str], labels: List[str]
-    ) -> ((List[str], List[str]), (List[str], List[str]), (List[str], List[str])):
-
-        len_headers = len(headers)
-        len_labels = len(labels)
-
-        assert len_headers == len_labels
-
-        train_test_splitter = StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=self.test_size,
-            train_size=self.train_size,
-            random_state=1729,
-        )
-        features = np.random.rand(len_headers)
-        labels_idx_array = np.array([self.label2idx[label] for label in labels])
-
-        splits = list(train_test_splitter.split(features, labels_idx_array))
-        train_indices, test_valid_indices = splits[0]
-
-        train_headers = [headers[idx] for idx in train_indices]
-        train_labels = [labels[idx] for idx in train_indices]
-
-        test_valid_headers = [headers[idx] for idx in test_valid_indices]
-        test_valid_labels = [labels[idx] for idx in test_valid_indices]
-
-        # further split into validation set
-        validation_test_splitter = StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=self.validation_size,
-            train_size=1 - self.validation_size,
-            random_state=1729,
-        )
-        len_test_valid_headers = len(test_valid_headers)
-        len_test_valid_labels = len(test_valid_labels)
-        assert len_test_valid_headers == len_test_valid_labels
-
-        test_valid_features = np.random.rand(len_test_valid_labels)
-        test_valid_labels_idx_array = np.array(
-            [self.label2idx[label] for label in test_valid_labels]
-        )
-
-        test_valid_splits = list(
-            validation_test_splitter.split(
-                test_valid_features, test_valid_labels_idx_array
-            )
-        )
-        test_indices, validation_indices = test_valid_splits[0]
-
-        test_headers = [test_valid_headers[idx] for idx in test_indices]
-        test_labels = [test_valid_labels[idx] for idx in test_indices]
-
-        validation_headers = [test_valid_headers[idx] for idx in validation_indices]
-        validation_labels = [test_valid_labels[idx] for idx in validation_indices]
-
-        return (
-            (train_headers, train_labels),
-            (validation_headers, validation_labels),
-            (test_headers, test_labels),
-        )
-
-    def tokenize(self, headers: List[str]) -> List[List[str]]:
-        """
-
-        :param headers: type: List[str]
-        Header strings that will be tokenized
-        :return: instances type: List[List[str]]
-        """
-        instances = self.word_tokenizer.tokenize_batch(headers)
-        return instances
 
     def get_stats(self):
         """

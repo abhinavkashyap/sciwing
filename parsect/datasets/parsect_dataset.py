@@ -1,6 +1,5 @@
 import torch
 import wasabi
-import numpy as np
 import collections
 from torch.utils.data import Dataset
 from typing import List, Dict, Union, Any
@@ -10,16 +9,16 @@ from parsect.utils.common import pack_to_length
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.numericalizer.numericalizer import Numericalizer
-from sklearn.model_selection import StratifiedShuffleSplit
 from wasabi import Printer
 import numpy as np
 from deprecated import deprecated
+from parsect.datasets.TextClassificationDataset import TextClassificationDataset
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-class ParsectDataset(Dataset):
+class ParsectDataset(Dataset, TextClassificationDataset):
     def __init__(
         self,
         secthead_label_file: str,
@@ -61,10 +60,6 @@ class ParsectDataset(Dataset):
         will be used for debug purposes
         :param embedding_type: type: str
         Pre-loaded embedding type to load.
-        :param return_instances: type: bool
-        If this is set, instead of numericalizing the instances,
-        the instances themselves will be returned from __get_item__
-        This is helpful in some cases like Elmo encoder that expect a list of sentences
         :param start_token: type: str
         The start token is the token appended to the beginning of the list of tokens
         :param end_token: type: str
@@ -87,40 +82,35 @@ class ParsectDataset(Dataset):
         The default is WordTokenizer()
         If bert, then bert tokenization is performed and additional fields will be included in the output
         """
-        self.dataset_type = dataset_type
-        self.secthead_label_file = secthead_label_file
-        self.max_num_words = max_num_words
-        self.max_length = max_length
-        self.store_location = vocab_store_location
-        self.debug = debug
-        self.debug_dataset_proportion = debug_dataset_proportion
-        self.embedding_type = embedding_type
-        self.embedding_dimension = embedding_dimension
-        self.start_token = start_token
-        self.end_token = end_token
-        self.pad_token = pad_token
-        self.unk_token = unk_token
-        self.train_size = train_size
-        self.validation_size = validation_size
-        self.test_size = test_size
-        self.tokenizer = tokenizer
-        self.tokenization_type = tokenization_type
+        super(ParsectDataset, self).__init__(
+            filename=secthead_label_file,
+            dataset_type=dataset_type,
+            max_num_words=max_num_words,
+            max_length=max_length,
+            vocab_store_location=vocab_store_location,
+            debug=debug,
+            debug_dataset_proportion=debug_dataset_proportion,
+            embedding_type=embedding_type,
+            embedding_dimension=embedding_dimension,
+            start_token=start_token,
+            end_token=end_token,
+            pad_token=pad_token,
+            unk_token=unk_token,
+            train_size=train_size,
+            test_size=test_size,
+            validation_size=validation_size,
+            tokenizer=tokenizer,
+            tokenization_type=tokenization_type,
+        )
         self.classname2idx = self.get_label_mapping()
         self.idx2classname = {
             idx: classname for classname, idx in self.classname2idx.items()
         }
-        self.allowable_dataset_types = ["train", "valid", "test"]
+
         self.msg_printer = Printer()
 
-        self.msg_printer.divider("{0} DATASET".format(self.dataset_type.upper()))
-
-        assert self.dataset_type in self.allowable_dataset_types, (
-            "You can Pass one of these "
-            "for dataset types: {0}".format(self.allowable_dataset_types)
-        )
-
-        self.parsect_json = convert_sectlabel_to_json(self.secthead_label_file)
-        self.lines, self.labels = self.get_lines_labels_stratified()
+        self.parsect_json = convert_sectlabel_to_json(self.filename)
+        self.lines, self.labels = self.get_lines_labels()
         self.instances = self.tokenize(self.lines)
 
         self.vocab = Vocab(
@@ -185,7 +175,7 @@ class ParsectDataset(Dataset):
         return instance_dict
 
     @deprecated(reason="Deprecated because of bad train-valid-test split.")
-    def get_lines_labels(self) -> (List[str], List[str]):
+    def get_lines_labels_deprecated(self) -> (List[str], List[str]):
         """
         Returns the appropriate lines depending on the type of dataset
         :return:
@@ -239,7 +229,7 @@ class ParsectDataset(Dataset):
 
         return texts, labels
 
-    def get_lines_labels_stratified(self) -> (List[str], List[str]):
+    def get_lines_labels(self) -> (List[str], List[str]):
         texts = []
         labels = []
         parsect_json = self.parsect_json["parse_sect"]
@@ -254,7 +244,9 @@ class ParsectDataset(Dataset):
         (train_lines, train_labels), (validation_lines, validation_labels), (
             test_lines,
             test_labels,
-        ) = self.get_train_valid_test_split(texts, labels)
+        ) = self.get_train_valid_test_stratified_split(
+            texts, labels, self.classname2idx
+        )
 
         if self.dataset_type == "train":
             texts = train_lines
@@ -283,15 +275,6 @@ class ParsectDataset(Dataset):
             labels = sample_labels
 
         return texts, labels
-
-    def tokenize(self, lines: List[str]) -> List[List[str]]:
-        """
-        :param lines: type: List[str]
-        These are text spans that will be tokenized
-        :return: instances type: List[List[str]]
-        """
-        instances = list(map(lambda line: self.tokenizer.tokenize(line), lines))
-        return instances
 
     @staticmethod
     def get_label_mapping() -> Dict[str, int]:
@@ -370,104 +353,3 @@ class ParsectDataset(Dataset):
 
     def get_preloaded_embedding(self) -> torch.FloatTensor:
         return self.vocab.load_embedding()
-
-    def get_train_valid_test_split(
-        self, lines: List[str], labels: List[str]
-    ) -> ((List[str], List[str]), (List[str], List[str]), (List[str], List[str])):
-        len_lines = len(lines)
-        len_labels = len(labels)
-
-        assert len_lines == len_labels
-
-        train_test_spliiter = StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=self.test_size,
-            train_size=self.train_size,
-            random_state=1729,
-        )
-
-        features = np.random.rand(len_lines)
-        labels_idx_array = np.array([self.classname2idx[label] for label in labels])
-
-        splits = list(train_test_spliiter.split(features, labels_idx_array))
-        train_indices, test_valid_indices = splits[0]
-
-        train_lines = [lines[idx] for idx in train_indices]
-        train_labels = [labels[idx] for idx in train_indices]
-
-        test_valid_lines = [lines[idx] for idx in test_valid_indices]
-        test_valid_labels = [labels[idx] for idx in test_valid_indices]
-
-        validation_test_splitter = StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=self.validation_size,
-            train_size=1 - self.validation_size,
-            random_state=1729,
-        )
-
-        len_test_valid_lines = len(test_valid_lines)
-        len_test_valid_labels = len(test_valid_labels)
-
-        assert len_test_valid_labels == len_test_valid_lines
-
-        test_valid_features = np.random.rand(len_test_valid_lines)
-        test_valid_labels_idx_array = np.array(
-            [self.classname2idx[label] for label in test_valid_labels]
-        )
-
-        test_valid_splits = list(
-            validation_test_splitter.split(
-                test_valid_features, test_valid_labels_idx_array
-            )
-        )
-        test_indices, validation_indices = test_valid_splits[0]
-
-        test_lines = [test_valid_lines[idx] for idx in test_indices]
-        test_labels = [test_valid_labels[idx] for idx in test_indices]
-
-        validation_lines = [test_valid_lines[idx] for idx in validation_indices]
-        validation_labels = [test_valid_labels[idx] for idx in validation_indices]
-
-        return (
-            (train_lines, train_labels),
-            (validation_lines, validation_labels),
-            (test_lines, test_labels),
-        )
-
-
-if __name__ == "__main__":
-    import os
-    from pytorch_pretrained_bert.tokenization import BertTokenizer
-
-    vocab_store_location = os.path.join(".", "vocab.json")
-    DEBUG = True
-    MAX_NUM_WORDS = 500
-    MAX_LENGTH = 10
-    DEBUG_DATASET_PROPORTION = 0.1
-
-    train_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
-        dataset_type="train",
-        max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        train_size=0.8,
-        test_size=0.2,
-        validation_size=0.5,
-        tokenization_type="bert",
-        tokenizer=BertTokenizer.from_pretrained("bert-base-cased"),
-        start_token="[CLS]",
-        end_token="[SEP]",
-        pad_token="[PAD]",
-    )
-
-    train_dataset.get_stats()
-
-    idx = 1000
-    print(f"bert tokens: {train_dataset[idx]['bert_tokens']}")
-    print(f"raw instance: {train_dataset[idx]['raw_instance']}")
-    print(f"segment ids: {train_dataset[idx]['segment_ids']}")
-
-    os.remove(vocab_store_location)

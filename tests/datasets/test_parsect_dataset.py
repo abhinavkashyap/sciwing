@@ -170,7 +170,9 @@ class TestParsectDataset:
             (train_lines, train_labels),
             (validation_lines, validation_labels),
             (test_lines, test_labels),
-        ) = dataset.get_train_valid_test_split(lines, labels)
+        ) = dataset.get_train_valid_test_stratified_split(
+            lines, labels, dataset.classname2idx
+        )
 
         assert len(train_lines) == 80
         assert len(train_labels) == 80
@@ -183,7 +185,7 @@ class TestParsectDataset:
         dataset, options = setup_parsect_train_dataset
         dataset.debug_dataset_proportion = 1
 
-        lines, labels = dataset.get_lines_labels_stratified()
+        lines, labels = dataset.get_lines_labels()
         assert all([bool(line.strip()) for line in lines])
         assert all([bool(label.strip()) for label in labels])
 
@@ -191,7 +193,7 @@ class TestParsectDataset:
         self, setup_parsect_train_dataset_bert_tokenizer
     ):
         dataset, options = setup_parsect_train_dataset_bert_tokenizer
-        lines, labels = dataset.get_lines_labels_stratified()
+        lines, labels = dataset.get_lines_labels()
         assert all([bool(line.strip()) for line in lines])
         assert all([bool(label.strip()) for label in labels])
 
