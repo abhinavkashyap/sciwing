@@ -13,7 +13,7 @@ class Lstm2SeqEncoder(nn.Module):
         bidirectional: bool = False,
         combine_strategy: str = "concat",
         rnn_bias: bool = False,
-        device=torch.device("cpu"),
+        device: torch.device = torch.device("cpu"),
     ):
         """
         :param emb_dim: type: int
@@ -85,7 +85,6 @@ class Lstm2SeqEncoder(nn.Module):
             output = output.view(batch_size, seq_length, 2, -1)
             forward_output = output[:, :, 0, :]  # batch_size, seq_length, hidden_dim
             backward_output = output[:, :, 1, :]  # batch_size, seq_length, hidden_dim
-            print(f"forward output size {forward_output.size()}")
             if self.combine_strategy == "concat":
                 encoding = torch.cat([forward_output, backward_output], dim=2)
             elif self.combine_strategy == "sum":

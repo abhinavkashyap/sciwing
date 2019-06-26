@@ -46,7 +46,7 @@ class ParscitTagger(nn.Module):
         }
 
         if is_training or is_validation:
-            loss = self.crf(logits, labels)
+            loss = -self.crf(logits, labels)
             output_dict["loss"] = loss
 
         return output_dict

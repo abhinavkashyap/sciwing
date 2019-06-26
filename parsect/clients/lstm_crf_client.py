@@ -1,38 +1,39 @@
-from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.generic_sect_dataset import GenericSectDataset
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.models.parscit_tagger import ParscitTagger
+from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
+from parsect.datasets.parscit_dataset import ParscitDataset
+from parsect.utils.common import write_nfold_parscit_train_test
 import parsect.constants as constants
 import os
-import torch.nn as nn
-
+import torch
 import torch.optim as optim
 from parsect.engine.engine import Engine
 import json
 import argparse
-import torch
+import pathlib
+import torch.nn as nn
 
 FILES = constants.FILES
 PATHS = constants.PATHS
 
-GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
+PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 CONFIGS_DIR = PATHS["CONFIGS_DIR"]
+DATA_DIR = PATHS["DATA_DIR"]
 
 if __name__ == "__main__":
     # read the hyperparams from config file
     parser = argparse.ArgumentParser(
-        description="LSTM encoder with linear classifier"
-        "with initial random word embeddings"
+        description="LSTM CRF Parscit tagger for reference string parsing"
     )
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
     parser.add_argument(
-        "--device", help="Adding which device to run the experiment on", type=str
-    )
-    parser.add_argument(
         "--max_num_words",
         help="Maximum number of words to be considered " "in the vocab",
         type=int,
+    )
+    parser.add_argument(
+        "--max_len", help="Maximum length of sentences to be considered", type=int
     )
 
     parser.add_argument(
@@ -61,13 +62,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--emb_type",
         help="The type of glove embedding you want. The allowed types are glove_6B_50, glove_6B_100, "
-        "glove_6B_200, glove_6B_300, random",
+        "glove_6B_200, glove_6B_300",
     )
     parser.add_argument(
-        "--hidden_dim", help="Hidden dimension of the LSTM network", type=int
-    )
-    parser.add_argument(
-        "--max_length", help="Maximum length of the inputs to the encoder", type=int
+        "--hidden_dim", help="Hidden dimension of the lstm encoder", type=int
     )
     parser.add_argument(
         "--bidirectional",
@@ -79,29 +77,30 @@ if __name__ == "__main__":
         help="How do you want to combine the hidden dimensions of the two "
         "combinations",
     )
+
+    parser.add_argument("--device", help="Device on which the model is run", type=str)
     args = parser.parse_args()
+
     config = {
         "EXP_NAME": args.exp_name,
-        "DEVICE": args.device,
-        "MAX_NUM_WORDS": args.max_num_words,
-        "MAX_LENGTH": args.max_length,
         "DEBUG": args.debug,
         "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
         "BATCH_SIZE": args.bs,
-        "EMBEDDING_TYPE": args.emb_type,
         "EMBEDDING_DIMENSION": args.emb_dim,
-        "HIDDEN_DIMENSION": args.hidden_dim,
         "LEARNING_RATE": args.lr,
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
-        "RETURN_INSTANCES": args.return_instances,
-        "BIDIRECTIONAL": bool(args.bidirectional),
+        "EMBEDDING_TYPE": args.emb_type,
+        "MAX_NUM_WORDS": args.max_num_words,
+        "MAX_LENGTH": args.max_len,
+        "DEVICE": args.device,
+        "HIDDEN_DIM": args.hidden_dim,
+        "BIDIRECTIONAL": args.bidirectional,
         "COMBINE_STRATEGY": args.combine_strategy,
     }
 
     EXP_NAME = config["EXP_NAME"]
-    DEVICE = config["DEVICE"]
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
     if not os.path.isdir(EXP_DIR_PATH):
@@ -111,25 +110,29 @@ if __name__ == "__main__":
         os.mkdir(MODEL_SAVE_DIR)
 
     VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "vocab.json")
-    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
-    MAX_LENGTH = config["MAX_LENGTH"]
-    EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
-    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     DEBUG = config["DEBUG"]
     DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
     BATCH_SIZE = config["BATCH_SIZE"]
-    HIDDEN_DIMENSION = config["HIDDEN_DIMENSION"]
     LEARNING_RATE = config["LEARNING_RATE"]
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    RETURN_INSTANCES = config["RETURN_INSTANCES"]
+    EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
+    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
+    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
+    MAX_LENGTH = config["MAX_LENGTH"]
+    DEVICE = config["DEVICE"]
+    HIDDEN_DIM = config["HIDDEN_DIM"]
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
+    train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+    test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
-    train_dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+    next(write_nfold_parscit_train_test(pathlib.Path(PARSCIT_TRAIN_FILE)))
+
+    train_dataset = ParscitDataset(
+        parscit_conll_file=str(train_conll_filepath),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
@@ -138,10 +141,14 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
+        start_token="<SOS>",
+        end_token="<EOS>",
+        pad_token="<PAD>",
+        unk_token="<UNK>",
     )
 
-    validation_dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+    validation_dataset = ParscitDataset(
+        parscit_conll_file=str(test_conll_filepath),
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
@@ -150,11 +157,15 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
+        start_token="<SOS>",
+        end_token="<EOS>",
+        pad_token="<PAD>",
+        unk_token="<UNK>",
     )
 
-    test_dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
-        dataset_type="test",
+    test_dataset = ParscitDataset(
+        parscit_conll_file=str(test_conll_filepath),
+        dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
         vocab_store_location=VOCAB_STORE_LOCATION,
@@ -162,28 +173,33 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         embedding_type=EMBEDDING_TYPE,
         embedding_dimension=EMBEDDING_DIMENSION,
+        start_token="<SOS>",
+        end_token="<EOS>",
+        pad_token="<PAD>",
+        unk_token="<UNK>",
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    random_embeddings = train_dataset.get_preloaded_embedding()
-    random_embeddings = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
+    embedding = train_dataset.get_preloaded_embedding()
+    embedding = nn.Embedding.from_pretrained(embedding)
 
-    encoder = LSTM2VecEncoder(
+    lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=random_embeddings,
+        embedding=embedding,
         dropout_value=0.0,
-        hidden_dim=HIDDEN_DIMENSION,
-        combine_strategy=COMBINE_STRATEGY,
+        hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
+        combine_strategy=COMBINE_STRATEGY,
+        rnn_bias=True,
+        device=torch.device(DEVICE),
     )
-
-    classiier_encoding_dim = 2 * HIDDEN_DIMENSION if BIDIRECTIONAL else HIDDEN_DIMENSION
-    model = SimpleClassifier(
-        encoder=encoder,
-        encoding_dim=classiier_encoding_dim,
+    model = ParscitTagger(
+        rnn2seqencoder=lstm2seqencoder,
         num_classes=NUM_CLASSES,
-        classification_layer_bias=True,
+        hid_dim=2 * HIDDEN_DIM
+        if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
+        else HIDDEN_DIM,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)

@@ -277,7 +277,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             tokenized_text=labels_string,
             max_length=self.max_length,
             pad_token="padding",
-            add_start_end_token=self.add_start_end_token,
+            add_start_end_token=False,
             start_token=self.start_token,
             end_token=self.end_token,
         )
