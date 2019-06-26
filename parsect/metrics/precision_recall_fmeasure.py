@@ -91,7 +91,7 @@ class PrecisionRecallFMeasure:
     def print_confusion_metrics(
         self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
     ) -> None:
-
+        labels = labels.view(-1)
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
             "have 2 dimensions. The probs "
@@ -139,6 +139,8 @@ class PrecisionRecallFMeasure:
     def calc_metric(
         self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
     ) -> None:
+
+        labels = labels.view(-1)
 
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -331,22 +333,3 @@ class PrecisionRecallFMeasure:
             fscores = [fscore[class_num] for class_num in class_nums]
             fscores.extend([micro_fscore, macro_fscore])
             return fscores
-
-
-if __name__ == "__main__":
-    predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2], [0.2, 0.5, 0.3]])
-    labels = torch.LongTensor([0, 2])
-    idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
-
-    accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
-
-    accuracy.calc_metric(predicted_probs, labels)
-    metrics_ = accuracy.get_metric()
-    precision_ = metrics_["precision"]
-    recall_ = metrics_["recall"]
-    fscore_ = metrics_["fscore"]
-    print("precision", precision_)
-    print("recall", recall_)
-    print("fmeasure", fscore_)
-
-    print(accuracy.report_metrics())
