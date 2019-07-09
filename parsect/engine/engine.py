@@ -339,8 +339,8 @@ class Engine:
 
         if self.track_for_best == "loss":
             is_best = self.is_best_lower(average_loss)
-            self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
             if is_best:
+                self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
                 self.set_best_track_value(average_loss)
                 torch.save(
                     {

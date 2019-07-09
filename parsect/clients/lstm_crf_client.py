@@ -145,6 +145,7 @@ if __name__ == "__main__":
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
+        add_start_end_token=False,
     )
 
     validation_dataset = ParscitDataset(
@@ -161,6 +162,7 @@ if __name__ == "__main__":
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
+        add_start_end_token=False,
     )
 
     test_dataset = ParscitDataset(
@@ -177,6 +179,7 @@ if __name__ == "__main__":
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
+        add_start_end_token=False,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
