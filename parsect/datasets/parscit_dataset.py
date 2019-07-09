@@ -121,6 +121,8 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             "title": "title",
             "volume": "volume",
             "padding": "padding",
+            "starting": "starting",
+            "ending": "ending",
         }
         self.classnames2idx = self.get_classname2idx()
         self.idx2classname = {
@@ -161,6 +163,8 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             "title",
             "volume",
             "padding",  # adding to give an extra class name to padded tokens
+            "starting",
+            "ending",
         ]
 
         categories = [(category, idx) for idx, category in enumerate(categories)]
@@ -277,9 +281,9 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             tokenized_text=labels_string,
             max_length=self.max_length,
             pad_token="padding",
-            add_start_end_token=False,
-            start_token=self.start_token,
-            end_token=self.end_token,
+            add_start_end_token=self.add_start_end_token,
+            start_token="starting",
+            end_token="ending",
         )
         assert len(padded_instance) == len(padded_labels)
 

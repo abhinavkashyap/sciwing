@@ -59,11 +59,58 @@ def setup_parscit_train_dataset(tmpdir):
     return train_dataset, test_dataset, options
 
 
+@pytest.fixture()
+def setup_parscit_train_dataset_maxlen_2(tmpdir):
+    parscit_train_filepath = pathlib.Path(PARSCIT_TRAIN_FILE)
+    is_write_success = next(write_nfold_parscit_train_test(parscit_train_filepath))
+    train_file = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+    test_file = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
+    DEBUG = True
+    MAX_NUM_WORDS = 10000
+    MAX_LENGTH = 2
+    EMBEDDING_DIM = 100
+    train_dataset = None
+    test_dataset = None
+
+    if is_write_success:
+        train_dataset = ParscitDataset(
+            parscit_conll_file=str(train_file),
+            dataset_type="train",
+            max_num_words=MAX_NUM_WORDS,
+            max_length=MAX_LENGTH,
+            vocab_store_location=vocab_store_location,
+            debug=DEBUG,
+            embedding_type="random",
+            embedding_dimension=EMBEDDING_DIM,
+            add_start_end_token=True,
+        )
+        test_dataset = ParscitDataset(
+            parscit_conll_file=str(test_file),
+            dataset_type="train",
+            max_num_words=MAX_NUM_WORDS,
+            max_length=MAX_LENGTH,
+            vocab_store_location=vocab_store_location,
+            debug=DEBUG,
+            embedding_type="random",
+            embedding_dimension=EMBEDDING_DIM,
+            add_start_end_token=True,
+        )
+
+    options = {
+        "MAX_NUM_WORDS": MAX_NUM_WORDS,
+        "MAX_LENGTH": MAX_LENGTH,
+        "EMBEDDING_DIM": EMBEDDING_DIM,
+    }
+
+    return train_dataset, test_dataset, options
+
+
 class TestParscitDataset:
     def test_num_classes(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
         num_classes = train_dataset.get_num_classes()
-        assert num_classes == 14
+        assert num_classes == 16
 
     def test_lines_labels_not_empty(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
@@ -133,3 +180,13 @@ class TestParscitDataset:
 
         assert instances_dict["tokens"].size() == (2, options["MAX_LENGTH"])
         assert instances_dict["label"].size() == (2, options["MAX_LENGTH"])
+
+    def test_labels_maxlen_2(self, setup_parscit_train_dataset_maxlen_2):
+        train_dataset, test_dataset, options = setup_parscit_train_dataset_maxlen_2
+        instances_dict = train_dataset[0]
+        label = instances_dict["label"].tolist()
+        tokens = instances_dict["tokens"].tolist()
+        label = [train_dataset.idx2classname[lbl] for lbl in label]
+        tokens = [train_dataset.vocab.idx2token[token_idx] for token_idx in tokens]
+        assert label == ["starting", "ending"]
+        assert tokens == ["<SOS>", "<EOS>"]
