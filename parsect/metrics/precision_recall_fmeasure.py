@@ -2,7 +2,6 @@ import torch
 from typing import Dict, Union
 from wasabi import Printer
 from wasabi import table
-from sklearn.metrics import precision_recall_fscore_support
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 from parsect.utils.common import merge_dictionaries_with_sum
@@ -21,72 +20,6 @@ class PrecisionRecallFMeasure:
         self.fp_counter = {}
         self.fn_counter = {}
         self.tn_counter = {}
-
-    def get_overall_accuracy(
-        self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
-    ) -> Dict[str, Dict[int, float]]:
-        """
-        NOTE: Please use this only when you want the precision recall and f measure
-        of the overall dataset.
-        2. If you want to calculate metrics per batch, there is another method
-        in this file which calculates true_positives, false_positives,
-        true_negatives and false negatives per class
-        :param predicted_probs: type: torch.FloatTensor
-                                shape  N * C
-                                N - Batch size
-                                C - Number of classes
-        Predicted Probabilities for different classes
-        :param labels: type: torch.LongTensor
-                      shape: N,
-                      N - batch size
-        The correct class for different instances of the batch
-        :return:
-        """
-        assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
-            "The predicted probs should "
-            "have 2 dimensions. The probs "
-            "that you passed have shape "
-            "{0}".format(predicted_probs.size())
-        )
-
-        assert labels.ndimension() == 1, self.msg_printer.fail(
-            "The labels should have 1 dimension."
-            "The labels that you passed have shape "
-            "{0}".format(labels.size())
-        )
-
-        # TODO: for now k=1, change it to different number of ks
-        top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
-
-        # convert to 1d numpy
-        top_indices_numpy = top_indices.cpu().numpy().ravel()
-
-        # convert labels to 1 dimension
-        labels_numpy = labels.cpu().numpy()
-
-        # average: None gives per class precision, recall, fscore and support
-        precision, recall, fscore, support = precision_recall_fscore_support(
-            labels_numpy, top_indices_numpy, average=None
-        )
-
-        metrics = {}
-
-        classes = unique_labels(labels_numpy, top_indices_numpy)
-        classes = classes.tolist()
-
-        precision_list = precision.tolist()
-        recall_list = recall.tolist()
-        fscore_list = fscore.tolist()
-
-        label_precision_map = dict(zip(classes, precision_list))
-        label_recall_map = dict(zip(classes, recall_list))
-        label_fscore_map = dict(zip(classes, fscore_list))
-
-        metrics["precision"] = label_precision_map
-        metrics["recall"] = label_recall_map
-        metrics["fscore"] = label_fscore_map
-
-        return metrics
 
     def print_confusion_metrics(
         self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
