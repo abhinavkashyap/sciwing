@@ -1,5 +1,5 @@
 import torch
-from typing import Dict, Union
+from typing import Dict, Union, Any
 from wasabi import Printer
 from wasabi import table
 from sklearn.metrics import confusion_matrix
@@ -70,16 +70,20 @@ class PrecisionRecallFMeasure:
         )
 
     def calc_metric(
-        self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
+        self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
     ) -> None:
 
+        normalized_probs = model_forward_dict["normalized_probs"]
+        labels = iter_dict["label"]
         labels = labels.view(-1)
+        normalized_probs = normalized_probs.cpu()
+        labels = labels.cpu()
 
-        assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
+        assert normalized_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
             "have 2 dimensions. The probs "
             "that you passed have shape "
-            "{0}".format(predicted_probs.size())
+            "{0}".format(normalized_probs.size())
         )
 
         assert labels.ndimension() == 1, self.msg_printer.fail(
@@ -89,7 +93,7 @@ class PrecisionRecallFMeasure:
         )
 
         # TODO: for now k=1, change it to different number of ks
-        top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
+        top_probs, top_indices = normalized_probs.topk(k=1, dim=1)
 
         # convert to 1d numpy
         top_indices_numpy = top_indices.cpu().numpy().ravel()

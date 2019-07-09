@@ -98,7 +98,9 @@ class TestAccuracy:
         expected_recall = expected["expected_recall"]
         expected_fmeasure = expected["expected_fscore"]
 
-        accuracy.calc_metric(predicted_probs, labels)
+        iter_dict = {"label": labels}
+        forward_dict = {"normalized_probs": predicted_probs}
+        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         accuracy_metrics = accuracy.get_metric()
 
         precision = accuracy_metrics["precision"]
@@ -120,7 +122,9 @@ class TestAccuracy:
         expected_recall = expected["expected_recall"]
         expected_fscore = expected["expected_fscore"]
 
-        accuracy.calc_metric(predicted_probs, labels)
+        iter_dict = {"label": labels}
+        forward_dict = {"normalized_probs": predicted_probs}
+        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         accuracy_metrics = accuracy.get_metric()
 
         precision = accuracy_metrics["precision"]
@@ -148,7 +152,9 @@ class TestAccuracy:
         expected_micro_recall = expected["expected_micro_recall"]
         expected_micro_fscore = expected["expected_micro_fscore"]
 
-        accuracy.calc_metric(predicted_probs, labels)
+        iter_dict = {"label": labels}
+        forward_dict = {"normalized_probs": predicted_probs}
+        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         metrics = accuracy.get_metric()
 
         macro_precision = metrics["macro_precision"]

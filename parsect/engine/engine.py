@@ -217,7 +217,7 @@ class Engine:
                     iter_dict, is_training=True, is_validation=False, is_test=False
                 )
                 self.train_metric_calc.calc_metric(
-                    model_forward_out["normalized_probs"].cpu(), labels.cpu()
+                    iter_dict=iter_dict, model_forward_dict=model_forward_out
                 )
 
                 try:
@@ -304,8 +304,7 @@ class Engine:
                 loss = model_forward_out["loss"]
                 self.validation_loss_meter.add_loss(loss, batch_size)
                 self.validation_metric_calc.calc_metric(
-                    predicted_probs=model_forward_out["normalized_probs"].cpu(),
-                    labels=labels.cpu(),
+                    iter_dict=iter_dict, model_forward_dict=model_forward_out
                 )
             except StopIteration:
                 self.validation_epoch_end(epoch_num)
@@ -361,15 +360,13 @@ class Engine:
             try:
                 iter_dict = next(test_iter)
                 iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
-                labels = iter_dict["label"]
 
                 with torch.no_grad():
                     model_forward_out = self.model(
                         iter_dict, is_training=False, is_validation=False, is_test=True
                     )
                 self.test_metric_calc.calc_metric(
-                    predicted_probs=model_forward_out["normalized_probs"].cpu(),
-                    labels=labels.cpu(),
+                    iter_dict=iter_dict, model_forward_dict=model_forward_out
                 )
             except StopIteration:
                 self.test_epoch_end(epoch_num)

@@ -73,10 +73,7 @@ class TestSimpleClassifier:
             idx2labelname_mapping=idx2labelname_mapping
         )
 
-        metrics_calc.calc_metric(
-            predicted_probs=output["normalized_probs"],
-            labels=iter_dict["label"].squeeze(1),
-        )
+        metrics_calc.calc_metric(iter_dict=iter_dict, model_forward_dict=output)
         metrics = metrics_calc.get_metric()
         precision = metrics["precision"]
 
