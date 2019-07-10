@@ -81,7 +81,4 @@ class TestParscitTagger:
             iter_dict=iter_dict, is_training=True, is_validation=False, is_test=False
         )
 
-        assert output_dict["normalized_probs"].size() == (
-            BATCH_SIZE * TIME_STEPS,
-            NUM_CLASSES,
-        )
+        assert output_dict["logits"].size() == (BATCH_SIZE, TIME_STEPS, NUM_CLASSES)

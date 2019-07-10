@@ -220,6 +220,7 @@ if __name__ == "__main__":
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
+        metric="sequential_tag_token_accuracy",
     )
 
     engine.run()

@@ -17,7 +17,7 @@ class BaseMetric(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def report_metrics(self, report_type="wasabi") -> None:
+    def report_metrics(self, report_type="wasabi") -> Any:
         pass
 
     @abstractmethod

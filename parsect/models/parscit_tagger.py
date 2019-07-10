@@ -1,9 +1,7 @@
-import torch
 import torch.nn as nn
 from typing import Dict, Any
 from torchcrf import CRF
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from torch.nn.functional import softmax
 
 
 class ParscitTagger(nn.Module):
@@ -38,12 +36,9 @@ class ParscitTagger(nn.Module):
         # batch size, time steps, num_classes
         logits = self.hidden2tag(encoding)
 
-        normalized_probs = softmax(logits, dim=2)
+        predicted_tags = self.crf.decode(logits)
 
-        output_dict = {
-            "logits": logits.view(batch_size * num_timesteps, -1),
-            "normalized_probs": normalized_probs.view(batch_size * num_timesteps, -1),
-        }
+        output_dict = {"logits": logits, "predicted_tags": predicted_tags}
 
         if is_training or is_validation:
             loss = -self.crf(logits, labels)

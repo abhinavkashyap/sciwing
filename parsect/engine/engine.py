@@ -8,6 +8,7 @@ from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 import numpy as np
 import time
 import json_logging
@@ -435,6 +436,16 @@ class Engine:
                 idx2labelname_mapping=self.idx2labelname_mapping
             )
             test_calculator = PrecisionRecallFMeasure(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
+        elif self.metric == "sequential_tag_token_accuracy":
+            train_calculator = TokenClassificationAccuracy(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
+            validation_calculator = TokenClassificationAccuracy(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
+            test_calculator = TokenClassificationAccuracy(
                 idx2labelname_mapping=self.idx2labelname_mapping
             )
 
