@@ -1,7 +1,7 @@
 import parsect.constants as constants
 import json
 from parsect.models.bert_seq_classifier import BertSeqClassifier
-from parsect.clients.parsect_inference import ParsectInference
+from parsect.infer.parsect_inference import ParsectInference
 from parsect.datasets.parsect_dataset import ParsectDataset
 from parsect.tokenizers.bert_tokenizer import TokenizerForBert
 import os

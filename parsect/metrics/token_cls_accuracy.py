@@ -1,4 +1,4 @@
-from typing import Dict, Union, Any
+from typing import Dict, Union, Any, List
 from parsect.metrics.BaseMetric import BaseMetric
 import wasabi
 import itertools
@@ -6,6 +6,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
 from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
+import pandas as pd
 
 
 class TokenClassificationAccuracy(BaseMetric):
@@ -183,7 +184,7 @@ class TokenClassificationAccuracy(BaseMetric):
             "micro_fscore": micro_fscore,
         }
 
-    def report_metrics(self, report_type="wasabi") -> None:
+    def report_metrics(self, report_type="wasabi") -> Any:
         accuracy_metrics = self.get_metric()
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
@@ -231,3 +232,32 @@ class TokenClassificationAccuracy(BaseMetric):
         self.fp_counter = {}
         self.fn_counter = {}
         self.tn_counter = {}
+
+    def print_confusion_metrics(
+        self, predicted_tag_indices: List[List[int]], true_tag_indices: List[List[int]]
+    ) -> None:
+        predicted_tag_indices_np = np.array(predicted_tag_indices)
+        true_tag_indices_np = np.array(true_tag_indices)
+        predicted_tag_indices_np = predicted_tag_indices_np.ravel()
+        true_tag_indices_np = true_tag_indices_np.ravel()
+
+        confusion_mtrx = confusion_matrix(true_tag_indices_np, predicted_tag_indices_np)
+
+        classes = unique_labels(true_tag_indices_np, predicted_tag_indices_np)
+        classes = classes.tolist()
+        classes_with_names = [
+            f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
+        ]
+
+        confusion_mtrx = pd.DataFrame(confusion_mtrx)
+        confusion_mtrx.insert(0, "class_name", classes_with_names)
+
+        assert len(classes) == confusion_mtrx.shape[1] - 1
+
+        header = [f"{class_}" for class_ in classes]
+        header.insert(0, "pred(cols)/true(rows)")
+
+        table = self.msg_printer.table(
+            data=confusion_mtrx.values.tolist(), header=header, divider=True
+        )
+        print(table)

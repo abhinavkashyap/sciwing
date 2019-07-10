@@ -1,13 +1,11 @@
-import json
-from parsect.datasets.parsect_dataset import ParsectDataset
 import parsect.constants as constants
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from parsect.infer.BaseInference import BaseInference
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 import pandas as pd
-from wasabi import Printer
 from parsect.utils.tensor import move_to_device
 
 FILES = constants.FILES
@@ -15,7 +13,7 @@ FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-class ParsectInference:
+class ParsectInference(BaseInference):
     """
     The parsect engine runs the test lines through the classifier
     and returns the predictions/probabilities for different classes
@@ -46,38 +44,12 @@ class ParsectInference:
         The path where all hyper-parameters necessary for restoring the model
         is necessary
         """
-        self.model = model
-        self.model_filepath = model_filepath
-        self.hyperparam_config_filename = hyperparam_config_filepath
-        self.test_dataset = dataset
-
-        with open(self.hyperparam_config_filename, "r") as fp:
-            config = json.load(fp)
-
-        self.max_num_words = config.get("MAX_NUM_WORDS", 0)
-        self.max_length = config.get("MAX_LENGTH", 0)
-        self.vocab_store_location = config["VOCAB_STORE_LOCATION"]
-        self.debug = config["DEBUG"]
-        self.debug_dataset_proportion = config["DEBUG_DATASET_PROPORTION"]
-        self.batch_size = config["BATCH_SIZE"]
-        self.emb_dim = config["EMBEDDING_DIMENSION"]
-        self.lr = config["LEARNING_RATE"]
-        self.num_epochs = config["NUM_EPOCHS"]
-        self.save_every = config["SAVE_EVERY"]
-        self.model_save_dir = config["MODEL_SAVE_DIR"]
-        self.vocab_size = config["VOCAB_SIZE"]
-        self.num_classes = config["NUM_CLASSES"]
-        self.embedding_type = config.get("EMBEDDING_TYPE", None)
-        self.embedding_dimension = config.get("EMBEDDING_DIMENSION", None)
-        self.return_instances = config.get("RETURN_INSTANCES", None)
-        self.device = torch.device(config.get("DEVICE", "cpu"))
-        self.msg_printer = Printer()
-
-        if self.max_length == 0:
-            self.msg_printer.warn(
-                "The saved parameter has max length of 0. You may want to "
-                "check this behaviour"
-            )
+        super(BaseInference, self).__init__(
+            model=model,
+            model_filepath=model_filepath,
+            hyperparam_config_filepath=hyperparam_config_filepath,
+            dataset=dataset,
+        )
 
         self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
         self.idx2labelname_mapping = {
@@ -88,6 +60,7 @@ class ParsectInference:
         )
 
         self.load_model()
+
         with self.msg_printer.loading("Running inference on test data"):
             self.output_analytics = self.run_inference()
         self.msg_printer.good("Finished running inference on test data")
@@ -105,22 +78,6 @@ class ParsectInference:
                     "predicted_labels_indices"
                 ],
             }
-        )
-
-    def load_model(self):
-
-        with self.msg_printer.loading(
-            "LOADING MODEL FROM FILE {0}".format(self.model_filepath)
-        ):
-            model_chkpoint = torch.load(self.model_filepath)
-            model_state_dict = model_chkpoint["model_state"]
-            loss_value = model_chkpoint["loss"]
-            self.model.load_state_dict(model_state_dict)
-            self.model.to(self.device)
-            self.model.eval()
-
-        self.msg_printer.good(
-            "Loaded Best Model with loss value {0}".format(loss_value)
         )
 
     def run_inference(self) -> Dict[str, Any]:
@@ -155,7 +112,7 @@ class ParsectInference:
                 )
             normalized_probs = model_output_dict["normalized_probs"]
             self.metrics_calculator.calc_metric(
-                predicted_probs=normalized_probs, labels=labels
+                iter_dict=iter_dict, model_forward_dict=model_output_dict
             )
 
             top_probs, top_indices = torch.topk(normalized_probs, k=1, dim=1)

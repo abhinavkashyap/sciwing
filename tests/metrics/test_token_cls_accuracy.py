@@ -51,7 +51,7 @@ def setup_basecase():
 
 
 class TestTokenClsAccuracy:
-    def test_base_case(self, setup_basecase):
+    def test_base_case_get_metric(self, setup_basecase):
         metric, iter_dict, model_forward_dict, expected = setup_basecase
         metric.calc_metric(iter_dict=iter_dict, model_forward_dict=model_forward_dict)
         accuracy_metrics = metric.get_metric()
@@ -91,3 +91,23 @@ class TestTokenClsAccuracy:
         assert macro_precision == expected_macro_precision
         assert macro_recall == expected_macro_recall
         assert macro_fscore == expected_macro_fscore
+
+    @pytest.mark.parametrize("report_type", ["wasabi", "paper"])
+    def test_report_metric_works(self, setup_basecase, report_type):
+        metric, iter_dict, model_forward_dict, expected = setup_basecase
+        try:
+            metric.report_metrics(report_type=report_type)
+        except:
+            pytest.fail(f"report_metric(report_type={report_type}) failed")
+
+    def test_confusion_mtrx_works(self, setup_basecase):
+        metric, iter_dict, model_forward_dict, expected = setup_basecase
+        try:
+            true_tag_indices = iter_dict["label"].tolist()
+            predicted_tag_indices = model_forward_dict["predicted_tags"]
+            metric.print_confusion_metrics(
+                true_tag_indices=true_tag_indices,
+                predicted_tag_indices=predicted_tag_indices,
+            )
+        except:
+            pytest.fail("print_counfusion_metric() failed")

@@ -1,7 +1,7 @@
 import json
 import os
 import parsect.constants as constants
-from parsect.clients.parsect_inference import ParsectInference
+from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.bow_elmo_linear_classifier import BowElmoLinearClassifier
 from parsect.modules.bow_elmo_encoder import BowElmoEncoder
 from parsect.datasets.parsect_dataset import ParsectDataset

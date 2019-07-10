@@ -1,7 +1,7 @@
 import json
 import os
 import parsect.constants as constants
-from parsect.clients.parsect_inference import ParsectInference
+from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.datasets.parsect_dataset import ParsectDataset
