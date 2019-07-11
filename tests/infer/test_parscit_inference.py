@@ -16,7 +16,7 @@ DATA_DIR = PATHS["DATA_DIR"]
 
 @pytest.fixture
 def setup_base_parscit_inference():
-    debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "debug_lstm_crf_parscit")
+    debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "lstm_crf_parscit_debug")
     hyperparam_config_filename = debug_parscit_model_folder.joinpath("config.json")
     test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
