@@ -187,6 +187,6 @@ class TestParscitDataset:
         label = instances_dict["label"].tolist()
         tokens = instances_dict["tokens"].tolist()
         label = [train_dataset.idx2classname[lbl] for lbl in label]
-        tokens = [train_dataset.vocab.idx2token[token_idx] for token_idx in tokens]
+        tokens = [train_dataset.word_vocab.idx2token[token_idx] for token_idx in tokens]
         assert label == ["starting", "ending"]
         assert tokens == ["<SOS>", "<EOS>"]

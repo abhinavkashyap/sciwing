@@ -131,7 +131,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         self.msg_printer = wasabi.Printer()
         self.lines, self.labels = self.get_lines_labels()
         self.instances = self.tokenize(self.lines)
-        self.vocab = Vocab(
+        self.word_vocab = Vocab(
             instances=self.instances,
             max_num_words=self.max_num_words,
             unk_token=self.unk_token,
@@ -142,9 +142,9 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             embedding_type=self.embedding_type,
             embedding_dimension=self.embedding_dimension,
         )
-        self.vocab.build_vocab()
-        self.vocab.print_stats()
-        self.numericalizer = Numericalizer(vocabulary=self.vocab)
+        self.word_vocab.build_vocab()
+        self.word_vocab.print_stats()
+        self.numericalizer = Numericalizer(vocabulary=self.word_vocab)
 
     @staticmethod
     def get_classname2idx() -> Dict[str, int]:
@@ -179,9 +179,9 @@ class ParscitDataset(Dataset, TextClassificationDataset):
 
     def get_disp_sentence_from_indices(self, indices: List[int]) -> str:
         token = [
-            self.vocab.get_token_from_idx(idx)
+            self.word_vocab.get_token_from_idx(idx)
             for idx in indices
-            if idx != self.vocab.special_vocab[self.vocab.pad_token][1]
+            if idx != self.word_vocab.special_vocab[self.word_vocab.pad_token][1]
         ]
         sentence = " ".join(token)
         return sentence
@@ -257,7 +257,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         return lines, labels
 
     def get_preloaded_embedding(self):
-        return self.vocab.load_embedding()
+        return self.word_vocab.load_embedding()
 
     def __len__(self):
         return len(self.instances)
@@ -272,10 +272,10 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         padded_instance = pack_to_length(
             tokenized_text=instance,
             max_length=self.max_length,
-            pad_token=self.vocab.pad_token,
+            pad_token=self.word_vocab.pad_token,
             add_start_end_token=self.add_start_end_token,
-            start_token=self.vocab.start_token,
-            end_token=self.vocab.end_token,
+            start_token=self.word_vocab.start_token,
+            end_token=self.word_vocab.end_token,
         )
         padded_labels = pack_to_length(
             tokenized_text=labels_string,

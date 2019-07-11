@@ -182,7 +182,7 @@ if __name__ == "__main__":
         add_start_end_token=False,
     )
 
-    VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
+    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     embedding = train_dataset.get_preloaded_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)

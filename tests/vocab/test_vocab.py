@@ -13,7 +13,7 @@ class TestVocab:
     def test_build_vocab_single_instance_has_words(self, instances):
         single_instance = instances["single_instance"]
         vocab_builder = Vocab(instances=single_instance, max_num_words=1000)
-        vocab = vocab_builder.map_words_to_freq_idx()
+        vocab = vocab_builder.map_tokens_to_freq_idx()
 
         assert "i" in vocab.keys()
         assert "like" in vocab.keys()
@@ -24,7 +24,7 @@ class TestVocab:
         vocab_builder = Vocab(
             instances=single_instance, max_num_words=1000, min_count=1
         )
-        vocab = vocab_builder.map_words_to_freq_idx()
+        vocab = vocab_builder.map_tokens_to_freq_idx()
 
         i_freq, i_idx = vocab["i"]
         like_freq, like_idx = vocab["like"]
@@ -41,7 +41,7 @@ class TestVocab:
             instances=single_instance, max_num_words=1000, min_count=1
         )
 
-        vocab = vocab_builder.map_words_to_freq_idx()
+        vocab = vocab_builder.map_tokens_to_freq_idx()
         assert vocab_builder.unk_token in vocab.keys()
         assert vocab_builder.pad_token in vocab.keys()
         assert vocab_builder.start_token in vocab.keys()
@@ -53,7 +53,7 @@ class TestVocab:
         vocab_builder = Vocab(
             instances=single_instance, max_num_words=1000, min_count=2
         )
-        vocab = vocab_builder.map_words_to_freq_idx()
+        vocab = vocab_builder.map_tokens_to_freq_idx()
         vocab = vocab_builder.clip_on_mincount(vocab)
 
         # check that is mapped to unk
@@ -65,7 +65,7 @@ class TestVocab:
         MAX_NUM_WORDS = 1
         vocab_builder = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
-        vocab = vocab_builder.map_words_to_freq_idx()
+        vocab = vocab_builder.map_tokens_to_freq_idx()
 
         vocab = vocab_builder.clip_on_max_num(vocab)
 
