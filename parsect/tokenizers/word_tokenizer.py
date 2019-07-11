@@ -2,9 +2,10 @@ import spacy
 from typing import List
 from tqdm import tqdm
 from wasabi import Printer
+from parsect.tokenizers.BaseTokenizer import BaseTokenizer
 
 
-class WordTokenizer:
+class WordTokenizer(BaseTokenizer):
     """
     The tokenizer, takes a span of text and returns
     the tokens (it can be either word or character)
@@ -16,6 +17,7 @@ class WordTokenizer:
         :param tokenizer: type:str
         We can use either of ['spacy'] tokenizer to tokenize text
         """
+        super(WordTokenizer, self).__init__()
         self.msg_printer = Printer()
         self.tokenizer = tokenizer
         assert self.tokenizer in ["spacy", "nltk"], AssertionError(

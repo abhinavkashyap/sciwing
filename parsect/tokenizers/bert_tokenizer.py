@@ -4,13 +4,15 @@ import os
 import parsect.constants as constants
 from typing import List
 from tqdm import tqdm
+from parsect.tokenizers.BaseTokenizer import BaseTokenizer
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 
 
-class TokenizerForBert:
+class TokenizerForBert(BaseTokenizer):
     def __init__(self, bert_type: str):
+        super(TokenizerForBert, self).__init__()
         self.bert_type = bert_type
         self.msg_printer = wasabi.Printer()
         self.allowed_bert_types = [
