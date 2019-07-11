@@ -23,6 +23,7 @@ from parsect.infer.bow_random_emb_lc_genericsect_infer import (
 from parsect.infer.bow_glove_emb_lc_genericsect_infer import (
     get_glove_emb_lc_genericsect_infer,
 )
+from parsect.infer.bilstm_crf_infer import get_bilstm_crf_infer
 import wasabi
 import parsect.constants as constants
 from parsect.utils.amazon_s3 import S3Util
@@ -57,6 +58,7 @@ class ParsectCli:
             "bi-lstm-random-emb-linear-classifier-gensect",
             "elmo-bilstm-linear-classifier",
             "bert-seq-classifier",
+            "lstm-crf-parscit-tagger",
         ]
         self.model_type2exp_prefix = {
             "parsect-random-embedding-bow-encoder-linear-classifier": "parsect_bow_random_emb_lc",
@@ -71,6 +73,7 @@ class ParsectCli:
             "bi-lstm-random-emb-linear-classifier-gensect": "gensect_bi_lstm_lc",
             "elmo-bilstm-linear-classifier": "parsect_elmo_bi_lstm_lc",
             "bert-seq-classifier": "parsect_bert_seq",
+            "lstm-crf-parscit-tagger": "lstm_crf_parscit",
         }
         self.model_type2inf_func = {
             "parsect-random-embedding-bow-encoder-linear-classifier": get_random_emb_linear_classifier_infer_parsect,
@@ -85,6 +88,7 @@ class ParsectCli:
             "bi-lstm-random-emb-linear-classifier-gensect": get_bilstm_lc_infer_gensect,
             "elmo-bilstm-linear-classifier": get_elmo_bilstm_lc_infer,
             "bert-seq-classifier": get_bert_seq_classifier_infer,
+            "lstm-crf-parscit-tagger": get_bilstm_crf_infer,
         }
         self.s3util = S3Util(os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json"))
         self.msg_printer = wasabi.Printer()

@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 import torch.nn as nn
 from parsect.infer.BaseInference import BaseInference
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
@@ -106,7 +106,7 @@ class ParscitInference(BaseInference):
         output_analytics["sentences"] = sentences
         return output_analytics
 
-    def print_confusion_metrics(self) -> None:
+    def print_confusion_matrix(self) -> None:
         self.metrics_calculator.print_confusion_metrics(
             true_tag_indices=self.output_df["true_tag_indices"].tolist(),
             predicted_tag_indices=self.output_df["predicted_tag_indices"].tolist(),
@@ -115,3 +115,14 @@ class ParscitInference(BaseInference):
     def print_prf_table(self) -> None:
         prf_table = self.metrics_calculator.report_metrics()
         print(prf_table)
+
+    def get_misclassified_sentences(
+        self, first_class: int, second_class: int
+    ) -> List[str]:
+        return ["", ""]
+
+    def generate_report_for_paper(self):
+        paper_report, row_names = self.metrics_calculator.report_metrics(
+            report_type="paper"
+        )
+        return paper_report, row_names

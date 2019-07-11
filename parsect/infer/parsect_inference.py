@@ -44,7 +44,7 @@ class ParsectInference(BaseInference):
         The path where all hyper-parameters necessary for restoring the model
         is necessary
         """
-        super(BaseInference, self).__init__(
+        super(ParsectInference, self).__init__(
             model=model,
             model_filepath=model_filepath,
             hyperparam_config_filepath=hyperparam_config_filepath,

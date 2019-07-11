@@ -225,7 +225,13 @@ class TokenClassificationAccuracy(BaseMetric):
             class_nums = sorted(class_nums, reverse=False)
             fscores = [fscore[class_num] for class_num in class_nums]
             fscores.extend([micro_fscore, macro_fscore])
-            return fscores
+            rownames = [
+                f"class_{class_num} - ({self.idx2labelname_mapping[class_num]})"
+                for class_num in class_nums
+            ]
+            rownames.extend(["Micro-Fscore", "Macro-Fscore"])
+            assert len(rownames) == len(fscores)
+            return fscores, rownames
 
     def reset(self):
         self.tp_counter = {}
