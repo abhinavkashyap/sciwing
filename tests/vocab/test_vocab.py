@@ -308,6 +308,8 @@ class TestVocab:
 
         assert "very" in vocab.vocab.keys()
         assert vocab.vocab["very"] == (1, 7)
+        assert vocab.token2idx["very"] == 7
+        assert vocab.idx2token[7] == "very"
 
     def test_add_tokens(self, instances, tmpdir):
         instance_dict = instances
@@ -327,3 +329,7 @@ class TestVocab:
         assert "much" in vocab.vocab.keys()
         assert vocab.vocab["very"] == (1, 7)
         assert vocab.vocab["much"] == (1, 8)
+        assert vocab.get_token_from_idx(7) == "very"
+        assert vocab.get_token_from_idx(8) == "much"
+        assert vocab.get_idx_from_token("very") == 7
+        assert vocab.get_idx_from_token("much") == 8

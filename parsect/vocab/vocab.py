@@ -169,6 +169,8 @@ class Vocab:
 
         if token not in tokens:
             self.vocab[token] = (1, highest_idx + 1)
+            self.idx2token[highest_idx + 1] = token
+            self.token2idx[token] = highest_idx + 1
             if save_vocab:
                 self.save_to_file(self.store_location)  # this can be expensive.
 
