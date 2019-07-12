@@ -152,6 +152,38 @@ class Vocab:
 
         return vocab
 
+    def _add_token(self, token: str, save_vocab: bool = False):
+        """
+        Add token to an already existing vocabulary
+        :param token: type str
+        :return:
+        """
+        try:
+            vocab = self.vocab
+        except AttributeError:
+            self.msg_printer.fail("Please build vocab using build vocab")
+        tokens = vocab.keys()
+        indices = [idx for freq, idx in vocab.values()]
+        indices = sorted(indices, reverse=True)
+        highest_idx = indices[0]
+
+        if token not in tokens:
+            self.vocab[token] = (1, highest_idx + 1)
+            if save_vocab:
+                self.save_to_file(self.store_location)  # this can be expensive.
+
+    def add_tokens(self, tokens: List[str]):
+        try:
+            vocab = self.vocab
+        except AttributeError:
+            self.msg_printer.fail("Please build vocab first")
+
+        for token in tokens:
+            self._add_token(token, save_vocab=False)
+
+        if self.store_location:
+            self.save_to_file(self.store_location)
+
     def build_vocab(self) -> Dict[str, Tuple[int, int]]:
 
         if self.store_location and os.path.isfile(self.store_location):

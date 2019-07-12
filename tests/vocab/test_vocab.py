@@ -289,3 +289,41 @@ class TestVocab:
         vocab.build_vocab()
         embeddings = vocab.load_embedding()
         assert embeddings.ndimension() == 2
+
+    @pytest.mark.parametrize("save_vocab", [True, False])
+    def test_add_token(self, instances, tmpdir, save_vocab):
+        instance_dict = instances
+        single_instance = instance_dict["single_instance"]
+        MAX_NUM_WORDS = 100
+        vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
+        vocab = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            embedding_type=None,
+            embedding_dimension=300,
+            store_location=vocab_file,
+        )
+        vocab.build_vocab()
+        vocab._add_token("very", save_vocab=save_vocab)
+
+        assert "very" in vocab.vocab.keys()
+        assert vocab.vocab["very"] == (1, 7)
+
+    def test_add_tokens(self, instances, tmpdir):
+        instance_dict = instances
+        single_instance = instance_dict["single_instance"]
+        MAX_NUM_WORDS = 100
+        vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
+        vocab = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            embedding_type=None,
+            embedding_dimension=300,
+            store_location=vocab_file,
+        )
+        vocab.build_vocab()
+        vocab.add_tokens(["very", "much"])
+        assert "very" in vocab.vocab.keys()
+        assert "much" in vocab.vocab.keys()
+        assert vocab.vocab["very"] == (1, 7)
+        assert vocab.vocab["much"] == (1, 8)
