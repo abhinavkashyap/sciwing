@@ -186,10 +186,14 @@ class TestParscitDataset:
         lines, labels = train_dataset.get_lines_labels()
         num_lines = len(lines)
         for idx in range(num_lines):
-            assert len(train_dataset[idx]["char_tokens"] == options["MAX_CHAR_LENGTH"])
+            char_tokens = train_dataset[idx]["char_tokens"]
+            assert char_tokens.size() == (
+                options["MAX_LENGTH"],
+                options["MAX_CHAR_LENGTH"],
+            )
 
     def test_instance_dict_with_loader(self, setup_parscit_train_dataset):
-        train_dataset, test_dataset, dataset_options = setup_parscit_train_dataset
+        train_dataset, test_dataset, options = setup_parscit_train_dataset
         loader = DataLoader(dataset=train_dataset, batch_size=2, shuffle=False)
         instances_dict = next(iter(loader))
         assert len(instances_dict["tokens"]) == 2
@@ -207,6 +211,11 @@ class TestParscitDataset:
 
         assert instances_dict["tokens"].size() == (2, options["MAX_LENGTH"])
         assert instances_dict["label"].size() == (2, options["MAX_LENGTH"])
+        assert instances_dict["char_tokens"].size() == (
+            2,
+            options["MAX_LENGTH"],
+            options["MAX_CHAR_LENGTH"],
+        )
 
     def test_labels_maxlen_2(self, setup_parscit_train_dataset_maxlen_2):
         train_dataset, test_dataset, options = setup_parscit_train_dataset_maxlen_2

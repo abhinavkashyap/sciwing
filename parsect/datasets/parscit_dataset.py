@@ -328,22 +328,30 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             for label in padded_labels
         ]
 
-        # get character instances
-        character_instance = self.character_instances[idx]
-        padded_character_instance = pack_to_length(
-            tokenized_text=character_instance,
-            max_length=self.max_char_length,
-            pad_token="",
-            add_start_end_token=False,
-        )
-        padded_character_tokens = self.char_numericalizer.numericalize_instance(
-            padded_character_instance
-        )
+        character_tokens = []
+        # 1. For every word we get characters in the word
+        # 2. Pad the characters to max_char_length
+        # 3. Convert them into numbers
+        # 4. Add them to character_tokens
+        for word in padded_word_instance:
+            character_instance = self.character_tokenizer.tokenize(word)
+            padded_character_instance = pack_to_length(
+                tokenized_text=character_instance,
+                max_length=self.max_char_length,
+                pad_token=" ",
+                add_start_end_token=False,
+            )
+            padded_character_tokens = self.char_numericalizer.numericalize_instance(
+                padded_character_instance
+            )
+            character_tokens.append(padded_character_tokens)
 
         tokens = torch.LongTensor(tokens)
         len_tokens = torch.LongTensor([len_instance])
         label = torch.LongTensor(padded_labels)
-        character_tokens = torch.LongTensor(padded_character_tokens)
+        character_tokens = torch.LongTensor(
+            character_tokens
+        )  # max_word_len * max_char_len matrix
 
         instance_dict = {
             "tokens": tokens,
