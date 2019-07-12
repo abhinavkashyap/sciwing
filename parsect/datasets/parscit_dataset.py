@@ -170,6 +170,14 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             pad_token=" ",
         )
         self.char_vocab.build_vocab()
+
+        # adding these to help conversion to characters later
+        self.char_vocab.add_tokens(
+            list(self.start_token)
+            + list(self.end_token)
+            + list(self.unk_token)
+            + list(self.pad_token)
+        )
         self.char_vocab.print_stats()
         self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
 
