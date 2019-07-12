@@ -64,6 +64,7 @@ class Lstm2SeqEncoder(nn.Module):
     def forward(
         self,
         x: torch.LongTensor,
+        additional_embedding: torch.FloatTensor = None,
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.Tensor:
@@ -72,6 +73,9 @@ class Lstm2SeqEncoder(nn.Module):
         # batch_size * time steps * embedding dimension
         embedded_tokens = self.embedding(x)
         embedded_tokens = self.emb_dropout(embedded_tokens)
+
+        if additional_embedding is not None:
+            embedded_tokens = torch.cat([embedded_tokens, additional_embedding], dim=2)
 
         if h0 is None or c0 is None:
             h0, c0 = self.get_initial_hidden(batch_size=batch_size)

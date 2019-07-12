@@ -63,7 +63,8 @@ class LSTM2VecEncoder(nn.Module):
 
     def forward(
         self,
-        x: torch.FloatTensor,
+        x: torch.LongTensor,
+        additional_embedding: torch.FloatTensor = None,
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.FloatTensor:
@@ -73,8 +74,11 @@ class LSTM2VecEncoder(nn.Module):
         \vec{s} = f([h_1... h_n]).
         In this class I have implemented only only \vec{s} = h_n the hidden representations
         from the last time step
-        :param x: type: torch.FloatTensor
+        :param x: type: torch.LongTensor
         size: batch_size, num_tokens
+        :param additional_embedding: type: torch.FloatTensor
+        additional embedding is another embedding that can be concat
+        with the embedding of x
         :param c0: type: torch.FloatTensor
         size: (num_layers * num_directions, batch_size, hidden_size)
         initial state
@@ -92,6 +96,9 @@ class LSTM2VecEncoder(nn.Module):
         batch_size = x.size(0)
         embedded_tokens = self.embedding(x)
         embedded_tokens = self.emb_dropout(embedded_tokens)
+
+        if additional_embedding is not None:
+            embedded_tokens = torch.cat([embedded_tokens, additional_embedding], dim=2)
 
         if h0 is None or c0 is None:
             h0, c0 = self.get_initial_hidden(batch_size=batch_size, device=x.device)
