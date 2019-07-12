@@ -23,11 +23,11 @@ def setup_generic_sect_train_dataset(tmpdir):
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     return (
@@ -58,11 +58,11 @@ def setup_generic_sect_valid_dataset(tmpdir):
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     return (
@@ -93,11 +93,11 @@ def setup_generic_sect_test_dataset(tmpdir):
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     return (
@@ -172,7 +172,7 @@ class TestGenericSectDataset:
 
     def test_embedding_has_values(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
-        embedding_tensors = dataset.get_preloaded_embedding()
+        embedding_tensors = dataset.get_preloaded_word_embedding()
         assert embedding_tensors.size(0) > 0
         assert embedding_tensors.size(1) == options["EMBEDDING_DIMENSION"]
 

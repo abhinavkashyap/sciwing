@@ -15,7 +15,7 @@ class WordTokenizer(BaseTokenizer):
         """
 
         :param tokenizer: type:str
-        We can use either of ['spacy'] tokenizer to tokenize text
+        We can use either of ['spacy'] tokenizer to word_tokenize text
         """
         super(WordTokenizer, self).__init__()
         self.msg_printer = Printer()
@@ -47,7 +47,7 @@ class WordTokenizer(BaseTokenizer):
 
     def tokenize_batch(self, texts: List[str]) -> List[List[str]]:
         tokenized = []
-        for text in tqdm(texts, total=len(texts), desc="Batch tokenize"):
+        for text in tqdm(texts, total=len(texts), desc="Batch word_tokenize"):
             tokenized.append(self.tokenize(text))
 
         self.msg_printer.good("Finished Tokenizing Text")

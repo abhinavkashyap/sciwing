@@ -4,6 +4,7 @@ from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
+from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 
 
 class TextClassificationDataset(metaclass=ABCMeta):
@@ -13,11 +14,11 @@ class TextClassificationDataset(metaclass=ABCMeta):
         dataset_type: str,
         max_num_words: int,
         max_length: int,
-        vocab_store_location: str,
+        word_vocab_store_location: str,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
-        embedding_type: Union[str, None] = None,
-        embedding_dimension: Union[int, None] = None,
+        word_embedding_type: Union[str, None] = None,
+        word_embedding_dimension: Union[int, None] = None,
         start_token: str = "<SOS>",
         end_token: str = "<EOS>",
         pad_token: str = "<PAD>",
@@ -25,8 +26,9 @@ class TextClassificationDataset(metaclass=ABCMeta):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
-        tokenizer=WordTokenizer(),
-        tokenization_type="vanilla",
+        word_tokenizer=WordTokenizer(),
+        word_tokenization_type="vanilla",
+        character_tokenizer=CharacterTokenizer(),
     ):
         """
                :param dataset_type: type: str
@@ -35,7 +37,7 @@ class TextClassificationDataset(metaclass=ABCMeta):
                The top frequent `max_num_words` to consider
                :param max_length: type: int
                The maximum length after numericalization
-               :param vocab_store_location: type: str
+               :param word_vocab_store_location: type: str
                The vocab store location to store vocabulary
                This should be a json filename
                :param debug: type: bool
@@ -46,7 +48,7 @@ class TextClassificationDataset(metaclass=ABCMeta):
                :param debug_dataset_proportion: type: float
                Send a number (0.0, 1.0) and a random proportion of the dataset
                will be used for debug purposes
-               :param embedding_type: type: str
+               :param word_embedding_type: type: str
                Pre-loaded embedding type to load.
                :param start_token: type: str
                The start token is the token appended to the beginning of the list of tokens
@@ -62,24 +64,26 @@ class TextClassificationDataset(metaclass=ABCMeta):
                The proportion of the dataset that is used for testing
                :param validation_size: float
                The proportion of the test dataset that is used for validation
-               :param tokenizer
-               The tokenizer that will be used to tokenize text
-               :param tokenization_type: str
+               :param word_tokenizer
+               The tokenizer that will be used to word_tokenize text
+               :param word_tokenization_type: str
                Allowed type (vanilla, bert)
                Two types of tokenization are allowed. Either vanilla tokenization that is based on spacy.
                The default is WordTokenizer()
                If bert, then bert tokenization is performed and additional fields will be included in the output
+               :param character_tokenizer
+               The character tokenizer for the classification dataset
 
                """
         self.filename = filename
         self.dataset_type = dataset_type
         self.max_num_words = max_num_words
         self.max_length = max_length
-        self.store_location = vocab_store_location
+        self.store_location = word_vocab_store_location
         self.debug = debug
         self.debug_dataset_proportion = debug_dataset_proportion
-        self.embedding_type = embedding_type
-        self.embedding_dimension = embedding_dimension
+        self.embedding_type = word_embedding_type
+        self.embedding_dimension = word_embedding_dimension
         self.start_token = start_token
         self.end_token = end_token
         self.pad_token = pad_token
@@ -87,8 +91,9 @@ class TextClassificationDataset(metaclass=ABCMeta):
         self.train_size = train_size
         self.validation_size = validation_size
         self.test_size = test_size
-        self.tokenizer = tokenizer
-        self.tokenization_type = tokenization_type
+        self.word_tokenizer = word_tokenizer
+        self.word_tokenization_type = word_tokenization_type
+        self.character_tokenizer = character_tokenizer
         self.msg_printer = wasabi.Printer()
         self.allowable_dataset_types = ["train", "valid", "test"]
 
@@ -120,13 +125,17 @@ class TextClassificationDataset(metaclass=ABCMeta):
     def get_stats(self):
         pass
 
-    def tokenize(self, lines: List[str]) -> List[List[str]]:
+    def word_tokenize(self, lines: List[str]) -> List[List[str]]:
         """
         :param lines: type: List[str]
         These are text spans that will be tokenized
         :return: instances type: List[List[str]]
         """
-        instances = list(map(lambda line: self.tokenizer.tokenize(line), lines))
+        instances = list(map(lambda line: self.word_tokenizer.tokenize(line), lines))
+        return instances
+
+    def character_tokenize(self, lines: List[str]) -> List[List[str]]:
+        instances = self.character_tokenizer.tokenize_batch(lines)
         return instances
 
     @abstractmethod
@@ -134,7 +143,7 @@ class TextClassificationDataset(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_preloaded_embedding(self):
+    def get_preloaded_word_embedding(self):
         pass
 
     def get_train_valid_test_stratified_split(

@@ -19,10 +19,13 @@ def setup_parscit_train_dataset(tmpdir):
     train_file = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_file = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
+    char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = True
     MAX_NUM_WORDS = 10000
     MAX_LENGTH = 20
+    MAX_CHAR_LENGTH = 25
     EMBEDDING_DIM = 100
+    CHAR_EMBEDDING_DIM = 25
     train_dataset = None
     test_dataset = None
 
@@ -31,28 +34,35 @@ def setup_parscit_train_dataset(tmpdir):
             parscit_conll_file=str(train_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
-            max_length=MAX_LENGTH,
-            vocab_store_location=vocab_store_location,
+            max_word_length=MAX_LENGTH,
+            max_char_length=MAX_CHAR_LENGTH,
+            word_vocab_store_location=vocab_store_location,
             debug=DEBUG,
-            embedding_type="random",
-            embedding_dimension=EMBEDDING_DIM,
-            add_start_end_token=False,
+            word_embedding_type="random",
+            word_embedding_dimension=EMBEDDING_DIM,
+            word_add_start_end_token=False,
+            char_vocab_store_location=char_vocab_store_location,
+            character_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
         test_dataset = ParscitDataset(
             parscit_conll_file=str(test_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
-            max_length=MAX_LENGTH,
-            vocab_store_location=vocab_store_location,
+            max_word_length=MAX_LENGTH,
+            max_char_length=MAX_CHAR_LENGTH,
+            word_vocab_store_location=vocab_store_location,
             debug=DEBUG,
-            embedding_type="random",
-            embedding_dimension=EMBEDDING_DIM,
-            add_start_end_token=False,
+            word_embedding_type="random",
+            word_embedding_dimension=EMBEDDING_DIM,
+            word_add_start_end_token=False,
+            char_vocab_store_location=char_vocab_store_location,
+            character_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
 
     options = {
         "MAX_NUM_WORDS": MAX_NUM_WORDS,
         "MAX_LENGTH": MAX_LENGTH,
+        "MAX_CHAR_LENGTH": MAX_CHAR_LENGTH,
         "EMBEDDING_DIM": EMBEDDING_DIM,
     }
 
@@ -66,10 +76,13 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
     train_file = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_file = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
+    char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = True
     MAX_NUM_WORDS = 10000
+    MAX_CHAR_LENGTH = 25
     MAX_LENGTH = 2
     EMBEDDING_DIM = 100
+    CHAR_EMBEDDING_DIM = 25
     train_dataset = None
     test_dataset = None
 
@@ -78,28 +91,35 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
             parscit_conll_file=str(train_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
-            max_length=MAX_LENGTH,
-            vocab_store_location=vocab_store_location,
+            max_word_length=MAX_LENGTH,
+            max_char_length=MAX_CHAR_LENGTH,
+            word_vocab_store_location=vocab_store_location,
             debug=DEBUG,
-            embedding_type="random",
-            embedding_dimension=EMBEDDING_DIM,
-            add_start_end_token=True,
+            word_embedding_type="random",
+            word_embedding_dimension=EMBEDDING_DIM,
+            word_add_start_end_token=True,
+            char_vocab_store_location=char_vocab_store_location,
+            character_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
         test_dataset = ParscitDataset(
             parscit_conll_file=str(test_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
-            max_length=MAX_LENGTH,
-            vocab_store_location=vocab_store_location,
+            max_word_length=MAX_LENGTH,
+            max_char_length=MAX_CHAR_LENGTH,
+            word_vocab_store_location=vocab_store_location,
             debug=DEBUG,
-            embedding_type="random",
-            embedding_dimension=EMBEDDING_DIM,
-            add_start_end_token=True,
+            word_embedding_type="random",
+            word_embedding_dimension=EMBEDDING_DIM,
+            word_add_start_end_token=True,
+            char_vocab_store_location=char_vocab_store_location,
+            character_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
 
     options = {
         "MAX_NUM_WORDS": MAX_NUM_WORDS,
         "MAX_LENGTH": MAX_LENGTH,
+        "MAX_CHAR_LENGTH": MAX_CHAR_LENGTH,
         "EMBEDDING_DIM": EMBEDDING_DIM,
     }
 
@@ -160,6 +180,13 @@ class TestParscitDataset:
         num_lines = len(lines)
         for idx in range(num_lines):
             assert len(train_dataset[idx]["tokens"]) == options["MAX_LENGTH"]
+
+    def test_char_tokens_max_length(self, setup_parscit_train_dataset):
+        train_dataset, test_dataset, options = setup_parscit_train_dataset
+        lines, labels = train_dataset.get_lines_labels()
+        num_lines = len(lines)
+        for idx in range(num_lines):
+            assert len(train_dataset[idx]["char_tokens"] == options["MAX_CHAR_LENGTH"])
 
     def test_instance_dict_with_loader(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, dataset_options = setup_parscit_train_dataset

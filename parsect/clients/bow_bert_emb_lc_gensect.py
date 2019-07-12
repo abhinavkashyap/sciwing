@@ -122,11 +122,11 @@ if __name__ == "__main__":
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     validation_dataset = GenericSectDataset(
@@ -134,11 +134,11 @@ if __name__ == "__main__":
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     test_dataset = GenericSectDataset(
@@ -146,16 +146,16 @@ if __name__ == "__main__":
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    random_embeddings = train_dataset.get_preloaded_embedding()
+    random_embeddings = train_dataset.get_preloaded_word_embedding()
 
     encoder = BowBertEncoder(
         emb_dim=EMBEDDING_DIMENSION,

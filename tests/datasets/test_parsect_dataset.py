@@ -22,7 +22,7 @@ def setup_parsect_train_dataset(tmpdir):
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         train_size=0.8,
         test_size=0.2,
@@ -51,7 +51,7 @@ def setup_parsect_train_dataset_returns_instances(tmpdir):
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
     )
 
@@ -77,13 +77,13 @@ def setup_parsect_train_dataset_bert_tokenizer(tmpdir):
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         train_size=0.8,
         test_size=0.2,
         validation_size=0.5,
-        tokenization_type="bert",
-        tokenizer=BertTokenizer.from_pretrained("bert-base-cased"),
+        word_tokenization_type="bert",
+        word_tokenizer=BertTokenizer.from_pretrained("bert-base-cased"),
         start_token="[CLS]",
         end_token="[SEP]",
         pad_token="[PAD]",
@@ -141,7 +141,7 @@ class TestParsectDataset:
 
     def test_preloaded_embedding_has_values(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
-        preloaded_emb = train_dataset.get_preloaded_embedding()
+        preloaded_emb = train_dataset.get_preloaded_word_embedding()
         assert type(preloaded_emb) == torch.Tensor
 
     def test_dataset_returns_instances_when_required(

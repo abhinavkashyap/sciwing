@@ -88,7 +88,7 @@ class BowBertEncoder:
 
     def forward(self, x: List[str]) -> torch.Tensor:
 
-        # tokenize all the text string in the batch
+        # word_tokenize all the text string in the batch
         tokenized_text = list(map(self.bert_tokenizer.tokenize, x))
         lengths = list(map(lambda tokenized: len(tokenized), tokenized_text))
         max_len = sorted(lengths, reverse=True)[0]

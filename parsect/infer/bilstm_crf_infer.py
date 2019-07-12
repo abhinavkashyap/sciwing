@@ -21,6 +21,7 @@ def get_bilstm_crf_infer(dirname: str):
 
     MAX_NUM_WORDS = config.get("MAX_NUM_WORDS", None)
     MAX_LENGTH = config.get("MAX_LENGTH", None)
+    MAX_CHAR_LENGTH = config.get("MAX_CHAR_LENGTH", None)
     VOCAB_STORE_LOCATION = config.get("VOCAB_STORE_LOCATION", None)
     DEBUG = config.get("DEBUG", None)
     DEBUG_DATASET_PROPORTION = config.get("DEBUG_DATASET_PROPORTION", None)
@@ -40,20 +41,21 @@ def get_bilstm_crf_infer(dirname: str):
         parscit_conll_file=test_conll_filepath,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        max_word_length=MAX_LENGTH,
+        max_char_length=MAX_CHAR_LENGTH,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
         start_token="<SOS>",
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
-        add_start_end_token=False,
+        word_add_start_end_token=False,
     )
 
-    embedding = test_dataset.get_preloaded_embedding()
+    embedding = test_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
 
     lstm2seqencoder = Lstm2SeqEncoder(

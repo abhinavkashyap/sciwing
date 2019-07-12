@@ -12,7 +12,7 @@ def instances():
 class TestVocab:
     def test_build_vocab_single_instance_has_words(self, instances):
         single_instance = instances["single_instance"]
-        vocab_builder = Vocab(instances=single_instance, max_num_words=1000)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=1000)
         vocab = vocab_builder.map_tokens_to_freq_idx()
 
         assert "i" in vocab.keys()
@@ -22,7 +22,7 @@ class TestVocab:
     def test_build_vocab_single_instance_descending_order(self, instances):
         single_instance = instances["single_instance"]
         vocab_builder = Vocab(
-            instances=single_instance, max_num_words=1000, min_count=1
+            instances=single_instance, max_num_tokens=1000, min_count=1
         )
         vocab = vocab_builder.map_tokens_to_freq_idx()
 
@@ -38,7 +38,7 @@ class TestVocab:
     def test_vocab_always_has_special_tokens(self, instances):
         single_instance = instances["single_instance"]
         vocab_builder = Vocab(
-            instances=single_instance, max_num_words=1000, min_count=1
+            instances=single_instance, max_num_tokens=1000, min_count=1
         )
 
         vocab = vocab_builder.map_tokens_to_freq_idx()
@@ -51,19 +51,20 @@ class TestVocab:
         single_instance = instances["single_instance"]
 
         vocab_builder = Vocab(
-            instances=single_instance, max_num_words=1000, min_count=2
+            instances=single_instance, max_num_tokens=1000, min_count=2
         )
+        vocab_builder.build_vocab()
         vocab = vocab_builder.map_tokens_to_freq_idx()
         vocab = vocab_builder.clip_on_mincount(vocab)
 
         # check that is mapped to unk
         nlp_freq, nlp_idx = vocab["nlp"]
-        assert nlp_idx == vocab_builder.special_vocab[vocab_builder.unk_token][1]
+        assert nlp_idx == vocab_builder.token2idx["<UNK>"]
 
     def test_single_instance_clip_on_max_num(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 1
-        vocab_builder = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         vocab = vocab_builder.map_tokens_to_freq_idx()
 
@@ -78,7 +79,7 @@ class TestVocab:
         MAX_NUM_WORDS = 100
         MIN_FREQ = 1
         vocab_builder = Vocab(
-            instances=single_instance, max_num_words=MAX_NUM_WORDS, min_count=MIN_FREQ
+            instances=single_instance, max_num_tokens=MAX_NUM_WORDS, min_count=MIN_FREQ
         )
 
         vocab = vocab_builder.build_vocab()
@@ -96,7 +97,7 @@ class TestVocab:
         MAX_NUM_WORDS = 100
         MIN_FREQ = 2
         vocab_builder = Vocab(
-            instances=single_instance, max_num_words=MAX_NUM_WORDS, min_count=MIN_FREQ
+            instances=single_instance, max_num_tokens=MAX_NUM_WORDS, min_count=MIN_FREQ
         )
         vocab = vocab_builder.build_vocab()
 
@@ -110,7 +111,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            instances=single_instance, max_num_words=MAX_NUM_WORDS, min_count=MIN_FREQ
+            instances=single_instance, max_num_tokens=MAX_NUM_WORDS, min_count=MIN_FREQ
         )
         vocab = vocab_builder.build_vocab()
 
@@ -124,7 +125,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            single_instance, min_count=MIN_FREQ, max_num_words=MAX_NUM_WORDS
+            single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
         )
         vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
@@ -136,7 +137,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            single_instance, min_count=MIN_FREQ, max_num_words=MAX_NUM_WORDS
+            single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
         )
         vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
@@ -148,7 +149,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            single_instance, min_count=MIN_FREQ, max_num_words=MAX_NUM_WORDS
+            single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
         )
         vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
@@ -157,7 +158,7 @@ class TestVocab:
     def test_save_vocab(self, instances, tmpdir):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
 
         vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
@@ -168,7 +169,7 @@ class TestVocab:
     def test_load_vocab(self, instances, tmpdir):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
         vocab_builder.save_to_file(vocab_file)
@@ -177,26 +178,34 @@ class TestVocab:
 
         assert vocab_builder.get_vocab_len() == 3 + len(vocab_builder.special_vocab)
 
-    def test_idx2token(self, instances):
+    @pytest.mark.parametrize(
+        "start_token,end_token,unk_token,pad_token",
+        [("<SOS>", "<EOS>", "<UNK>", "<PAD>"), (" ", " ", " ", " ")],
+    )
+    def test_idx2token(self, instances, start_token, end_token, unk_token, pad_token):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            start_token=start_token,
+            end_token=end_token,
+            pad_token=pad_token,
+            unk_token=unk_token,
+        )
         vocab_builder.build_vocab()
-        unk_token = vocab_builder.get_token_from_idx(0)
-        assert unk_token == "<UNK>"
-        pad_token = vocab_builder.get_token_from_idx(1)
-        assert pad_token == "<PAD>"
-        start_token = vocab_builder.get_token_from_idx(2)
-        assert start_token == "<SOS>"
-        end_token = vocab_builder.get_token_from_idx(3)
-        assert end_token == "<EOS>"
-        i_token = vocab_builder.get_token_from_idx(4)
-        assert i_token == "i"
+        idx2token = vocab_builder.idx2token
+        len_idx2token = len(idx2token)
+        indices = idx2token.keys()
+        indices = sorted(indices)
+
+        # tests all indices are in order
+        assert indices == list(range(len_idx2token))
 
     def test_idx2token_out_of_bounds(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         print(vocab_builder.get_idx2token_mapping())
         with pytest.raises(ValueError):
@@ -205,23 +214,36 @@ class TestVocab:
     def test_idx2token_cries_for_vocab(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         with pytest.raises(ValueError):
             vocab_builder.get_idx_from_token(1)
 
-    def test_token2idx(self, instances):
+    @pytest.mark.parametrize(
+        "start_token,end_token,unk_token,pad_token",
+        [("<SOS>", "<EOS>", "<UNK>", "<PAD>"), (" ", " ", " ", " ")],
+    )
+    def test_token2idx(self, instances, start_token, end_token, unk_token, pad_token):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(
+            single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            start_token=start_token,
+            end_token=end_token,
+            pad_token=pad_token,
+            unk_token=unk_token,
+        )
         vocab_builder.build_vocab()
-        unknown_idx = vocab_builder.get_idx_from_token("<UNK>")
-
-        assert unknown_idx == 0
+        token2idx = vocab_builder.token2idx
+        len_indices = len(token2idx.keys())
+        indices = token2idx.values()
+        indices = sorted(indices)
+        assert indices == list(range(len_indices))
 
     def test_orig_vocab_len(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 0
-        vocab_builder = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         vocab_len = vocab_builder.get_orig_vocab_len()
         assert vocab_len == 3 + len(vocab_builder.special_vocab)
@@ -229,7 +251,7 @@ class TestVocab:
     def test_get_topn(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         words_freqs = vocab_builder.get_topn_frequent_words(n=1)
 
@@ -239,7 +261,7 @@ class TestVocab:
     def test_print_stats_works(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_words=MAX_NUM_WORDS)
+        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 
@@ -248,7 +270,7 @@ class TestVocab:
         MAX_NUM_WORDS = 100
         vocab = Vocab(
             instances=single_instance,
-            max_num_words=MAX_NUM_WORDS,
+            max_num_tokens=MAX_NUM_WORDS,
             embedding_type="glove_6B_50",
         )
         vocab.build_vocab()
@@ -260,7 +282,7 @@ class TestVocab:
         MAX_NUM_WORDS = 100
         vocab = Vocab(
             instances=single_instance,
-            max_num_words=MAX_NUM_WORDS,
+            max_num_tokens=MAX_NUM_WORDS,
             embedding_type=None,
             embedding_dimension=300,
         )

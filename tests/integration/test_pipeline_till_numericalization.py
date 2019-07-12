@@ -58,7 +58,7 @@ def get_numericalized_instances(get_preprocessed_instances):
     instances, labels = get_preprocessed_instances
     MAX_NUM_WORDS = 3000
     MAX_LENGTH = 15
-    vocab = Vocab(instances, max_num_words=MAX_NUM_WORDS)
+    vocab = Vocab(instances, max_num_tokens=MAX_NUM_WORDS)
     vocab.build_vocab()
     numericalizer = Numericalizer(vocabulary=vocab)
     numericalized_instances = numericalizer.numericalize_batch_instances(instances[:32])

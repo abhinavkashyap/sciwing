@@ -94,7 +94,7 @@ def write_tokenization_vis_json(filename: str) -> Dict:
     print("VOCAB")
     print("*" * 80)
 
-    vocab = Vocab(instances, max_num_words=MAX_NUM_WORDS)
+    vocab = Vocab(instances, max_num_tokens=MAX_NUM_WORDS)
 
     print("*" * 80)
     print("NUMERICALIZATION")

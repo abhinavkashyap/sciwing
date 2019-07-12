@@ -10,11 +10,13 @@ python ${SCRIPT_FILE} \
 --device cpu \
 --max_num_words 1000 \
 --max_len 10 \
+--max_char_len 25 \
 --debug \
 --debug_dataset_proportion 0.02 \
 --bs 10 \
 --emb_type random \
 --emb_dim 50 \
+--char_emb_dim 25 \
 --hidden_dim 1024 \
 --lr 1e-2 \
 --bidirectional \

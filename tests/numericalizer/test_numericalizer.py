@@ -15,7 +15,7 @@ def single_instance_setup(instances):
     single_instance = instances["single_instance"]
     MAX_NUM_WORDS = 100
 
-    vocabulary = Vocab(instances=single_instance, max_num_words=MAX_NUM_WORDS)
+    vocabulary = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
 
     numericalizer = Numericalizer(vocabulary=vocabulary)
 

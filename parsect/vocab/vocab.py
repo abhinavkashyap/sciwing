@@ -16,7 +16,7 @@ class Vocab:
     def __init__(
         self,
         instances: List[List[str]],
-        max_num_words: int,
+        max_num_tokens: int,
         min_count: int = 1,
         unk_token: str = "<UNK>",
         pad_token: str = "<PAD>",
@@ -31,7 +31,7 @@ class Vocab:
 
         :param instances: type: List[List[str]]
          Pass in the list of tokenized instances from which vocab is built
-        :param max_num_words: type: int
+        :param max_num_tokens: type: int
         The top `max_num_words` frequent words will be considered for
         vocabulary and the rest of them will be mapped to `unk_token`
         :param min_count: type: int
@@ -59,7 +59,7 @@ class Vocab:
         Embedding dimension of the embedding type
         """
         self.instances = instances
-        self.max_num_words = max_num_words
+        self.max_num_tokens = max_num_tokens
         self.min_count = min_count
         self.unk_token = unk_token
         self.pad_token = pad_token
@@ -90,12 +90,12 @@ class Vocab:
         return the word -> (freq, idx)
         :return:
         """
-        all_words = []
+        all_tokens = []
         for instance in self.instances:
-            all_words.extend(instance)
+            all_tokens.extend(instance)
 
         # counter will map a list to Dict[str, count] values
-        counter = Counter(all_words)
+        counter = Counter(all_tokens)
 
         # order the order in decreasing order of their frequencies
         # List[Tuple]
@@ -103,14 +103,21 @@ class Vocab:
 
         vocab = {}
 
-        for idx, (word, freq) in enumerate(counter):
-            vocab[word] = (freq, len(self.special_vocab) + idx)
+        for idx, (token, freq) in enumerate(counter):
+            vocab[token] = (freq, len(self.special_vocab) + idx)
 
         # merge the two dictionaries
         # courtesy https://stackoverflow.com/questions/38987/how-to-merge-two-dictionaries-in-a-single-expression
         vocab = {**vocab, **self.special_vocab}
 
-        return vocab
+        # BUG: if vocab and special vocab share same token, then
+        # the index of the vocab will get overwritten by special vocab
+        # the only way now is to recalculate indices based on frequencies
+        vocab = sorted(vocab.items(), key=itemgetter(1), reverse=True)
+        new_vocab = {}
+        for idx, (token, (freq, _)) in enumerate(vocab):
+            new_vocab[token] = (freq, idx)
+        return new_vocab
 
     def clip_on_mincount(
         self, vocab: Dict[str, Tuple[int, int]]
@@ -140,7 +147,7 @@ class Vocab:
         The new vocab
         """
         for key, (freq, idx) in vocab.items():
-            if idx >= len(self.special_vocab) + self.max_num_words:
+            if idx >= len(self.special_vocab) + self.max_num_tokens:
                 vocab[key] = (freq, vocab[self.unk_token][1])
 
         return vocab
@@ -169,7 +176,6 @@ class Vocab:
                 self.msg_printer.info("SAVING VOCAB TO FILE")
                 self.save_to_file(self.store_location)
             return vocab
-        self.msg_printer.good("Finished vocab loading")
 
     def get_vocab_len(self) -> int:
         if not self.vocab:
@@ -220,7 +226,7 @@ class Vocab:
 
         vocab_state = dict()
         vocab_state["options"] = {
-            "max_num_words": self.max_num_words,
+            "max_num_words": self.max_num_tokens,
             "min_count": self.min_count,
             "unk_token": self.unk_token,
             "pad_token": self.pad_token,
@@ -257,7 +263,7 @@ class Vocab:
                 self.orig_vocab = orig_vocab
                 self.token2idx = self.get_token2idx_mapping()
                 self.idx2token = self.get_idx2token_mapping()
-                self.max_num_words = vocab_options["max_num_words"]
+                self.max_num_tokens = vocab_options["max_num_words"]
                 self.min_count = vocab_options["min_count"]
                 self.unk_token = vocab_options["unk_token"]
                 self.pad_token = vocab_options["pad_token"]

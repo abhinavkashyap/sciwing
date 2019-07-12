@@ -53,11 +53,11 @@ def get_random_emb_linear_classifier_infer_parsect(dirname: str):
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
     parsect_inference = ParsectInference(

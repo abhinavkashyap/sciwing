@@ -7,7 +7,7 @@ import os
 @pytest.fixture()
 def setup_word_emb_loader():
     instances = [["load", "vocab"]]
-    vocab = Vocab(instances, max_num_words=1000)
+    vocab = Vocab(instances, max_num_tokens=1000)
     vocab.build_vocab()
     return vocab
 

@@ -31,10 +31,10 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
-        embedding_type="random",
-        embedding_dimension=EMB_DIM,
+        word_embedding_type="random",
+        word_embedding_dimension=EMB_DIM,
     )
 
     validation_dataset = ParsectDataset(
@@ -42,10 +42,10 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
-        embedding_type="random",
-        embedding_dimension=EMB_DIM,
+        word_embedding_type="random",
+        word_embedding_dimension=EMB_DIM,
     )
 
     test_dataset = ParsectDataset(
@@ -53,10 +53,10 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
-        vocab_store_location=vocab_store_location,
+        word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
-        embedding_type="random",
-        embedding_dimension=EMB_DIM,
+        word_embedding_type="random",
+        word_embedding_dimension=EMB_DIM,
     )
 
     VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.vocab.special_vocab)

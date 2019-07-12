@@ -25,11 +25,11 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         dataset_type: str,
         max_num_words: int,
         max_length: int,
-        vocab_store_location: str,
+        word_vocab_store_location: str,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
-        embedding_type: Union[str, None] = None,
-        embedding_dimension: Union[int, None] = None,
+        word_embedding_type: Union[str, None] = None,
+        word_embedding_dimension: Union[int, None] = None,
         start_token: str = "<SOS>",
         end_token: str = "<EOS>",
         pad_token: str = "<PAD>",
@@ -37,8 +37,8 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
-        tokenizer=WordTokenizer(),
-        tokenization_type="vanilla",
+        word_tokenizer=WordTokenizer(),
+        word_tokenization_type="vanilla",
     ):
         """
         :param dataset_type: type: str
@@ -47,7 +47,7 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         The top frequent `max_num_words` to consider
         :param max_length: type: int
         The maximum length after numericalization
-        :param vocab_store_location: type: str
+        :param word_vocab_store_location: type: str
         The vocab store location to store vocabulary
         This should be a json filename
         :param debug: type: bool
@@ -58,7 +58,7 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         :param debug_dataset_proportion: type: float
         Send a number (0.0, 1.0) and a random proportion of the dataset
         will be used for debug purposes
-        :param embedding_type: type: str
+        :param word_embedding_type: type: str
         Pre-loaded embedding type to load.
         :param start_token: type: str
         The start token is the token appended to the beginning of the list of tokens
@@ -74,9 +74,9 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         The proportion of the dataset that is used for testing
         :param validation_size: float
         The proportion of the test dataset that is used for validation
-        :param tokenizer
-        The tokenizer that will be used to tokenize text
-        :param tokenization_type: str
+        :param word_tokenizer
+        The tokenizer that will be used to word_tokenize text
+        :param word_tokenization_type: str
         Allowed type (vanilla, bert)
         Two types of tokenization are allowed. Either vanilla tokenization that is based on spacy.
         The default is WordTokenizer()
@@ -87,11 +87,11 @@ class ParsectDataset(Dataset, TextClassificationDataset):
             dataset_type=dataset_type,
             max_num_words=max_num_words,
             max_length=max_length,
-            vocab_store_location=vocab_store_location,
+            word_vocab_store_location=word_vocab_store_location,
             debug=debug,
             debug_dataset_proportion=debug_dataset_proportion,
-            embedding_type=embedding_type,
-            embedding_dimension=embedding_dimension,
+            word_embedding_type=word_embedding_type,
+            word_embedding_dimension=word_embedding_dimension,
             start_token=start_token,
             end_token=end_token,
             pad_token=pad_token,
@@ -99,8 +99,8 @@ class ParsectDataset(Dataset, TextClassificationDataset):
             train_size=train_size,
             test_size=test_size,
             validation_size=validation_size,
-            tokenizer=tokenizer,
-            tokenization_type=tokenization_type,
+            word_tokenizer=word_tokenizer,
+            word_tokenization_type=word_tokenization_type,
         )
         self.classname2idx = self.get_classname2idx()
         self.idx2classname = {
@@ -111,11 +111,11 @@ class ParsectDataset(Dataset, TextClassificationDataset):
 
         self.parsect_json = convert_sectlabel_to_json(self.filename)
         self.lines, self.labels = self.get_lines_labels()
-        self.instances = self.tokenize(self.lines)
+        self.instances = self.word_tokenize(self.lines)
 
         self.vocab = Vocab(
             instances=self.instances,
-            max_num_words=self.max_num_words,
+            max_num_tokens=self.max_num_words,
             unk_token=self.unk_token,
             pad_token=self.pad_token,
             start_token=self.start_token,
@@ -152,8 +152,8 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         bert_tokens = -1  # -1 indicates no bert tokens
         segment_ids = -1  # -1 indicates no bert tokens
 
-        if self.tokenization_type == "bert":
-            bert_tokens = self.tokenizer.convert_tokens_to_ids(padded_instance)
+        if self.word_tokenization_type == "bert":
+            bert_tokens = self.word_tokenizer.convert_tokens_to_ids(padded_instance)
             segment_ids = [0] * len(padded_instance)
             bert_tokens = torch.LongTensor(bert_tokens)
             segment_ids = torch.LongTensor(segment_ids)
@@ -351,5 +351,5 @@ class ParsectDataset(Dataset, TextClassificationDataset):
             )
         )
 
-    def get_preloaded_embedding(self) -> torch.FloatTensor:
+    def get_preloaded_word_embedding(self) -> torch.FloatTensor:
         return self.vocab.load_embedding()

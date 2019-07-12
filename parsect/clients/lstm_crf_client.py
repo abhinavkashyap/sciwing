@@ -35,6 +35,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max_len", help="Maximum length of sentences to be considered", type=int
     )
+    parser.add_argument(
+        "--max_char_len", help="Maximum length of sentences to be considered", type=int
+    )
 
     parser.add_argument(
         "--debug",
@@ -59,6 +62,9 @@ if __name__ == "__main__":
         type=int,
     )
     parser.add_argument("--emb_dim", help="embedding dimension", type=int)
+    parser.add_argument(
+        "--char_emb_dim", help="character embedding dimension", type=int
+    )
     parser.add_argument(
         "--emb_type",
         help="The type of glove embedding you want. The allowed types are glove_6B_50, glove_6B_100, "
@@ -87,6 +93,7 @@ if __name__ == "__main__":
         "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
         "BATCH_SIZE": args.bs,
         "EMBEDDING_DIMENSION": args.emb_dim,
+        "CHAR_EMBEDDING_DIMENSION": args.char_emb_dim,
         "LEARNING_RATE": args.lr,
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
@@ -94,6 +101,7 @@ if __name__ == "__main__":
         "EMBEDDING_TYPE": args.emb_type,
         "MAX_NUM_WORDS": args.max_num_words,
         "MAX_LENGTH": args.max_len,
+        "MAX_CHAR_LENGTH": args.max_char_len,
         "DEVICE": args.device,
         "HIDDEN_DIM": args.hidden_dim,
         "BIDIRECTIONAL": args.bidirectional,
@@ -110,6 +118,7 @@ if __name__ == "__main__":
         os.mkdir(MODEL_SAVE_DIR)
 
     VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "vocab.json")
+    CHAR_VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "char_vocab.json")
     DEBUG = config["DEBUG"]
     DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
     BATCH_SIZE = config["BATCH_SIZE"]
@@ -118,6 +127,7 @@ if __name__ == "__main__":
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
+    CHAR_EMBEDDING_DIMENSION = config["CHAR_EMBEDDING_DIMENSION"]
     EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
@@ -126,6 +136,7 @@ if __name__ == "__main__":
     HIDDEN_DIM = config["HIDDEN_DIM"]
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
+    MAX_CHAR_LENGTH = config["MAX_CHAR_LENGTH"]
     train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
@@ -135,56 +146,65 @@ if __name__ == "__main__":
         parscit_conll_file=str(train_conll_filepath),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        max_word_length=MAX_LENGTH,
+        max_char_length=MAX_CHAR_LENGTH,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
+        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
+        character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
         start_token="<SOS>",
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
-        add_start_end_token=False,
+        word_add_start_end_token=False,
     )
 
     validation_dataset = ParscitDataset(
         parscit_conll_file=str(test_conll_filepath),
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        max_word_length=MAX_LENGTH,
+        max_char_length=MAX_CHAR_LENGTH,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
+        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
+        character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
         start_token="<SOS>",
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
-        add_start_end_token=False,
+        word_add_start_end_token=False,
     )
 
     test_dataset = ParscitDataset(
         parscit_conll_file=str(test_conll_filepath),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
-        vocab_store_location=VOCAB_STORE_LOCATION,
+        max_word_length=MAX_LENGTH,
+        max_char_length=MAX_CHAR_LENGTH,
+        word_vocab_store_location=VOCAB_STORE_LOCATION,
+        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        embedding_type=EMBEDDING_TYPE,
-        embedding_dimension=EMBEDDING_DIMENSION,
+        word_embedding_type=EMBEDDING_TYPE,
+        word_embedding_dimension=EMBEDDING_DIMENSION,
+        character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
         start_token="<SOS>",
         end_token="<EOS>",
         pad_token="<PAD>",
         unk_token="<UNK>",
-        add_start_end_token=False,
+        word_add_start_end_token=False,
     )
 
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    embedding = train_dataset.get_preloaded_embedding()
+    embedding = train_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
 
     lstm2seqencoder = Lstm2SeqEncoder(
@@ -226,6 +246,7 @@ if __name__ == "__main__":
     engine.run()
 
     config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
+    config["CHAR_VOCAB_STORE_LOCATION"] = CHAR_VOCAB_STORE_LOCATION
     config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
     config["VOCAB_SIZE"] = VOCAB_SIZE
     config["NUM_CLASSES"] = NUM_CLASSES
