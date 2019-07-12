@@ -18,11 +18,11 @@ class CharEmbLoader:
 
     def load_embedding(self):
         embedding = {}
-        with self.msg_printer.loading("Loading character embedding"):
+        with self.msg_printer.loading("Loading Character Embedding"):
             tokens = self.token2idx.keys()
             for token in tokens:
                 embedding[token] = np.random.normal(
                     loc=0.1, scale=0.1, size=self.embedding_dimension
                 )
-        self.msg_printer.good("Finished Loading character embedding")
+        self.msg_printer.good("Finished Loading Character Embedding")
         return embedding

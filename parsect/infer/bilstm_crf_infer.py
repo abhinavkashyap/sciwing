@@ -2,11 +2,12 @@ import parsect.constants as constants
 import pathlib
 import json
 from parsect.datasets.parscit_dataset import ParscitDataset
-import torch.nn as nn
-import torch
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
+from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.parscit_tagger import ParscitTagger
 from parsect.infer.parscit_inference import ParscitInference
+import torch
+import torch.nn as nn
 
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
@@ -34,6 +35,10 @@ def get_bilstm_crf_infer(dirname: str):
     NUM_CLASSES = config.get("NUM_CLASSES", None)
     MODEL_SAVE_DIR = config.get("MODEL_SAVE_DIR", None)
     model_filepath = pathlib.Path(MODEL_SAVE_DIR, "best_model.pt")
+    CHAR_VOCAB_STORE_LOCATION = config.get("CHAR_VOCAB_STORE_LOCATION", None)
+    CHAR_EMBEDDING_DIMENSION = config.get("CHAR_EMBEDDING_DIMENSION", None)
+    USE_CHAR_ENCODER = config.get("USE_CHAR_ENCODER", None)
+    CHAR_ENCODER_HIDDEN_DIM = config.get("CHAR_ENCODER_HIDDEN_DIM", None)
 
     test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
@@ -44,10 +49,12 @@ def get_bilstm_crf_infer(dirname: str):
         max_word_length=MAX_LENGTH,
         max_char_length=MAX_CHAR_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
+        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
+        character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
         start_token="<SOS>",
         end_token="<EOS>",
         pad_token="<PAD>",
@@ -57,6 +64,21 @@ def get_bilstm_crf_infer(dirname: str):
 
     embedding = test_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
+
+    char_embedding = test_dataset.get_preloaded_char_embedding()
+    char_embedding = nn.Embedding.from_pretrained(char_embedding)
+
+    char_encoder = None
+
+    if USE_CHAR_ENCODER:
+        char_encoder = LSTM2VecEncoder(
+            emb_dim=CHAR_EMBEDDING_DIMENSION,
+            embedding=char_embedding,
+            bidirectional=True,
+            hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
+            combine_strategy="concat",
+        )
+        EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
 
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
@@ -74,6 +96,7 @@ def get_bilstm_crf_infer(dirname: str):
         hid_dim=2 * HIDDEN_DIMENSION
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIMENSION,
+        character_encoder=char_encoder,
     )
 
     inference_client = ParscitInference(

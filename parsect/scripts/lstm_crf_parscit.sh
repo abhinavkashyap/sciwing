@@ -20,6 +20,8 @@ python ${SCRIPT_FILE} \
 --hidden_dim 1024 \
 --lr 1e-2 \
 --bidirectional \
+--use_char_encoder \
+--char_encoder_hidden_dim 100 \
 --combine_strategy concat \
 --epochs 10 \
 --save_every 50 \

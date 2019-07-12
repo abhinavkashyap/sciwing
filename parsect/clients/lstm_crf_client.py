@@ -1,5 +1,6 @@
 from parsect.models.parscit_tagger import ParscitTagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
+from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.datasets.parscit_dataset import ParscitDataset
 from parsect.utils.common import write_nfold_parscit_train_test
 import parsect.constants as constants
@@ -79,6 +80,16 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
+        "--use_char_encoder",
+        help="Specify whether to use character encoder with neural-parscit",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--char_encoder_hidden_dim",
+        help="Character encoder hidden dimension.",
+        type=int,
+    )
+    parser.add_argument(
         "--combine_strategy",
         help="How do you want to combine the hidden dimensions of the two "
         "combinations",
@@ -106,6 +117,8 @@ if __name__ == "__main__":
         "HIDDEN_DIM": args.hidden_dim,
         "BIDIRECTIONAL": args.bidirectional,
         "COMBINE_STRATEGY": args.combine_strategy,
+        "USE_CHAR_ENCODER": args.use_char_encoder,
+        "CHAR_ENCODER_HIDDEN_DIM": args.char_encoder_hidden_dim,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -137,6 +150,8 @@ if __name__ == "__main__":
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
     MAX_CHAR_LENGTH = config["MAX_CHAR_LENGTH"]
+    USE_CHAR_ENCODER = config["USE_CHAR_ENCODER"]
+    CHAR_ENCODER_HIDDEN_DIM = config["CHAR_ENCODER_HIDDEN_DIM"]
     train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
@@ -206,6 +221,19 @@ if __name__ == "__main__":
     NUM_CLASSES = train_dataset.get_num_classes()
     embedding = train_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
+    char_embedding = train_dataset.get_preloaded_char_embedding()
+    char_embedding = nn.Embedding.from_pretrained(char_embedding)
+    char_encoder = None
+
+    if USE_CHAR_ENCODER:
+        char_encoder = LSTM2VecEncoder(
+            emb_dim=CHAR_EMBEDDING_DIMENSION,
+            embedding=char_embedding,
+            bidirectional=True,
+            hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
+            combine_strategy="concat",
+        )
+        EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
 
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
@@ -223,6 +251,7 @@ if __name__ == "__main__":
         hid_dim=2 * HIDDEN_DIM
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIM,
+        character_encoder=char_encoder,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)

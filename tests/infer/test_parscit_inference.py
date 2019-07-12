@@ -2,6 +2,7 @@ import pytest
 from parsect.infer.parscit_inference import ParscitInference
 from parsect.datasets.parscit_dataset import ParscitDataset
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
+from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.parscit_tagger import ParscitTagger
 import parsect.constants as constants
 import pathlib
@@ -38,8 +39,10 @@ def setup_base_parscit_inference():
     NUM_CLASSES = config.get("NUM_CLASSES", None)
     MODEL_SAVE_DIR = config.get("MODEL_SAVE_DIR", None)
     model_filepath = pathlib.Path(MODEL_SAVE_DIR, "best_model.pt")
-    CHAR_VOCAB_STORE_LOCATION = config.get("CONFIG_VOCAB_STORE_LOCATION", None)
+    CHAR_VOCAB_STORE_LOCATION = config.get("CHAR_VOCAB_STORE_LOCATION", None)
     CHAR_EMBEDDING_DIMENSION = config.get("CHAR_EMBEDDING_DIMENSION", None)
+    USE_CHAR_ENCODER = config.get("USE_CHAR_ENCODER", None)
+    CHAR_ENCODER_HIDDEN_DIM = config.get("CHAR_ENCODER_HIDDEN_DIM", None)
 
     test_dataset = ParscitDataset(
         parscit_conll_file=test_conll_filepath,
@@ -64,6 +67,21 @@ def setup_base_parscit_inference():
     embedding = test_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
 
+    char_embedding = test_dataset.get_preloaded_char_embedding()
+    char_embedding = nn.Embedding.from_pretrained(char_embedding)
+
+    char_encoder = None
+
+    if USE_CHAR_ENCODER:
+        char_encoder = LSTM2VecEncoder(
+            emb_dim=CHAR_EMBEDDING_DIMENSION,
+            embedding=char_embedding,
+            bidirectional=True,
+            hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
+            combine_strategy="concat",
+        )
+        EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
+
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedding=embedding,
@@ -80,6 +98,7 @@ def setup_base_parscit_inference():
         hid_dim=2 * HIDDEN_DIMENSION
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIMENSION,
+        character_encoder=char_encoder,
     )
 
     inference_client = ParscitInference(
