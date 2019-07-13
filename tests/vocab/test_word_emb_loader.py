@@ -20,40 +20,41 @@ class TestWordEmbLoader:
                 token2idx=vocab.get_token2idx_mapping(), embedding_type="notexistent"
             )
 
-    def test_preloaded_file_exists(self, setup_word_emb_loader):
+    @pytest.mark.parametrize(
+        "embedding_type",
+        ["glove_6B_50", "glove_6B_100", "glove_6B_200", "glove_6B_300", "parscit"],
+    )
+    def test_preloaded_file_exists(self, setup_word_emb_loader, embedding_type):
         vocab = setup_word_emb_loader
-        embedding_types = [
+
+        emb_loader = WordEmbLoader(
+            token2idx=vocab.get_token2idx_mapping(), embedding_type=embedding_type
+        )
+        preloaded_filename = emb_loader.get_preloaded_filename()
+
+        assert os.path.isfile(preloaded_filename)
+
+    @pytest.mark.parametrize(
+        "embedding_type",
+        [
             "glove_6B_50",
             "glove_6B_100",
             "glove_6B_200",
             "glove_6B_300",
-        ]
-
-        for embedding_type in embedding_types:
-            emb_loader = WordEmbLoader(
-                token2idx=vocab.get_token2idx_mapping(), embedding_type=embedding_type
-            )
-            preloaded_filename = emb_loader.get_preloaded_filename()
-
-            assert os.path.isfile(preloaded_filename)
-
-    def test_all_vocab_words_have_glove_embedding(self, setup_word_emb_loader):
+            "parscit",
+            "random",
+        ],
+    )
+    def test_all_vocab_words_have_embedding(
+        self, setup_word_emb_loader, embedding_type
+    ):
         vocab = setup_word_emb_loader
         emb_loader = WordEmbLoader(
-            token2idx=vocab.get_token2idx_mapping(), embedding_type="glove_6B_50"
+            token2idx=vocab.get_token2idx_mapping(), embedding_type=embedding_type
         )
 
         vocab_embedding = emb_loader.vocab_embedding
 
         words = vocab_embedding.keys()
 
-        assert len(words) == vocab.get_vocab_len()
-
-    def test_all_vocab_words_have_random_embeddings(self, setup_word_emb_loader):
-        vocab = setup_word_emb_loader
-        emb_loader = WordEmbLoader(
-            token2idx=vocab.get_token2idx_mapping(), embedding_type=None
-        )
-        vocab_embedding = emb_loader.vocab_embedding
-        words = vocab_embedding.keys()
         assert len(words) == vocab.get_vocab_len()
