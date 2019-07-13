@@ -10,9 +10,14 @@ import pandas as pd
 
 
 class TokenClassificationAccuracy(BaseMetric):
-    def __init__(self, idx2labelname_mapping: Dict[int, str]):
+    def __init__(
+        self,
+        idx2labelname_mapping: Dict[int, str],
+        mask_label_indices: Union[List[int], None] = None,
+    ):
         super(TokenClassificationAccuracy, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping
+        self.mask_label_indices = mask_label_indices
         self.msg_printer = wasabi.Printer()
 
         self.tp_counter = {}
@@ -46,8 +51,8 @@ class TokenClassificationAccuracy(BaseMetric):
         if labels is None or predicted_tags is None:
             raise ValueError(
                 f"While calling {self.__class__.__name__}, the iter_dict should"
-                f"have a key called label and iter and model_forward_dict "
-                f"shoulde have predicted_tags"
+                f"have a key called label and model_forward_dict "
+                f"should have predicted_tags"
             )
 
         assert labels.ndimension() == 2, self.msg_printer.fail(
@@ -59,6 +64,18 @@ class TokenClassificationAccuracy(BaseMetric):
         predicted_tags_flat = list(itertools.chain.from_iterable(predicted_tags))
         predicted_tags_flat = np.array(predicted_tags_flat)
         labels_numpy = labels.numpy().ravel()
+
+        # get indices of elements in labels_numpy that are in `self.mask_label_indices`
+        # if the labels_numpy contains masked indices which should not be tracked, delete it
+        labels_numpy_masked_indices = np.where(
+            np.isin(labels_numpy, self.mask_label_indices)
+        )[0]
+
+        labels_numpy = np.delete(labels_numpy, labels_numpy_masked_indices)
+        predicted_tags_flat = np.delete(
+            predicted_tags_flat, labels_numpy_masked_indices
+        )
+
         confusion_mtrx = confusion_matrix(labels_numpy, predicted_tags_flat)
 
         classes = unique_labels(labels_numpy, predicted_tags_flat)

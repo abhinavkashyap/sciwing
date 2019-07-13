@@ -424,6 +424,7 @@ class Engine:
         self.model.load_state_dict(model_state)
 
     def get_metric_calculators(self):
+        # TODO: move this out of engine and should be passed in by the user configuring it appropriately
         train_calculator = None
         validation_calculator = None
         test_calculator = None
