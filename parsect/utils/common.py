@@ -14,7 +14,9 @@ import numpy as np
 import parsect.constants as constants
 
 PATHS = constants.PATHS
+FILES = constants.FILES
 DATA_DIR = PATHS["DATA_DIR"]
+CORA_FILE = FILES["CORA_FILE"]
 
 
 def convert_sectlabel_to_json(filename: str) -> Dict:
@@ -302,16 +304,10 @@ def write_nfold_parscit_train_test(
         yield True
 
 
-if __name__ == "__main__":
-    import parsect.constants as constants
-
-    parscit_train_data_file = pathlib.Path(DATA_DIR, "parsCit.train.data")
-    output_train_data_file = pathlib.Path(DATA_DIR, "parscit.train.conll_fmt.data")
-    conll_citations = convert_parscit_to_conll(parscit_train_data_file)
-    print(len(conll_citations))
-    print(f"Example citation string: {conll_citations[0]['citation_string']}")
-
-    for is_success in write_nfold_parscit_train_test(
-        parscit_train_filepath=parscit_train_data_file
-    ):
-        print(f"Wrote the train test conll parscit file successfully? {is_success}")
+def write_cora_to_conll_file(cora_conll_filepath: pathlib.Path) -> None:
+    citations = convert_parscit_to_conll(pathlib.Path(CORA_FILE))
+    with open(cora_conll_filepath, "w") as fp:
+        for citation in citations:
+            word_tags = citation["word_tags"]
+            fp.write("\n".join(word_tags))
+            fp.write("\n \n")

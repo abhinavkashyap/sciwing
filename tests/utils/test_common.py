@@ -4,14 +4,18 @@ from parsect.utils.common import merge_dictionaries_with_sum
 from parsect.utils.common import pack_to_length
 from parsect.utils.common import convert_generic_sect_to_json
 from parsect.utils.common import convert_parscit_to_conll
+from parsect.utils.common import write_cora_to_conll_file
 import pytest
 import pathlib
 
 FILES = constants.FILES
+PATHS = constants.PATHS
 
 SECTLABEL_FILENAME = FILES["SECT_LABEL_FILE"]
 GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
 PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
+CORA_FILE = FILES["CORA_FILE"]
+DATA_DIR = PATHS["DATA_DIR"]
 
 
 @pytest.fixture
@@ -244,3 +248,14 @@ class TestCommon:
         for citation in citations:
             lines.extend(citation["word_tags"])
         assert all([len(line.split()) == 4 for line in lines])
+
+    def test_cora_has_500_citations(self):
+        citations = convert_parscit_to_conll(pathlib.Path(CORA_FILE))
+        assert len(citations) == 500
+
+    def test_cora_write_file_works(self):
+        cora_path = pathlib.Path(DATA_DIR, "cora_conll.txt")
+        try:
+            write_cora_to_conll_file(cora_path)
+        except:
+            pytest.fail("Failed to write cora file to conll format")

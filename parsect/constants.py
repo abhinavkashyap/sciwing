@@ -23,4 +23,5 @@ FILES = dict(
     GLOVE_FILE="http://nlp.stanford.edu/data/glove.6B.zip",
     GENERIC_SECTION_TRAIN_FILE=os.path.join(ROOT_DIR, "data", "genericSect.train.data"),
     PARSCIT_TRAIN_FILE=os.path.join(ROOT_DIR, "data", "parsCit.train.data"),
+    CORA_FILE=os.path.join(ROOT_DIR, "data", "cora.data"),
 )

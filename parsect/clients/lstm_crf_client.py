@@ -3,6 +3,7 @@ from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.datasets.parscit_dataset import ParscitDataset
 from parsect.utils.common import write_nfold_parscit_train_test
+from parsect.utils.common import write_cora_to_conll_file
 import parsect.constants as constants
 import os
 import torch
@@ -17,6 +18,7 @@ FILES = constants.FILES
 PATHS = constants.PATHS
 
 PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
+CORA_FILE = FILES["CORA_FILE"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 DATA_DIR = PATHS["DATA_DIR"]
@@ -124,6 +126,7 @@ if __name__ == "__main__":
     EXP_NAME = config["EXP_NAME"]
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
+    CORA_CONLL_FILE = pathlib.Path(DATA_DIR, "cora_conll.txt")
     if not os.path.isdir(EXP_DIR_PATH):
         os.mkdir(EXP_DIR_PATH)
 
@@ -156,6 +159,7 @@ if __name__ == "__main__":
     test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
     next(write_nfold_parscit_train_test(pathlib.Path(PARSCIT_TRAIN_FILE)))
+    write_cora_to_conll_file(CORA_CONLL_FILE)
 
     train_dataset = ParscitDataset(
         parscit_conll_file=str(train_conll_filepath),
@@ -198,7 +202,7 @@ if __name__ == "__main__":
     )
 
     test_dataset = ParscitDataset(
-        parscit_conll_file=str(test_conll_filepath),
+        parscit_conll_file=str(CORA_CONLL_FILE),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,

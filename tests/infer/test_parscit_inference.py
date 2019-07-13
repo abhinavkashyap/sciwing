@@ -19,7 +19,7 @@ DATA_DIR = PATHS["DATA_DIR"]
 def setup_base_parscit_inference():
     debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "lstm_crf_parscit_debug")
     hyperparam_config_filename = debug_parscit_model_folder.joinpath("config.json")
-    test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    test_conll_filepath = pathlib.Path(DATA_DIR, "cora_conll.txt")
 
     with open(hyperparam_config_filename, "r") as fp:
         config = json.load(fp)

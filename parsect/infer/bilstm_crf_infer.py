@@ -40,7 +40,7 @@ def get_bilstm_crf_infer(dirname: str):
     USE_CHAR_ENCODER = config.get("USE_CHAR_ENCODER", None)
     CHAR_ENCODER_HIDDEN_DIM = config.get("CHAR_ENCODER_HIDDEN_DIM", None)
 
-    test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    test_conll_filepath = pathlib.Path(DATA_DIR, "cora_conll.txt")
 
     test_dataset = ParscitDataset(
         parscit_conll_file=test_conll_filepath,
