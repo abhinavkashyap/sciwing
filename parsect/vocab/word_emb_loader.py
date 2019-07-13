@@ -4,6 +4,8 @@ from typing import Dict, Union
 import numpy as np
 from tqdm import tqdm
 from wasabi import Printer
+import gensim
+
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -38,6 +40,7 @@ class WordEmbLoader:
             "glove_6B_200",
             "glove_6B_300",
             "random",
+            "parscit",
         ]
 
         assert (
@@ -55,6 +58,9 @@ class WordEmbLoader:
 
         if "glove" in self.embedding_type:
             self.vocab_embedding = self.load_glove_embedding()
+
+        if "parscit" in self.embedding_type:
+            self.vocab_embedding = self.load_parscit_embedding()
 
     def get_preloaded_filename(self):
         filename = None
@@ -75,6 +81,10 @@ class WordEmbLoader:
         elif self.embedding_type == "glove_6B_300":
             filename = os.path.join(
                 DATA_DIR, "embeddings", "glove", "glove.6B.300d.txt"
+            )
+        elif self.embedding_type == "parscit":
+            filename = os.path.join(
+                DATA_DIR, "embeddings", "parscit", "vectors_with_unk.kv"
             )
 
         return filename
@@ -131,4 +141,20 @@ class WordEmbLoader:
                 vocab_embeddings[token] = emb
 
         self.msg_printer.good("Finished loading Random word Embedding")
+        return vocab_embeddings
+
+    def load_parscit_embedding(self) -> Dict[str, np.array]:
+        pretrained = gensim.models.KeyedVectors.load(self.embedding_filename, mmap="r")
+        tokens = self.token2idx_mapping.keys()
+        vocab_embeddings = {}
+
+        with self.msg_printer.loading("Loading Parscit Embeddings"):
+            for token in tokens:
+                try:
+                    emb = pretrained[token]
+                except:
+                    emb = pretrained["<UNK>"]
+                vocab_embeddings[token] = emb
+
+        self.msg_printer.good("Finished Loading Parscit Embeddings")
         return vocab_embeddings
