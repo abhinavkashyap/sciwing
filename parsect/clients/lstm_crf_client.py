@@ -224,9 +224,9 @@ if __name__ == "__main__":
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     embedding = train_dataset.get_preloaded_word_embedding()
-    embedding = nn.Embedding.from_pretrained(embedding)
+    embedding = nn.Embedding.from_pretrained(embedding, freeze=False)
     char_embedding = train_dataset.get_preloaded_char_embedding()
-    char_embedding = nn.Embedding.from_pretrained(char_embedding)
+    char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
     char_encoder = None
 
     if USE_CHAR_ENCODER:
