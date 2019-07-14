@@ -17,6 +17,7 @@ PATHS = constants.PATHS
 FILES = constants.FILES
 DATA_DIR = PATHS["DATA_DIR"]
 CORA_FILE = FILES["CORA_FILE"]
+PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
 
 
 def convert_sectlabel_to_json(filename: str) -> Dict:
@@ -307,6 +308,15 @@ def write_nfold_parscit_train_test(
 def write_cora_to_conll_file(cora_conll_filepath: pathlib.Path) -> None:
     citations = convert_parscit_to_conll(pathlib.Path(CORA_FILE))
     with open(cora_conll_filepath, "w") as fp:
+        for citation in citations:
+            word_tags = citation["word_tags"]
+            fp.write("\n".join(word_tags))
+            fp.write("\n \n")
+
+
+def write_parscit_to_conll_file(parscit_conll_filepath: pathlib.Path) -> None:
+    citations = convert_parscit_to_conll(pathlib.Path(PARSCIT_TRAIN_FILE))
+    with open(parscit_conll_filepath, "w") as fp:
         for citation in citations:
             word_tags = citation["word_tags"]
             fp.write("\n".join(word_tags))

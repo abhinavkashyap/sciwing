@@ -5,6 +5,7 @@ from parsect.utils.common import pack_to_length
 from parsect.utils.common import convert_generic_sect_to_json
 from parsect.utils.common import convert_parscit_to_conll
 from parsect.utils.common import write_cora_to_conll_file
+from parsect.utils.common import write_parscit_to_conll_file
 import pytest
 import pathlib
 
@@ -259,3 +260,10 @@ class TestCommon:
             write_cora_to_conll_file(cora_path)
         except:
             pytest.fail("Failed to write cora file to conll format")
+
+    def test_parscit_train_write_file_works(self):
+        parscit_train_path = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+        try:
+            write_parscit_to_conll_file(parscit_train_path)
+        except:
+            pytest.fail("Failed to write parscit train conll format file")

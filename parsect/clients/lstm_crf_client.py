@@ -3,7 +3,7 @@ from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.datasets.parscit_dataset import ParscitDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
-from parsect.utils.common import write_nfold_parscit_train_test
+from parsect.utils.common import write_parscit_to_conll_file
 from parsect.utils.common import write_cora_to_conll_file
 import parsect.constants as constants
 import os
@@ -14,6 +14,8 @@ import json
 import argparse
 import pathlib
 import torch.nn as nn
+import wasabi
+import numpy as np
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -100,6 +102,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--device", help="Device on which the model is run", type=str)
     args = parser.parse_args()
+    msg_printer = wasabi.Printer()
 
     config = {
         "EXP_NAME": args.exp_name,
@@ -157,9 +160,9 @@ if __name__ == "__main__":
     USE_CHAR_ENCODER = config["USE_CHAR_ENCODER"]
     CHAR_ENCODER_HIDDEN_DIM = config["CHAR_ENCODER_HIDDEN_DIM"]
     train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
-    test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    test_conll_filepath = pathlib.Path(CORA_CONLL_FILE)
 
-    next(write_nfold_parscit_train_test(pathlib.Path(PARSCIT_TRAIN_FILE)))
+    write_parscit_to_conll_file(train_conll_filepath)
     write_cora_to_conll_file(CORA_CONLL_FILE)
 
     train_dataset = ParscitDataset(
@@ -204,7 +207,7 @@ if __name__ == "__main__":
 
     test_dataset = ParscitDataset(
         parscit_conll_file=str(CORA_CONLL_FILE),
-        dataset_type="train",
+        dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
         max_char_length=MAX_CHAR_LENGTH,
@@ -294,5 +297,6 @@ if __name__ == "__main__":
     config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
     config["VOCAB_SIZE"] = VOCAB_SIZE
     config["NUM_CLASSES"] = NUM_CLASSES
-    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
+
+    with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
         json.dump(config, fp)

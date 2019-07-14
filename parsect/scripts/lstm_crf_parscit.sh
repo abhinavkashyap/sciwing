@@ -23,7 +23,7 @@ python ${SCRIPT_FILE} \
 --use_char_encoder \
 --char_encoder_hidden_dim 100 \
 --combine_strategy concat \
---epochs 10 \
+--epochs 2 \
 --save_every 50 \
 --log_train_metrics_every 5
 
