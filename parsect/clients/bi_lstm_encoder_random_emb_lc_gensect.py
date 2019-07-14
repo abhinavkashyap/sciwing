@@ -4,6 +4,7 @@ from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import parsect.constants as constants
 import os
 import torch.nn as nn
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 import torch.optim as optim
 from parsect.engine.engine import Engine
@@ -187,6 +188,7 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2label)
 
     engine = Engine(
         model=model,
@@ -201,6 +203,7 @@ if __name__ == "__main__":
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
+        metric=metric,
     )
 
     engine.run()

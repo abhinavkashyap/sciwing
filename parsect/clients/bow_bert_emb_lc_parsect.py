@@ -2,6 +2,7 @@ from parsect.models.bow_bert_linear_classifier import BowBertLinearClassifier
 from parsect.datasets.parsect_dataset import ParsectDataset
 from parsect.modules.bow_bert_encoder import BowBertEncoder
 import parsect.constants as constants
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import os
 
 import torch.optim as optim
@@ -173,6 +174,7 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
 
     engine = Engine(
         model=model,
@@ -187,6 +189,7 @@ if __name__ == "__main__":
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
+        metric=metric,
     )
 
     engine.run()

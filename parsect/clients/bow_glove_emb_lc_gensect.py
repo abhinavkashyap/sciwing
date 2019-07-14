@@ -1,6 +1,7 @@
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.generic_sect_dataset import GenericSectDataset
 from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import parsect.constants as constants
 import os
 import torch.nn as nn
@@ -156,6 +157,7 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2label)
 
     engine = Engine(
         model=model,
@@ -169,6 +171,7 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
+        metric=metric,
     )
 
     engine.run()

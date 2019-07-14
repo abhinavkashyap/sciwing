@@ -2,6 +2,7 @@ from parsect.models.parscit_tagger import ParscitTagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.datasets.parscit_dataset import ParscitDataset
+from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.common import write_nfold_parscit_train_test
 from parsect.utils.common import write_cora_to_conll_file
 import parsect.constants as constants
@@ -259,6 +260,16 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+    classnames2idx = train_dataset.classnames2idx
+    ignore_indices = [
+        classnames2idx["starting"],
+        classnames2idx["ending"],
+        classnames2idx["padding"],
+    ]
+    metric = TokenClassificationAccuracy(
+        idx2labelname_mapping=train_dataset.idx2classname,
+        mask_label_indices=ignore_indices,
+    )
 
     engine = Engine(
         model=model,
@@ -273,7 +284,7 @@ if __name__ == "__main__":
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
-        metric="sequential_tag_token_accuracy",
+        metric=metric,
     )
 
     engine.run()

@@ -7,6 +7,7 @@ from typing import Iterator, Callable, Any, List
 from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
+from parsect.metrics.BaseMetric import BaseMetric
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 import numpy as np
@@ -16,6 +17,7 @@ import logging
 from torch.utils.data._utils.collate import default_collate
 import torch
 from parsect.utils.tensor import move_to_device
+from copy import deepcopy
 
 
 class Engine:
@@ -31,8 +33,8 @@ class Engine:
         num_epochs: int,
         save_every: int,
         log_train_metrics_every: int,
+        metric: BaseMetric,
         tensorboard_logdir: str = None,
-        metric: str = "accuracy",
         track_for_best: str = "loss",
         collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
         device=torch.device("cpu"),
@@ -60,6 +62,8 @@ class Engine:
         The model state will be save every `save_every` num of epochs
         :param log_train_metrics_every
         The train metrics will logged every `log_train_metrics_every` iterations
+        :param metric: type:BaseMetric
+        Any metric that inherits BaseMetric can be forwarded here
         :param tensorboard_logdir: type: str
         pass in the directory where tensorboard logs are stored
         By default it will be put in a directory called run/ in the same directory as the
@@ -98,11 +102,6 @@ class Engine:
 
         self.num_workers = 0
 
-        self.labelname2idx_mapping = self.train_dataset.get_classname2idx()
-        self.idx2labelname_mapping = {
-            idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
-        }
-
         # get the data loader
         # TODO: For now we randomly sample the dataset to obtain instances, we can have different
         #       sampling strategies. For one, there are BucketIterators, that bucket different
@@ -124,9 +123,9 @@ class Engine:
         self.validation_loss_meter = LossMeter()
 
         # get metric calculators
-        self.train_metric_calc, self.validation_metric_calc, self.test_metric_calc = (
-            self.get_metric_calculators()
-        )
+        self.train_metric_calc = deepcopy(metric)
+        self.validation_metric_calc = deepcopy(metric)
+        self.test_metric_calc = deepcopy(metric)
 
         self.msg_printer.divider("ENGINE STARTING")
         self.msg_printer.info(
@@ -422,32 +421,3 @@ class Engine:
 
         model_state = model_chkpoint["model_state"]
         self.model.load_state_dict(model_state)
-
-    def get_metric_calculators(self):
-        # TODO: move this out of engine and should be passed in by the user configuring it appropriately
-        train_calculator = None
-        validation_calculator = None
-        test_calculator = None
-
-        if self.metric == "accuracy":
-            train_calculator = PrecisionRecallFMeasure(
-                idx2labelname_mapping=self.idx2labelname_mapping
-            )
-            validation_calculator = PrecisionRecallFMeasure(
-                idx2labelname_mapping=self.idx2labelname_mapping
-            )
-            test_calculator = PrecisionRecallFMeasure(
-                idx2labelname_mapping=self.idx2labelname_mapping
-            )
-        elif self.metric == "sequential_tag_token_accuracy":
-            train_calculator = TokenClassificationAccuracy(
-                idx2labelname_mapping=self.idx2labelname_mapping
-            )
-            validation_calculator = TokenClassificationAccuracy(
-                idx2labelname_mapping=self.idx2labelname_mapping
-            )
-            test_calculator = TokenClassificationAccuracy(
-                idx2labelname_mapping=self.idx2labelname_mapping
-            )
-
-        return train_calculator, validation_calculator, test_calculator

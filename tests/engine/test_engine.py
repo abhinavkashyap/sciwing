@@ -2,6 +2,7 @@ from parsect.engine.engine import Engine
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from torch.nn import Embedding
 import torch.optim as optim
 import torch
@@ -64,7 +65,7 @@ def setup_engine_test_with_simple_classifier(tmpdir):
     NUM_EPOCHS = 1
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
     labels = torch.LongTensor([1])
-
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
     encoder = BOW_Encoder(
         emb_dim=EMB_DIM, embedding=embedding, dropout_value=0, aggregation_type="sum"
     )
@@ -89,6 +90,7 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         num_epochs=NUM_EPOCHS,
         save_every=1,
         log_train_metrics_every=10,
+        metric=metric,
     )
 
     options = {

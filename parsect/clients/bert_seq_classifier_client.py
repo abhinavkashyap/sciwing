@@ -8,6 +8,7 @@ from parsect.engine.engine import Engine
 import json
 import argparse
 from parsect.tokenizers.bert_tokenizer import TokenizerForBert
+from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -176,6 +177,8 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
 
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
+
     engine = Engine(
         model=model,
         train_dataset=train_dataset,
@@ -189,6 +192,7 @@ if __name__ == "__main__":
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
+        metric=metric,
     )
 
     engine.run()

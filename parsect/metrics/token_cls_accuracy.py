@@ -17,7 +17,7 @@ class TokenClassificationAccuracy(BaseMetric):
     ):
         super(TokenClassificationAccuracy, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping
-        self.mask_label_indices = mask_label_indices
+        self.mask_label_indices = mask_label_indices or []
         self.msg_printer = wasabi.Printer()
 
         self.tp_counter = {}
@@ -112,6 +112,8 @@ class TokenClassificationAccuracy(BaseMetric):
         num_fn_dict = {}
 
         for class_ in self.tp_counter.keys():
+            if class_ in self.mask_label_indices:
+                continue
             tp = self.tp_counter[class_]
             fp = self.fp_counter[class_]
             fn = self.fn_counter[class_]
