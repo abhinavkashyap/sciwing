@@ -26,8 +26,14 @@ class ParscitInference(BaseInference):
         self.idx2labelname_mapping = {
             idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
         }
+        ignore_indices = [
+            self.labelname2idx_mapping["starting"],
+            self.labelname2idx_mapping["ending"],
+            self.labelname2idx_mapping["padding"],
+        ]
         self.metrics_calculator = TokenClassificationAccuracy(
-            idx2labelname_mapping=self.idx2labelname_mapping
+            idx2labelname_mapping=self.idx2labelname_mapping,
+            mask_label_indices=ignore_indices,
         )
         self.load_model()
 
