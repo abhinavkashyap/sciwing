@@ -30,4 +30,22 @@ class TestSpacyWordTokenizer:
     # TODO: Remove this after you have implemented nltk tokenization
     def test_other_tokenizer(self):
         tokenizer = WordTokenizer(tokenizer="nltk")
-        assert tokenizer.tokenize("First string") == None
+        assert tokenizer.tokenize("First string") is None
+
+    def test_vanilla_tokenizer(self):
+        tokenizer = WordTokenizer(tokenizer="vanilla")
+        tokenized = tokenizer.tokenize(
+            "(1999). & P., W. The Control of Discrete Event Systems."
+        )
+        assert tokenized == [
+            "(1999).",
+            "&",
+            "P.,",
+            "W.",
+            "The",
+            "Control",
+            "of",
+            "Discrete",
+            "Event",
+            "Systems.",
+        ]

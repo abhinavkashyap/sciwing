@@ -20,7 +20,8 @@ class WordTokenizer(BaseTokenizer):
         super(WordTokenizer, self).__init__()
         self.msg_printer = Printer()
         self.tokenizer = tokenizer
-        assert self.tokenizer in ["spacy", "nltk"], AssertionError(
+        self.allowed_tokenizers = ["spacy", "nltk", "vanilla"]
+        assert self.tokenizer in self.allowed_tokenizers, AssertionError(
             "The word tokenizer can be either spacy or nltk"
         )
 
@@ -43,6 +44,10 @@ class WordTokenizer(BaseTokenizer):
             tokens = [
                 token.text for token in doc if bool(token.text.strip())
             ]  # add token text only if they are not empty
+            return tokens
+
+        if self.tokenizer == "vanilla":
+            tokens = text.split()
             return tokens
 
     def tokenize_batch(self, texts: List[str]) -> List[List[str]]:
