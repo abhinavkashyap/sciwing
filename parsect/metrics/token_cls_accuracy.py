@@ -65,17 +65,6 @@ class TokenClassificationAccuracy(BaseMetric):
         predicted_tags_flat = np.array(predicted_tags_flat)
         labels_numpy = labels.numpy().ravel()
 
-        # get indices of elements in labels_numpy that are in `self.mask_label_indices`
-        # if the labels_numpy contains masked indices which should not be tracked, delete it
-        labels_numpy_masked_indices = np.where(
-            np.isin(labels_numpy, self.mask_label_indices)
-        )[0]
-
-        labels_numpy = np.delete(labels_numpy, labels_numpy_masked_indices)
-        predicted_tags_flat = np.delete(
-            predicted_tags_flat, labels_numpy_masked_indices
-        )
-
         confusion_mtrx = confusion_matrix(labels_numpy, predicted_tags_flat)
 
         classes = unique_labels(labels_numpy, predicted_tags_flat)
@@ -261,15 +250,16 @@ class TokenClassificationAccuracy(BaseMetric):
     def print_confusion_metrics(
         self, predicted_tag_indices: List[List[int]], true_tag_indices: List[List[int]]
     ) -> None:
-        predicted_tag_indices_np = np.array(predicted_tag_indices)
-        true_tag_indices_np = np.array(true_tag_indices)
-        predicted_tag_indices_np = predicted_tag_indices_np.ravel()
-        true_tag_indices_np = true_tag_indices_np.ravel()
+        predicted_tags_flat = list(itertools.chain.from_iterable(predicted_tag_indices))
+        labels = list(itertools.chain.from_iterable(true_tag_indices))
+        predicted_tags_flat = np.array(predicted_tags_flat)
+        labels_numpy = np.array(labels)
 
-        confusion_mtrx = confusion_matrix(true_tag_indices_np, predicted_tag_indices_np)
+        confusion_mtrx = confusion_matrix(labels_numpy, predicted_tags_flat)
 
-        classes = unique_labels(true_tag_indices_np, predicted_tag_indices_np)
+        classes = unique_labels(labels_numpy, predicted_tags_flat)
         classes = classes.tolist()
+
         classes_with_names = [
             f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
         ]

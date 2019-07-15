@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from parsect.utils.tensor import move_to_device
 import torch
 import pandas as pd
+import numpy as np
 
 
 class ParscitInference(BaseInference):
@@ -125,7 +126,24 @@ class ParscitInference(BaseInference):
     def get_misclassified_sentences(
         self, first_class: int, second_class: int
     ) -> List[str]:
-        return ["", ""]
+
+        # get rows where true tag has first_class
+        true_tag_indices = self.output_df.true_tag_indices.tolist()
+        pred_tag_indices = self.output_df.predicted_tag_indices.tolist()
+
+        indices = []
+
+        for idx, (true_tag_index, pred_tag_index) in enumerate(
+            zip(true_tag_indices, pred_tag_indices)
+        ):
+            true_tags_pred_tags = zip(true_tag_index, pred_tag_index)
+            for true_tag, pred_tag in true_tags_pred_tags:
+                if true_tag == first_class and pred_tag == second_class:
+                    indices.append(idx)
+                    break
+
+        sentences = [self.output_analytics["sentences"][idx] for idx in indices]
+        return sentences
 
     def generate_report_for_paper(self):
         paper_report, row_names = self.metrics_calculator.report_metrics(

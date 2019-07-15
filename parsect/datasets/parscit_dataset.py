@@ -223,6 +223,8 @@ class ParscitDataset(Dataset, TextClassificationDataset):
 
     def get_stats(self):
         num_instances = len(self.word_instances)
+        len_instances = [len(instance) for instance in self.word_instances]
+        max_len_instance = max(len_instances)
         all_labels = []
         for idx in range(num_instances):
             iter_dict = self[idx]
@@ -238,11 +240,22 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             for class_ in classes
         ]
         formatted = wasabi.table(data=rows, header=header, divider=True)
-        self.msg_printer.divider("Stats for {0} dataset".format(self.dataset_type))
+        self.msg_printer.divider(f"Label Stats for Parscit {self.dataset_type} dataset")
         print(formatted)
-        self.msg_printer.info(
-            f"Number of instances in {self.dataset_type} dataset - {len(self)}"
+
+        # print some other stats
+        num_instances = len(self)
+        other_stats_header = ["", "Value"]
+        rows = [
+            ("Num Instances", num_instances),
+            ("Longest Instance Length", max_len_instance),
+        ]
+
+        other_stats_table = wasabi.table(
+            data=rows, header=other_stats_header, divider=True
         )
+        self.msg_printer.divider(f"Other stats for Parscit {self.dataset_type} dataset")
+        print(other_stats_table)
 
     def get_lines_labels(self) -> (List[str], List[str]):
         """
