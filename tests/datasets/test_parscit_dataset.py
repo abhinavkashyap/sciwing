@@ -226,3 +226,10 @@ class TestParscitDataset:
         tokens = [train_dataset.word_vocab.idx2token[token_idx] for token_idx in tokens]
         assert label == ["starting", "ending"]
         assert tokens == ["<SOS>", "<EOS>"]
+
+    def test_print_stats_works(self, setup_parscit_train_dataset):
+        train_dataset, test_dataset, options = setup_parscit_train_dataset
+        try:
+            train_dataset.get_stats()
+        except:
+            pytest.fail("Parscit print stats failing")

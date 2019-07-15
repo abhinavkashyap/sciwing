@@ -34,7 +34,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
-        word_tokenizer=WordTokenizer(),
+        word_tokenizer=WordTokenizer("vanilla"),
         word_tokenization_type="vanilla",
         word_add_start_end_token: bool = True,
         character_tokenizer=CharacterTokenizer(),
@@ -318,6 +318,9 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         labels_string = self.labels[idx]
         labels_string = labels_string.split()
         len_instance = len(word_instance)
+
+        # the length of the instance and labels should be same
+        assert len_instance == len(labels_string)
 
         # if instances are padded, then labels also have to be padded
         padded_word_instance = pack_to_length(
