@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from parsect.utils.tensor import move_to_device
 import torch
 import pandas as pd
-import numpy as np
+from parsect.utils.vis_seq_tags import VisTagging
 
 
 class ParscitInference(BaseInference):
@@ -51,6 +51,7 @@ class ParscitInference(BaseInference):
                 "sentences": self.output_analytics["sentences"],
             }
         )
+        self.seq_tagging_visualizer = VisTagging()
 
     def run_inference(self) -> Dict[str, Any]:
         loader = DataLoader(
@@ -142,7 +143,25 @@ class ParscitInference(BaseInference):
                     indices.append(idx)
                     break
 
-        sentences = [self.output_analytics["sentences"][idx] for idx in indices]
+        sentences = []
+
+        for idx in indices:
+            sentence = self.output_analytics["sentences"][idx].split()
+            true_labels = self.output_analytics["true_tag_names"][idx].split()
+            pred_labels = self.output_analytics["predicted_tag_names"][idx].split()
+            stylized_string_true = self.seq_tagging_visualizer.visualize_tokens(
+                sentence, true_labels
+            )
+            stylized_string_predicted = self.seq_tagging_visualizer.visualize_tokens(
+                sentence, pred_labels
+            )
+
+            sentence = (
+                f"GOLD LABELS \n{'*' * 80} \n{stylized_string_true} \n\n"
+                f"PREDICTED LABELS \n{'*' * 80} \n{stylized_string_predicted}"
+            )
+            sentences.append(sentence)
+
         return sentences
 
     def generate_report_for_paper(self):

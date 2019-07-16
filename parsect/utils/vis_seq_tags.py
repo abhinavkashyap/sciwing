@@ -117,7 +117,7 @@ class VisTagging:
         tagged_string = " ".join(formatted_strings)
         print(tagged_string)
 
-    def visualize_tokens(self, text: List[str], labels: List[str]):
+    def visualize_tokens(self, text: List[str], labels: List[str]) -> str:
         """
         Visualizes sequential tagged data where the string is represented as a set of words
         and every word has a corresponding label. This can be extended to having different
@@ -153,11 +153,9 @@ class VisTagging:
             tag = labels[idx]
             tag_color = tag_colors[tag]
 
-            formatted_string = (
-                f"{tag_color} word {{c.bold}}{tag.upper()} {colorful.close_bg_color}"
-            )
+            formatted_string = f"{colorful.reset}{tag_color}{word} {{c.bold}}{tag.upper()}{colorful.close_bg_color}"
             formatted_string = colorful.format(formatted_string)
             stylized_words.append(formatted_string)
 
         tagged_string = " ".join(stylized_words)
-        print(tagged_string)
+        return tagged_string

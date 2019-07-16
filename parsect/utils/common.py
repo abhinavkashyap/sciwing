@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Iterable, Iterator
 from tqdm import tqdm
 import requests
 from parsect.tokenizers.word_tokenizer import WordTokenizer
@@ -12,6 +12,7 @@ import pathlib
 from sklearn.model_selection import KFold
 import numpy as np
 import parsect.constants as constants
+from itertools import tee
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -321,3 +322,9 @@ def write_parscit_to_conll_file(parscit_conll_filepath: pathlib.Path) -> None:
             word_tags = citation["word_tags"]
             fp.write("\n".join(word_tags))
             fp.write("\n \n")
+
+
+def pairwise(iterable: Iterable) -> Iterator:
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)

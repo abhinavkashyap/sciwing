@@ -2,6 +2,7 @@ from typing import List, Dict, Union
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 from parsect.datasets.TextClassificationDataset import TextClassificationDataset
+from parsect.utils.vis_seq_tags import VisTagging
 from torch.utils.data import Dataset
 import wasabi
 from parsect.vocab.vocab import Vocab
@@ -137,7 +138,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         self.idx2classname = {
             idx: classname for classname, idx in self.classnames2idx.items()
         }
-        self.msg_printer = wasabi.Printer()
+
         self.lines, self.labels = self.get_lines_labels()
         self.word_instances = self.word_tokenize(self.lines)
         self.word_vocab = Vocab(
@@ -180,6 +181,9 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         )
         self.char_vocab.print_stats()
         self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
+
+        self.msg_printer = wasabi.Printer()
+        self.tag_visualizer = VisTagging()
 
     @staticmethod
     def get_classname2idx() -> Dict[str, int]:
@@ -244,6 +248,18 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         print(formatted)
 
         # print some other stats
+        random_int = np.random.randint(0, num_instances, size=1)[0]
+        random_instance = self.word_instances[random_int]
+        random_label = self.labels[random_int].split()
+        assert len(random_instance) == len(random_label)
+        self.msg_printer.divider(
+            f"Random Instance from Parscit {self.dataset_type.capitalize()} Dataset"
+        )
+        tagged_string = self.tag_visualizer.visualize_tokens(
+            random_instance, random_label
+        )
+        print(tagged_string)
+
         num_instances = len(self)
         other_stats_header = ["", "Value"]
         rows = [

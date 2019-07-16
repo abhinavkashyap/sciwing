@@ -7,6 +7,7 @@ import torch.nn as nn
 from typing import Any, Dict, List
 import pandas as pd
 from parsect.utils.tensor import move_to_device
+from wasabi.util import MESSAGES
 
 FILES = constants.FILES
 
@@ -161,7 +162,26 @@ class ParsectInference(BaseInference):
             & self.output_df["predicted_labels_indices"].isin([pred_label_idx])
         ].index.tolist()
 
-        sentences = [self.output_analytics["sentences"][idx] for idx in instances_idx]
+        sentences = []
+        for idx in instances_idx:
+            sentence = self.output_analytics["sentences"][idx]
+
+            if true_label_idx != pred_label_idx:
+                stylized_sentence = self.msg_printer.text(
+                    title=sentence,
+                    icon=MESSAGES.FAIL,
+                    color=MESSAGES.FAIL,
+                    no_print=True,
+                )
+            else:
+                stylized_sentence = self.msg_printer.text(
+                    title=sentence,
+                    icon=MESSAGES.GOOD,
+                    color=MESSAGES.GOOD,
+                    no_print=True,
+                )
+
+            sentences.append(stylized_sentence)
 
         return sentences
 

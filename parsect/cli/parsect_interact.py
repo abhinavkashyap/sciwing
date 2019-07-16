@@ -156,16 +156,12 @@ class ParsectCli:
                     first_class, second_class
                 )
                 self.msg_printer.divider(
-                    "Sentences with class {0} misclassified as {1}".format(
-                        first_class, second_class
-                    )
+                    f"Sentences with class {first_class} classified as {second_class}".capitalize()
                 )
-                if first_class != second_class:
-                    for sentence in sentences:
-                        self.msg_printer.fail(sentence)
-                else:
-                    for sentence in sentences:
-                        self.msg_printer.good(sentence)
+
+                for sentence in sentences:
+                    print(sentence)
+
                 self.msg_printer.divider("")
             elif interaction_choice == "See-prf-table":
                 inference_client.print_prf_table()
