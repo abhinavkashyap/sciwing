@@ -48,23 +48,23 @@ python ${SCRIPT_FILE} \
 #--log_train_metrics_every 10
 
 
-#python ${SCRIPT_FILE} \
-#--exp_name ${EXPERIMENT_PREFIX}"_char_enc_10kw_ml100_mcl15_500d_25cd_512h_100charench_1e-4lr_bidir_concat_40e" \
-#--device cpu \
-#--max_num_words 10000 \
-#--max_len 100 \
-#--max_char_len 15 \
-#--debug_dataset_proportion 0.02 \
-#--bs 10 \
-#--emb_type parscit \
-#--emb_dim 500 \
-#--char_emb_dim 25 \
-#--hidden_dim 512 \
-#--lr 1e-4 \
-#--bidirectional \
-#--use_char_encoder \
-#--char_encoder_hidden_dim 100 \
-#--combine_strategy concat \
-#--epochs 40 \
-#--save_every 10 \
-#--log_train_metrics_every 10
+python ${SCRIPT_FILE} \
+--exp_name ${EXPERIMENT_PREFIX}"_char_enc_10kw_ml100_mcl15_500d_25cd_512h_100charench_1e-4lr_bidir_concat_40e" \
+--device cpu \
+--max_num_words 10000 \
+--max_len 75 \
+--max_char_len 15 \
+--debug_dataset_proportion 0.02 \
+--bs 10 \
+--emb_type parscit \
+--emb_dim 500 \
+--char_emb_dim 25 \
+--hidden_dim 512 \
+--lr 1e-4 \
+--bidirectional \
+--use_char_encoder \
+--char_encoder_hidden_dim 100 \
+--combine_strategy concat \
+--epochs 40 \
+--save_every 10 \
+--log_train_metrics_every 10
