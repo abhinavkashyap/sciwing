@@ -2,6 +2,10 @@ import pathlib
 from typing import List, Dict, Any
 import wasabi
 from parsect.tokenizers.word_tokenizer import WordTokenizer
+import parsect.constants as constants
+
+PATHS = constants.PATHS
+DATA_DIR = PATHS["DATA_DIR"]
 
 
 class ScienceIEDataUtils:
