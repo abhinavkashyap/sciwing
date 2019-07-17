@@ -24,4 +24,5 @@ FILES = dict(
     GENERIC_SECTION_TRAIN_FILE=os.path.join(ROOT_DIR, "data", "genericSect.train.data"),
     PARSCIT_TRAIN_FILE=os.path.join(ROOT_DIR, "data", "parsCit.train.data"),
     CORA_FILE=os.path.join(ROOT_DIR, "data", "cora.data"),
+    SCIENCE_IE_TRAIN_FOLDER=os.path.join(ROOT_DIR, "data", "scienceie_train"),
 )

@@ -49,7 +49,7 @@ python ${SCRIPT_FILE} \
 
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX}"_char_enc_10kw_ml100_mcl15_500d_25cd_512h_100charench_1e-4lr_bidir_concat_40e" \
+--exp_name ${EXPERIMENT_PREFIX}"_char_enc_10kw_ml100_mcl15_500d_25cd_512h_100charench_1e-4lr_bidir_concat_20e" \
 --device cpu \
 --max_num_words 10000 \
 --max_len 75 \
@@ -65,6 +65,6 @@ python ${SCRIPT_FILE} \
 --use_char_encoder \
 --char_encoder_hidden_dim 100 \
 --combine_strategy concat \
---epochs 40 \
+--epochs 20 \
 --save_every 10 \
 --log_train_metrics_every 10
