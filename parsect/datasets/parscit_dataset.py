@@ -220,7 +220,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         token = [
             self.word_vocab.get_token_from_idx(idx)
             for idx in indices
-            if idx != self.word_vocab.special_vocab[self.word_vocab.pad_token][1]
+            if idx != self.word_vocab.vocab[self.word_vocab.pad_token][1]
         ]
         sentence = " ".join(token)
         return sentence

@@ -51,7 +51,10 @@ class ParscitInference(BaseInference):
                 "sentences": self.output_analytics["sentences"],
             }
         )
-        self.seq_tagging_visualizer = VisTagging()
+
+        num_categories = len(self.labelname2idx_mapping.keys())
+        categories = [self.idx2labelname_mapping[idx] for idx in range(num_categories)]
+        self.seq_tagging_visualizer = VisTagging(tags=categories)
 
     def run_inference(self) -> Dict[str, Any]:
         loader = DataLoader(
@@ -149,6 +152,9 @@ class ParscitInference(BaseInference):
             sentence = self.output_analytics["sentences"][idx].split()
             true_labels = self.output_analytics["true_tag_names"][idx].split()
             pred_labels = self.output_analytics["predicted_tag_names"][idx].split()
+            len_sentence = len(sentence)
+            true_labels = true_labels[:len_sentence]
+            pred_labels = pred_labels[:len_sentence]
             stylized_string_true = self.seq_tagging_visualizer.visualize_tokens(
                 sentence, true_labels
             )

@@ -5,7 +5,12 @@ from parsect.utils.common import pairwise
 
 
 class VisTagging:
-    def __init__(self, colors: List[str] = None, colors_palette: str = None):
+    def __init__(
+        self,
+        colors: List[str] = None,
+        colors_palette: str = None,
+        tags: List[str] = None,
+    ):
         """
         colors: List[str]
         The set of colors used for tagging
@@ -27,6 +32,11 @@ class VisTagging:
         The color palette that should be used. We recommend
         keeping it as None. For more information on color palettes
         you can refer to the documentation of the python package `colorful`
+        colors_palette: str
+        The colors palette. We recommend using soloarized or monokai
+        tags: List[str]
+        The set of all labels that can be labelled
+        If this is not given, then the tags will be infered using the labels during tagging
 
         """
         if colors is None:
@@ -46,6 +56,7 @@ class VisTagging:
         self.colors = colors
         self.colors_palette = colors_palette
         self.colors_iter = itertools.cycle(self.colors)
+        self.tags = tags
         colorful.use_style(self.colors_palette)
 
     def _get_next_color(self):
@@ -77,7 +88,11 @@ class VisTagging:
                 "{text:str, tags: [{'start': int, 'end': int, 'tag': str}]}"
             )
 
-        all_tags = list(set(annotation["tag"] for annotation in tags))
+        if not self.tags:
+            all_tags = list(set(annotation["tag"] for annotation in tags))
+        else:
+            all_tags = self.tags
+
         len_tags = len(all_tags)
         tag_colors = {
             all_tags[idx]: f"{{c.on_{self._get_next_color()}}}"
@@ -137,9 +152,14 @@ class VisTagging:
         """
         if len(text) != len(labels):
             raise ValueError(
-                f"string and labels should of same length. String you passed has len {len(text)} and labels you passed has len {len(labels)}"
+                f"string and labels should of same length. String you passed has len {len(text)} "
+                f"and labels you passed has len {len(labels)}"
             )
-        unique_labels = list(set(labels))
+
+        if not self.tags:
+            unique_labels = list(set(labels))
+        else:
+            unique_labels = self.tags
         len_labels = len(unique_labels)
 
         tag_colors = {
@@ -153,7 +173,10 @@ class VisTagging:
             tag = labels[idx]
             tag_color = tag_colors[tag]
 
-            formatted_string = f"{colorful.reset}{tag_color}{word} {{c.bold}}{tag.upper()}{colorful.close_bg_color}"
+            formatted_string = (
+                f"{colorful.reset}{tag_color}{word.strip()} "
+                f"{{c.bold}}{tag.strip().upper()}{colorful.close_bg_color}"
+            )
             formatted_string = colorful.format(formatted_string)
             stylized_words.append(formatted_string)
 
