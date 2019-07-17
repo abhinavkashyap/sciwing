@@ -191,17 +191,3 @@ class ScienceIEDataUtils:
                         fp.write("\n".join(bilou_lines))
                         fp.write("\n \n")
         self.msg_printer.good("Finished writing BILOU Lines For ScienceIE")
-
-
-if __name__ == "__main__":
-    import parsect.constants as constants
-    import pathlib
-
-    FILES = constants.FILES
-    PATHS = constants.PATHS
-    DATA_DIR = PATHS["DATA_DIR"]
-    science_ie_train_foder = FILES["SCIENCE_IE_TRAIN_FOLDER"]
-    science_ie_train_foder = pathlib.Path(science_ie_train_foder)
-    utils = ScienceIEDataUtils(folderpath=science_ie_train_foder, ignore_warnings=True)
-    out_filename = pathlib.Path(DATA_DIR, "train_science.txt")
-    utils.write_bilou_lines(out_filename=out_filename)
