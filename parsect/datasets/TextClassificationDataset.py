@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Any
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -106,7 +106,7 @@ class TextClassificationDataset(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def get_classname2idx() -> Dict[str, int]:
+    def get_classname2idx() -> Dict[str, Any]:
         pass
 
     @abstractmethod

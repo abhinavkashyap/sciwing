@@ -126,9 +126,13 @@ class ScienceIEDataUtils:
 
             is_annotation_end = end_tag_mapping.get(idx, None)
 
+            # this index is also the annotation end
             if is_annotation_end:
                 annotation_word_ending = True
 
+            # Found the end of the word in the text file
+            # But no annotation word has started
+            # The word that we found should represent an O-word
             if char == " " and annotation_word_starting == False:
                 annotation_words = text[text_word_start_index:idx]
                 lines = self._get_bilou_for_words(
@@ -139,6 +143,9 @@ class ScienceIEDataUtils:
                 annotation_word_ending = False
                 text_word_start_index = idx + 1
 
+            # Found the end of the word
+            # Also the annotation word has ended
+            # The words found till now shoul represent words in the tag
             elif char == " " and annotation_word_ending == True:
                 annotation_words = text[text_word_start_index:idx]
                 lines = self._get_bilou_for_words(
@@ -195,3 +202,32 @@ class ScienceIEDataUtils:
                         fp.write("\n".join(bilou_lines))
                         fp.write("\n \n")
         self.msg_printer.good("Finished writing BILOU Lines For ScienceIE")
+
+    def merge_files(
+        self,
+        task_filename: pathlib.Path,
+        process_filename: pathlib.Path,
+        material_filename: pathlib.Path,
+        out_filename: pathlib.Path,
+    ):
+        with open(task_filename, "r") as task_fp, open(
+            process_filename, "r"
+        ) as process_fp, open(material_filename, "r") as material_fp, open(
+            out_filename, "w"
+        ) as out_fp:
+
+            with self.msg_printer.loading("Merging Task Process and Material Files"):
+                for task_line, process_line, material_line in zip(
+                    task_fp, process_fp, material_fp
+                ):
+                    if task_line.strip() != "":
+                        word, _, _, task_tag = task_line.split()
+                        word, _, _, process_tag = process_line.split()
+                        word, _, _, material_tag = material_line.split()
+                        out_fp.write(
+                            " ".join([word, task_tag, process_tag, material_tag])
+                        )
+                        out_fp.write("\n")
+                    else:
+                        out_fp.write(task_line)
+            self.msg_printer.good("Finished Merging Task Process and Material Files")

@@ -8,8 +8,6 @@ from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
 from parsect.metrics.BaseMetric import BaseMetric
-from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 import numpy as np
 import time
 import json_logging
