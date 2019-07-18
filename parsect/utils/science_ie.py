@@ -231,3 +231,13 @@ class ScienceIEDataUtils:
                     else:
                         out_fp.write(task_line)
             self.msg_printer.good("Finished Merging Task Process and Material Files")
+
+
+if __name__ == "__main__":
+    science_ie_train_folder = pathlib.Path(DATA_DIR, "scienceie_train")
+    utils = ScienceIEDataUtils(folderpath=science_ie_train_folder, ignore_warnings=True)
+    file_id = "S0010938X1530161X"
+    text = utils._get_text(file_id)
+    annotations = utils._get_annotations_for_entity(file_id=file_id, entity="Process")
+    bilou_lines = utils.get_bilou_lines_for_entity(file_id=file_id, entity="Process")
+    print(bilou_lines)

@@ -190,6 +190,15 @@ class TestScienceIEDataUtils:
                     "word O-Process O-Process O-Process",
                 ],
             ),
+            (
+                "Poor oxidation behavior",
+                [{"start": 5, "end": 14, "tag": "Process"}],
+                [
+                    "Poor O-Process O-Process O-Process",
+                    "oxidation U-Process U-Process U-Process",
+                    "behavior O-Process O-Process O-Process",
+                ],
+            ),
         ],
     )
     def test_private_get_bilou_lines_for_entity(
@@ -203,7 +212,7 @@ class TestScienceIEDataUtils:
             assert line == expected_lines[idx]
 
     @pytest.mark.parametrize("entity_type", ["Task", "Process", "Material"])
-    def test_get_bilou_lines(self, setup_science_ie_train_data_utils, entity_type):
+    def test_get_bilou_lines_runs(self, setup_science_ie_train_data_utils, entity_type):
         utils = setup_science_ie_train_data_utils
         try:
             file_ids = utils.file_ids
@@ -211,3 +220,44 @@ class TestScienceIEDataUtils:
                 utils.get_bilou_lines_for_entity(file_id=file_id, entity=entity_type)
         except:
             pytest.fail("Failed to run bilou lines")
+
+    # There are many anomalies in the files that are provided
+    # Sometimes a huge set of words are marked Process
+    # some subset of the set are again marked as process
+    # These wont get tagged tewice by our system
+    # the files that are tested here are manually tested for behavior
+    # to automate the process I have included them here.
+    @pytest.mark.parametrize("entity_type", ["Process"])
+    @pytest.mark.parametrize("file_id", ["S0010938X1500195X"])
+    def test_get_bilou_lines(
+        self, setup_science_ie_train_data_utils, entity_type, file_id
+    ):
+        utils = setup_science_ie_train_data_utils
+
+        # test whether all the annotations that you get for different file ids
+        # are present as either U, B I or L tag
+
+        annotations = utils._get_annotations_for_entity(
+            file_id=file_id, entity=entity_type
+        )
+        bilou_lines = utils.get_bilou_lines_for_entity(
+            file_id=file_id, entity=entity_type
+        )
+
+        annotation_words = []
+        for annotation in annotations:
+            words = annotation["words"]
+            words = words.split()
+            annotation_words.extend(words)
+
+        bilou_words_without_o = []
+        for bilou_line in bilou_lines:
+            word, _, _, tag = bilou_line.split()
+            if not tag.startswith("O-"):
+                word = word.replace(",", "")
+                word = word.replace(".", "")
+                word = word.replace("(", "")
+                word = word.replace(")", "")
+                bilou_words_without_o.append(word)
+
+        assert len(annotation_words) == len(bilou_words_without_o)
