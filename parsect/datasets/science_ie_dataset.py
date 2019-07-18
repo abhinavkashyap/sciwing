@@ -69,10 +69,7 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         self.entity_types = ["Task", "Process", "Material"]
 
         self.classnames2idx = self.get_classname2idx()
-        self.idx2classnames = {}
-        for entity_type in self.entity_types:
-            classnames2idx = self.classnames2idx[entity_type]
-            self.idx2classnames[entity_type] = {v: k for k, v in classnames2idx.items()}
+        self.idx2classnames = {v: k for k, v in self.classnames2idx.items()}
 
         self.lines, self.labels = self.get_lines_labels()
         self.word_instances = self.word_tokenize(self.lines)
@@ -124,34 +121,25 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
     @staticmethod
     def get_classname2idx() -> Dict[str, Any]:
         tag_types = ["O", "B", "I", "L", "U"]
-        classnames = {
-            "Task": [f"{each_type}-Task" for each_type in tag_types],
-            "Process": [f"{each_type}-Process" for each_type in tag_types],
-            "Material": [f"{each_type}-Material" for each_type in tag_types],
-        }
+        entity_types = ["Task", "Process", "Material"]
+        class_names = []
+        for entity_type in entity_types:
+            class_names.extend([f"{tag_type}-{entity_type}" for tag_type in tag_types])
+
+        class_names.extend(["starting", "ending", "padding"])
+
         classnames2idx_mapping = {}
-        for entity_type in ["Task", "Process", "Material"]:
-            entity_type_classnames = classnames[entity_type]
-            classnames2idx_mapping[entity_type] = dict(
-                [
-                    (class_name, idx)
-                    for idx, class_name in enumerate(entity_type_classnames)
-                ]
-            )
+
+        for idx, label in enumerate(class_names):
+            classnames2idx_mapping[label] = idx
 
         return classnames2idx_mapping
 
     def get_num_classes(self) -> int:
-        return len(self.classnames2idx["Task"])
+        return len(self.classnames2idx.keys())
 
     def get_class_names_from_indices(self, indices: List[int]):
-        class_names = {}
-        for entity_type in self.entity_types:
-            class_names[entity_type] = [
-                self.idx2classnames[entity_type][idx] for idx in indices
-            ]
-
-        return class_names
+        return [self.idx2classnames[idx] for idx in indices]
 
     def get_disp_sentence_from_indices(self, indices: List[int]):
         tokens = [
@@ -186,16 +174,12 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         }
 
         for entity_type in self.entity_types:
-            task_labels_stats = dict(collections.Counter(all_task_labels))
-            classes = list(set(task_labels_stats.keys()))
+            label_stats = dict(collections.Counter(all_labels[entity_type]))
+            classes = list(set(label_stats.keys()))
             classes = sorted(classes)
             header = ["label index", "label name", "count"]
             rows = [
-                (
-                    class_,
-                    self.idx2classnames[entity_type][class_],
-                    task_labels_stats[class_],
-                )
+                (class_, self.idx2classnames[class_], label_stats[class_])
                 for class_ in classes
             ]
             formatted = wasabi.table(data=rows, header=header, divider=True)
@@ -361,13 +345,13 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
 
         tokens = self.word_numericalizer.numericalize_instance(padded_word_instance)
         padded_task_labels = [
-            self.classnames2idx["Task"][label] for label in padded_task_labels
+            self.classnames2idx[label] for label in padded_task_labels
         ]
         padded_process_labels = [
-            self.classnames2idx["Process"][label] for label in padded_process_labels
+            self.classnames2idx[label] for label in padded_process_labels
         ]
         padded_material_labels = [
-            self.classnames2idx["Material"][label] for label in padded_material_labels
+            self.classnames2idx[label] for label in padded_material_labels
         ]
 
         character_tokens = []

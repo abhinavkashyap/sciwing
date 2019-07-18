@@ -44,17 +44,10 @@ def setup_science_ie_dataset(tmpdir):
 
 
 class TestScienceIE:
-    def test_get_classnames_2_idx_has_all_entity_keys(self, setup_science_ie_dataset):
-        dataset, options = setup_science_ie_dataset
-        classnames2idx = dataset.classnames2idx
-        assert "Task" in classnames2idx.keys()
-        assert "Material" in classnames2idx.keys()
-        assert "Process" in classnames2idx.keys()
-
     def test_num_classes(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
         num_classes = dataset.get_num_classes()
-        assert num_classes == 5
+        assert num_classes == 15 + 3
 
     def test_lines_labels_not_empty(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
