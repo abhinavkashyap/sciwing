@@ -108,6 +108,10 @@ class PrecisionRecallFMeasure(BaseMetric):
         classes = unique_labels(labels_numpy, top_indices_numpy)
         classes = classes.tolist()
 
+        # For further confirmation on how I calculated this I searched for stackoverflow on
+        # 18th of July 2019. This seems to be the correct way to calculate tps, fps, fns
+        # You can refer to https://stackoverflow.com/a/43331484/2704763
+
         # calculate tps
         tps = np.around(np.diag(confusion_mtrx), decimals=4)
 
