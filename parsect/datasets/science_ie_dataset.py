@@ -125,8 +125,13 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         class_names = []
         for entity_type in entity_types:
             class_names.extend([f"{tag_type}-{entity_type}" for tag_type in tag_types])
-
-        class_names.extend(["starting", "ending", "padding"])
+            class_names.extend(
+                [
+                    f"starting-{entity_type}",
+                    f"ending-{entity_type}",
+                    f"padding-{entity_type}",
+                ]
+            )
 
         classnames2idx_mapping = {}
 
@@ -154,23 +159,26 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         num_instances = len(self.word_instances)
         len_instances = [len(instance) for instance in self.word_instances]
         max_len_instance = max(len_instances)
+
         all_task_labels = []
         all_process_labels = []
         all_material_labels = []
         for idx in range(num_instances):
             iter_dict = self[idx]
             labels = iter_dict["label"]
-            task_labels = labels[0]
-            process_labels = labels[1]
-            material_labels = labels[2]
+            task_labels, process_labels, material_labels = torch.chunk(
+                labels, chunks=3, dim=0
+            )
+            process_labels += 8
+            material_labels += 16
             all_task_labels.extend(task_labels.cpu().tolist())
             all_process_labels.extend(process_labels.cpu().tolist())
             all_material_labels.extend(material_labels.cpu().tolist())
 
         all_labels = {
             "Task": all_task_labels,
-            "Material": all_material_labels,
             "Process": all_process_labels,
+            "Material": all_material_labels,
         }
 
         for entity_type in self.entity_types:
@@ -315,28 +323,28 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         padded_task_labels = pack_to_length(
             tokenized_text=task_labels,
             max_length=self.max_length,
-            pad_token="padding",
+            pad_token="padding-Task",
             add_start_end_token=self.word_add_start_end_token,
-            start_token="starting",
-            end_token="ending",
+            start_token="starting-Task",
+            end_token="ending-Task",
         )
 
         padded_process_labels = pack_to_length(
             tokenized_text=process_labels,
             max_length=self.max_length,
-            pad_token="padding",
+            pad_token="padding-Process",
             add_start_end_token=self.word_add_start_end_token,
-            start_token="starting",
-            end_token="ending",
+            start_token="starting-Process",
+            end_token="ending-Process",
         )
 
         padded_material_labels = pack_to_length(
             tokenized_text=material_labels,
             max_length=self.max_length,
-            pad_token="padding",
+            pad_token="padding-Material",
             add_start_end_token=self.word_add_start_end_token,
-            start_token="starting",
-            end_token="ending",
+            start_token="starting-Material",
+            end_token="ending-Material",
         )
 
         assert len(padded_word_instance) == len(padded_task_labels)
@@ -347,11 +355,14 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         padded_task_labels = [
             self.classnames2idx[label] for label in padded_task_labels
         ]
+
+        # Ugly offsetting because we are using continuous numbers for classes in all entity
+        # types but science ie dataset requires 0
         padded_process_labels = [
-            self.classnames2idx[label] for label in padded_process_labels
+            self.classnames2idx[label] - 8 for label in padded_process_labels
         ]
         padded_material_labels = [
-            self.classnames2idx[label] for label in padded_material_labels
+            self.classnames2idx[label] - 16 for label in padded_material_labels
         ]
 
         character_tokens = []
@@ -378,7 +389,7 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         process_label = torch.LongTensor(padded_process_labels)
         material_label = torch.LongTensor(padded_material_labels)
         character_tokens = torch.LongTensor(character_tokens)
-        label = torch.stack([task_label, process_label, material_label], dim=0)
+        label = torch.cat([task_label, process_label, material_label], dim=0)
 
         instance_dict = {
             "tokens": tokens,
@@ -403,7 +414,7 @@ if __name__ == "__main__":
     char_vocab_store_location = data_dir_path.joinpath("char_vocab.json")
     DEBUG = False
     MAX_NUM_WORDS = 10000
-    MAX_LENGTH = 20
+    MAX_LENGTH = 300
     MAX_CHAR_LENGTH = 25
     EMBEDDING_DIM = 100
     CHAR_EMBEDDING_DIM = 25

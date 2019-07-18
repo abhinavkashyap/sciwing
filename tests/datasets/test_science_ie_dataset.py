@@ -47,7 +47,7 @@ class TestScienceIE:
     def test_num_classes(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
         num_classes = dataset.get_num_classes()
-        assert num_classes == 15 + 3
+        assert num_classes == 8 * 3
 
     def test_lines_labels_not_empty(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
@@ -99,4 +99,4 @@ class TestScienceIE:
         loader = DataLoader(dataset=dataset, batch_size=2, shuffle=False)
         instances_dict = next(iter(loader))
         assert instances_dict["tokens"].size() == (2, options["MAX_LENGTH"])
-        assert instances_dict["label"].size() == (2, 3, options["MAX_LENGTH"])
+        assert instances_dict["label"].size() == (2, 3 * options["MAX_LENGTH"])
