@@ -20,7 +20,8 @@ class PrecisionRecallFMeasure(BaseMetric):
         self.mask_label_indices = masked_label_indics
         self.msg_printer = Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
-            masked_label_indices=self.mask_label_indices
+            masked_label_indices=self.mask_label_indices,
+            idx2labelname_mapping=idx2labelname_mapping,
         )
 
         # setup counters to calculate true positives, false positives,

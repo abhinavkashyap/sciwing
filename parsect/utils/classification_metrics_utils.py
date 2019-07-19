@@ -13,8 +13,13 @@ class ClassificationMetricsUtils:
     that helps in calculating these.
     """
 
-    def __init__(self, masked_label_indices: Optional[List[int]] = None):
+    def __init__(
+        self,
+        idx2labelname_mapping: Dict[int, str],
+        masked_label_indices: Optional[List[int]] = None,
+    ):
         self.msg_printer = wasabi.Printer()
+        self.idx2labelname_mapping = idx2labelname_mapping
         self.mask_label_indices = masked_label_indices or []
 
     def get_prf_from_counters(
@@ -154,3 +159,45 @@ class ClassificationMetricsUtils:
             labels_numpy, predicted_tags_flat, labels=classes
         )
         return confusion_mtrx, classes
+
+    def print_table_report_from_counters(
+        self,
+        tp_counter: Dict[int, int],
+        fp_counter: Dict[int, int],
+        fn_counter: Dict[int, int],
+    ):
+        precision_dict, recall_dict, fscore_dict = self.get_prf_from_counters(
+            tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
+        )
+        micro_precision, micro_recall, micro_fscore = self.get_micro_prf_from_counters(
+            tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
+        )
+        macro_precision, macro_recall, macro_fscore = self.get_macro_prf_from_prf_dicts(
+            precision_dict=precision_dict,
+            recall_dict=recall_dict,
+            fscore_dict=fscore_dict,
+        )
+
+        classes = precision_dict.keys()
+        classes = sorted(classes)
+        classes = filter(lambda class_: class_ not in self.mask_label_indices, classes)
+        header_row = [" ", "Precision", "Recall", "F_measure"]
+        rows = []
+        for class_num in classes:
+            p = precision_dict[class_num]
+            r = recall_dict[class_num]
+            f = fscore_dict[class_num]
+            rows.append(
+                (
+                    f"cls_{class_num} ({self.idx2labelname_mapping[int(class_num)]})",
+                    p,
+                    r,
+                    f,
+                )
+            )
+
+        rows.append(["-"] * 4)
+        rows.append(["Macro", macro_precision, macro_recall, macro_fscore])
+        rows.append(["Micro", micro_precision, micro_recall, micro_fscore])
+
+        print(wasabi.table(rows, header=header_row, divider=True))

@@ -18,7 +18,8 @@ class TokenClassificationAccuracy(BaseMetric):
         self.mask_label_indices = mask_label_indices or []
         self.msg_printer = wasabi.Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
-            masked_label_indices=self.mask_label_indices
+            idx2labelname_mapping=idx2labelname_mapping,
+            masked_label_indices=self.mask_label_indices,
         )
 
         self.tp_counter = {}

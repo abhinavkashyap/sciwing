@@ -15,9 +15,15 @@ DATA_DIR = PATHS["DATA_DIR"]
 @pytest.fixture()
 def setup_parscit_train_dataset(tmpdir):
     parscit_train_filepath = pathlib.Path(PARSCIT_TRAIN_FILE)
-    is_write_success = next(write_nfold_parscit_train_test(parscit_train_filepath))
     train_file = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_file = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    is_write_success = next(
+        write_nfold_parscit_train_test(
+            parscit_train_filepath,
+            output_train_filepath=train_file,
+            output_test_filepath=test_file,
+        )
+    )
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
     char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = True
@@ -72,9 +78,15 @@ def setup_parscit_train_dataset(tmpdir):
 @pytest.fixture()
 def setup_parscit_train_dataset_maxlen_2(tmpdir):
     parscit_train_filepath = pathlib.Path(PARSCIT_TRAIN_FILE)
-    is_write_success = next(write_nfold_parscit_train_test(parscit_train_filepath))
     train_file = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_file = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    is_write_success = next(
+        write_nfold_parscit_train_test(
+            parscit_train_filepath,
+            output_train_filepath=train_file,
+            output_test_filepath=test_file,
+        )
+    )
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
     char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = True
