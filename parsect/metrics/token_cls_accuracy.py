@@ -65,10 +65,16 @@ class TokenClassificationAccuracy(BaseMetric):
         predicted_tags_flat = np.array(predicted_tags_flat)
         labels_numpy = labels.numpy().ravel()
 
-        confusion_mtrx = confusion_matrix(labels_numpy, predicted_tags_flat)
-
         classes = unique_labels(labels_numpy, predicted_tags_flat)
         classes = classes.tolist()
+
+        # filter the classes
+        classes = filter(lambda class_: class_ not in self.mask_label_indices, classes)
+        classes = list(classes)
+
+        confusion_mtrx = confusion_matrix(
+            labels_numpy, predicted_tags_flat, labels=classes
+        )
 
         tps = np.around(np.diag(confusion_mtrx), decimals=4)
         fps = np.around(np.sum(confusion_mtrx, axis=0) - tps, decimals=4)
@@ -101,8 +107,6 @@ class TokenClassificationAccuracy(BaseMetric):
         num_fn_dict = {}
 
         for class_ in self.tp_counter.keys():
-            if class_ in self.mask_label_indices:
-                continue
             tp = self.tp_counter[class_]
             fp = self.fp_counter[class_]
             fn = self.fn_counter[class_]
@@ -255,10 +259,14 @@ class TokenClassificationAccuracy(BaseMetric):
         predicted_tags_flat = np.array(predicted_tags_flat)
         labels_numpy = np.array(labels)
 
-        confusion_mtrx = confusion_matrix(labels_numpy, predicted_tags_flat)
-
+        # filter the classes
         classes = unique_labels(labels_numpy, predicted_tags_flat)
-        classes = classes.tolist()
+        classes = filter(lambda class_: class_ not in self.mask_label_indices, classes)
+        classes = list(classes)
+
+        confusion_mtrx = confusion_matrix(
+            labels_numpy, predicted_tags_flat, labels=classes
+        )
 
         classes_with_names = [
             f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
