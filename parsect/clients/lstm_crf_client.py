@@ -4,6 +4,7 @@ from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.datasets.parscit_dataset import ParscitDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.common import write_nfold_parscit_train_test
+from parsect.utils.common import merge_dictionaries_with_sum
 import parsect.constants as constants
 import os
 import torch
@@ -147,12 +148,16 @@ if __name__ == "__main__":
     train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
     test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
 
+    tp_counter = {}
+    fp_counter = {}
+    fn_counter = {}
+
     for fold_num, each_success_indicator in enumerate(
         write_nfold_parscit_train_test(
             parscit_train_filepath=pathlib.Path(CORA_FILE),
             output_train_filepath=train_conll_filepath,
             output_test_filepath=test_conll_filepath,
-            nsplits=10,
+            nsplits=2,
         )
     ):
         msg_printer.divider(f"RUNNING PARSCIT FOR FOLD {fold_num}")
@@ -312,3 +317,27 @@ if __name__ == "__main__":
 
         with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
             json.dump(config, fp)
+
+        fold_tp_counter = engine.test_metric_calc.tp_counter
+        fold_fp_counter = engine.test_metric_calc.fp_counter
+        fold_fn_counter = engine.test_metric_calc.fn_counter
+
+        tp_counter = merge_dictionaries_with_sum(tp_counter, fold_tp_counter)
+        fp_counter = merge_dictionaries_with_sum(fp_counter, fold_fp_counter)
+        fn_counter = merge_dictionaries_with_sum(fn_counter, fold_fn_counter)
+
+    # bad way to do this :(
+    # Write separate utilities function to do this and use it
+    # Seems like there can be a more general solution
+    precision, recall, fmeasure = metric._get_prf_from_counters(
+        tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
+    )
+    micro_precision, micro_recall, micro_fmeasure = metric._get_micro_prf_from_counters(
+        tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
+    )
+    macro_precision, macro_recall, macro_fmeasure = metric._get_macro_prf_from_prf_dicts(
+        precision_dict=precision, recall_dict=recall, fscore_dict=fmeasure
+    )
+
+    print(f"Macro Fscore {macro_fmeasure}")
+    print(f"Micro Fscore {micro_fmeasure}")
