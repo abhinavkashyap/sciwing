@@ -265,13 +265,20 @@ def convert_parscit_to_conll(
 
 
 def write_nfold_parscit_train_test(
-    parscit_train_filepath: pathlib.Path, nsplits: int = 2
+    parscit_train_filepath: pathlib.Path,
+    output_train_filepath: pathlib.Path,
+    output_test_filepath: pathlib.Path,
+    nsplits: int = 2,
 ) -> bool:
     """
-    This method writes different train and test citations file that can be given
-    to conll2013 dataset reader of allennlp
-    This method is mainly used to train the lstm-crf model
+    1) Converts 'WING-NUS Parscit' style files to conll format
+    2) writes a split to the train and test file
+    3) It returns a bool indicating that the file is written successfully
+
     :param parscit_train_filepath: type: pathlib.Path
+    WING-NUS Parscit style file
+    :param output_train_filepath: type: pathlib.Path
+    :param output_test_filepath: type: pathlib.Path
     :param nsplits: type: int
     Number of kfold splits.
     :return: bool
@@ -281,10 +288,9 @@ def write_nfold_parscit_train_test(
     len_citations = len(citations)
     kf = KFold(n_splits=nsplits, shuffle=True, random_state=1729)
     splits = kf.split(np.arange(len_citations))
-    data_dir = pathlib.Path(DATA_DIR)
 
-    train_conll_citations_path = data_dir.joinpath("parscit_train_conll.txt")
-    test_conll_citations_path = data_dir.joinpath("parscit_test_conll.txt")
+    train_conll_citations_path = output_train_filepath
+    test_conll_citations_path = output_test_filepath
 
     for train_indices, test_indices in splits:
         train_citations = [citations[train_idx] for train_idx in train_indices]
