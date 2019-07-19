@@ -1,20 +1,27 @@
 import torch
-from typing import Dict, Union, Any
+from typing import Dict, Union, Any, Optional, List
 from wasabi import Printer
 from wasabi import table
-from sklearn.metrics import confusion_matrix
-from sklearn.utils.multiclass import unique_labels
 from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
 import pandas as pd
 from parsect.metrics.BaseMetric import BaseMetric
+from parsect.utils.classification_metrics_utils import ClassificationMetricsUtils
 
 
 class PrecisionRecallFMeasure(BaseMetric):
-    def __init__(self, idx2labelname_mapping: Dict[int, str]):
+    def __init__(
+        self,
+        idx2labelname_mapping: Dict[int, str],
+        masked_label_indics: Optional[List[int]] = None,
+    ):
         super(PrecisionRecallFMeasure, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping
+        self.mask_label_indices = masked_label_indics
         self.msg_printer = Printer()
+        self.classification_metrics_utils = ClassificationMetricsUtils(
+            masked_label_indices=self.mask_label_indices
+        )
 
         # setup counters to calculate true positives, false positives,
         # false negatives and true negatives
@@ -26,7 +33,6 @@ class PrecisionRecallFMeasure(BaseMetric):
     def print_confusion_metrics(
         self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
     ) -> None:
-        labels = labels.view(-1)
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
             "have 2 dimensions. The probs "
@@ -34,7 +40,7 @@ class PrecisionRecallFMeasure(BaseMetric):
             "{0}".format(predicted_probs.size())
         )
 
-        assert labels.ndimension() == 1, self.msg_printer.fail(
+        assert labels.ndimension() == 2, self.msg_printer.fail(
             "The labels should have 1 dimension."
             "The labels that you passed have shape "
             "{0}".format(labels.size())
@@ -44,28 +50,27 @@ class PrecisionRecallFMeasure(BaseMetric):
         top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
 
         # convert to 1d numpy
-        top_indices_numpy = top_indices.cpu().numpy().ravel()
+        top_indices_numpy = top_indices.cpu().numpy().tolist()
 
         # convert labels to 1 dimension
-        true_labels_numpy = labels.cpu().numpy()
+        true_labels_numpy = labels.cpu().numpy().tolist()
 
-        confusion_mtrx = confusion_matrix(true_labels_numpy, top_indices_numpy)
-
-        classes = unique_labels(true_labels_numpy, top_indices_numpy)
-        classes = classes.tolist()
+        confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
+            true_labels_numpy, top_indices_numpy
+        )
         classes_with_names = [
             f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
         ]
-
-        # insert the class names
-        confusion_mtrx = pd.DataFrame(confusion_mtrx)
-        confusion_mtrx.insert(0, "class_name", classes_with_names)
-
-        assert len(classes) == confusion_mtrx.shape[1] - 1
+        assert (
+            len(classes) == confusion_mtrx.shape[1]
+        ), f"len(classes) = {len(classes)} confusion matrix shape {confusion_mtrx.shape}"
 
         header = [f"{class_}" for class_ in classes]
         header.insert(0, "pred(cols)/true(rows)")
         print(header)
+
+        confusion_mtrx = pd.DataFrame(confusion_mtrx)
+        confusion_mtrx.insert(0, "class_name", classes_with_names)
 
         self.msg_printer.table(
             data=confusion_mtrx.values.tolist(), header=header, divider=True
@@ -77,7 +82,6 @@ class PrecisionRecallFMeasure(BaseMetric):
 
         normalized_probs = model_forward_dict["normalized_probs"]
         labels = iter_dict["label"]
-        labels = labels.view(-1)
         normalized_probs = normalized_probs.cpu()
         labels = labels.cpu()
 
@@ -88,7 +92,7 @@ class PrecisionRecallFMeasure(BaseMetric):
             "{0}".format(normalized_probs.size())
         )
 
-        assert labels.ndimension() == 1, self.msg_printer.fail(
+        assert labels.ndimension() == 2, self.msg_printer.fail(
             "The labels should have 1 dimension."
             "The labels that you passed have shape "
             "{0}".format(labels.size())
@@ -98,15 +102,14 @@ class PrecisionRecallFMeasure(BaseMetric):
         top_probs, top_indices = normalized_probs.topk(k=1, dim=1)
 
         # convert to 1d numpy
-        top_indices_numpy = top_indices.cpu().numpy().ravel()
+        top_indices_numpy = top_indices.cpu().numpy().tolist()
 
         # convert labels to 1 dimension
-        labels_numpy = labels.numpy()
+        true_labels_numpy = labels.cpu().numpy().tolist()
 
-        confusion_mtrx = confusion_matrix(labels_numpy, top_indices_numpy)
-
-        classes = unique_labels(labels_numpy, top_indices_numpy)
-        classes = classes.tolist()
+        confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
+            true_labels_numpy, top_indices_numpy
+        )
 
         # For further confirmation on how I calculated this I searched for stackoverflow on
         # 18th of July 2019. This seems to be the correct way to calculate tps, fps, fns
@@ -140,95 +143,37 @@ class PrecisionRecallFMeasure(BaseMetric):
         )
 
     def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
-        precision_dict = {}
-        recall_dict = {}
-        fscore_dict = {}
-        num_tp_dict = {}
-        num_fp_dict = {}
-        num_fn_dict = {}
-
-        for class_ in self.tp_counter.keys():
-            tp = self.tp_counter[class_]
-            fp = self.fp_counter[class_]
-            fn = self.fn_counter[class_]
-            if tp == 0 and fp == 0:
-                precision = 0
-                self.msg_printer.warn("both tp and fp are 0 .. setting precision to 0")
-            else:
-                precision = tp / (tp + fp)
-                precision = np.around(precision, decimals=4)
-            if tp == 0 and fn == 0:
-                recall = 0
-                self.msg_printer.warn("both tp and fn are 0 .. setting recall to 0")
-            else:
-                recall = tp / (tp + fn)
-                recall = np.around(recall, decimals=4)
-
-            if precision == 0 and recall == 0:
-                fscore = 0
-                self.msg_printer.warn(
-                    "both precision and recall are 0 .. setting fscore to 0"
-                )
-            else:
-                fscore = (2 * precision * recall) / (precision + recall)
-                fscore = np.around(fscore, decimals=4)
-
-            precision_dict[class_] = precision
-            recall_dict[class_] = recall
-            fscore_dict[class_] = fscore
-            num_tp_dict[class_] = tp
-            num_fp_dict[class_] = fp
-            num_fn_dict[class_] = fn
+        precision_dict, recall_dict, fscore_dict = self.classification_metrics_utils.get_prf_from_counters(
+            tp_counter=self.tp_counter,
+            fp_counter=self.fp_counter,
+            fn_counter=self.fn_counter,
+        )
 
         # macro scores
         # for a detailed discussion on micro and macro scores please follow the discussion @
         # https://datascience.stackexchange.com/questions/15989/micro-average-vs-macro-average-performance-in-a-multiclass-classification-settin
-        all_precisions = [
-            precision_value for precision_value in precision_dict.values()
-        ]
-        all_recalls = [recall_value for recall_value in recall_dict.values()]
-        all_fscores = [fscores_value for fscores_value in fscore_dict.values()]
-
-        # macro scores
-        macro_precision = np.mean(all_precisions)
-        macro_recall = np.mean(all_recalls)
-        macro_fscore = np.mean(all_fscores)
-        macro_precision = np.around(macro_precision, decimals=4)
-        macro_recall = np.around(macro_recall, decimals=4)
-        macro_fscore = np.around(macro_fscore, decimals=4)
 
         # micro scores
-        all_num_tps = [num_tp for num_tp in num_tp_dict.values()]
-        all_num_fps = [num_fp for num_fp in num_fp_dict.values()]
-        all_num_fns = [num_fn for num_fn in num_fn_dict.values()]
+        micro_precision, micro_recall, micro_fscore = self.classification_metrics_utils.get_micro_prf_from_counters(
+            tp_counter=self.tp_counter,
+            fp_counter=self.fp_counter,
+            fn_counter=self.fn_counter,
+        )
 
-        if np.sum(all_num_tps + all_num_fps) == 0:
-            micro_precision = 0
-        else:
-            micro_precision = np.sum(all_num_tps) / np.sum(all_num_tps + all_num_fps)
-            micro_precision = np.around(micro_precision, decimals=4)
-
-        if np.sum(all_num_tps + all_num_fns) == 0:
-            micro_recall = 0
-        else:
-            micro_recall = np.sum(all_num_tps) / np.sum(all_num_tps + all_num_fns)
-            micro_recall = np.around(micro_recall, decimals=4)
-
-        if micro_precision == 0 and micro_recall == 0:
-            micro_fscore = 0.0
-        else:
-            micro_fscore = (
-                2 * micro_precision * micro_recall / (micro_precision + micro_recall)
-            )
-            micro_fscore = np.around(micro_fscore, decimals=4)
+        # macro scores
+        macro_precision, macro_recall, macro_fscore = self.classification_metrics_utils.get_macro_prf_from_prf_dicts(
+            precision_dict=precision_dict,
+            recall_dict=recall_dict,
+            fscore_dict=fscore_dict,
+        )
 
         return {
             "precision": precision_dict,
             "recall": recall_dict,
             "fscore": fscore_dict,
-            "num_tp": num_tp_dict,
-            "num_fp": num_fp_dict,
-            "num_fn": num_fn_dict,
+            "num_tp": self.tp_counter,
+            "num_fp": self.fp_counter,
+            "num_fn": self.fn_counter,
             "macro_precision": macro_precision,
             "macro_recall": macro_recall,
             "macro_fscore": macro_fscore,
