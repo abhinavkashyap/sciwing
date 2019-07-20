@@ -68,10 +68,18 @@ class ScienceIETagger(nn.Module):
         process_logits = self.hidden2process(encoding)
         material_logits = self.hidden2material(encoding)
 
+        assert task_logits.size(1) == process_logits.size(1) == material_logits.size(1)
+        assert task_logits.size(2) == process_logits.size(2) == material_logits.size(2)
+
         predicted_task_tags = self.task_crf.decode(task_logits)  # List[List[int]] N * T
         predicted_process_tags = self.process_crf.decode(process_logits)
         predicted_material_tags = self.material_crf.decode(material_logits)
 
+        assert (
+            len(predicted_task_tags)
+            == len(predicted_process_tags)
+            == len(predicted_material_tags)
+        )
         # arrange the labels in N * 3T
         zipped_tags = zip(
             predicted_task_tags, predicted_process_tags, predicted_material_tags
