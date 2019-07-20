@@ -2,15 +2,30 @@ import pytest
 import parsect.constants as constants
 import pathlib
 from parsect.datasets.science_ie_dataset import ScienceIEDataset
+from parsect.utils.science_ie import ScienceIEDataUtils
 from torch.utils.data import DataLoader
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
+FILES = constants.FILES
+SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
 
 
 @pytest.fixture
 def setup_science_ie_dataset(tmpdir):
-    train_science_conll_file = pathlib.Path(DATA_DIR, "train_science_conll.txt")
+    sci_ie_train_data_utils = ScienceIEDataUtils(
+        folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
+    )
+    sci_ie_train_data_utils.write_bilou_lines(
+        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt")
+    )
+    sci_ie_train_data_utils.merge_files(
+        task_filename=pathlib.Path(DATA_DIR, "train_science_ie_task_conll.txt"),
+        process_filename=pathlib.Path(DATA_DIR, "train_science_ie_process_conll.txt"),
+        material_filename=pathlib.Path(DATA_DIR, "train_science_ie_material_conll.txt"),
+        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt"),
+    )
+    train_science_conll_file = pathlib.Path(DATA_DIR, "train_science_ie.txt")
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
     char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = True

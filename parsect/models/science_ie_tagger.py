@@ -43,7 +43,7 @@ class ScienceIETagger(nn.Module):
 
         assert labels.ndimension() == 2, self.msg_printer(
             f"For Science IE Tagger, labels should have 2 dimensions"
-            f"batch_size, 3, max_length. The labels you passed have "
+            f"batch_size, 3 * max_length. The labels you passed have "
             f"{labels.ndimension()}"
         )
 
@@ -83,6 +83,9 @@ class ScienceIETagger(nn.Module):
             "task_logits": task_logits,
             "process_logits": process_logits,
             "material_logits": material_logits,
+            "predicted_task_tags": predicted_task_tags,
+            "predicted_process_tags": predicted_process_tags,
+            "predicted_material_tags": predicted_material_tags,
             "predicted_tags": predicted_tags,
         }
 
