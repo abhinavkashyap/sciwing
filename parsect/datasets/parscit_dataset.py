@@ -185,8 +185,8 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         self.msg_printer = wasabi.Printer()
         self.tag_visualizer = VisTagging()
 
-    @staticmethod
-    def get_classname2idx() -> Dict[str, int]:
+    @classmethod
+    def get_classname2idx(cls) -> Dict[str, int]:
         categories = [
             "author",
             "booktitle",

@@ -2,8 +2,6 @@ from torch.utils.data import Dataset
 from typing import Union, Dict, List, Any
 from parsect.utils.common import convert_generic_sect_to_json
 import wasabi
-import numpy as np
-from sklearn.model_selection import StratifiedShuffleSplit
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer

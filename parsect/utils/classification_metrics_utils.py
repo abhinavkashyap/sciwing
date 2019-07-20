@@ -15,7 +15,7 @@ class ClassificationMetricsUtils:
 
     def __init__(
         self,
-        idx2labelname_mapping: Dict[int, str],
+        idx2labelname_mapping: Optional[Dict[int, str]] = None,
         masked_label_indices: Optional[List[int]] = None,
     ):
         self.msg_printer = wasabi.Printer()
@@ -181,6 +181,13 @@ class ClassificationMetricsUtils:
         classes = precision_dict.keys()
         classes = sorted(classes)
         classes = filter(lambda class_: class_ not in self.mask_label_indices, classes)
+        classes = list(classes)
+
+        if self.idx2labelname_mapping is None:
+            idx2labelname_mapping = {class_num: class_num for class_num in classes}
+        else:
+            idx2labelname_mapping = self.idx2labelname_mapping
+
         header_row = [" ", "Precision", "Recall", "F_measure"]
         rows = []
         for class_num in classes:
@@ -188,12 +195,7 @@ class ClassificationMetricsUtils:
             r = recall_dict[class_num]
             f = fscore_dict[class_num]
             rows.append(
-                (
-                    f"cls_{class_num} ({self.idx2labelname_mapping[int(class_num)]})",
-                    p,
-                    r,
-                    f,
-                )
+                (f"cls_{class_num} ({idx2labelname_mapping[int(class_num)]})", p, r, f)
             )
 
         rows.append(["-"] * 4)

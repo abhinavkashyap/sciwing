@@ -5,7 +5,9 @@ from parsect.datasets.parscit_dataset import ParscitDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.common import write_nfold_parscit_train_test
 from parsect.utils.common import merge_dictionaries_with_sum
+from parsect.utils.common import write_cora_to_conll_file
 from parsect.utils.classification_metrics_utils import ClassificationMetricsUtils
+from typing import Dict, Any
 import parsect.constants as constants
 import os
 import torch
@@ -16,6 +18,7 @@ import argparse
 import pathlib
 import torch.nn as nn
 import wasabi
+import copy
 
 
 FILES = constants.FILES
@@ -127,48 +130,40 @@ if __name__ == "__main__":
         "CHAR_ENCODER_HIDDEN_DIM": args.char_encoder_hidden_dim,
     }
 
-    DEBUG = config["DEBUG"]
-    DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
-    BATCH_SIZE = config["BATCH_SIZE"]
-    LEARNING_RATE = config["LEARNING_RATE"]
-    NUM_EPOCHS = config["NUM_EPOCHS"]
-    SAVE_EVERY = config["SAVE_EVERY"]
-    LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
-    CHAR_EMBEDDING_DIMENSION = config["CHAR_EMBEDDING_DIMENSION"]
-    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
-    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
-    MAX_LENGTH = config["MAX_LENGTH"]
-    DEVICE = config["DEVICE"]
-    HIDDEN_DIM = config["HIDDEN_DIM"]
-    BIDIRECTIONAL = config["BIDIRECTIONAL"]
-    COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
-    MAX_CHAR_LENGTH = config["MAX_CHAR_LENGTH"]
-    USE_CHAR_ENCODER = config["USE_CHAR_ENCODER"]
-    CHAR_ENCODER_HIDDEN_DIM = config["CHAR_ENCODER_HIDDEN_DIM"]
-    train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
-    test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
-
     tp_counter = {}
     fp_counter = {}
     fn_counter = {}
 
-    for fold_num, each_success_indicator in enumerate(
-        write_nfold_parscit_train_test(
-            parscit_train_filepath=pathlib.Path(CORA_FILE),
-            output_train_filepath=train_conll_filepath,
-            output_test_filepath=test_conll_filepath,
-            nsplits=10,
-        )
+    def setup_engine_once(
+        config_dict: Dict[str, str],
+        experiment_name: str,
+        train_data_filepath: pathlib.Path,
+        test_data_filepath: pathlib.Path,
     ):
-        msg_printer.divider(f"RUNNING PARSCIT FOR FOLD {fold_num}")
+        DEBUG = config_dict["DEBUG"]
+        DEBUG_DATASET_PROPORTION = config_dict["DEBUG_DATASET_PROPORTION"]
+        BATCH_SIZE = config_dict["BATCH_SIZE"]
+        LEARNING_RATE = config_dict["LEARNING_RATE"]
+        NUM_EPOCHS = config_dict["NUM_EPOCHS"]
+        SAVE_EVERY = config_dict["SAVE_EVERY"]
+        LOG_TRAIN_METRICS_EVERY = config_dict["LOG_TRAIN_METRICS_EVERY"]
+        EMBEDDING_DIMENSION = config_dict["EMBEDDING_DIMENSION"]
+        CHAR_EMBEDDING_DIMENSION = config_dict["CHAR_EMBEDDING_DIMENSION"]
+        EMBEDDING_TYPE = config_dict["EMBEDDING_TYPE"]
+        MAX_NUM_WORDS = config_dict["MAX_NUM_WORDS"]
+        MAX_LENGTH = config_dict["MAX_LENGTH"]
+        DEVICE = config_dict["DEVICE"]
+        HIDDEN_DIM = config_dict["HIDDEN_DIM"]
+        BIDIRECTIONAL = config_dict["BIDIRECTIONAL"]
+        COMBINE_STRATEGY = config_dict["COMBINE_STRATEGY"]
+        MAX_CHAR_LENGTH = config_dict["MAX_CHAR_LENGTH"]
+        USE_CHAR_ENCODER = config_dict["USE_CHAR_ENCODER"]
+        CHAR_ENCODER_HIDDEN_DIM = config_dict["CHAR_ENCODER_HIDDEN_DIM"]
 
-        # generating one path for every fold run
-        EXP_NAME = config["EXP_NAME"]
-        EXP_NAME = f"{EXP_NAME}_fold_{fold_num}"
+        EXP_NAME = experiment_name
         EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
         MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
-        CORA_CONLL_FILE = pathlib.Path(DATA_DIR, "cora_conll.txt")
+
         if not os.path.isdir(EXP_DIR_PATH):
             os.mkdir(EXP_DIR_PATH)
 
@@ -180,7 +175,7 @@ if __name__ == "__main__":
         TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
         train_dataset = ParscitDataset(
-            parscit_conll_file=str(train_conll_filepath),
+            parscit_conll_file=str(train_data_filepath),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
             max_word_length=MAX_LENGTH,
@@ -200,7 +195,7 @@ if __name__ == "__main__":
         )
 
         validation_dataset = ParscitDataset(
-            parscit_conll_file=str(test_conll_filepath),
+            parscit_conll_file=str(test_data_filepath),
             dataset_type="valid",
             max_num_words=MAX_NUM_WORDS,
             max_word_length=MAX_LENGTH,
@@ -220,7 +215,7 @@ if __name__ == "__main__":
         )
 
         test_dataset = ParscitDataset(
-            parscit_conll_file=str(test_conll_filepath),
+            parscit_conll_file=str(test_data_filepath),
             dataset_type="test",
             max_num_words=MAX_NUM_WORDS,
             max_word_length=MAX_LENGTH,
@@ -308,16 +303,41 @@ if __name__ == "__main__":
             metric=metric,
         )
 
-        engine.run()
-
-        config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-        config["CHAR_VOCAB_STORE_LOCATION"] = CHAR_VOCAB_STORE_LOCATION
-        config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
-        config["VOCAB_SIZE"] = VOCAB_SIZE
-        config["NUM_CLASSES"] = NUM_CLASSES
+        config_dict["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
+        config_dict["CHAR_VOCAB_STORE_LOCATION"] = CHAR_VOCAB_STORE_LOCATION
+        config_dict["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
+        config_dict["VOCAB_SIZE"] = VOCAB_SIZE
+        config_dict["NUM_CLASSES"] = NUM_CLASSES
 
         with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
-            json.dump(config, fp)
+            json.dump(config_dict, fp)
+
+        return engine
+
+    train_conll_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+    test_conll_filepath = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+
+    for fold_num, each_success_indicator in enumerate(
+        write_nfold_parscit_train_test(
+            parscit_train_filepath=pathlib.Path(CORA_FILE),
+            output_train_filepath=train_conll_filepath,
+            output_test_filepath=test_conll_filepath,
+            nsplits=2,
+        )
+    ):
+        msg_printer.divider(f"RUNNING PARSCIT FOR FOLD {fold_num}")
+
+        exp_name = config["EXP_NAME"]
+        exp_name = f"{exp_name}_{fold_num}"
+
+        engine = setup_engine_once(
+            experiment_name=exp_name,
+            config_dict=copy.deepcopy(config),
+            train_data_filepath=train_conll_filepath,
+            test_data_filepath=test_conll_filepath,
+        )
+        # generating one path for every fold run
+        engine.run()
 
         fold_tp_counter = engine.test_metric_calc.tp_counter
         fold_fp_counter = engine.test_metric_calc.fp_counter
@@ -327,10 +347,31 @@ if __name__ == "__main__":
         fp_counter = merge_dictionaries_with_sum(fp_counter, fold_fp_counter)
         fn_counter = merge_dictionaries_with_sum(fn_counter, fold_fn_counter)
 
+    parscit_classname2idx = ParscitDataset.get_classname2idx()
+    idx2_classname = {
+        idx: classname for classname, idx in parscit_classname2idx.items()
+    }
+    ignore_indices = [
+        parscit_classname2idx["starting"],
+        parscit_classname2idx["ending"],
+        parscit_classname2idx["padding"],
+    ]
+
     classification_metrics_utils = ClassificationMetricsUtils(
-        idx2labelname_mapping=train_dataset.idx2classname,
-        masked_label_indices=ignore_indices,
+        idx2labelname_mapping=idx2_classname, masked_label_indices=ignore_indices
     )
     classification_metrics_utils.print_table_report_from_counters(
         tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
     )
+
+    # run the model on the entire cora dataset
+    cora_conll_filepath = pathlib.Path(DATA_DIR, "cora_conll_full.txt")
+    write_cora_to_conll_file(cora_conll_filepath=cora_conll_filepath)
+
+    engine = setup_engine_once(
+        config_dict=copy.deepcopy(config),
+        train_data_filepath=cora_conll_filepath,
+        test_data_filepath=cora_conll_filepath,
+        experiment_name=config["EXP_NAME"],
+    )
+    engine.run()
