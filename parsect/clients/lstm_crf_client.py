@@ -162,10 +162,11 @@ if __name__ == "__main__":
 
         EXP_NAME = experiment_name
         EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
-        MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
 
         if not os.path.isdir(EXP_DIR_PATH):
             os.mkdir(EXP_DIR_PATH)
+
+        MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
 
         if not os.path.isdir(MODEL_SAVE_DIR):
             os.mkdir(MODEL_SAVE_DIR)
@@ -360,10 +361,20 @@ if __name__ == "__main__":
     classification_metrics_utils = ClassificationMetricsUtils(
         idx2labelname_mapping=idx2_classname, masked_label_indices=ignore_indices
     )
-    classification_metrics_utils.print_table_report_from_counters(
+    table = classification_metrics_utils.generate_table_report_from_counters(
         tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
     )
 
+    EXP_DIR_PATH = pathlib.Path(OUTPUT_DIR, config["EXP_NAME"])
+
+    if not EXP_DIR_PATH.is_dir():
+        EXP_DIR_PATH.mkdir()
+
+    test_results_filepath = EXP_DIR_PATH.joinpath("test_results.txt")
+
+    with open(test_results_filepath, "w") as fp:
+        fp.write(table)
+        fp.write("\n")
     # run the model on the entire cora dataset
     cora_conll_filepath = pathlib.Path(DATA_DIR, "cora_conll_full.txt")
     write_cora_to_conll_file(cora_conll_filepath=cora_conll_filepath)

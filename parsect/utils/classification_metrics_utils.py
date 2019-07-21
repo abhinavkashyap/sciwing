@@ -160,7 +160,7 @@ class ClassificationMetricsUtils:
         )
         return confusion_mtrx, classes
 
-    def print_table_report_from_counters(
+    def generate_table_report_from_counters(
         self,
         tp_counter: Dict[int, int],
         fp_counter: Dict[int, int],
@@ -202,4 +202,4 @@ class ClassificationMetricsUtils:
         rows.append(["Macro", macro_precision, macro_recall, macro_fscore])
         rows.append(["Micro", micro_precision, micro_recall, micro_fscore])
 
-        print(wasabi.table(rows, header=header_row, divider=True))
+        return wasabi.table(rows, header=header_row, divider=True)
