@@ -323,7 +323,7 @@ if __name__ == "__main__":
             parscit_train_filepath=pathlib.Path(CORA_FILE),
             output_train_filepath=train_conll_filepath,
             output_test_filepath=test_conll_filepath,
-            nsplits=2,
+            nsplits=10,
         )
     ):
         msg_printer.divider(f"RUNNING PARSCIT FOR FOLD {fold_num}")
