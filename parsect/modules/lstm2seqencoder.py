@@ -53,6 +53,7 @@ class Lstm2SeqEncoder(nn.Module):
             f"{self.combine_strategy}"
         )
         self.emb_dropout = nn.Dropout(p=self.dropout_value)
+        self.output_dropout = nn.Dropout(p=self.dropout_value)
         self.rnn = nn.LSTM(
             input_size=self.emb_dim,
             hidden_size=self.hidden_dim,
@@ -84,6 +85,8 @@ class Lstm2SeqEncoder(nn.Module):
         # h_n = num_layers * num_directions, batch_size, hidden_dimension
         # c_n = num_layers * num_directions, batch_size, hidden_dimension
         output, (_, _) = self.rnn(embedded_tokens, (h0, c0))
+
+        output = self.output_dropout(output)
 
         if self.bidirectional:
             output = output.view(batch_size, seq_length, 2, -1)

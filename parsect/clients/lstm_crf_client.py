@@ -104,6 +104,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--device", help="Device on which the model is run", type=str)
+
+    parser.add_argument("--dropout", help="Dropout value", type=float)
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
 
@@ -128,6 +130,7 @@ if __name__ == "__main__":
         "COMBINE_STRATEGY": args.combine_strategy,
         "USE_CHAR_ENCODER": args.use_char_encoder,
         "CHAR_ENCODER_HIDDEN_DIM": args.char_encoder_hidden_dim,
+        "DROPOUT": args.dropout,
     }
 
     tp_counter = {}
@@ -159,6 +162,7 @@ if __name__ == "__main__":
         MAX_CHAR_LENGTH = config_dict["MAX_CHAR_LENGTH"]
         USE_CHAR_ENCODER = config_dict["USE_CHAR_ENCODER"]
         CHAR_ENCODER_HIDDEN_DIM = config_dict["CHAR_ENCODER_HIDDEN_DIM"]
+        DROPOUT = config_dict["DROPOUT"]
 
         EXP_NAME = experiment_name
         EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
@@ -260,7 +264,7 @@ if __name__ == "__main__":
         lstm2seqencoder = Lstm2SeqEncoder(
             emb_dim=EMBEDDING_DIMENSION,
             embedding=embedding,
-            dropout_value=0.0,
+            dropout_value=DROPOUT,
             hidden_dim=HIDDEN_DIM,
             bidirectional=BIDIRECTIONAL,
             combine_strategy=COMBINE_STRATEGY,

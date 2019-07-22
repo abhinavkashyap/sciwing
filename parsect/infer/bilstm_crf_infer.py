@@ -39,6 +39,7 @@ def get_bilstm_crf_infer(dirname: str):
     CHAR_EMBEDDING_DIMENSION = config.get("CHAR_EMBEDDING_DIMENSION", None)
     USE_CHAR_ENCODER = config.get("USE_CHAR_ENCODER", None)
     CHAR_ENCODER_HIDDEN_DIM = config.get("CHAR_ENCODER_HIDDEN_DIM", None)
+    DROPOUT = config.get("DROPOUT", 0.0)
 
     test_conll_filepath = pathlib.Path(DATA_DIR, "cora_conll.txt")
 
@@ -83,7 +84,7 @@ def get_bilstm_crf_infer(dirname: str):
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedding=embedding,
-        dropout_value=0.0,
+        dropout_value=DROPOUT,
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
