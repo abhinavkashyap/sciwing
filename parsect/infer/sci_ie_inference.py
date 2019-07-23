@@ -49,43 +49,7 @@ class ScienceIEInference(BaseInference):
             self.output_analytics = self.run_inference()
         self.msg_printer.good("Finished running inference on test data")
 
-        self.output_df = pd.DataFrame(
-            {
-                "true_task_tag_indices": self.output_analytics["true_task_tag_indices"],
-                "true_process_tag_indices": self.output_analytics[
-                    "true_process_tag_indices"
-                ],
-                "true_material_tag_indices": self.output_analytics[
-                    "true_material_tag_indices"
-                ],
-                "predicted_task_tag_indices": self.output_analytics[
-                    "predicted_task_tag_indices"
-                ],
-                "predicted_process_tag_indices": self.output_analytics[
-                    "predicted_process_tag_indices"
-                ],
-                "predicted_material_tag_indices": self.output_analytics[
-                    "predicted_material_tag_indices"
-                ],
-                "true_task_tag_names": self.output_analytics["true_task_tag_names"],
-                "true_process_tag_names": self.output_analytics[
-                    "true_process_tag_names"
-                ],
-                "true_material_tag_names": self.output_analytics[
-                    "true_material_tag_names"
-                ],
-                "predicted_task_tag_names": self.output_analytics[
-                    "predicted_task_tag_names"
-                ],
-                "predicted_process_tag_names": self.output_analytics[
-                    "predicted_process_tag_names"
-                ],
-                "predicted_material_tag_names": self.output_analytics[
-                    "predicted_material_tag_names"
-                ],
-                "sentences": self.output_analytics["sentences"],
-            }
-        )
+        self.output_df = pd.DataFrame(self.output_analytics)
 
         num_categories = len(self.labelname2idx_mapping.keys())
         categories = [self.idx2labelname_mapping[idx] for idx in range(num_categories)]
@@ -132,9 +96,6 @@ class ScienceIEInference(BaseInference):
                 labels, chunks=3, dim=1
             )
 
-            true_process_labels = true_process_labels + 8
-            true_material_labels = true_material_labels + 16
-
             true_task_labels_list = true_task_labels.cpu().tolist()
             true_process_labels_list = true_process_labels.cpu().tolist()
             true_material_labels_list = true_material_labels.cpu().tolist()
@@ -147,17 +108,6 @@ class ScienceIEInference(BaseInference):
             predicted_task_tags = model_output_dict["predicted_task_tags"]
             predicted_process_tags = model_output_dict["predicted_process_tags"]
             predicted_material_tags = model_output_dict["predicted_material_tags"]
-
-            predicted_process_tags = map(
-                lambda tags: np.add(tags, [8] * len(tags)).tolist(),
-                predicted_process_tags,
-            )
-            predicted_material_tags = map(
-                lambda tags: np.add(tags, [16] * len(tags)).tolist(),
-                predicted_material_tags,
-            )
-            predicted_process_tags = list(predicted_process_tags)
-            predicted_material_tags = list(predicted_material_tags)
 
             assert len(true_task_labels_list) == len(predicted_task_tags)
 

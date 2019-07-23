@@ -62,7 +62,7 @@ class TestScienceIE:
     def test_num_classes(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
         num_classes = dataset.get_num_classes()
-        assert num_classes == 8 * 3
+        assert num_classes == 8
 
     def test_lines_labels_not_empty(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset

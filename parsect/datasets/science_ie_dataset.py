@@ -141,7 +141,7 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         return classnames2idx_mapping
 
     def get_num_classes(self) -> int:
-        return len(self.classnames2idx.keys())
+        return 8
 
     def get_class_names_from_indices(self, indices: List[int]):
         return [self.idx2classnames[idx] for idx in indices]
@@ -169,8 +169,7 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
             task_labels, process_labels, material_labels = torch.chunk(
                 labels, chunks=3, dim=0
             )
-            process_labels += 8
-            material_labels += 16
+
             all_task_labels.extend(task_labels.cpu().tolist())
             all_process_labels.extend(process_labels.cpu().tolist())
             all_material_labels.extend(material_labels.cpu().tolist())
@@ -359,10 +358,10 @@ class ScienceIEDataset(TextClassificationDataset, Dataset):
         # Ugly offsetting because we are using continuous numbers for classes in all entity
         # types but science ie dataset requires 0
         padded_process_labels = [
-            self.classnames2idx[label] - 8 for label in padded_process_labels
+            self.classnames2idx[label] for label in padded_process_labels
         ]
         padded_material_labels = [
-            self.classnames2idx[label] - 16 for label in padded_material_labels
+            self.classnames2idx[label] for label in padded_material_labels
         ]
 
         character_tokens = []

@@ -27,7 +27,7 @@ def setup_science_ie_tagger(request):
     BIDIRECTIONAL = request.param[0]
     COMBINE_STRATEGY = request.param[1]
     HAVE_CHARACTER_ENCODER = request.param[2]
-    NUM_CLASSES = 5
+    NUM_CLASSES = 24
     EMBEDDING = nn.Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMBEDDING_DIM]))
     CHARACTER_EMBEDDING = nn.Embedding.from_pretrained(
         torch.zeros([CHAR_VOCAB_SIZE, CHARACTER_EMBEDDING_DIM])
@@ -96,8 +96,8 @@ def setup_science_ie_tagger(request):
     )
 
 
-class TestParscitTagger:
-    def test_parscit_tagger_dimensions(self, setup_science_ie_tagger):
+class TestScienceIETagger:
+    def test_scienceie_tagger_dimensions(self, setup_science_ie_tagger):
         tagger, options = setup_science_ie_tagger
         tokens = options["tokens"]
         labels = options["labels"]

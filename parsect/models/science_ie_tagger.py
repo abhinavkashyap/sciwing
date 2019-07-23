@@ -50,6 +50,8 @@ class ScienceIETagger(nn.Module):
         task_labels, process_labels, material_labels = torch.chunk(
             labels, chunks=3, dim=1
         )
+        process_labels -= 8
+        material_labels -= 16
 
         character_encoding = None
         if self.character_encoder is not None:
@@ -74,6 +76,12 @@ class ScienceIETagger(nn.Module):
         predicted_task_tags = self.task_crf.decode(task_logits)  # List[List[int]] N * T
         predicted_process_tags = self.process_crf.decode(process_logits)
         predicted_material_tags = self.material_crf.decode(material_logits)
+
+        # add the appropriate numbers
+        predicted_process_tags = torch.LongTensor(predicted_process_tags) + 8
+        predicted_material_tags = torch.LongTensor(predicted_material_tags) + 16
+        predicted_process_tags = predicted_process_tags.tolist()
+        predicted_material_tags = predicted_material_tags.tolist()
 
         assert (
             len(predicted_task_tags)
