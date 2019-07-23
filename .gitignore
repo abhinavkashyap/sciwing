@@ -11,3 +11,4 @@ runs
 .model_cache
 .aws
 parsect/reports/*
+parsect/scripts/*
