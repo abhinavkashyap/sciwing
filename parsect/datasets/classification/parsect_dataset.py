@@ -21,6 +21,10 @@ SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 class ParsectDataset(Dataset, BaseTextClassification):
+    """Parsect dataset consists of dataset for logical classification of scientific papers
+
+    """
+
     def __init__(
         self,
         secthead_label_file: str,
@@ -42,48 +46,6 @@ class ParsectDataset(Dataset, BaseTextClassification):
         word_tokenizer=WordTokenizer(),
         word_tokenization_type="vanilla",
     ):
-        """
-        :param dataset_type: type: str
-        One of ['train', 'valid', 'test']
-        :param max_num_words: type: int
-        The top frequent `max_num_words` to consider
-        :param max_length: type: int
-        The maximum length after numericalization
-        :param word_vocab_store_location: type: str
-        The vocab store location to store vocabulary
-        This should be a json filename
-        :param debug: type: bool
-        If debug is true, then we randomly sample
-        10% of the dataset and work with it. This is useful
-        for faster automated tests and looking at random
-        examples
-        :param debug_dataset_proportion: type: float
-        Send a number (0.0, 1.0) and a random proportion of the dataset
-        will be used for debug purposes
-        :param word_embedding_type: type: str
-        Pre-loaded embedding type to load.
-        :param start_token: type: str
-        The start token is the token appended to the beginning of the list of tokens
-        :param end_token: type: str
-        The end token is the token appended to the end of the list of tokens
-        :param pad_token: type: str
-        The pad token is used when the length of the input is less than maximum length
-        :param unk_token: type: str
-        unk is the token that is used when the word is OOV
-        :param train_size: float
-        The proportion of the dataset that is used for training
-        :param test_size: float
-        The proportion of the dataset that is used for testing
-        :param validation_size: float
-        The proportion of the test dataset that is used for validation
-        :param word_tokenizer
-        The tokenizer that will be used to word_tokenize text
-        :param word_tokenization_type: str
-        Allowed type (vanilla, bert)
-        Two types of tokenization are allowed. Either vanilla tokenization that is based on spacy.
-        The default is WordTokenizer()
-        If bert, then bert tokenization is performed and additional fields will be included in the output
-        """
         super(ParsectDataset, self).__init__(
             filename=secthead_label_file,
             dataset_type=dataset_type,
@@ -326,9 +288,6 @@ class ParsectDataset(Dataset, BaseTextClassification):
         return sentence
 
     def print_stats(self):
-        """
-        Return some stats about the dataset
-        """
         num_instances = len(self.instances)
         all_labels = []
         for idx in range(num_instances):

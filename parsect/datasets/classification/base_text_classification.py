@@ -116,11 +116,12 @@ class BaseTextClassification(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def get_classname2idx(cls) -> Dict[str, int]:
-        """ Mapping between class names and index.
+        """ Mapping between classnames and index
+
         Returns
         -------
         Dict[str, int]
-            Should return the mapping between a text class and its index
+            A mapping between class names and idx
         """
         pass
 
@@ -303,14 +304,15 @@ class BaseTextClassification(metaclass=ABCMeta):
     def emits_keys(cls) -> Dict[str, str]:
         """ Specify the keys that will be emitted in the instance dict fo the dataset
 
-        The instance_dict is a dictioary of string to tensors
-        These Tensors will be then passed to the model for usage
-        The different keys that is emitted as part of the instance_dict
-        is listed here along with a small description of what they represent
+        The ``instance_dict`` is a dictionary of string to tensors. The ``instance_dict`` can
+        contain various keys depending on the dataset that is being used and the model that
+        is built using the dataset. The function should provides means to inspect the different
+        keys emitted by the classification dataset and the description of what they mean
 
         Returns
         -------
         Dict[str, str]
-            A dictionary representing the different keys and the corresponding description
+            A dictionary representing different keys emitted and their corresponding human
+            readable description
         """
         pass
