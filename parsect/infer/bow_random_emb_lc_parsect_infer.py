@@ -60,6 +60,8 @@ def get_random_emb_linear_classifier_infer_parsect(dirname: str):
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
+    dataset.print_stats()
+
     parsect_inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,

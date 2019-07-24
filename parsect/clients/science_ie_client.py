@@ -168,10 +168,11 @@ if __name__ == "__main__":
     )
 
     sci_ie_train_data_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt")
+        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt"),
+        is_sentence_wise=True,
     )
     sci_ie_dev_data_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, "dev_science_ie.txt")
+        out_filename=pathlib.Path(DATA_DIR, "dev_science_ie.txt"), is_sentence_wise=True
     )
 
     sci_ie_train_data_utils.merge_files(

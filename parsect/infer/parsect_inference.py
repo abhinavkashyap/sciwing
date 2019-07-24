@@ -97,10 +97,9 @@ class ParsectInference(BaseInference):
 
         for iter_dict in loader:
             iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
-            tokens = iter_dict["tokens"]
-            labels = iter_dict["label"]
-            labels = labels.squeeze(1)
-            labels_list = labels.tolist()
+            tokens = iter_dict["tokens"]  # N * max_length
+            labels = iter_dict["label"]  # N, 1
+            labels_list = labels.squeeze().tolist()
             tokens_list = tokens.tolist()
 
             batch_sentences = list(
@@ -139,7 +138,7 @@ class ParsectInference(BaseInference):
 
         output_analytics[
             "true_labels_indices"
-        ] = true_labels_indices  # torch.LongTensor
+        ] = true_labels_indices  # torch.LongTensor N, 1
         output_analytics["predicted_labels_indices"] = predicted_labels_indices
         output_analytics["pred_class_names"] = pred_class_names
         output_analytics["true_class_names"] = true_class_names
@@ -188,7 +187,7 @@ class ParsectInference(BaseInference):
     def print_confusion_matrix(self) -> None:
         self.metrics_calculator.print_confusion_metrics(
             predicted_probs=self.output_analytics["all_pred_probs"],
-            labels=self.output_analytics["true_labels_indices"],
+            labels=self.output_analytics["true_labels_indices"].unsqueeze(1),
         )
 
     def print_prf_table(self):

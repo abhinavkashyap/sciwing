@@ -42,7 +42,7 @@ class PrecisionRecallFMeasure(BaseMetric):
         )
 
         assert labels.ndimension() == 2, self.msg_printer.fail(
-            "The labels should have 1 dimension."
+            "The labels should have 2 dimension."
             "The labels that you passed have shape "
             "{0}".format(labels.size())
         )
@@ -57,7 +57,7 @@ class PrecisionRecallFMeasure(BaseMetric):
         true_labels_numpy = labels.cpu().numpy().tolist()
 
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
-            true_labels_numpy, top_indices_numpy
+            predicted_tag_indices=top_indices_numpy, true_tag_indices=true_labels_numpy
         )
         classes_with_names = [
             f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
@@ -68,7 +68,6 @@ class PrecisionRecallFMeasure(BaseMetric):
 
         header = [f"{class_}" for class_ in classes]
         header.insert(0, "pred(cols)/true(rows)")
-        print(header)
 
         confusion_mtrx = pd.DataFrame(confusion_mtrx)
         confusion_mtrx.insert(0, "class_name", classes_with_names)
@@ -94,7 +93,7 @@ class PrecisionRecallFMeasure(BaseMetric):
         )
 
         assert labels.ndimension() == 2, self.msg_printer.fail(
-            "The labels should have 1 dimension."
+            "The labels should have 2 dimension."
             "The labels that you passed have shape "
             "{0}".format(labels.size())
         )
