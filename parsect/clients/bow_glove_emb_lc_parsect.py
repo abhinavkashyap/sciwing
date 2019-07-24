@@ -1,5 +1,5 @@
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import parsect.constants as constants

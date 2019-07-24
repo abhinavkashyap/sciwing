@@ -3,7 +3,7 @@ import os
 import parsect.constants as constants
 from parsect.modules.bow_bert_encoder import BowBertEncoder
 from parsect.models.bow_bert_linear_classifier import BowBertLinearClassifier
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.infer.parsect_inference import ParsectInference
 import torch
 

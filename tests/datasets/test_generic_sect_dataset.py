@@ -198,4 +198,4 @@ class TestGenericSectDataset:
         try:
             dataset.get_stats()
         except:
-            pytest.fail("get_stats() of GenericSect Dataset fails")
+            pytest.fail("print_stats() of GenericSect Dataset fails")

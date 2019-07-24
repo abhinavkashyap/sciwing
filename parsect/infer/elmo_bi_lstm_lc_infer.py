@@ -3,7 +3,7 @@ import os
 from parsect.models.elmo_lstm_classifier import ElmoLSTMClassifier
 from parsect.modules.elmo_lstm_encoder import ElmoLSTMEncoder
 from parsect.modules.elmo_embedder import ElmoEmbedder
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.infer.parsect_inference import ParsectInference
 import json
 import torch

@@ -4,7 +4,7 @@ import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import torch.nn as nn
 
 PATHS = constants.PATHS

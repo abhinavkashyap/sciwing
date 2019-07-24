@@ -12,13 +12,15 @@ from parsect.numericalizer.numericalizer import Numericalizer
 from wasabi import Printer
 import numpy as np
 from deprecated import deprecated
-from parsect.datasets.TextClassificationDataset import TextClassificationDataset
+from parsect.datasets.classification.base_text_classification import (
+    BaseTextClassification,
+)
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-class ParsectDataset(Dataset, TextClassificationDataset):
+class ParsectDataset(Dataset, BaseTextClassification):
     def __init__(
         self,
         secthead_label_file: str,
@@ -276,8 +278,8 @@ class ParsectDataset(Dataset, TextClassificationDataset):
 
         return texts, labels
 
-    @staticmethod
-    def get_classname2idx() -> Dict[str, int]:
+    @classmethod
+    def get_classname2idx(cls) -> Dict[str, int]:
         categories = [
             "address",
             "affiliation",
@@ -310,7 +312,7 @@ class ParsectDataset(Dataset, TextClassificationDataset):
     def get_num_classes(self) -> int:
         return len(self.classname2idx.keys())
 
-    def get_class_names_from_indices(self, indices: List):
+    def get_class_names_from_indices(self, indices: List) -> List[str]:
         return [self.idx2classname[idx] for idx in indices]
 
     def get_disp_sentence_from_indices(self, indices: List) -> str:
@@ -323,7 +325,7 @@ class ParsectDataset(Dataset, TextClassificationDataset):
         sentence = " ".join(token)
         return sentence
 
-    def get_stats(self):
+    def print_stats(self):
         """
         Return some stats about the dataset
         """
@@ -353,3 +355,19 @@ class ParsectDataset(Dataset, TextClassificationDataset):
 
     def get_preloaded_word_embedding(self) -> torch.FloatTensor:
         return self.vocab.load_embedding()
+
+    def emits_keys(cls):
+        return {
+            "tokens": f"A torch.LongTensor of size `max_length`. "
+            f"Example [0, 0, 1, 100] where every number represents an index in the vocab",
+            "len_tokens": f"A torch.LongTensor. "
+            f"Example [2] representing the number of tokens without padding",
+            "label": f"A torch.LongTensor representing the label corresponding to the "
+            f"instance. Example [2] representing class 2",
+            "instance": f"A string that is padded to ``max_length``.",
+            "raw_instance": f"A string that is not padded",
+            "bert_tokens": f"A torch.LongTensor that represents a set of bert tokens given "
+            f"by the BertTokenizer",
+            "segment_ids": f"A torch.LongTensor of zeros which means that all instances "
+            f"are single sentences. Bert requires to indicate sentences.",
+        }

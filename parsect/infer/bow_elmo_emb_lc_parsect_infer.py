@@ -4,7 +4,7 @@ import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.bow_elmo_linear_classifier import BowElmoLinearClassifier
 from parsect.modules.bow_elmo_encoder import BowElmoEncoder
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]

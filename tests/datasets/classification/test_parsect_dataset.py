@@ -1,7 +1,6 @@
-import pytest
 import parsect.constants as constants
 import pytest
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import torch
 from torch.utils.data import DataLoader
 from pytorch_pretrained_bert.tokenization import BertTokenizer
@@ -226,3 +225,10 @@ class TestParsectDataset:
 
         assert instances_dict["bert_tokens"].size() == (3, options["MAX_LENGTH"])
         assert instances_dict["segment_ids"].size() == (3, options["MAX_LENGTH"])
+
+    def test_print_stats_works(self, setup_parsect_train_dataset):
+        dataset, options = setup_parsect_train_dataset
+        try:
+            dataset.print_stats()
+        except:
+            pytest.fail("Test print stats works")

@@ -3,7 +3,7 @@ import parsect.constants as constants
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.infer.parsect_inference import ParsectInference
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import json
 import torch.nn as nn
 

@@ -1,5 +1,5 @@
 from parsect.models.bert_seq_classifier import BertSeqClassifier
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import parsect.constants as constants
 import os
 import torch

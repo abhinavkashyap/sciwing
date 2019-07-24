@@ -1,5 +1,5 @@
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import parsect.constants as constants
 import os
