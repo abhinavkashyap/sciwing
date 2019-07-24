@@ -1,5 +1,5 @@
 from parsect.models.bow_elmo_linear_classifier import BowElmoLinearClassifier
-from parsect.datasets.generic_sect_dataset import GenericSectDataset
+from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 from parsect.modules.bow_elmo_encoder import BowElmoEncoder
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import parsect.constants as constants

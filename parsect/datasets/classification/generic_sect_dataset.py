@@ -8,10 +8,12 @@ from parsect.numericalizer.numericalizer import Numericalizer
 from parsect.utils.common import pack_to_length
 import torch
 import collections
-from parsect.datasets.TextClassificationDataset import TextClassificationDataset
+from parsect.datasets.classification.base_text_classification import (
+    BaseTextClassification,
+)
 
 
-class GenericSectDataset(Dataset, TextClassificationDataset):
+class GenericSectDataset(Dataset, BaseTextClassification):
     def __init__(
         self,
         generic_sect_filename: str,
@@ -141,8 +143,8 @@ class GenericSectDataset(Dataset, TextClassificationDataset):
     def get_preloaded_word_embedding(self) -> torch.FloatTensor:
         return self.vocab.load_embedding()
 
-    @staticmethod
-    def get_classname2idx() -> Dict[str, int]:
+    @classmethod
+    def get_classname2idx(cls) -> Dict[str, int]:
         categories = [
             "abstract",
             "categories-and-subject-descriptors",
@@ -162,7 +164,7 @@ class GenericSectDataset(Dataset, TextClassificationDataset):
         categories = dict(categories)
         return categories
 
-    def get_stats(self):
+    def print_stats(self):
         """
                 Return some stats about the dataset
                 """
@@ -203,3 +205,16 @@ class GenericSectDataset(Dataset, TextClassificationDataset):
         ]
         sentence = " ".join(token)
         return sentence
+
+    @classmethod
+    def emits_keys(cls) -> Dict[str, str]:
+        return {
+            "tokens": f"A torch.LongTensor of size `max_length`. "
+            f"Example [0, 0, 1, 100] where every number represents an index in the vocab",
+            "len_tokens": f"A torch.LongTensor. "
+            f"Example [2] representing the number of tokens without padding",
+            "label": f"A torch.LongTensor representing the label corresponding to the "
+            f"instance. Example [2] representing class 2",
+            "instance": f"A string that is padded to ``max_length``.",
+            "raw_instance": f"A string that is not padded",
+        }

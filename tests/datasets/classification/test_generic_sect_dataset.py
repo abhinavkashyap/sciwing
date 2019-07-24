@@ -1,4 +1,4 @@
-from parsect.datasets.generic_sect_dataset import GenericSectDataset
+from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 import pytest
 import parsect.constants as constants
 from torch.utils.data import DataLoader
@@ -196,6 +196,6 @@ class TestGenericSectDataset:
     def test_get_stats_works(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
         try:
-            dataset.get_stats()
+            dataset.print_stats()
         except:
             pytest.fail("print_stats() of GenericSect Dataset fails")

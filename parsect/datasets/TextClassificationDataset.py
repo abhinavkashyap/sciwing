@@ -4,7 +4,6 @@ from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
-from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 
 
 class TextClassificationDataset(metaclass=ABCMeta):
@@ -28,7 +27,6 @@ class TextClassificationDataset(metaclass=ABCMeta):
         validation_size: float = 0.5,
         word_tokenizer=WordTokenizer(),
         word_tokenization_type="vanilla",
-        character_tokenizer=CharacterTokenizer(),
     ):
         """
                :param dataset_type: type: str
@@ -71,9 +69,6 @@ class TextClassificationDataset(metaclass=ABCMeta):
                Two types of tokenization are allowed. Either vanilla tokenization that is based on spacy.
                The default is WordTokenizer()
                If bert, then bert tokenization is performed and additional fields will be included in the output
-               :param character_tokenizer
-               The character tokenizer for the classification dataset
-
                """
         self.filename = filename
         self.dataset_type = dataset_type
@@ -93,7 +88,6 @@ class TextClassificationDataset(metaclass=ABCMeta):
         self.test_size = test_size
         self.word_tokenizer = word_tokenizer
         self.word_tokenization_type = word_tokenization_type
-        self.character_tokenizer = character_tokenizer
         self.msg_printer = wasabi.Printer()
         self.allowable_dataset_types = ["train", "valid", "test"]
 
@@ -132,10 +126,6 @@ class TextClassificationDataset(metaclass=ABCMeta):
         :return: instances type: List[List[str]]
         """
         instances = list(map(lambda line: self.word_tokenizer.tokenize(line), lines))
-        return instances
-
-    def character_tokenize(self, lines: List[str]) -> List[List[str]]:
-        instances = self.character_tokenizer.tokenize_batch(lines)
         return instances
 
     @abstractmethod
