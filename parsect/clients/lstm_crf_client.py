@@ -1,13 +1,13 @@
 from parsect.models.parscit_tagger import ParscitTagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
-from parsect.datasets.parscit_dataset import ParscitDataset
+from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.common import write_nfold_parscit_train_test
 from parsect.utils.common import merge_dictionaries_with_sum
 from parsect.utils.common import write_cora_to_conll_file
 from parsect.utils.classification_metrics_utils import ClassificationMetricsUtils
-from typing import Dict, Any
+from typing import Dict
 import parsect.constants as constants
 import os
 import torch

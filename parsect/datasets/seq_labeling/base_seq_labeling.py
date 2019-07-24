@@ -2,13 +2,11 @@ from abc import ABCMeta, abstractmethod
 from typing import Union, Dict, List, Any
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
-from sklearn.model_selection import StratifiedShuffleSplit
-import numpy as np
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 import torch
 
 
-class BaseTextClassification(metaclass=ABCMeta):
+class BaseSeqLabelingDataset(metaclass=ABCMeta):
     def __init__(
         self,
         filename: str,
@@ -29,6 +27,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         validation_size: float = 0.5,
         word_tokenizer=WordTokenizer(),
         word_tokenization_type="vanilla",
+        character_tokenizer=CharacterTokenizer(),
     ):
         """ Base Text Classification Dataset to be inherited by all text classification datasets
 
@@ -79,6 +78,9 @@ class BaseTextClassification(metaclass=ABCMeta):
             ``tokenizers.WordTokenizer`` for more information
         word_tokenization_type : str
             The type of word tokenization that the word tokenizer represents
+        character_tokenizer : str
+            Any of the ``tokenizer.CharacterTokenizer`` that can be used for character
+            tokenization
         """
         self.filename = filename
         self.dataset_type = dataset_type
@@ -98,6 +100,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         self.test_size = test_size
         self.word_tokenizer = word_tokenizer
         self.word_tokenization_type = word_tokenization_type
+        self.character_tokenizer = character_tokenizer
         self.msg_printer = wasabi.Printer()
         self.allowable_dataset_types = ["train", "valid", "test"]
 
@@ -123,6 +126,10 @@ class BaseTextClassification(metaclass=ABCMeta):
     @abstractmethod
     def get_num_classes(self) -> int:
         """ Return the number of classes in the dataset
+
+        In sequential labeling, the tagging scheme can be different.
+        For example in BIO tagging scheme for NER, the beginning of an
+        entity like Person can be B-PER. B-PER counts for one class
 
         Returns
         -------
@@ -183,13 +190,33 @@ class BaseTextClassification(metaclass=ABCMeta):
         instances = list(map(lambda line: self.word_tokenizer.tokenize(line), lines))
         return instances
 
+    def character_tokenize(self, lines: List[str]) -> List[List[str]]:
+        """ Character tokenize instances
+
+        Parameters
+        ----------
+        lines : List[str]
+            Character tokenize a set of lines
+
+        Returns
+        -------
+        List[List[str]]
+            Returns the character tokenized sentences
+
+        """
+        instances = self.character_tokenizer.tokenize_batch(lines)
+        return instances
+
     @abstractmethod
     def get_lines_labels(self) -> (List[str], List[str]):
         """ A list of lines from the file and a list of corresponding labels
 
         This method is to be implemented by a new dataset. The decision on
-        the implementation logic is left to the new class. Datasets come in all
+        the implementation logic is left to the inheriting class. Datasets come in all
         shapes and sizes.
+
+        For example return ["NUS is a national school", "B-ORG O O O"] for NER
+
 
         Returns
         -------
@@ -214,68 +241,20 @@ class BaseTextClassification(metaclass=ABCMeta):
         """
         pass
 
-    def get_train_valid_test_stratified_split(
-        self, lines: List[str], labels: List[str], classname2idx: Dict[str, int]
-    ) -> ((List[str], List[str]), (List[str], List[str]), (List[str], List[str])):
-        len_lines = len(lines)
-        len_labels = len(labels)
+    @abstractmethod
+    def get_preloaded_char_embedding(self) -> torch.FloatTensor:
+        """ A torch.FloatTensor of 2 dimensions that has embedding values for all the words in vocab
 
-        assert len_lines == len_labels
+        This is a ``[char_vocab_len, embedding_dimension]`` matrix, that has embedding values
+        for all the characters in the vocab
 
-        train_test_spliiter = StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=self.test_size,
-            train_size=self.train_size,
-            random_state=1729,
-        )
+        Returns
+        -------
+        torch.FloatTensor
+            Matrix containing the embeddings for characters
 
-        features = np.random.rand(len_lines)
-        labels_idx_array = np.array([classname2idx[label] for label in labels])
-
-        splits = list(train_test_spliiter.split(features, labels_idx_array))
-        train_indices, test_valid_indices = splits[0]
-
-        train_lines = [lines[idx] for idx in train_indices]
-        train_labels = [labels[idx] for idx in train_indices]
-
-        test_valid_lines = [lines[idx] for idx in test_valid_indices]
-        test_valid_labels = [labels[idx] for idx in test_valid_indices]
-
-        validation_test_splitter = StratifiedShuffleSplit(
-            n_splits=1,
-            test_size=self.validation_size,
-            train_size=1 - self.validation_size,
-            random_state=1729,
-        )
-
-        len_test_valid_lines = len(test_valid_lines)
-        len_test_valid_labels = len(test_valid_labels)
-
-        assert len_test_valid_labels == len_test_valid_lines
-
-        test_valid_features = np.random.rand(len_test_valid_lines)
-        test_valid_labels_idx_array = np.array(
-            [classname2idx[label] for label in test_valid_labels]
-        )
-
-        test_valid_splits = list(
-            validation_test_splitter.split(
-                test_valid_features, test_valid_labels_idx_array
-            )
-        )
-        test_indices, validation_indices = test_valid_splits[0]
-
-        test_lines = [test_valid_lines[idx] for idx in test_indices]
-        test_labels = [test_valid_labels[idx] for idx in test_indices]
-
-        validation_lines = [test_valid_lines[idx] for idx in validation_indices]
-        validation_labels = [test_valid_labels[idx] for idx in validation_indices]
-
-        return (
-            (train_lines, train_labels),
-            (validation_lines, validation_labels),
-            (test_lines, test_labels),
-        )
+        """
+        pass
 
     @classmethod
     @abstractmethod

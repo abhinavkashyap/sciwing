@@ -1,7 +1,7 @@
 import parsect.constants as constants
 import pytest
 from parsect.utils.common import write_nfold_parscit_train_test
-from parsect.datasets.parscit_dataset import ParscitDataset
+from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from torch.utils.data import DataLoader
 
 import pathlib
@@ -173,14 +173,14 @@ class TestParscitDataset:
     def test_get_stats_works(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
         try:
-            train_dataset.get_stats()
+            train_dataset.print_stats()
         except:
             pytest.fail(
                 f"Get stats for Parscit {train_dataset.dataset_type} does not work"
             )
 
         try:
-            test_dataset.get_stats()
+            test_dataset.print_stats()
         except:
             pytest.fail(
                 f"Get stats for Parscit {train_dataset.dataset_type} does not work"

@@ -1,6 +1,6 @@
 import pytest
 from parsect.infer.sci_ie_inference import ScienceIEInference
-from parsect.datasets.science_ie_dataset import ScienceIEDataset
+from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.science_ie_tagger import ScienceIETagger

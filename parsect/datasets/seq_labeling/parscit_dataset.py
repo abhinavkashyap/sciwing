@@ -1,7 +1,7 @@
 from typing import List, Dict, Union
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
-from parsect.datasets.TextClassificationDataset import TextClassificationDataset
+from parsect.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from parsect.utils.vis_seq_tags import VisTagging
 from torch.utils.data import Dataset
 import wasabi
@@ -13,7 +13,7 @@ import torch
 import collections
 
 
-class ParscitDataset(Dataset, TextClassificationDataset):
+class ParscitDataset(Dataset, BaseSeqLabelingDataset):
     def __init__(
         self,
         parscit_conll_file: str,
@@ -225,7 +225,7 @@ class ParscitDataset(Dataset, TextClassificationDataset):
         sentence = " ".join(token)
         return sentence
 
-    def get_stats(self):
+    def print_stats(self):
         num_instances = len(self.word_instances)
         len_instances = [len(instance) for instance in self.word_instances]
         max_len_instance = max(len_instances)
@@ -397,3 +397,20 @@ class ParscitDataset(Dataset, TextClassificationDataset):
             "char_tokens": character_tokens,
         }
         return instance_dict
+
+    @classmethod
+    def emits_keys(cls) -> Dict[str, str]:
+        return {
+            "tokens": f"A torch.LongTensor of size `max_word_length`. "
+            f"Example [0, 0, 1, 100] where every number represents an index in the vocab and the "
+            f"length is `max_word_length`",
+            "len_tokens": f"A torch.LongTensor. "
+            f"Example [2] representing the number of tokens without padding",
+            "label": f"A torch.LongTensor representing the label corresponding to the "
+            f"instance. Example [2,  0, 1] representing class [2, 0, 1] for an instance with "
+            f"3 tokens. Here the length of the instance will match the length of the labels",
+            "instance": f"A string that is padded to ``max_word_length``.",
+            "raw_instance": f"A string that is not padded",
+            "char_tokens": f"Every word is tokenized into characters of length `max_char_len`. "
+            f"char_tokens for an instance is a torch.LongTensor of shape [max_word_len, max_char_len]",
+        }

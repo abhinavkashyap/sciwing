@@ -1,7 +1,7 @@
 import parsect.constants as constants
 import pathlib
 import json
-from parsect.datasets.parscit_dataset import ParscitDataset
+from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.parscit_tagger import ParscitTagger

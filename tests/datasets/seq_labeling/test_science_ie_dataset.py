@@ -1,7 +1,7 @@
 import pytest
 import parsect.constants as constants
 import pathlib
-from parsect.datasets.science_ie_dataset import ScienceIEDataset
+from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.utils.science_ie import ScienceIEDataUtils
 from torch.utils.data import DataLoader
 
@@ -86,7 +86,7 @@ class TestScienceIE:
         dataset, options = setup_science_ie_dataset
 
         try:
-            dataset.get_stats()
+            dataset.print_stats()
         except:
             pytest.fail("Failed getting stats for ScienceIE dataset")
 
