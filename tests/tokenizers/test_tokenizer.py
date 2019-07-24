@@ -2,7 +2,7 @@ from parsect.tokenizers.word_tokenizer import WordTokenizer
 import pytest
 
 
-class TestSpacyWordTokenizer:
+class TestWordTokenizer:
     def test_sample_word_tokenization(self):
         sample_sentence = "I like big apple."
         tokenizer = WordTokenizer()
@@ -34,6 +34,24 @@ class TestSpacyWordTokenizer:
 
     def test_vanilla_tokenizer(self):
         tokenizer = WordTokenizer(tokenizer="vanilla")
+        tokenized = tokenizer.tokenize(
+            "(1999). & P., W. The Control of Discrete Event Systems."
+        )
+        assert tokenized == [
+            "(1999).",
+            "&",
+            "P.,",
+            "W.",
+            "The",
+            "Control",
+            "of",
+            "Discrete",
+            "Event",
+            "Systems.",
+        ]
+
+    def test_spacy_whitespace_tokenizer(self):
+        tokenizer = WordTokenizer(tokenizer="spacy-whitespace")
         tokenized = tokenizer.tokenize(
             "(1999). & P., W. The Control of Discrete Event Systems."
         )

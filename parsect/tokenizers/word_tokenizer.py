@@ -3,6 +3,7 @@ from typing import List
 from tqdm import tqdm
 from wasabi import Printer
 from parsect.tokenizers.BaseTokenizer import BaseTokenizer
+from parsect.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer
 
 
 class WordTokenizer(BaseTokenizer):
@@ -20,16 +21,19 @@ class WordTokenizer(BaseTokenizer):
         super(WordTokenizer, self).__init__()
         self.msg_printer = Printer()
         self.tokenizer = tokenizer
-        self.allowed_tokenizers = ["spacy", "nltk", "vanilla"]
+        self.allowed_tokenizers = ["spacy", "nltk", "vanilla", "spacy-whitespace"]
         assert self.tokenizer in self.allowed_tokenizers, AssertionError(
             "The word tokenizer can be either spacy or nltk"
         )
 
-        if self.tokenizer == "spacy":
+        if self.tokenizer == "spacy" or "spacy-whitespace":
             self.nlp = spacy.load("en_core_web_sm")
             self.nlp.remove_pipe("parser")
             self.nlp.remove_pipe("tagger")
             self.nlp.remove_pipe("ner")
+
+        if self.tokenizer == "spacy-whitespace":
+            self.nlp.tokenizer = CustomSpacyWhiteSpaceTokenizer(self.nlp.vocab)
 
     def tokenize(self, text: str) -> List[str]:
         """
@@ -39,7 +43,7 @@ class WordTokenizer(BaseTokenizer):
         :return:
         """
 
-        if self.tokenizer == "spacy":
+        if self.tokenizer == "spacy" or self.tokenizer == "spacy-whitespace":
             doc = self.nlp(text)
             tokens = [
                 token.text for token in doc if bool(token.text.strip())

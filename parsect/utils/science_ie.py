@@ -1,8 +1,9 @@
 import pathlib
 from typing import List, Dict, Any
 import wasabi
-from parsect.tokenizers.word_tokenizer import WordTokenizer
+import spacy
 import parsect.constants as constants
+from parsect.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -20,7 +21,8 @@ class ScienceIEDataUtils:
         self.entity_types = ["Process", "Material", "Task"]
         self.file_ids = self._get_file_ids()
         self.msg_printer = wasabi.Printer()
-        self.word_tokenizer = WordTokenizer(tokenizer="spacy")
+        self.spacy_nlp = spacy.load("en_core_web_sm")
+        self.spacy_nlp.tokenizer = CustomSpacyWhiteSpaceTokenizer(self.spacy_nlp.vocab)
 
     def _get_file_ids(self) -> List[str]:
         file_ids = [file.stem for file in self.folderpath.iterdir()]
@@ -187,7 +189,9 @@ class ScienceIEDataUtils:
 
         return lines
 
-    def write_bilou_lines(self, out_filename: pathlib.Path):
+    def write_bilou_lines(
+        self, out_filename: pathlib.Path, is_sentence_wise: bool = False
+    ):
         filename_stem = out_filename.stem
         with self.msg_printer.loading(f"Writing BILOU Lines For ScienceIE"):
             for entity_type in self.entity_types:
@@ -199,9 +203,59 @@ class ScienceIEDataUtils:
                         bilou_lines = self.get_bilou_lines_for_entity(
                             file_id=file_id, entity=entity_type
                         )
-                        fp.write("\n".join(bilou_lines))
-                        fp.write("\n \n")
+
+                        # split the text into sentences and then write
+                        if is_sentence_wise:
+                            tagged_sentences = self._get_sentence_wise_bilou_lines(
+                                bilou_lines
+                            )
+                            for tagged_sentence in tagged_sentences:
+                                fp.write("\n".join(tagged_sentence))
+                                fp.write("\n \n")
+
+                        else:
+                            fp.write("\n".join(bilou_lines))
+                            fp.write("\n \n")
         self.msg_printer.good("Finished writing BILOU Lines For ScienceIE")
+
+    def _get_sentence_wise_bilou_lines(self, bilou_lines):
+        words = []
+        tags = []
+        for line in bilou_lines:
+            word, _, _, tag = line.split()
+            words.append(word)
+            tags.append(tag)
+
+        text = " ".join(words)
+        doc = self.spacy_nlp(text)
+        sents = list(doc.sents)
+
+        sentence_words = []
+        for sent in sents:
+            sentence_words.extend(sent.string.split())
+
+        num_sentence_words = len(sentence_words)
+
+        assert (
+            len(words) == num_sentence_words
+        ), f"{set(words).symmetric_difference(set(sentence_words))}"
+
+        num_words_seen = 0
+        tagged_sentences = []
+        for sentence in sents:
+            sentence_str = sentence.string.strip()
+            sentence_words = sentence_str.split()
+            num_words = len(sentence_words)
+            sentence_tags = tags[num_words_seen : num_words_seen + num_words]
+            num_words_seen += num_words
+
+            tagged_sentence = [
+                f"{sentence_words[idx]} {sentence_tags[idx]} {sentence_tags[idx]} {sentence_tags[idx]}"
+                for idx in range(num_words)
+            ]
+            tagged_sentences.append(tagged_sentence)
+
+        return tagged_sentences
 
     def merge_files(
         self,
@@ -231,13 +285,3 @@ class ScienceIEDataUtils:
                     else:
                         out_fp.write(task_line)
             self.msg_printer.good("Finished Merging Task Process and Material Files")
-
-
-if __name__ == "__main__":
-    science_ie_train_folder = pathlib.Path(DATA_DIR, "scienceie_train")
-    utils = ScienceIEDataUtils(folderpath=science_ie_train_folder, ignore_warnings=True)
-    file_id = "S0010938X1530161X"
-    text = utils._get_text(file_id)
-    annotations = utils._get_annotations_for_entity(file_id=file_id, entity="Process")
-    bilou_lines = utils.get_bilou_lines_for_entity(file_id=file_id, entity="Process")
-    print(bilou_lines)

@@ -261,3 +261,17 @@ class TestScienceIEDataUtils:
                 bilou_words_without_o.append(word)
 
         assert len(annotation_words) == len(bilou_words_without_o)
+
+    @pytest.mark.parametrize("entity_type", ["Task", "Process", "Material"])
+    def test_get_sentence_wise_bilou_lines_works(
+        self, setup_science_ie_train_data_utils, entity_type
+    ):
+        utils = setup_science_ie_train_data_utils
+        try:
+            file_ids = utils.file_ids
+            for file_id in file_ids:
+                bilou_lines = utils.get_bilou_lines_for_entity(
+                    file_id=file_id, entity=entity_type
+                )
+        except:
+            pytest.fail("Failed to run bilou lines")
