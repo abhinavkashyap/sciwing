@@ -7,7 +7,7 @@ import pandas as pd
 import torch
 from parsect.utils.tensor import move_to_device
 from torch.utils.data import DataLoader
-import numpy as np
+import copy
 
 
 class ScienceIEInference(BaseInference):
@@ -91,9 +91,10 @@ class ScienceIEInference(BaseInference):
             tokens = iter_dict["tokens"]
             labels = iter_dict["label"]  # N * 3T
             tokens_list = tokens.tolist()
+            labels_copy = copy.deepcopy(labels)
 
             true_task_labels, true_process_labels, true_material_labels = torch.chunk(
-                labels, chunks=3, dim=1
+                labels_copy, chunks=3, dim=1
             )
 
             true_task_labels_list = true_task_labels.cpu().tolist()

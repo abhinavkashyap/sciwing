@@ -4,7 +4,7 @@ from torchcrf import CRF
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import torch
-import itertools
+import copy
 
 
 class ScienceIETagger(nn.Module):
@@ -39,6 +39,9 @@ class ScienceIETagger(nn.Module):
         tokens = iter_dict["tokens"]
         labels = iter_dict["label"]
 
+        # if you change label then iter_dict["label"] gets screwed
+        labels_copy = copy.deepcopy(labels)
+
         batch_size, max_time_steps = tokens.size()
 
         assert labels.ndimension() == 2, self.msg_printer(
@@ -48,7 +51,7 @@ class ScienceIETagger(nn.Module):
         )
 
         task_labels, process_labels, material_labels = torch.chunk(
-            labels, chunks=3, dim=1
+            labels_copy, chunks=3, dim=1
         )
         process_labels -= 8
         material_labels -= 16
@@ -78,10 +81,9 @@ class ScienceIETagger(nn.Module):
         predicted_material_tags = self.material_crf.decode(material_logits)
 
         # add the appropriate numbers
+        predicted_task_tags = torch.LongTensor(predicted_task_tags)
         predicted_process_tags = torch.LongTensor(predicted_process_tags) + 8
         predicted_material_tags = torch.LongTensor(predicted_material_tags) + 16
-        predicted_process_tags = predicted_process_tags.tolist()
-        predicted_material_tags = predicted_material_tags.tolist()
 
         assert (
             len(predicted_task_tags)
@@ -89,19 +91,19 @@ class ScienceIETagger(nn.Module):
             == len(predicted_material_tags)
         )
         # arrange the labels in N * 3T
-        zipped_tags = zip(
-            predicted_task_tags, predicted_process_tags, predicted_material_tags
+        predicted_tags = torch.cat(
+            [predicted_task_tags, predicted_process_tags, predicted_material_tags],
+            dim=1,
         )
-        predicted_tags = itertools.chain.from_iterable(zipped_tags)
-        predicted_tags = list(predicted_tags)
+        predicted_tags = predicted_tags.tolist()
 
         output_dict = {
             "task_logits": task_logits,
             "process_logits": process_logits,
             "material_logits": material_logits,
-            "predicted_task_tags": predicted_task_tags,
-            "predicted_process_tags": predicted_process_tags,
-            "predicted_material_tags": predicted_material_tags,
+            "predicted_task_tags": predicted_task_tags.tolist(),
+            "predicted_process_tags": predicted_process_tags.tolist(),
+            "predicted_material_tags": predicted_material_tags.tolist(),
             "predicted_tags": predicted_tags,
         }
 

@@ -239,9 +239,9 @@ if __name__ == "__main__":
             word_add_start_end_token=False,
         )
 
-        train_dataset.get_stats()
-        validation_dataset.get_stats()
-        test_dataset.get_stats()
+        train_dataset.print_stats()
+        validation_dataset.print_stats()
+        test_dataset.print_stats()
 
         VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
         NUM_CLASSES = train_dataset.get_num_classes()

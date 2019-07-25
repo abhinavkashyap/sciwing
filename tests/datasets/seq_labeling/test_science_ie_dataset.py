@@ -4,6 +4,8 @@ import pathlib
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.utils.science_ie import ScienceIEDataUtils
 from torch.utils.data import DataLoader
+import torch
+
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -11,32 +13,32 @@ FILES = constants.FILES
 SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
 
 
-@pytest.fixture
-def setup_science_ie_dataset(tmpdir):
+@pytest.fixture(params=["train_science_ie", "dev_science_ie"])
+def setup_science_ie_dataset(tmpdir, request):
     sci_ie_train_data_utils = ScienceIEDataUtils(
         folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
     )
     sci_ie_train_data_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt")
+        out_filename=pathlib.Path(DATA_DIR, f"{request.param}.txt")
     )
     sci_ie_train_data_utils.merge_files(
-        task_filename=pathlib.Path(DATA_DIR, "train_science_ie_task_conll.txt"),
-        process_filename=pathlib.Path(DATA_DIR, "train_science_ie_process_conll.txt"),
-        material_filename=pathlib.Path(DATA_DIR, "train_science_ie_material_conll.txt"),
-        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt"),
+        task_filename=pathlib.Path(DATA_DIR, f"{request.param}_task_conll.txt"),
+        process_filename=pathlib.Path(DATA_DIR, f"{request.param}_process_conll.txt"),
+        material_filename=pathlib.Path(DATA_DIR, f"{request.param}_material_conll.txt"),
+        out_filename=pathlib.Path(DATA_DIR, f"{request.param}.txt"),
     )
-    train_science_conll_file = pathlib.Path(DATA_DIR, "train_science_ie.txt")
+    conll_file = pathlib.Path(DATA_DIR, f"{request.param}.txt")
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
     char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
-    DEBUG = True
+    DEBUG = False
     MAX_NUM_WORDS = 10000
-    MAX_LENGTH = 20
+    MAX_LENGTH = 300
     MAX_CHAR_LENGTH = 25
     EMBEDDING_DIM = 100
     CHAR_EMBEDDING_DIM = 25
 
     dataset = ScienceIEDataset(
-        science_ie_conll_file=train_science_conll_file,
+        science_ie_conll_file=conll_file,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -115,3 +117,27 @@ class TestScienceIE:
         instances_dict = next(iter(loader))
         assert instances_dict["tokens"].size() == (2, options["MAX_LENGTH"])
         assert instances_dict["label"].size() == (2, 3 * options["MAX_LENGTH"])
+
+    def test_labels_obey_rules(self, setup_science_ie_dataset):
+        dataset, options = setup_science_ie_dataset
+        instances = dataset.word_instances
+        len_instances = len(instances)
+
+        for idx in range(len_instances):
+            iter_dict = dataset[idx]
+            label = iter_dict["label"]
+            task_label, process_label, material_label = torch.chunk(
+                label, chunks=3, dim=0
+            )
+
+            # task label should be in [0, 7]
+            assert torch.all(torch.ge(task_label, 0) & torch.le(task_label, 7)).item()
+
+            # process label should be in [8, 15]
+            assert torch.all(
+                torch.ge(process_label, 8) & torch.le(process_label, 15)
+            ).item()
+
+            assert torch.all(
+                torch.ge(material_label, 15) & torch.le(material_label, 23)
+            ).item()
