@@ -159,6 +159,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         num_instances = len(self.word_instances)
         len_instances = [len(instance) for instance in self.word_instances]
         max_len_instance = max(len_instances)
+        index_max_instance = len_instances.index(max_len_instance)
 
         all_task_labels = []
         all_process_labels = []
@@ -196,9 +197,8 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
             print(formatted)
 
         # print some other stats
-        random_int = np.random.randint(0, num_instances, size=1)[0]
-        random_instance = self.word_instances[random_int]
-        random_label = self.labels[random_int].split()
+        random_instance = self.word_instances[index_max_instance]
+        random_label = self.labels[index_max_instance].split()
         random_task_label = [label.split(":")[0] for label in random_label]
         random_process_label = [label.split(":")[1] for label in random_label]
         random_material_label = [label.split(":")[2] for label in random_label]

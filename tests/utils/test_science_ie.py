@@ -273,5 +273,8 @@ class TestScienceIEDataUtils:
                 bilou_lines = utils.get_bilou_lines_for_entity(
                     file_id=file_id, entity=entity_type
                 )
+                sentence_wise_bilou_lines = utils._get_sentence_wise_bilou_lines(
+                    bilou_lines=bilou_lines
+                )
         except:
             pytest.fail("Failed to run bilou lines")

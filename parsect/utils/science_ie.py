@@ -3,7 +3,8 @@ from typing import List, Dict, Any
 import wasabi
 import spacy
 import parsect.constants as constants
-from parsect.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer
+from spacy.lang.en import English
+import re
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -21,8 +22,24 @@ class ScienceIEDataUtils:
         self.entity_types = ["Process", "Material", "Task"]
         self.file_ids = self._get_file_ids()
         self.msg_printer = wasabi.Printer()
-        self.spacy_nlp = spacy.load("en_core_web_sm")
-        self.spacy_nlp.tokenizer = CustomSpacyWhiteSpaceTokenizer(self.spacy_nlp.vocab)
+        self.spacy_nlp = English()
+        self.sentencizer = self.spacy_nlp.create_pipe("sentencizer")
+        self.spacy_nlp.add_pipe(self.sentencizer)
+
+        # Telling spacy not to tokenize text if you encounter the following characters
+        # Scientific texts have a lot of () and [30] which should not be tokenized for the
+        # present application
+        default_suffixes = list(self.spacy_nlp.Defaults.suffixes)
+        default_prefixes = list(self.spacy_nlp.Defaults.prefixes)
+        for ele in ["\\[", "\\]", "\\(", "\\)", "·", "\\{", "\\}"]:
+            default_suffixes.remove(ele)
+            default_prefixes.remove(ele)
+
+        suffix_regex = spacy.util.compile_suffix_regex(default_suffixes)
+        self.spacy_nlp.tokenizer.suffix_search = suffix_regex.search
+
+        prefix_regex = spacy.util.compile_prefix_regex(default_prefixes)
+        self.spacy_nlp.tokenizer.prefix_search = prefix_regex.search
 
     def _get_file_ids(self) -> List[str]:
         file_ids = [file.stem for file in self.folderpath.iterdir()]
@@ -36,6 +53,11 @@ class ScienceIEDataUtils:
             text = fp.readline()
             text = text.strip()
 
+        # write to sentences and rewrite to text to avoid inconsistencies
+        doc = self.spacy_nlp(text)
+        sents = doc.sents
+        sents = [sent.text for sent in sents]
+        text = " ".join(sents)
         return text
 
     def _get_annotations_for_entity(
@@ -170,7 +192,7 @@ class ScienceIEDataUtils:
         lines = []
         if mark_as_O:
             for word in words:
-                line = f"{word} {' '.join(['O-'+tag] *3)}"
+                line = f"{word} {' '.join(['O-' + tag] * 3)}"
                 lines.append(line)
 
         elif len(words) == 1:
@@ -223,6 +245,14 @@ class ScienceIEDataUtils:
         tags = []
         for line in bilou_lines:
             word, _, _, tag = line.split()
+            match = re.match("\[(.*)\]\.", word)
+            if match:
+                digits = match.groups(0)
+                word = f"{digits}."
+            match = re.match("(.*);", word)
+            if match:
+                anything = match.groups(0)
+                word = f"{anything}."
             words.append(word)
             tags.append(tag)
 
@@ -232,13 +262,15 @@ class ScienceIEDataUtils:
 
         sentence_words = []
         for sent in sents:
-            sentence_words.extend(sent.string.split())
+            sentence_words.extend(sent.text.split())
 
         num_sentence_words = len(sentence_words)
 
-        assert (
-            len(words) == num_sentence_words
-        ), f"{set(words).symmetric_difference(set(sentence_words))}"
+        assert len(words) == num_sentence_words, (
+            f"symmetric difference: {set(words).symmetric_difference(set(sentence_words))},"
+            f"sents: {sents}, "
+            f"text: {text}"
+        )
 
         num_words_seen = 0
         tagged_sentences = []
@@ -250,7 +282,8 @@ class ScienceIEDataUtils:
             num_words_seen += num_words
 
             tagged_sentence = [
-                f"{sentence_words[idx]} {sentence_tags[idx]} {sentence_tags[idx]} {sentence_tags[idx]}"
+                f"{sentence_words[idx]} {sentence_tags[idx]} "
+                f"{sentence_tags[idx]} {sentence_tags[idx]}"
                 for idx in range(num_words)
             ]
             tagged_sentences.append(tagged_sentence)
@@ -285,3 +318,16 @@ class ScienceIEDataUtils:
                     else:
                         out_fp.write(task_line)
             self.msg_printer.good("Finished Merging Task Process and Material Files")
+
+
+if __name__ == "__main__":
+    import parsect.constants as constants
+
+    PATHS = constants.PATHS
+    FILES = constants.FILES
+    SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
+    utils = ScienceIEDataUtils(
+        folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
+    )
+    output_filename = pathlib.Path(DATA_DIR, "sentence_wise_train.txt")
+    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=True)
