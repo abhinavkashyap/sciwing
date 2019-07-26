@@ -74,13 +74,14 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         self.lines, self.labels = self.get_lines_labels()
         self.word_instances = self.word_tokenize(self.lines)
         self.word_vocab = Vocab(
-            instances=self.word_instances,
             max_num_tokens=self.max_num_words,
+            min_count=1,
             unk_token=self.unk_token,
             pad_token=self.pad_token,
             start_token=self.start_token,
             end_token=self.end_token,
             store_location=self.store_location,
+            instances=self.word_instances,
             embedding_type=self.embedding_type,
             embedding_dimension=self.embedding_dimension,
         )
@@ -91,16 +92,16 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
 
         self.character_instances = self.character_tokenize(self.lines)
         self.char_vocab = Vocab(
-            instances=self.character_instances,
             max_num_tokens=1e6,
             min_count=1,
-            store_location=self.char_vocab_store_location,
-            embedding_type="random",
-            embedding_dimension=self.character_embedding_dimension,
-            start_token=" ",
-            end_token=" ",
             unk_token=" ",
             pad_token=" ",
+            start_token=" ",
+            end_token=" ",
+            store_location=self.char_vocab_store_location,
+            instances=self.character_instances,
+            embedding_type="random",
+            embedding_dimension=self.character_embedding_dimension,
         )
 
         self.char_vocab.build_vocab()

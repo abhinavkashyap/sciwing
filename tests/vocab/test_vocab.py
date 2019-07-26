@@ -125,7 +125,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
+            instances=single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
         )
         vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
@@ -137,7 +137,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
+            instances=single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
         )
         vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
@@ -149,7 +149,7 @@ class TestVocab:
         MIN_FREQ = 1
 
         vocab_builder = Vocab(
-            single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
+            instances=single_instance, min_count=MIN_FREQ, max_num_tokens=MAX_NUM_WORDS
         )
         vocab_builder.build_vocab()
         len_vocab = vocab_builder.get_vocab_len()
@@ -158,7 +158,7 @@ class TestVocab:
     def test_save_vocab(self, instances, tmpdir):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
 
         vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
@@ -169,14 +169,14 @@ class TestVocab:
     def test_load_vocab(self, instances, tmpdir):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
         vocab_builder.save_to_file(vocab_file)
 
-        options, vocab = vocab_builder.load_from_file(vocab_file)
+        vocab = Vocab.load_from_file(filename=vocab_file)
 
-        assert vocab_builder.get_vocab_len() == 3 + len(vocab_builder.special_vocab)
+        assert vocab.get_vocab_len() == 3 + len(vocab_builder.special_vocab)
 
     @pytest.mark.parametrize(
         "start_token,end_token,unk_token,pad_token",
@@ -226,7 +226,7 @@ class TestVocab:
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
         vocab_builder = Vocab(
-            single_instance,
+            instances=single_instance,
             max_num_tokens=MAX_NUM_WORDS,
             start_token=start_token,
             end_token=end_token,
@@ -251,7 +251,7 @@ class TestVocab:
     def test_get_topn(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         words_freqs = vocab_builder.get_topn_frequent_words(n=1)
 
@@ -261,7 +261,7 @@ class TestVocab:
     def test_print_stats_works(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(single_instance, max_num_tokens=MAX_NUM_WORDS)
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 

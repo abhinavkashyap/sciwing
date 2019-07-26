@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple, Any, Optional
 from collections import Counter
 from operator import itemgetter
 import json
@@ -15,8 +15,8 @@ from typing import Union
 class Vocab:
     def __init__(
         self,
-        instances: List[List[str]],
-        max_num_tokens: int,
+        instances: Optional[List[List[str]]] = None,
+        max_num_tokens: int = None,
         min_count: int = 1,
         unk_token: str = "<UNK>",
         pad_token: str = "<PAD>",
@@ -189,10 +189,15 @@ class Vocab:
     def build_vocab(self) -> Dict[str, Tuple[int, int]]:
 
         if self.store_location and os.path.isfile(self.store_location):
-            self.load_from_file(self.store_location)
+            vocab_object = self.load_from_file(self.store_location)
             self.msg_printer.good(
                 "Loaded vocab from file {0}".format(self.store_location)
             )
+            self.vocab = vocab_object.vocab
+            self.orig_vocab = vocab_object.orig_vocab
+            self.idx2token = vocab_object.idx2token
+            self.token2idx = vocab_object.token2idx
+            vocab = vocab_object.vocab
 
         else:
             self.msg_printer.info("BUILDING VOCAB")
@@ -209,7 +214,7 @@ class Vocab:
             if self.store_location:
                 self.msg_printer.info("SAVING VOCAB TO FILE")
                 self.save_to_file(self.store_location)
-            return vocab
+        return vocab
 
     def get_vocab_len(self) -> int:
         if not self.vocab:
@@ -267,6 +272,9 @@ class Vocab:
             "start_token": self.start_token,
             "end_token": self.end_token,
             "special_token_freq": self.special_token_freq,
+            "embedding_type": self.embedding_type,
+            "embedding_dimension": self.embedding_dimension,
+            "special_vocab": self.special_vocab,
         }
         vocab_state["vocab"] = self.vocab
         vocab_state["orig_vocab"] = self.orig_vocab
@@ -280,32 +288,51 @@ class Vocab:
                 "the path exists and try again".format(filename)
             )
 
-    def load_from_file(
-        self, filename: str
-    ) -> Tuple[Dict[str, Any], Dict[str, Tuple[int, int]]]:
+    @classmethod
+    def load_from_file(cls, filename: str) -> "Vocab":
         try:
             with open(filename, "r") as fp:
                 vocab_state = json.load(fp)
                 vocab_options = vocab_state["options"]
-                vocab = vocab_state["vocab"]
-                orig_vocab = vocab_state["orig_vocab"]
+                vocab_dict = vocab_state["vocab"]
+                orig_vocab_dict = vocab_state["orig_vocab"]
 
                 # restore the object
                 # restore all the property values from the file
 
-                self.vocab = vocab
-                self.orig_vocab = orig_vocab
-                self.token2idx = self.get_token2idx_mapping()
-                self.idx2token = self.get_idx2token_mapping()
-                self.max_num_tokens = vocab_options["max_num_words"]
-                self.min_count = vocab_options["min_count"]
-                self.unk_token = vocab_options["unk_token"]
-                self.pad_token = vocab_options["pad_token"]
-                self.start_token = vocab_options["start_token"]
-                self.end_token = vocab_options["end_token"]
-                self.special_token_freq = vocab_options["special_token_freq"]
+                max_num_tokens = vocab_options["max_num_words"]
+                min_count = vocab_options["min_count"]
+                unk_token = vocab_options["unk_token"]
+                pad_token = vocab_options["pad_token"]
+                start_token = vocab_options["start_token"]
+                end_token = vocab_options["end_token"]
+                special_token_freq = vocab_options["special_token_freq"]
+                store_location = filename
+                embedding_type = vocab_options.get("embedding_type")
+                embedding_dimension = vocab_options.get("embedding_dimension")
+                vocab = cls(
+                    max_num_tokens=max_num_tokens,
+                    min_count=min_count,
+                    unk_token=unk_token,
+                    pad_token=pad_token,
+                    start_token=start_token,
+                    end_token=end_token,
+                    instances=None,
+                    special_token_freq=special_token_freq,
+                    store_location=store_location,
+                    embedding_type=embedding_type,
+                    embedding_dimension=embedding_dimension,
+                )
 
-                return vocab_options, vocab
+                # instead of building the vocab, set the vocab from vocab_dict
+                vocab.set_vocab(vocab=vocab_dict)
+                vocab.set_orig_vocab(orig_vocab_dict)
+                idx2token = vocab.get_idx2token_mapping()
+                token2idx = vocab.get_token2idx_mapping()
+                vocab.set_idx2token(idx2token)
+                vocab.set_token2idx(token2idx)
+
+                return vocab
         except FileNotFoundError:
             print(
                 "You passed {0} for the filename. Please check whether "
@@ -400,3 +427,15 @@ class Vocab:
 
         embeddings = torch.FloatTensor(embeddings)
         return embeddings
+
+    def set_vocab(self, vocab: Dict[str, Tuple[int, int]]):
+        self.vocab = vocab
+
+    def set_orig_vocab(self, orig_vocab: Dict[str, Tuple[int, int]]):
+        self.orig_vocab = orig_vocab
+
+    def set_idx2token(self, idx2token: Dict[int, str]):
+        self.idx2token = idx2token
+
+    def set_token2idx(self, token2idx: Dict[str, int]):
+        self.token2idx = token2idx

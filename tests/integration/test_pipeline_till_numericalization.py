@@ -58,7 +58,7 @@ def get_numericalized_instances(get_preprocessed_instances):
     instances, labels = get_preprocessed_instances
     MAX_NUM_WORDS = 3000
     MAX_LENGTH = 15
-    vocab = Vocab(instances, max_num_tokens=MAX_NUM_WORDS)
+    vocab = Vocab(instances=instances, max_num_tokens=MAX_NUM_WORDS)
     vocab.build_vocab()
     numericalizer = Numericalizer(vocabulary=vocab)
     numericalized_instances = numericalizer.numericalize_batch_instances(instances[:32])
@@ -78,7 +78,6 @@ class TestPipeline:
             assert all([type(token) == int for token in instance])
 
     def test_max_vocab(self, get_numericalized_instances):
-        numericalized_instances = get_numericalized_instances["numericalized_instances"]
         vocab = get_numericalized_instances["vocab"]
         MAX_NUM_WORDS = get_numericalized_instances["max_num_words"]
         vocab_len = vocab.get_vocab_len()
