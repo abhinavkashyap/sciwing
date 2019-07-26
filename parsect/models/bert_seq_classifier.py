@@ -80,8 +80,6 @@ class BertSeqClassifier(nn.Module):
     ):
         tokens_tensor = iter_dict["bert_tokens"]
         segment_tensor = iter_dict["segment_ids"]
-        labels = iter_dict["label"]
-        labels = labels.squeeze(1)
 
         logits = self.model(input_ids=tokens_tensor, token_type_ids=segment_tensor)
 
@@ -90,6 +88,8 @@ class BertSeqClassifier(nn.Module):
         output_dict = {"logits": logits, "normalized_probs": normalized_probs}
 
         if is_training or is_validation:
+            labels = iter_dict["label"]
+            labels = labels.squeeze(1)
             loss = self._loss(logits, labels)
             output_dict["loss"] = loss
 

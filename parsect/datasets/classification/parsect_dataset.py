@@ -278,11 +278,15 @@ class ParsectDataset(Dataset, BaseTextClassification):
         return [self.idx2classname[idx] for idx in indices]
 
     def get_disp_sentence_from_indices(self, indices: List) -> str:
+        pad_token_index = self.vocab.special_vocab[self.vocab.pad_token][1]
+        start_token_index = self.vocab.special_vocab[self.vocab.start_token][1]
+        end_token_index = self.vocab.special_vocab[self.vocab.end_token][1]
+        special_indices = [pad_token_index, start_token_index, end_token_index]
 
         token = [
             self.vocab.get_token_from_idx(idx)
             for idx in indices
-            if idx != self.vocab.special_vocab[self.vocab.pad_token][1]
+            if idx not in special_indices
         ]
         sentence = " ".join(token)
         return sentence

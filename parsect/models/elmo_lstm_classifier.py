@@ -47,12 +47,7 @@ class ElmoLSTMClassifier(nn.Module):
         is_validation: bool,
         is_test: bool,
     ):
-        labels = iter_dict["label"]
-        labels = labels.squeeze(1)
-        assert labels.ndimension() == 1, self.msg_printer.fail(
-            "the labels should have 1 dimension "
-            "your input has shape {0}".format(labels.size())
-        )
+
         tokens = iter_dict["tokens"]
         instance = iter_dict["instance"]  # List[str]
         instance = list(map(lambda instance_str: instance_str.split(), instance))
@@ -73,6 +68,12 @@ class ElmoLSTMClassifier(nn.Module):
         output_dict = {"logits": logits, "normalized_probs": normalized_probs}
 
         if is_training or is_validation:
+            labels = iter_dict["label"]
+            labels = labels.squeeze(1)
+            assert labels.ndimension() == 1, self.msg_printer.fail(
+                "the labels should have 1 dimension "
+                "your input has shape {0}".format(labels.size())
+            )
             loss = self._loss(logits, labels)
             output_dict["loss"] = loss
 

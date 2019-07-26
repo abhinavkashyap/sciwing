@@ -51,13 +51,7 @@ class BowBertLinearClassifier(nn.Module):
         # N - batch size
         # D - Encoding dimension `self.encoding_dim`
 
-        labels = iter_dict["label"]
-        labels = labels.squeeze(1)
         x = iter_dict["raw_instance"]
-        assert labels.ndimension() == 1, self.msg_printer.fail(
-            "the labels should have 1 dimension "
-            "your input has shape {0}".format(labels.size())
-        )
 
         encoding = self.encoder(x)
         # N * C
@@ -74,6 +68,12 @@ class BowBertLinearClassifier(nn.Module):
         output_dict = {"logits": logits, "normalized_probs": normalized_probs}
 
         if is_training or is_validation:
+            labels = iter_dict["label"]
+            labels = labels.squeeze(1)
+            assert labels.ndimension() == 1, self.msg_printer.fail(
+                "the labels should have 1 dimension "
+                "your input has shape {0}".format(labels.size())
+            )
             loss = self._loss(logits, labels)
             output_dict["loss"] = loss
 

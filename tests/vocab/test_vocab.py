@@ -204,7 +204,7 @@ class TestVocab:
 
     def test_idx2token_for_unk(self, instances):
         """" Many words map to UNK in the vocab. For example say the index for UNK is 3.
-        Then mapping 3 to the token should always map to UNK and not any other word  
+        Then mapping 3 to the token should always map to UNK and not any other word
         """
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100

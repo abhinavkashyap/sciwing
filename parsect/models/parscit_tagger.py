@@ -41,13 +41,8 @@ class ParscitTagger(nn.Module):
         is_test: bool,
     ):
         tokens = iter_dict["tokens"]
-        labels = iter_dict["label"]
-        batch_size, max_time_steps = tokens.size()
 
-        assert labels.ndimension() == 2, self.msg_printer(
-            f"For Parscit tagger, labels should have 2 dimensions. "
-            f"You passed labels that have {labels.ndimension()}"
-        )
+        batch_size, max_time_steps = tokens.size()
 
         character_encoding = None
         if self.character_encoder is not None:
@@ -70,6 +65,11 @@ class ParscitTagger(nn.Module):
         output_dict = {"logits": logits, "predicted_tags": predicted_tags}
 
         if is_training or is_validation:
+            labels = iter_dict["label"]
+            assert labels.ndimension() == 2, self.msg_printer(
+                f"For Parscit tagger, labels should have 2 dimensions. "
+                f"You passed labels that have {labels.ndimension()}"
+            )
             loss = -self.crf(logits, labels)
             output_dict["loss"] = loss
 

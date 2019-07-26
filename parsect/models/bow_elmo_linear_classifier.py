@@ -34,22 +34,16 @@ class BowElmoLinearClassifier(nn.Module):
         is_validation: bool,
         is_test: bool,
     ) -> Dict[str, Any]:
-        labels = iter_dict["label"]
-        labels = labels.squeeze(1)
+
         x = iter_dict["instance"]
         x = [instance.split() for instance in x]
-
-        assert labels.ndimension() == 1, self.msg_printer.fail(
-            "the labels should have 1 dimension "
-            "your input has shape {0}".format(labels.size())
-        )
 
         encoding = self.encoder(x)
 
         # TODO: quick fix for cuda situation
         # ideally have to test by converting the instance to cuda
 
-        encoding = encoding.cuda(labels.get_device()) if labels.is_cuda else encoding
+        encoding = encoding.cuda() if torch.cuda.is_available() else encoding
 
         # N * C
         # N - batch size
@@ -65,6 +59,12 @@ class BowElmoLinearClassifier(nn.Module):
         output_dict = {"logits": logits, "normalized_probs": normalized_probs}
 
         if is_training or is_validation:
+            labels = iter_dict["label"]
+            labels = labels.squeeze(1)
+            assert labels.ndimension() == 1, self.msg_printer.fail(
+                "the labels should have 1 dimension "
+                "your input has shape {0}".format(labels.size())
+            )
             loss = self._loss(logits, labels)
             output_dict["loss"] = loss
 

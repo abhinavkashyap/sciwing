@@ -37,24 +37,8 @@ class ScienceIETagger(nn.Module):
         is_test: bool,
     ):
         tokens = iter_dict["tokens"]
-        labels = iter_dict["label"]
-
-        # if you change label then iter_dict["label"] gets screwed
-        labels_copy = copy.deepcopy(labels)
 
         batch_size, max_time_steps = tokens.size()
-
-        assert labels.ndimension() == 2, self.msg_printer(
-            f"For Science IE Tagger, labels should have 2 dimensions"
-            f"batch_size, 3 * max_length. The labels you passed have "
-            f"{labels.ndimension()}"
-        )
-
-        task_labels, process_labels, material_labels = torch.chunk(
-            labels_copy, chunks=3, dim=1
-        )
-        process_labels -= 8
-        material_labels -= 16
 
         character_encoding = None
         if self.character_encoder is not None:
@@ -108,6 +92,21 @@ class ScienceIETagger(nn.Module):
         }
 
         if is_training or is_validation:
+            labels = iter_dict["label"]
+
+            # if you change label then iter_dict["label"] gets screwed
+            labels_copy = copy.deepcopy(labels)
+            assert labels.ndimension() == 2, self.msg_printer(
+                f"For Science IE Tagger, labels should have 2 dimensions"
+                f"batch_size, 3 * max_length. The labels you passed have "
+                f"{labels.ndimension()}"
+            )
+
+            task_labels, process_labels, material_labels = torch.chunk(
+                labels_copy, chunks=3, dim=1
+            )
+            process_labels -= 8
+            material_labels -= 16
             task_loss = -self.task_crf(task_logits, task_labels)
             process_loss = -self.process_crf(process_logits, process_labels)
             material_loss = -self.material_crf(material_logits, material_labels)

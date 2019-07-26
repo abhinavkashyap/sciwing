@@ -4,7 +4,6 @@ from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
-from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 import torch
 
 
