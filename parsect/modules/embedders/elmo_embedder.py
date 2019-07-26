@@ -1,8 +1,7 @@
-from allennlp.modules import Elmo
 from allennlp.modules.elmo import Elmo, batch_to_ids
 import parsect.constants as constants
 import torch.nn as nn
-from typing import Iterable, List
+from typing import List
 import wasabi
 import torch
 

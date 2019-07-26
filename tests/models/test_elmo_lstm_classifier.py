@@ -1,5 +1,5 @@
 import pytest
-from parsect.modules.elmo_embedder import ElmoEmbedder
+from parsect.modules.embedders.elmo_embedder import ElmoEmbedder
 from parsect.modules.elmo_lstm_encoder import ElmoLSTMEncoder
 from parsect.models.elmo_lstm_classifier import ElmoLSTMClassifier
 import torch.nn as nn

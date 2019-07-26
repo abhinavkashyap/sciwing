@@ -1,6 +1,6 @@
 import pytest
 from parsect.modules.elmo_lstm_encoder import ElmoLSTMEncoder
-from parsect.modules.elmo_embedder import ElmoEmbedder
+from parsect.modules.embedders.elmo_embedder import ElmoEmbedder
 import torch
 import torch.nn as nn
 import numpy as np

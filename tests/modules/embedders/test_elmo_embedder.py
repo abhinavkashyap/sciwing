@@ -1,5 +1,5 @@
 import pytest
-from parsect.modules.elmo_embedder import ElmoEmbedder
+from parsect.modules.embedders.elmo_embedder import ElmoEmbedder
 
 
 @pytest.fixture
