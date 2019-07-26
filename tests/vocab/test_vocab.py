@@ -202,6 +202,24 @@ class TestVocab:
         # tests all indices are in order
         assert indices == list(range(len_idx2token))
 
+    def test_idx2token_for_unk(self, instances):
+        """" Many words map to UNK in the vocab. For example say the index for UNK is 3.
+        Then mapping 3 to the token should always map to UNK and not any other word  
+        """
+        single_instance = instances["single_instance"]
+        MAX_NUM_WORDS = 100
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            start_token="<SOS>",
+            end_token="<EOS>",
+            pad_token="<PAD>",
+            unk_token="<UNK>",
+        )
+        vocab_builder.build_vocab()
+        UNK_IDX = vocab_builder.special_vocab[vocab_builder.unk_token][1]
+        assert vocab_builder.get_token_from_idx(UNK_IDX) == "<UNK>"
+
     def test_idx2token_out_of_bounds(self, instances):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100

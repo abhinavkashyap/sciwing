@@ -78,9 +78,9 @@ class Vocab:
 
         # store the special tokens
         self.special_vocab = {
-            self.unk_token: (self.special_token_freq, 0),
-            self.pad_token: (self.special_token_freq, 1),
-            self.start_token: (self.special_token_freq, 2),
+            self.unk_token: (self.special_token_freq + 3, 0),
+            self.pad_token: (self.special_token_freq + 2, 1),
+            self.start_token: (self.special_token_freq + 1, 2),
             self.end_token: (self.special_token_freq, 3),
         }
 
@@ -308,8 +308,8 @@ class Vocab:
                 end_token = vocab_options["end_token"]
                 special_token_freq = vocab_options["special_token_freq"]
                 store_location = filename
-                embedding_type = vocab_options.get("embedding_type")
-                embedding_dimension = vocab_options.get("embedding_dimension")
+                embedding_type = vocab_options["embedding_type"]
+                embedding_dimension = vocab_options["embedding_dimension"]
                 vocab = cls(
                     max_num_tokens=max_num_tokens,
                     min_count=min_count,
@@ -348,7 +348,11 @@ class Vocab:
             self.idx2token = self.get_idx2token_mapping()
 
         try:
-            return self.idx2token[idx]
+            if idx == self.special_vocab[self.unk_token][1]:
+                return self.unk_token
+            else:
+                token = self.idx2token[idx]
+                return token
         except KeyError:
             vocab_len = self.get_vocab_len()
             message = (
