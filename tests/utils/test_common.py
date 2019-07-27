@@ -6,6 +6,7 @@ from parsect.utils.common import convert_generic_sect_to_json
 from parsect.utils.common import convert_parscit_to_conll
 from parsect.utils.common import write_cora_to_conll_file
 from parsect.utils.common import write_parscit_to_conll_file
+from parsect.utils.common import form_char_offsets_from_bilou_tags
 import pytest
 import pathlib
 
@@ -267,3 +268,48 @@ class TestCommon:
             write_parscit_to_conll_file(parscit_train_path)
         except:
             pytest.fail("Failed to write parscit train conll format file")
+
+    @pytest.mark.parametrize(
+        "words, tags, expected_char_offsets",
+        [
+            ("word word".split(), "O-Task O-Task".split(), []),
+            ("word word".split(), "B-Task L-Task".split(), [(0, 9, "word word")]),
+            (
+                "word word word".split(),
+                "B-Task L-Task O-Task".split(),
+                [(0, 9, "word word")],
+            ),
+            (
+                "word word word".split(),
+                "B-Task I-Task L-Task".split(),
+                [(0, 14, "word word word")],
+            ),
+            (
+                "word word word word".split(),
+                "B-Task I-Task L-Task O-Task".split(),
+                [(0, 14, "word word word")],
+            ),
+            ("word word".split(), "U-Task O-Task".split(), [(0, 4, "word")]),
+            (
+                "word word word word".split(),
+                "B-Taks I-Taks L-Task U-Task".split(),
+                [(0, 14, "word word word"), (15, 19, "word")],
+            ),
+            (
+                "word word word word".split(),
+                "B-Taks I-Taks L-Task L-Task".split(),
+                [(0, 14, "word word word"), (15, 19, "word")],
+            ),
+            ("word word".split(), "B-Task B-Task".split(), [(0, 9, "word word")]),
+            (
+                "word word word word word".split(),
+                "B-Task I-Task L-Task O-Task U-Task".split(),
+                [(0, 14, "word word word"), (20, 24, "word")],
+            ),
+        ],
+    )
+    def test_form_char_offsets_from_bilou_tags(
+        self, words, tags, expected_char_offsets
+    ):
+        char_offsets = form_char_offsets_from_bilou_tags(words, tags)
+        assert char_offsets == expected_char_offsets

@@ -1,9 +1,12 @@
 from typing import Dict, List, Any, Iterable, Iterator
+
+import wasabi
 from tqdm import tqdm
 import requests
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
+from parsect.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer
 from wasabi import Printer
 import zipfile
 from sys import stdout
@@ -13,6 +16,7 @@ from sklearn.model_selection import KFold
 import numpy as np
 import parsect.constants as constants
 from itertools import tee
+import spacy
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -334,3 +338,77 @@ def pairwise(iterable: Iterable) -> Iterator:
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
+
+
+def form_char_offsets_from_bilou_tags(
+    words: List[str], tags: List[str], debug: Bool = True
+):
+    """
+
+    Parameters
+    ----------
+    words : List[str]
+
+    tags : List[str]
+        BILOU tags for the words
+
+    debug : Bool
+        Print debugging information
+    Returns
+    -------
+    List[Tuple[int, int, str]]
+    """
+    msg_printer = wasabi.Printer()
+
+    text = " ".join(words)
+    nlp = spacy.load("en_core_web_sm")
+    nlp.remove_pipe("parser")
+    nlp.remove_pipe("tagger")
+    nlp.remove_pipe("ner")
+    nlp.tokenizer = CustomSpacyWhiteSpaceTokenizer(nlp.vocab)
+    doc = nlp(text)
+
+    wordidx2charoffset_mapping = {}
+    for token in doc:
+        start_char = token.idx
+        len_word = len(token)
+        idx = token.i
+        wordidx2charoffset_mapping[idx] = (start_char, start_char + len_word)
+
+    terms = []
+    beginning_tag_seen = False
+    start_token_char_idx = None
+    for idx, (word, tag) in enumerate(zip(words, tags)):
+        if tag.startswith("O"):
+            if beginning_tag_seen:
+                end_char_idx = wordidx2charoffset_mapping[idx][1]
+                span = doc.char_span(start_token_char_idx, end_char_idx).text
+                terms.append((start_token_char_idx, end_char_idx, span))
+            beginning_tag_seen = False
+            start_token_char_idx = None
+        if tag.startswith("B"):
+            if beginning_tag_seen:
+                end_char_idx = wordidx2charoffset_mapping[idx][1]
+                span = doc.char_span(start_token_char_idx, end_char_idx).text
+                terms.append((start_token_char_idx, end_char_idx, span))
+            beginning_tag_seen = True
+            start_token_char_idx = wordidx2charoffset_mapping[idx][0]
+        if tag.startswith("U"):
+            start_char, end_char_idx = wordidx2charoffset_mapping[idx]
+            span = doc.char_span(start_char, end_char_idx).text
+            terms.append((start_char, end_char_idx, span))
+            beginning_tag_seen = False
+            start_token_char_idx = None
+        if tag.startswith("L"):
+            end_char_idx = wordidx2charoffset_mapping[idx][1]
+            if start_token_char_idx is None:
+                msg_printer.warn(
+                    "Malformed tag.. saw a L tag without a B tag :(", show=debug
+                )
+                start_token_char_idx = wordidx2charoffset_mapping[idx][0]
+            span = doc.char_span(start_token_char_idx, end_char_idx).text
+            terms.append((start_token_char_idx, end_char_idx, span))
+            beginning_tag_seen = False
+            start_token_char_idx = None
+
+    return terms
