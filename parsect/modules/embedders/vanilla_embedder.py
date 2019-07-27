@@ -11,7 +11,7 @@ class VanillaEmbedder(nn.Module):
     def forward(self, iter_dict: Dict[str, Any]):
         try:
             tokens = iter_dict["tokens"]  # N * T
+            embedding = self.embedding(tokens)  # N * T * D
+            return embedding
         except AttributeError:
             raise ValueError(f"iter_dict passed should have tokens in them")
-        embedding = self.embedding(tokens)  # N * T * D
-        return embedding
