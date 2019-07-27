@@ -341,7 +341,7 @@ def pairwise(iterable: Iterable) -> Iterator:
 
 
 def form_char_offsets_from_bilou_tags(
-    words: List[str], tags: List[str], debug: Bool = True
+    words: List[str], tags: List[str], debug: bool = True
 ):
     """
 
@@ -412,3 +412,50 @@ def form_char_offsets_from_bilou_tags(
             start_token_char_idx = None
 
     return terms
+
+
+def write_ann_file_from_conll_file(
+    conll_filepath: pathlib.Path, ann_filepath: pathlib.Path, tag_name: str
+):
+    """ Write ann file from conll file
+
+    Parameters
+    ----------
+    conll_filepath : pathlib.Path
+        CONLL file path
+    ann_filepath : pathlib.Path
+        ANN filepath to be written
+    tag_name : str
+        Tag name in the ann file that will be used
+
+    Returns
+    -------
+    None
+
+    """
+    words = []
+    tags = []
+    with open(conll_filepath, "r") as fp:
+        for line in fp:
+            splits = line.split()
+            word = splits[0]
+            tag = splits[-1]
+
+            words.append(word)
+            tags.append(tag)
+
+    char_offsets = form_char_offsets_from_bilou_tags(words=words, tags=tags)
+
+    ann_lines = []
+    for idx, char_offset in enumerate(char_offsets):
+        id_ = idx
+        start_offset, end_offset, surface_form = char_offset
+        start_offset = str(start_offset)
+        end_offset = str(end_offset)
+        ann_line = " ".join([start_offset, end_offset])
+        ann_line = "\t".join([ann_line, surface_form])
+        ann_line = "\t".join([f"T{id_}", ann_line])
+        ann_lines.append(ann_line)
+
+    with open(ann_filepath, "w") as fp:
+        fp.write("\n".join(ann_lines))

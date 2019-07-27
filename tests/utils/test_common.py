@@ -7,6 +7,7 @@ from parsect.utils.common import convert_parscit_to_conll
 from parsect.utils.common import write_cora_to_conll_file
 from parsect.utils.common import write_parscit_to_conll_file
 from parsect.utils.common import form_char_offsets_from_bilou_tags
+from parsect.utils.common import write_ann_file_from_conll_file
 import pytest
 import pathlib
 
@@ -313,3 +314,22 @@ class TestCommon:
     ):
         char_offsets = form_char_offsets_from_bilou_tags(words, tags)
         assert char_offsets == expected_char_offsets
+
+    def test_write_ann_file_from_conll_file(self, tmpdir):
+        conll_lines = ["word B-Task", "word I-Task", "word L-Task"]
+
+        dummy_dir = tmpdir.mkdir("fake_dir")
+        dummy_conll = dummy_dir.join("dummy.conll")
+        dummy_ann = dummy_dir.join("dummy.ann")
+
+        dummy_conll.write("\n".join(conll_lines))
+        conll_filepath = pathlib.Path(dummy_conll)
+        ann_filepath = pathlib.Path(dummy_ann)
+
+        write_ann_file_from_conll_file(
+            conll_filepath=conll_filepath, ann_filepath=ann_filepath, tag_name="Task"
+        )
+
+        with open(ann_filepath) as fp:
+            num_lines = sum([1 for line in fp])
+            assert num_lines == 1
