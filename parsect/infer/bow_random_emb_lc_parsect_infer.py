@@ -4,6 +4,7 @@ import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import torch.nn as nn
 
@@ -33,10 +34,10 @@ def get_random_emb_linear_classifier_infer_parsect(dirname: str):
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
-
+    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         aggregation_type="sum",
     )

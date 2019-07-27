@@ -3,6 +3,7 @@ import torch
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from torch.nn import Embedding
 import numpy as np
 
@@ -15,9 +16,10 @@ def setup_classifier_bs_1():
     VOCAB_SIZE = 10
     NUM_CLASSES = 3
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
+    embedder = VanillaEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
     labels = torch.LongTensor([[1]])
     encoder = BOW_Encoder(
-        emb_dim=EMB_DIM, embedding=embedding, dropout_value=0, aggregation_type="sum"
+        emb_dim=EMB_DIM, embedder=embedder, dropout_value=0, aggregation_type="sum"
     )
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)

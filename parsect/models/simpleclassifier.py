@@ -58,12 +58,7 @@ class SimpleClassifier(nn.Module):
         :return: type: Dict[str, Any]
         """
 
-        # N * D
-        # N - batch size
-        # D - Encoding dimension `self.encoding_dim`
-        x = iter_dict["tokens"]
-
-        encoding = self.encoder(x)
+        encoding = self.encoder(iter_dict=iter_dict)
 
         # N * C
         # N - batch size

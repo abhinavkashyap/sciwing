@@ -1,4 +1,5 @@
 from parsect.engine.engine import Engine
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
@@ -66,8 +67,9 @@ def setup_engine_test_with_simple_classifier(tmpdir):
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
     labels = torch.LongTensor([1])
     metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
+    embedder = VanillaEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
     encoder = BOW_Encoder(
-        emb_dim=EMB_DIM, embedding=embedding, dropout_value=0, aggregation_type="sum"
+        emb_dim=EMB_DIM, embedder=embedder, dropout_value=0, aggregation_type="sum"
     )
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
     tokens = torch.LongTensor(tokens)
