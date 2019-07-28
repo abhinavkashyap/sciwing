@@ -52,7 +52,7 @@ class ParscitInference(BaseInference):
             }
         )
 
-        num_categories = len(self.labelname2idx_mapping.keys())
+        num_categories = self.test_dataset.get_num_classes()
         categories = [self.idx2labelname_mapping[idx] for idx in range(num_categories)]
         self.seq_tagging_visualizer = VisTagging(tags=categories)
 
