@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 from parsect.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
@@ -115,25 +115,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         self.character_embedding_dimension = character_embedding_dimension
         self.max_char_length = max_char_length
         self.word_add_start_end_token = word_add_start_end_token
-        self.normalized_classnames = {
-            "author": "author",
-            "booktitle": "booktitle",
-            "date": "date",
-            "editor": "editor",
-            "institution": "institution",
-            "journal": "journal",
-            "location": "location",
-            "note": "note",
-            "notes": "note",
-            "pages": "pages",
-            "publisher": "publisher",
-            "tech": "tech",
-            "title": "title",
-            "volume": "volume",
-            "padding": "padding",
-            "starting": "starting",
-            "ending": "ending",
-        }
         self.classnames2idx = self.get_classname2idx()
         self.idx2classname = {
             idx: classname for classname, idx in self.classnames2idx.items()
@@ -208,10 +189,11 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
 
         categories = [(category, idx) for idx, category in enumerate(categories)]
         categories = dict(categories)
+        categories["notes"] = categories["note"]
         return categories
 
     def get_num_classes(self) -> int:
-        return len(self.classnames2idx.keys())
+        return len(set(self.classnames2idx.values()))
 
     def get_class_names_from_indices(self, indices: List[int]):
         return [self.idx2classname[idx] for idx in indices]
@@ -330,73 +312,20 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         return len(self.word_instances)
 
     def __getitem__(self, idx):
-        word_instance = self.word_instances[idx]
-        labels_string = self.labels[idx]
-        labels_string = labels_string.split()
-        len_instance = len(word_instance)
+        line = self.lines[idx]
+        labels = self.labels[idx].split()
 
-        # the length of the instance and labels should be same
-        assert len_instance == len(labels_string)
-
-        # if instances are padded, then labels also have to be padded
-        padded_word_instance = pack_to_length(
-            tokenized_text=word_instance,
-            max_length=self.max_length,
-            pad_token=self.word_vocab.pad_token,
-            add_start_end_token=self.word_add_start_end_token,
-            start_token=self.word_vocab.start_token,
-            end_token=self.word_vocab.end_token,
+        return self.get_iter_dict(
+            line=line,
+            word_vocab=self.word_vocab,
+            word_tokenizer=self.word_tokenizer,
+            max_word_length=self.max_length,
+            word_add_start_end_token=self.word_add_start_end_token,
+            char_vocab=self.char_vocab,
+            char_tokenizer=self.character_tokenizer,
+            max_char_length=self.max_char_length,
+            labels=labels,
         )
-        padded_labels = pack_to_length(
-            tokenized_text=labels_string,
-            max_length=self.max_length,
-            pad_token="padding",
-            add_start_end_token=self.word_add_start_end_token,
-            start_token="starting",
-            end_token="ending",
-        )
-        assert len(padded_word_instance) == len(padded_labels)
-
-        tokens = self.word_numericalizer.numericalize_instance(padded_word_instance)
-        padded_labels = [
-            self.classnames2idx[self.normalized_classnames[label]]
-            for label in padded_labels
-        ]
-
-        character_tokens = []
-        # 1. For every word we get characters in the word
-        # 2. Pad the characters to max_char_length
-        # 3. Convert them into numbers
-        # 4. Add them to character_tokens
-        for word in padded_word_instance:
-            character_instance = self.character_tokenizer.tokenize(word)
-            padded_character_instance = pack_to_length(
-                tokenized_text=character_instance,
-                max_length=self.max_char_length,
-                pad_token=" ",
-                add_start_end_token=False,
-            )
-            padded_character_tokens = self.char_numericalizer.numericalize_instance(
-                padded_character_instance
-            )
-            character_tokens.append(padded_character_tokens)
-
-        tokens = torch.LongTensor(tokens)
-        len_tokens = torch.LongTensor([len_instance])
-        label = torch.LongTensor(padded_labels)
-        character_tokens = torch.LongTensor(
-            character_tokens
-        )  # max_word_len * max_char_len matrix
-
-        instance_dict = {
-            "tokens": tokens,
-            "len_tokens": len_tokens,
-            "label": label,
-            "instance": " ".join(padded_word_instance),
-            "raw_instance": " ".join(word_instance),
-            "char_tokens": character_tokens,
-        }
-        return instance_dict
 
     @classmethod
     def emits_keys(cls) -> Dict[str, str]:
@@ -414,3 +343,79 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             "char_tokens": f"Every word is tokenized into characters of length `max_char_len`. "
             f"char_tokens for an instance is a torch.LongTensor of shape [max_word_len, max_char_len]",
         }
+
+    @classmethod
+    def get_iter_dict(
+        cls,
+        line: str,
+        word_vocab: Vocab,
+        word_tokenizer: WordTokenizer,
+        max_word_length: int,
+        word_add_start_end_token: bool,
+        char_vocab: Optional[Vocab] = None,
+        char_tokenizer: Optional[CharacterTokenizer] = None,
+        max_char_length: Optional[int] = None,
+        labels: Optional[List[str]] = None,
+    ):
+        word_instance = word_tokenizer.tokenize(line)
+        len_instance = len(word_instance)
+        classnames2idx = ParscitDataset.get_classname2idx()
+        word_numericalizer = Numericalizer(vocabulary=word_vocab)
+        char_numericalizer = Numericalizer(vocabulary=char_vocab)
+
+        if labels is not None:
+            assert len_instance == len(labels)
+            padded_labels = pack_to_length(
+                tokenized_text=labels,
+                max_length=max_word_length,
+                pad_token="padding",
+                add_start_end_token=word_add_start_end_token,
+                start_token="starting",
+                end_token="ending",
+            )
+            padded_labels = [classnames2idx[label] for label in padded_labels]
+            label = torch.LongTensor(padded_labels)
+
+        padded_word_instance = pack_to_length(
+            tokenized_text=word_instance,
+            max_length=max_word_length,
+            pad_token=word_vocab.pad_token,
+            add_start_end_token=word_add_start_end_token,
+            start_token=word_vocab.start_token,
+            end_token=word_vocab.end_token,
+        )
+        tokens = word_numericalizer.numericalize_instance(padded_word_instance)
+        tokens = torch.LongTensor(tokens)
+        len_tokens = torch.LongTensor([len_instance])
+
+        character_tokens = []
+        # 1. For every word we get characters in the word
+        # 2. Pad the characters to max_char_length
+        # 3. Convert them into numbers
+        # 4. Add them to character_tokens
+        for word in padded_word_instance:
+            char_instance = char_tokenizer.tokenize(word)
+            padded_character_instance = pack_to_length(
+                tokenized_text=char_instance,
+                max_length=max_char_length,
+                pad_token=" ",
+                add_start_end_token=False,
+            )
+            padded_character_tokens = char_numericalizer.numericalize_instance(
+                padded_character_instance
+            )
+            character_tokens.append(padded_character_tokens)
+        character_tokens = torch.LongTensor(character_tokens)
+
+        instance_dict = {
+            "tokens": tokens,
+            "len_tokens": len_tokens,
+            "instance": " ".join(padded_word_instance),
+            "raw_instance": " ".join(word_instance),
+            "char_tokens": character_tokens,
+        }
+
+        if labels is not None:
+            instance_dict["label"] = label
+
+        return instance_dict

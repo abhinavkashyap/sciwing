@@ -1,8 +1,9 @@
 from abc import ABCMeta, abstractmethod
-from typing import Union, Dict, List, Any
+from typing import Union, Dict, List, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
+from parsect.vocab.vocab import Vocab
 import torch
 
 
@@ -272,4 +273,19 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
             A dictionary representing different keys emitted and their corresponding human
             readable description
         """
+        pass
+
+    @classmethod
+    def get_iter_dict(
+        cls,
+        line: str,
+        word_vocab: Vocab,
+        word_tokenizer: WordTokenizer,
+        max_word_length: int,
+        word_add_start_end_token: bool,
+        char_vocab: Optional[Vocab] = None,
+        char_tokenizer: Optional[CharacterTokenizer] = None,
+        max_char_length: Optional[int] = None,
+        labels: Optional[List[str]] = None,
+    ):
         pass
