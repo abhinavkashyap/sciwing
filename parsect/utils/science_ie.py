@@ -329,7 +329,7 @@ class ScienceIEDataUtils:
     def get_sents(self, text: str):
         doc = self.spacy_nlp(text)
         sents = doc.sents
-        sents = [sent.string for sent in sents]
+        sents = [sent.text for sent in sents]
         return sents
 
 

@@ -28,6 +28,7 @@ from parsect.infer.science_ie_infer import get_science_ie_infer
 import wasabi
 import parsect.constants as constants
 from parsect.utils.amazon_s3 import S3Util
+from parsect.utils.science_ie_eval import calculateMeasures
 import os
 import re
 import pathlib
@@ -102,8 +103,6 @@ class ParsectCli:
         self.generate_report_or_interact = self.ask_generate_report_or_interact()
         if self.generate_report_or_interact == "interact":
             self.interact()
-        elif self.generate_report_or_interact == "gen-pred-folder":
-            self.generate_scienceie_report_folder()
         elif self.generate_report_or_interact == "gen-report":
             self.generate_report()
 
@@ -122,42 +121,37 @@ class ParsectCli:
             choices.append(Choice(model_type))
         return choices
 
-    def ask_generate_report_or_interact(self):
+    @staticmethod
+    def ask_generate_report_or_interact():
         choices = [
             Choice("Interact with model", "interact"),
             Choice("Generate report (for all experiments)", "gen-report"),
         ]
-        if self.model_type_answer == "lstm-crf-scienceie-tagger":
-            choices.append(
-                Choice(title="Generate Pred Folder", value="gen-pred-folder")
-            )
 
         generate_report_or_interact = questionary.rawselect(
-            "What would you like to do ",
-            qmark="❓",
-            choices=[
-                Choice("Interact with model", "interact"),
-                Choice("Generate report (for all experiments)", "gen-report"),
-            ],
+            "What would you like to do ", qmark="❓", choices=choices
         )
         return generate_report_or_interact.ask()
 
     def interact(self):
         exp_dir = self.get_experiment_choice()
+        exp_dir_path = pathlib.Path(exp_dir)
         inference_func = self.model_type2inf_func[self.model_type_answer]
         inference_client = inference_func(exp_dir)
 
         while True:
+            choices = [
+                Choice("See-Confusion-Matrix"),
+                Choice("See-examples-of-Classifications"),
+                Choice("See-prf-table"),
+                Choice(title="Enter text ", value="enter_text"),
+                Choice("exit"),
+            ]
+            if self.model_type_answer == "lstm-crf-scienceie-tagger":
+                choices.append(Choice("official-results", "semeval_official_results"))
+
             interaction_choice = questionary.rawselect(
-                "What would you like to do now",
-                qmark="❓",
-                choices=[
-                    Choice("See-Confusion-Matrix"),
-                    Choice("See-examples-of-Classifications"),
-                    Choice("See-prf-table"),
-                    Choice(title="Enter text ", value="enter_text"),
-                    Choice("exit"),
-                ],
+                "What would you like to do now", qmark="❓", choices=choices
             ).ask()
             if interaction_choice == "See-Confusion-Matrix":
                 inference_client.print_confusion_matrix()
@@ -185,8 +179,22 @@ class ParsectCli:
 
             elif interaction_choice == "enter_text":
                 text = questionary.text("Enter Text: ").ask()
-                tagged_string = inference_client.infer_single_sentence(text)
+                tagged_string = inference_client.on_user_input(text)
                 print(tagged_string)
+
+            elif interaction_choice == "semeval_official_results":
+                dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
+                pred_folder = pathlib.Path(
+                    REPORTS_DIR, f"science_ie_{exp_dir_path.stem}_results"
+                )
+                if not pred_folder.is_dir():
+                    pred_folder.mkdir()
+                inference_client.generate_predict_folder(
+                    dev_folder=dev_folder, pred_folder=pred_folder
+                )
+                calculateMeasures(
+                    folder_gold=str(dev_folder), folder_pred=str(pred_folder)
+                )
             elif interaction_choice == "exit":
                 self.msg_printer.text("See you again!")
                 exit(0)
@@ -272,10 +280,6 @@ class ParsectCli:
             self.model_type2exp_prefix[self.model_type_answer] + "_report.csv",
         )
         fscores_df.to_csv(output_filename, index=True, header=list(fscores_df.columns))
-
-    def generate_scienceie_report_folder(self):
-        dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
-        pred_folder = pathlib.Path(REPORTS_DIR, "science_ie_pred_folder")
 
 
 if __name__ == "__main__":

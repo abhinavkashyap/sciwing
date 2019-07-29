@@ -370,9 +370,9 @@ class ScienceIEInference(BaseInference):
         )
 
         display_str = (
-            f"Task Labels \n '='*20 {task_tagged_string}"
-            f"Process Labels \n '='*20 {process_tagged_string}"
-            f"Material Labels \n '='*20 {material_tagged_string}"
+            f"Task Labels \n {'='*20} \n {task_tagged_string} \n"
+            f"Process Labels \n {'='*20} \n {process_tagged_string} \n"
+            f"Material Labels \n {'='*20} \n  {material_tagged_string}"
         )
         return display_str
 
@@ -385,56 +385,59 @@ class ScienceIEInference(BaseInference):
         file_ids = science_ie_data_utils.get_file_ids()
 
         for file_id in file_ids:
-            text = science_ie_data_utils.get_text_from_fileid(file_id)
-            sents = science_ie_data_utils.get_sents(text)
-            try:
-                assert bool(text.split()), f"File {file_id} does not have any text"
-            except AssertionError:
-                continue
+            with self.msg_printer.loading(
+                f"Generating Science IE results for file {file_id}"
+            ):
+                text = science_ie_data_utils.get_text_from_fileid(file_id)
+                sents = science_ie_data_utils.get_sents(text)
+                try:
+                    assert bool(text.split()), f"File {file_id} does not have any text"
+                except AssertionError:
+                    continue
 
-            try:
-                assert len(sents) > 0
-            except AssertionError:
-                continue
+                try:
+                    assert len(sents) > 0
+                except AssertionError:
+                    continue
 
-            for sent in sents:
-                task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
-                    line=sent
-                )
+                for sent in sents:
+                    task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
+                        line=sent
+                    )
 
-                sent = sent.split()
-                sent = sent[: self.max_length]
-                len_sent = len(sent)
-                task_tag_names = task_tag_names[:len_sent]
-                process_tag_names = process_tag_names[:len_sent]
-                material_tag_names = material_tag_names[:len_sent]
+                    sent = sent.split()
+                    sent = sent[: self.max_length]
+                    len_sent = len(sent)
+                    task_tag_names = task_tag_names[:len_sent]
+                    process_tag_names = process_tag_names[:len_sent]
+                    material_tag_names = material_tag_names[:len_sent]
 
-                assert len(sent) == len(
-                    task_tag_names
-                ), f"len sent: {len(sent)}, len task_tag_name: {len(task_tag_names)}"
-                assert len(sent) == len(
-                    process_tag_names
-                ), f"len sent: {len(sent)}, len process_tag_names: {len(process_tag_names)}"
-                assert len(sent) == len(
-                    material_tag_names
-                ), f"len sent: {len(sent)}, len material_tag_names: {len(material_tag_names)}"
+                    assert len(sent) == len(
+                        task_tag_names
+                    ), f"len sent: {len(sent)}, len task_tag_name: {len(task_tag_names)}"
+                    assert len(sent) == len(
+                        process_tag_names
+                    ), f"len sent: {len(sent)}, len process_tag_names: {len(process_tag_names)}"
+                    assert len(sent) == len(
+                        material_tag_names
+                    ), f"len sent: {len(sent)}, len material_tag_names: {len(material_tag_names)}"
 
-                zipped_text_tag_names = zip(
-                    sent, task_tag_names, process_tag_names, material_tag_names
-                )
+                    zipped_text_tag_names = zip(
+                        sent, task_tag_names, process_tag_names, material_tag_names
+                    )
 
-                conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
-                ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
+                    conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
+                    ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
 
-                with open(conll_filepath, "w") as fp:
-                    for text_tag_name in zipped_text_tag_names:
-                        word, task_tag, process_tag, material_tag = text_tag_name
-                        conll_line = " ".join(
-                            [word, task_tag, process_tag, material_tag]
-                        )
-                        fp.write(conll_line)
-                        fp.write("\n")
+                    with open(conll_filepath, "w") as fp:
+                        for text_tag_name in zipped_text_tag_names:
+                            word, task_tag, process_tag, material_tag = text_tag_name
+                            conll_line = " ".join(
+                                [word, task_tag, process_tag, material_tag]
+                            )
+                            fp.write(conll_line)
+                            fp.write("\n")
 
-                write_ann_file_from_conll_file(
-                    conll_filepath=conll_filepath, ann_filepath=ann_filepath
-                )
+                    write_ann_file_from_conll_file(
+                        conll_filepath=conll_filepath, ann_filepath=ann_filepath
+                    )
