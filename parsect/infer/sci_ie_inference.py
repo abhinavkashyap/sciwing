@@ -1,17 +1,20 @@
 from typing import Dict, Any, List, Optional
+import copy
+import torch
+import pathlib
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from parsect.infer.BaseInference import BaseInference
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.vis_seq_tags import VisTagging
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
+from parsect.utils.science_ie import ScienceIEDataUtils
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
-import pandas as pd
-import torch
+from parsect.utils.common import write_ann_file_from_conll_file
 from parsect.utils.tensor import move_to_device
-from torch.utils.data import DataLoader
-import copy
+import pandas as pd
 
 
 class ScienceIEInference(BaseInference):
@@ -28,7 +31,8 @@ class ScienceIEInference(BaseInference):
             hyperparam_config_filepath=hyperparam_config_filepath,
             dataset=dataset,
         )
-
+        self.word_vocab = Vocab.load_from_file(filename=self.vocab_store_location)
+        self.char_vocab = Vocab.load_from_file(filename=self.char_vocab_store_location)
         self.load_model()
 
         if self.test_dataset is not None:
@@ -302,24 +306,19 @@ class ScienceIEInference(BaseInference):
         )
         return paper_report, row_names
 
-    def on_user_input(self, line: str):
-        char_vocab_store_location = self.char_vocab_store_location
-        vocab_store_location = self.vocab_store_location
+    def infer_single_sentence(self, line: str) -> (List[str], List[str], List[str]):
 
-        word_vocab = Vocab.load_from_file(filename=vocab_store_location)
-        char_vocab = Vocab.load_from_file(filename=char_vocab_store_location)
         word_tokenizer = WordTokenizer(tokenizer="vanilla")
         char_tokenizer = CharacterTokenizer()
         max_word_length = self.max_length
         max_char_length = self.max_char_length
-        classnames2idx = ScienceIEDataset.get_classname2idx()
         iter_dict = ScienceIEDataset.get_iter_dict(
             line=line,
-            word_vocab=word_vocab,
+            word_vocab=self.word_vocab,
             word_tokenizer=word_tokenizer,
             max_word_length=max_word_length,
             word_add_start_end_token=False,
-            char_vocab=char_vocab,
+            char_vocab=self.char_vocab,
             char_tokenizer=char_tokenizer,
             max_char_length=max_char_length,
         )
@@ -338,31 +337,104 @@ class ScienceIEInference(BaseInference):
         process_tags = process_tags.squeeze().tolist()
         material_tags = material_tags.squeeze().tolist()
 
-        task_tag_names = [
-            self.idx2labelname_mapping[tag_idx]
-            for tag_idx in task_tags
-            if tag_idx != classnames2idx["padding-Task"]
-        ]
+        task_tag_names = [self.idx2labelname_mapping[tag_idx] for tag_idx in task_tags]
         process_tag_names = [
-            self.idx2labelname_mapping[tag_idx]
-            for tag_idx in process_tags
-            if tag_idx != classnames2idx["padding-Process"]
+            self.idx2labelname_mapping[tag_idx] for tag_idx in process_tags
         ]
         material_tag_names = [
-            self.idx2labelname_mapping[tag_idx]
-            for tag_idx in material_tags
-            if tag_idx != classnames2idx["padding-Material"]
+            self.idx2labelname_mapping[tag_idx] for tag_idx in material_tags
         ]
 
+        return task_tag_names, process_tag_names, material_tag_names
+
+    def on_user_input(self, line: str):
+        words = line.split()
+        words = words[: self.max_length]
+        len_words = len(words)
+
+        task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
+            line
+        )
+        task_tag_names = task_tag_names[:len_words]
+        process_tag_names = process_tag_names[:len_words]
+        material_tag_names = material_tag_names[:len_words]
+
         task_tagged_string = self.seq_tagging_visualizer.visualize_tokens(
-            text=line.split(), labels=task_tag_names
+            text=words, labels=task_tag_names
         )
         process_tagged_string = self.seq_tagging_visualizer.visualize_tokens(
-            text=line.split(), labels=process_tag_names
+            text=words, labels=process_tag_names
         )
         material_tagged_string = self.seq_tagging_visualizer.visualize_tokens(
-            text=line.split(), labels=material_tag_names
+            text=words, labels=material_tag_names
         )
-        print(task_tagged_string)
-        print(process_tagged_string)
-        print(material_tagged_string)
+
+        display_str = (
+            f"Task Labels \n '='*20 {task_tagged_string}"
+            f"Process Labels \n '='*20 {process_tagged_string}"
+            f"Material Labels \n '='*20 {material_tagged_string}"
+        )
+        return display_str
+
+    def generate_predict_folder(
+        self, dev_folder: pathlib.Path, pred_folder: pathlib.Path
+    ):
+        science_ie_data_utils = ScienceIEDataUtils(
+            folderpath=dev_folder, ignore_warnings=True
+        )
+        file_ids = science_ie_data_utils.get_file_ids()
+
+        for file_id in file_ids:
+            text = science_ie_data_utils.get_text_from_fileid(file_id)
+            sents = science_ie_data_utils.get_sents(text)
+            try:
+                assert bool(text.split()), f"File {file_id} does not have any text"
+            except AssertionError:
+                continue
+
+            try:
+                assert len(sents) > 0
+            except AssertionError:
+                continue
+
+            for sent in sents:
+                task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
+                    line=sent
+                )
+
+                sent = sent.split()
+                sent = sent[: self.max_length]
+                len_sent = len(sent)
+                task_tag_names = task_tag_names[:len_sent]
+                process_tag_names = process_tag_names[:len_sent]
+                material_tag_names = material_tag_names[:len_sent]
+
+                assert len(sent) == len(
+                    task_tag_names
+                ), f"len sent: {len(sent)}, len task_tag_name: {len(task_tag_names)}"
+                assert len(sent) == len(
+                    process_tag_names
+                ), f"len sent: {len(sent)}, len process_tag_names: {len(process_tag_names)}"
+                assert len(sent) == len(
+                    material_tag_names
+                ), f"len sent: {len(sent)}, len material_tag_names: {len(material_tag_names)}"
+
+                zipped_text_tag_names = zip(
+                    sent, task_tag_names, process_tag_names, material_tag_names
+                )
+
+                conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
+                ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
+
+                with open(conll_filepath, "w") as fp:
+                    for text_tag_name in zipped_text_tag_names:
+                        word, task_tag, process_tag, material_tag = text_tag_name
+                        conll_line = " ".join(
+                            [word, task_tag, process_tag, material_tag]
+                        )
+                        fp.write(conll_line)
+                        fp.write("\n")
+
+                write_ann_file_from_conll_file(
+                    conll_filepath=conll_filepath, ann_filepath=ann_filepath
+                )

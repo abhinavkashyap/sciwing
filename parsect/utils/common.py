@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Iterable, Iterator
+from typing import Dict, List, Any, Iterable, Iterator, Tuple
 
 import wasabi
 from tqdm import tqdm
@@ -415,7 +415,7 @@ def form_char_offsets_from_bilou_tags(
 
 
 def write_ann_file_from_conll_file(
-    conll_filepath: pathlib.Path, ann_filepath: pathlib.Path, tag_name: str
+    conll_filepath: pathlib.Path, ann_filepath: pathlib.Path
 ):
     """ Write ann file from conll file
 
@@ -425,8 +425,6 @@ def write_ann_file_from_conll_file(
         CONLL file path
     ann_filepath : pathlib.Path
         ANN filepath to be written
-    tag_name : str
-        Tag name in the ann file that will be used
 
     Returns
     -------
@@ -434,28 +432,54 @@ def write_ann_file_from_conll_file(
 
     """
     words = []
-    tags = []
+    task_tags = []
+    process_tags = []
+    material_tags = []
     with open(conll_filepath, "r") as fp:
         for line in fp:
-            splits = line.split()
-            word = splits[0]
-            tag = splits[-1]
-
+            word, task_tag, process_tag, material_tag = line.split()
             words.append(word)
-            tags.append(tag)
+            task_tags.append(task_tag)
+            process_tags.append(process_tag)
+            material_tags.append(material_tag)
 
-    char_offsets = form_char_offsets_from_bilou_tags(words=words, tags=tags)
+    task_char_offsets = form_char_offsets_from_bilou_tags(words=words, tags=task_tags)
+    process_char_offsets = form_char_offsets_from_bilou_tags(
+        words=words, tags=process_tags
+    )
+    material_char_offsets = form_char_offsets_from_bilou_tags(
+        words=words, tags=material_tags
+    )
 
-    ann_lines = []
-    for idx, char_offset in enumerate(char_offsets):
-        id_ = idx
+    def form_line(idx: str, char_offset: Tuple[int, int, str], tag_name: str):
         start_offset, end_offset, surface_form = char_offset
         start_offset = str(start_offset)
         end_offset = str(end_offset)
         ann_line = " ".join([start_offset, end_offset])
         ann_line = "\t".join([ann_line, surface_form])
-        ann_line = "\t".join([f"T{id_}", ann_line])
+        ann_line = " ".join([tag_name, ann_line])
+        ann_line = "\t".join([f"T{idx}", ann_line])
+        return ann_line
+
+    ann_lines = []
+    term_idx = 0
+    for idx, char_offset in enumerate(task_char_offsets):
+        id_ = term_idx
+        ann_line = form_line(idx=id_, char_offset=char_offset, tag_name="Task")
         ann_lines.append(ann_line)
+        term_idx += 1
+
+    for idx, char_offset in enumerate(process_char_offsets):
+        id_ = term_idx
+        ann_line = form_line(idx=id_, char_offset=char_offset, tag_name="Task")
+        ann_lines.append(ann_line)
+        term_idx += 1
+
+    for idx, char_offset in enumerate(material_char_offsets):
+        id_ = term_idx
+        ann_line = form_line(idx=id_, char_offset=char_offset, tag_name="Task")
+        ann_lines.append(ann_line)
+        term_idx += 1
 
     with open(ann_filepath, "w") as fp:
         fp.write("\n".join(ann_lines))

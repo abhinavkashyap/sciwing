@@ -316,7 +316,11 @@ class TestCommon:
         assert char_offsets == expected_char_offsets
 
     def test_write_ann_file_from_conll_file(self, tmpdir):
-        conll_lines = ["word B-Task", "word I-Task", "word L-Task"]
+        conll_lines = [
+            "word B-Task B-Process B-Material",
+            "word I-Task I-Process I-Material",
+            "word L-Task L-Process L-Material",
+        ]
 
         dummy_dir = tmpdir.mkdir("fake_dir")
         dummy_conll = dummy_dir.join("dummy.conll")
@@ -327,9 +331,9 @@ class TestCommon:
         ann_filepath = pathlib.Path(dummy_ann)
 
         write_ann_file_from_conll_file(
-            conll_filepath=conll_filepath, ann_filepath=ann_filepath, tag_name="Task"
+            conll_filepath=conll_filepath, ann_filepath=ann_filepath
         )
 
         with open(ann_filepath) as fp:
             num_lines = sum([1 for line in fp])
-            assert num_lines == 1
+            assert num_lines == 3

@@ -17,15 +17,15 @@ def setup_science_ie_train_data_utils():
 class TestScienceIEDataUtils:
     def test_file_ids_different(self, setup_science_ie_train_data_utils):
         utils = setup_science_ie_train_data_utils
-        file_ids = utils._get_file_ids()
+        file_ids = utils.get_file_ids()
         counter_file_ids = Counter(file_ids)
         assert all([count == 1 for count in counter_file_ids.values()])
 
     def test_all_text_read(self, setup_science_ie_train_data_utils):
         utils = setup_science_ie_train_data_utils
-        file_ids = utils._get_file_ids()
+        file_ids = utils.get_file_ids()
         for file_id in file_ids:
-            text = utils._get_text(file_id)
+            text = utils.get_text_from_fileid(file_id)
             assert len(text) > 0
 
     @pytest.mark.parametrize("entity_type", ["Task", "Process", "Material"])
@@ -33,7 +33,7 @@ class TestScienceIEDataUtils:
         self, setup_science_ie_train_data_utils, entity_type
     ):
         utils = setup_science_ie_train_data_utils
-        file_ids = utils._get_file_ids()
+        file_ids = utils.get_file_ids()
 
         for file_id in file_ids:
             annotations = utils._get_annotations_for_entity(
@@ -46,7 +46,7 @@ class TestScienceIEDataUtils:
         self, setup_science_ie_train_data_utils, entity_type
     ):
         utils = setup_science_ie_train_data_utils
-        file_ids = utils._get_file_ids()
+        file_ids = utils.get_file_ids()
 
         for file_id in file_ids:
             annotations = utils._get_annotations_for_entity(

@@ -162,6 +162,18 @@ class TestScienceIEInference:
     def test_science_ie_user_input(self, setup_science_ie_inference):
         inference = setup_science_ie_inference
         try:
-            inference.on_user_input("This is a sentence")
+            inference.infer_single_sentence("This is a sentence")
         except:
             pytest.fail("On user input does not work")
+
+    def test_scienceie_generate_pred_folder(self, setup_science_ie_inference, tmpdir):
+        inference = setup_science_ie_inference
+        try:
+            dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
+            pred_folder = tmpdir.mkdir("science_ie_pred_folder")
+            pred_folder = pathlib.Path(pred_folder)
+            inference.generate_predict_folder(
+                dev_folder=dev_folder, pred_folder=pred_folder
+            )
+        except:
+            pytest.fail("Generating Prediction Folder does not work")

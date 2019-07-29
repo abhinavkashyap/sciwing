@@ -20,7 +20,7 @@ class ScienceIEDataUtils:
         self.folderpath = folderpath
         self.ignore_warning = ignore_warnings
         self.entity_types = ["Process", "Material", "Task"]
-        self.file_ids = self._get_file_ids()
+        self.file_ids = self.get_file_ids()
         self.msg_printer = wasabi.Printer()
         self.spacy_nlp = English()
         self.sentencizer = self.spacy_nlp.create_pipe("sentencizer")
@@ -41,22 +41,20 @@ class ScienceIEDataUtils:
         prefix_regex = spacy.util.compile_prefix_regex(default_prefixes)
         self.spacy_nlp.tokenizer.prefix_search = prefix_regex.search
 
-    def _get_file_ids(self) -> List[str]:
+    def get_file_ids(self) -> List[str]:
         file_ids = [file.stem for file in self.folderpath.iterdir()]
         file_ids = set(file_ids)
         file_ids = list(file_ids)
         return file_ids
 
-    def _get_text(self, file_id: str) -> str:
+    def get_text_from_fileid(self, file_id: str) -> str:
         path = self.folderpath.joinpath(f"{file_id}.txt")
         with open(path, "r") as fp:
             text = fp.readline()
             text = text.strip()
 
         # write to sentences and rewrite to text to avoid inconsistencies
-        doc = self.spacy_nlp(text)
-        sents = doc.sents
-        sents = [sent.text for sent in sents]
+        sents = self.get_sents(text)
         text = " ".join(sents)
         return text
 
@@ -113,7 +111,7 @@ class ScienceIEDataUtils:
         :return:
         """
         annotations = self._get_annotations_for_entity(file_id=file_id, entity=entity)
-        text = self._get_text(file_id)
+        text = self.get_text_from_fileid(file_id)
 
         return self._get_bilou_lines_for_entity(
             text=text, annotations=annotations, entity=entity
@@ -245,24 +243,17 @@ class ScienceIEDataUtils:
         tags = []
         for line in bilou_lines:
             word, _, _, tag = line.split()
-            match = re.match("\[(.*)\]\.", word)
-            if match:
-                digits = match.groups(0)
-                word = f"{digits}."
-            match = re.match("(.*);", word)
-            if match:
-                anything = match.groups(0)
-                word = f"{anything}."
             words.append(word)
             tags.append(tag)
 
+        words = self.prepare_sentence_for_segmentation(line=words)
+
         text = " ".join(words)
-        doc = self.spacy_nlp(text)
-        sents = list(doc.sents)
+        sents = self.get_sents(text)
 
         sentence_words = []
         for sent in sents:
-            sentence_words.extend(sent.text.split())
+            sentence_words.extend(sent.split())
 
         num_sentence_words = len(sentence_words)
 
@@ -275,7 +266,7 @@ class ScienceIEDataUtils:
         num_words_seen = 0
         tagged_sentences = []
         for sentence in sents:
-            sentence_str = sentence.string.strip()
+            sentence_str = sentence.strip()
             sentence_words = sentence_str.split()
             num_words = len(sentence_words)
             sentence_tags = tags[num_words_seen : num_words_seen + num_words]
@@ -318,6 +309,28 @@ class ScienceIEDataUtils:
                     else:
                         out_fp.write(task_line)
             self.msg_printer.good("Finished Merging Task Process and Material Files")
+
+    @classmethod
+    def prepare_sentence_for_segmentation(cls, line: List[str]) -> List[str]:
+        words = []
+        for word in line:
+            square_bracket_match = re.match("\[(.*)\]\.", word)
+            if square_bracket_match:
+                digits = square_bracket_match.groups(0)
+                word = f"{digits}."
+            round_bracket_match = re.match("(.*);", word)
+            if round_bracket_match:
+                anything = round_bracket_match.groups(0)
+                word = f"{anything}."
+            words.append(word)
+
+        return words
+
+    def get_sents(self, text: str):
+        doc = self.spacy_nlp(text)
+        sents = doc.sents
+        sents = [sent.string for sent in sents]
+        return sents
 
 
 if __name__ == "__main__":

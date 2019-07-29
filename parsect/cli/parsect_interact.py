@@ -34,10 +34,12 @@ import pathlib
 import pandas as pd
 
 PATHS = constants.PATHS
-
+FILES = constants.FILES
+SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
 REPORTS_DIR = PATHS["REPORTS_DIR"]
+DATA_DIR = PATHS["DATA_DIR"]
 
 
 class ParsectCli:
@@ -100,6 +102,8 @@ class ParsectCli:
         self.generate_report_or_interact = self.ask_generate_report_or_interact()
         if self.generate_report_or_interact == "interact":
             self.interact()
+        elif self.generate_report_or_interact == "gen-pred-folder":
+            self.generate_scienceie_report_folder()
         elif self.generate_report_or_interact == "gen-report":
             self.generate_report()
 
@@ -118,8 +122,16 @@ class ParsectCli:
             choices.append(Choice(model_type))
         return choices
 
-    @staticmethod
-    def ask_generate_report_or_interact():
+    def ask_generate_report_or_interact(self):
+        choices = [
+            Choice("Interact with model", "interact"),
+            Choice("Generate report (for all experiments)", "gen-report"),
+        ]
+        if self.model_type_answer == "lstm-crf-scienceie-tagger":
+            choices.append(
+                Choice(title="Generate Pred Folder", value="gen-pred-folder")
+            )
+
         generate_report_or_interact = questionary.rawselect(
             "What would you like to do ",
             qmark="❓",
@@ -173,7 +185,8 @@ class ParsectCli:
 
             elif interaction_choice == "enter_text":
                 text = questionary.text("Enter Text: ").ask()
-                inference_client.on_user_input(text)
+                tagged_string = inference_client.infer_single_sentence(text)
+                print(tagged_string)
             elif interaction_choice == "exit":
                 self.msg_printer.text("See you again!")
                 exit(0)
@@ -259,6 +272,10 @@ class ParsectCli:
             self.model_type2exp_prefix[self.model_type_answer] + "_report.csv",
         )
         fscores_df.to_csv(output_filename, index=True, header=list(fscores_df.columns))
+
+    def generate_scienceie_report_folder(self):
+        dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
+        pred_folder = pathlib.Path(REPORTS_DIR, "science_ie_pred_folder")
 
 
 if __name__ == "__main__":
