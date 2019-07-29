@@ -1,14 +1,15 @@
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import parsect.constants as constants
 import os
-import torch.nn as nn
 import torch.optim as optim
 from parsect.engine.engine import Engine
 import json
 import argparse
+import torch.nn as nn
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--bs", help="batch size", type=int)
     parser.add_argument("--emb_dim", help="embedding dimension", type=int)
+    parser.add_argument("--emb_type", help="embedding type", type=str)
     parser.add_argument("--lr", help="learning rate", type=float)
     parser.add_argument("--epochs", help="number of epochs", type=int)
     parser.add_argument(
@@ -55,11 +57,6 @@ if __name__ == "__main__":
         "--log_train_metrics_every",
         help="Log training metrics every few iterations",
         type=int,
-    )
-    parser.add_argument(
-        "--emb_type",
-        help="The type of glove embedding you want. The allowed types are glove_6B_50, glove_6B_100, "
-        "glove_6B_200, glove_6B_300",
     )
 
     args = parser.parse_args()
@@ -98,8 +95,8 @@ if __name__ == "__main__":
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
+    TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
     train_dataset = GenericSectDataset(
         generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
@@ -139,12 +136,14 @@ if __name__ == "__main__":
 
     VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    glove_embeddings = train_dataset.get_preloaded_word_embedding()
 
-    embedding = nn.Embedding.from_pretrained(glove_embeddings, freeze=False)
+    random_embeddings = train_dataset.get_preloaded_word_embedding()
+    embedding = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
+
+    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         aggregation_type="sum",
     )

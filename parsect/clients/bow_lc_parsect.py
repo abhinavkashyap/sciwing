@@ -46,6 +46,7 @@ if __name__ == "__main__":
         type=float,
     )
     parser.add_argument("--bs", help="batch size", type=int)
+    parser.add_argument("--emb_type", help="embedding type", type=str)
     parser.add_argument("--emb_dim", help="embedding dimension", type=int)
     parser.add_argument("--lr", help="learning rate", type=float)
     parser.add_argument("--epochs", help="number of epochs", type=int)
@@ -71,6 +72,7 @@ if __name__ == "__main__":
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
+        "EMBEDDING_TYPE": args.emb_type,
     }
 
     EXP_NAME = config["EXP_NAME"]
@@ -93,6 +95,7 @@ if __name__ == "__main__":
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
+    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
     train_dataset = ParsectDataset(
@@ -103,7 +106,7 @@ if __name__ == "__main__":
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=None,
+        word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
@@ -115,7 +118,7 @@ if __name__ == "__main__":
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=None,
+        word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
@@ -127,7 +130,7 @@ if __name__ == "__main__":
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=None,
+        word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
