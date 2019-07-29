@@ -1,6 +1,7 @@
-from parsect.models.bow_bert_linear_classifier import BowBertLinearClassifier
+from parsect.modules.embedders.bert_embedder import BertEmbedder
+from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
-from parsect.modules.bow_bert_encoder import BowBertEncoder
 import parsect.constants as constants
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import os
@@ -158,7 +159,7 @@ if __name__ == "__main__":
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_word_embedding()
 
-    encoder = BowBertEncoder(
+    embedder = BertEmbedder(
         emb_dim=EMBEDDING_DIMENSION,
         dropout_value=0.0,
         aggregation_type="average",
@@ -166,7 +167,10 @@ if __name__ == "__main__":
         device=torch.device(DEVICE),
     )
 
-    model = BowBertLinearClassifier(
+    encoder = BOW_Encoder(
+        emb_dim=EMBEDDING_DIMENSION, embedder=embedder, aggregation_type="average"
+    )
+    model = SimpleClassifier(
         encoder=encoder,
         encoding_dim=EMBEDDING_DIMENSION,
         num_classes=NUM_CLASSES,

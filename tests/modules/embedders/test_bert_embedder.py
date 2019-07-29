@@ -1,5 +1,5 @@
 import pytest
-from parsect.modules.bow_bert_encoder import BowBertEncoder
+from parsect.modules.embedders.bert_embedder import BertEmbedder
 import itertools
 
 bert_base_types = [
@@ -20,11 +20,11 @@ bert_large_type_agg_type = list(itertools.product(bert_large_types, aggregation_
 
 
 @pytest.fixture(scope="module", params=bert_base_type_agg_type)
-def setup_bow_bert_encoder_base_type(request):
+def setup_bert_embedder(request):
     emb_dim = 768
     dropout_value = 0.0
 
-    bow_bert_encoder = BowBertEncoder(
+    bow_bert_encoder = BertEmbedder(
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=request.param[1],
@@ -34,16 +34,17 @@ def setup_bow_bert_encoder_base_type(request):
         "Lets start by talking politics",
         "there are radical ways to test your code",
     ]
+    iter_dict = {"raw_instance": strings}
 
-    return bow_bert_encoder, strings
+    return bow_bert_encoder, iter_dict
 
 
 @pytest.fixture(scope="module", params=bert_large_type_agg_type)
-def setup_bow_bert_encoder_large_type(request):
+def setup_bert_embedder_large(request):
     emb_dim = 1024
     dropout_value = 0.0
 
-    bow_bert_encoder = BowBertEncoder(
+    bow_bert_encoder = BertEmbedder(
         emb_dim=emb_dim,
         dropout_value=dropout_value,
         aggregation_type=request.param[1],
@@ -53,25 +54,25 @@ def setup_bow_bert_encoder_large_type(request):
         "Lets start by talking politics",
         "there are radical ways to test your code",
     ]
+    iter_dict = {"raw_instance": strings}
+    return bow_bert_encoder, iter_dict
 
-    return bow_bert_encoder, strings
 
-
-class TestBowBertEncoder:
-    def test_bow_bert_encoder_base_type(self, setup_bow_bert_encoder_base_type):
+class TestBertEmbedder:
+    def test_bert_embedder_base_type(self, setup_bert_embedder):
         """
             The bow bert encoder should return a single instance
             that is the sum of the word embeddings of the instance
         """
-        bow_bert_encoder, strings = setup_bow_bert_encoder_base_type
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 768)
+        bert_embedder, iter_dict = setup_bert_embedder
+        encoding = bert_embedder(iter_dict)
+        assert encoding.size() == (2, 8, 768)
 
-    def test_bow_bert_encoder_large_type(self, setup_bow_bert_encoder_large_type):
+    def test_bert_embedder_encoder_large_type(self, setup_bert_embedder_large):
         """
             The bow bert encoder should return a single instance
             that is the sum of the word embeddings of the instance
         """
-        bow_bert_encoder, strings = setup_bow_bert_encoder_large_type
-        encoding = bow_bert_encoder(strings)
-        assert encoding.size() == (2, 1024)
+        bert_embedder, iter_dict = setup_bert_embedder_large
+        encoding = bert_embedder(iter_dict)
+        assert encoding.size() == (2, 8, 1024)

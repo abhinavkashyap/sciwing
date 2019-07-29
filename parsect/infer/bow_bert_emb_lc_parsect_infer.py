@@ -1,8 +1,9 @@
 import json
 import os
 import parsect.constants as constants
-from parsect.modules.bow_bert_encoder import BowBertEncoder
-from parsect.models.bow_bert_linear_classifier import BowBertLinearClassifier
+from parsect.modules.embedders.bert_embedder import BertEmbedder
+from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.infer.parsect_inference import ParsectInference
 import torch
@@ -35,7 +36,7 @@ def get_bow_bert_emb_lc_parsect_infer(dirname: str):
 
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
-    encoder = BowBertEncoder(
+    embedder = BertEmbedder(
         emb_dim=EMBEDDING_DIM,
         dropout_value=0.0,
         aggregation_type="average",
@@ -43,7 +44,10 @@ def get_bow_bert_emb_lc_parsect_infer(dirname: str):
         device=torch.device(DEVICE),
     )
 
-    model = BowBertLinearClassifier(
+    encoder = BOW_Encoder(
+        embedder=embedder, emb_dim=EMBEDDING_DIM, aggregation_type="average"
+    )
+    model = SimpleClassifier(
         encoder=encoder,
         encoding_dim=EMBEDDING_DIM,
         num_classes=NUM_CLASSES,
