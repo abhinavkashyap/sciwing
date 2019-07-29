@@ -158,3 +158,10 @@ class TestScienceIEInference:
             inference.generate_report_for_paper()
         except:
             pytest.fail("Generate Report For paper does not work")
+
+    def test_science_ie_user_input(self, setup_science_ie_inference):
+        inference = setup_science_ie_inference
+        try:
+            inference.on_user_input("This is a sentence")
+        except:
+            pytest.fail("On user input does not work")

@@ -1,8 +1,12 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import torch.nn as nn
 from parsect.infer.BaseInference import BaseInference
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.vis_seq_tags import VisTagging
+from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
+from parsect.vocab.vocab import Vocab
+from parsect.tokenizers.word_tokenizer import WordTokenizer
+from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 import pandas as pd
 import torch
 from parsect.utils.tensor import move_to_device
@@ -16,7 +20,7 @@ class ScienceIEInference(BaseInference):
         model: nn.Module,
         model_filepath: str,
         hyperparam_config_filepath: str,
-        dataset,
+        dataset: Optional[ScienceIEDataset] = None,
     ):
         super(ScienceIEInference, self).__init__(
             model=model,
@@ -24,35 +28,42 @@ class ScienceIEInference(BaseInference):
             hyperparam_config_filepath=hyperparam_config_filepath,
             dataset=dataset,
         )
-        self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
-        self.idx2labelname_mapping = {
-            idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
-        }
-        self.ignore_indices = [
-            self.labelname2idx_mapping["starting-Task"],
-            self.labelname2idx_mapping["ending-Task"],
-            self.labelname2idx_mapping["padding-Task"],
-            self.labelname2idx_mapping["starting-Process"],
-            self.labelname2idx_mapping["ending-Process"],
-            self.labelname2idx_mapping["padding-Process"],
-            self.labelname2idx_mapping["starting-Material"],
-            self.labelname2idx_mapping["ending-Material"],
-            self.labelname2idx_mapping["padding-Material"],
-        ]
-        self.metrics_calculator = TokenClassificationAccuracy(
-            idx2labelname_mapping=self.idx2labelname_mapping,
-            mask_label_indices=self.ignore_indices,
-        )
+
         self.load_model()
 
-        with self.msg_printer.loading("Running inference on test data"):
-            self.output_analytics = self.run_inference()
-        self.msg_printer.good("Finished running inference on test data")
+        if self.test_dataset is not None:
+            self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
+            self.idx2labelname_mapping = {
+                idx: label_name
+                for label_name, idx in self.labelname2idx_mapping.items()
+            }
+            self.ignore_indices = [
+                self.labelname2idx_mapping["starting-Task"],
+                self.labelname2idx_mapping["ending-Task"],
+                self.labelname2idx_mapping["padding-Task"],
+                self.labelname2idx_mapping["starting-Process"],
+                self.labelname2idx_mapping["ending-Process"],
+                self.labelname2idx_mapping["padding-Process"],
+                self.labelname2idx_mapping["starting-Material"],
+                self.labelname2idx_mapping["ending-Material"],
+                self.labelname2idx_mapping["padding-Material"],
+            ]
+            self.metrics_calculator = TokenClassificationAccuracy(
+                idx2labelname_mapping=self.idx2labelname_mapping,
+                mask_label_indices=self.ignore_indices,
+            )
 
-        self.output_df = pd.DataFrame(self.output_analytics)
+            with self.msg_printer.loading("Running inference on test data"):
+                self.output_analytics = self.run_inference()
+            self.msg_printer.good("Finished running inference on test data")
 
-        num_categories = len(self.labelname2idx_mapping.keys())
-        categories = [self.idx2labelname_mapping[idx] for idx in range(num_categories)]
+            self.output_df = pd.DataFrame(self.output_analytics)
+
+            num_categories = len(self.labelname2idx_mapping.keys())
+            categories = [
+                self.idx2labelname_mapping[idx] for idx in range(num_categories)
+            ]
+
         self.seq_tagging_visualizer = VisTagging(tags=categories)
 
     def run_inference(self) -> Dict[str, Any]:
@@ -290,3 +301,68 @@ class ScienceIEInference(BaseInference):
             report_type="paper"
         )
         return paper_report, row_names
+
+    def on_user_input(self, line: str):
+        char_vocab_store_location = self.char_vocab_store_location
+        vocab_store_location = self.vocab_store_location
+
+        word_vocab = Vocab.load_from_file(filename=vocab_store_location)
+        char_vocab = Vocab.load_from_file(filename=char_vocab_store_location)
+        word_tokenizer = WordTokenizer(tokenizer="vanilla")
+        char_tokenizer = CharacterTokenizer()
+        max_word_length = self.max_length
+        max_char_length = self.max_char_length
+        classnames2idx = ScienceIEDataset.get_classname2idx()
+        iter_dict = ScienceIEDataset.get_iter_dict(
+            line=line,
+            word_vocab=word_vocab,
+            word_tokenizer=word_tokenizer,
+            max_word_length=max_word_length,
+            word_add_start_end_token=False,
+            char_vocab=char_vocab,
+            char_tokenizer=char_tokenizer,
+            max_char_length=max_char_length,
+        )
+        iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
+        iter_dict["char_tokens"] = iter_dict["char_tokens"].unsqueeze(0)
+
+        model_output_dict = self.model(
+            iter_dict, is_training=False, is_validation=False, is_test=True
+        )
+        predicted_tags = model_output_dict["predicted_tags"]
+        predicted_tags = torch.LongTensor(predicted_tags)
+        task_tags, process_tags, material_tags = torch.chunk(
+            predicted_tags, chunks=3, dim=1
+        )
+        task_tags = task_tags.squeeze().tolist()
+        process_tags = process_tags.squeeze().tolist()
+        material_tags = material_tags.squeeze().tolist()
+
+        task_tag_names = [
+            self.idx2labelname_mapping[tag_idx]
+            for tag_idx in task_tags
+            if tag_idx != classnames2idx["padding-Task"]
+        ]
+        process_tag_names = [
+            self.idx2labelname_mapping[tag_idx]
+            for tag_idx in process_tags
+            if tag_idx != classnames2idx["padding-Process"]
+        ]
+        material_tag_names = [
+            self.idx2labelname_mapping[tag_idx]
+            for tag_idx in material_tags
+            if tag_idx != classnames2idx["padding-Material"]
+        ]
+
+        task_tagged_string = self.seq_tagging_visualizer.visualize_tokens(
+            text=line.split(), labels=task_tag_names
+        )
+        process_tagged_string = self.seq_tagging_visualizer.visualize_tokens(
+            text=line.split(), labels=process_tag_names
+        )
+        material_tagged_string = self.seq_tagging_visualizer.visualize_tokens(
+            text=line.split(), labels=material_tag_names
+        )
+        print(task_tagged_string)
+        print(process_tagged_string)
+        print(material_tagged_string)

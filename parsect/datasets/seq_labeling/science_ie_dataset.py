@@ -119,8 +119,8 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         self.msg_printer = wasabi.Printer()
         self.tag_visualizer = VisTagging()
 
-    @staticmethod
-    def get_classname2idx() -> Dict[str, Any]:
+    @classmethod
+    def get_classname2idx(cls) -> Dict[str, Any]:
         tag_types = ["O", "B", "I", "L", "U"]
         entity_types = ["Task", "Process", "Material"]
         class_names = []
@@ -315,7 +315,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
             f"Example [2] representing the number of tokens without padding",
             "label": f"A torch.LongTensor representing the label corresponding to the "
             f"instance. Example [2,  0, 1] representing class [2, 0, 1] for an instance with "
-            f"3 tokens. Here the length of the instance will match the length of the labels",
+            f"tokens. Here the length of the instance will match the length of the labels",
             "instance": f"A string that is padded to ``max_word_length``.",
             "raw_instance": f"A string that is not padded",
             "char_tokens": f"Every word is tokenized into characters of length `max_char_len`. "

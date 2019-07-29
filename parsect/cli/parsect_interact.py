@@ -143,6 +143,7 @@ class ParsectCli:
                     Choice("See-Confusion-Matrix"),
                     Choice("See-examples-of-Classifications"),
                     Choice("See-prf-table"),
+                    Choice(title="Enter text ", value="enter_text"),
                     Choice("exit"),
                 ],
             ).ask()
@@ -169,6 +170,10 @@ class ParsectCli:
                 self.msg_printer.divider("")
             elif interaction_choice == "See-prf-table":
                 inference_client.print_prf_table()
+
+            elif interaction_choice == "enter_text":
+                text = questionary.text("Enter Text: ").ask()
+                inference_client.on_user_input(text)
             elif interaction_choice == "exit":
                 self.msg_printer.text("See you again!")
                 exit(0)
