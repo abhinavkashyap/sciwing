@@ -3,6 +3,7 @@ import os
 import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 import torch.nn as nn
@@ -33,10 +34,10 @@ def get_random_emb_linear_classifier_infer_genericsect(dirname: str):
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
-
+    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         aggregation_type="sum",
     )
@@ -68,12 +69,3 @@ def get_random_emb_linear_classifier_infer_genericsect(dirname: str):
     )
 
     return parsect_inference
-
-
-if __name__ == "__main__":
-    import wasabi
-
-    dirname = os.path.join(OUTPUT_DIR, "debug_bow_random_generic_sect")
-    msg_printer = wasabi.Printer()
-    with msg_printer.loading("Loading generi sect bow random lc infer"):
-        infer = get_random_emb_linear_classifier_infer_parsect(dirname)

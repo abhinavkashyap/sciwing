@@ -1,5 +1,6 @@
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import parsect.constants as constants
@@ -136,9 +137,10 @@ if __name__ == "__main__":
     random_embeddings = train_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
+    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         aggregation_type="sum",
     )
