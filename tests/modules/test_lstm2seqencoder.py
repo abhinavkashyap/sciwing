@@ -7,7 +7,7 @@ import itertools
 
 is_additional_embedding = [True, False]
 lstm2encoder_options = itertools.product(
-    [True, False], ["sum", "concat"], is_additional_embedding
+    [True, False], ["sum", "concat"], [1, 2], is_additional_embedding
 )
 lstm2encoder_options = list(lstm2encoder_options)
 
@@ -21,7 +21,8 @@ def setup_lstm2seqencoder(request):
     NUM_TIME_STEPS = 10
     BIDIRECTIONAL = request.param[0]
     COMBINE_STRATEGY = request.param[1]
-    IS_ADDITIONAL_EMBEDDING = request.param[2]
+    NUM_LAYERS = request.param[2]
+    IS_ADDITIONAL_EMBEDDING = request.param[3]
     EMBEDDING = nn.Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMBEDDING_DIM]))
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TIME_STEPS))
     tokens = torch.LongTensor(tokens)
@@ -39,6 +40,7 @@ def setup_lstm2seqencoder(request):
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
         rnn_bias=False,
+        num_layers=NUM_LAYERS,
     )
 
     return (
@@ -56,6 +58,7 @@ def setup_lstm2seqencoder(request):
             else HIDDEN_DIM,
             "TIME_STEPS": NUM_TIME_STEPS,
             "ADDITIONAL_EMBEDDING": additional_embedding,
+            "NUM_LAYERS": NUM_LAYERS,
         },
     )
 

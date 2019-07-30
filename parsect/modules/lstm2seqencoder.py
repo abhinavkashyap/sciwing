@@ -11,26 +11,11 @@ class Lstm2SeqEncoder(nn.Module):
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
+        num_layers: int = 1,
         combine_strategy: str = "concat",
         rnn_bias: bool = False,
         device: torch.device = torch.device("cpu"),
     ):
-        """
-        :param emb_dim: type: int
-        The embedding dimension of the embedding used in the first layer of the LSTM
-        :param embedding: type: torch.nn.Embedding
-        :param dropout_value: type: float
-        :param hidden_dim: type: float
-        :param bidirectional: type: bool
-        Is the LSTM bi-directional
-        :param combine_strategy: type: str
-        This can be one of concat, sum, average
-        This decides how different hidden states of different embeddings are combined
-        :param rnn_bias: type: bool
-        should RNN bias be used
-        This is mainly for debugging purposes
-        use sparingly
-        """
         super(Lstm2SeqEncoder, self).__init__()
         self.emb_dim = emb_dim
         self.embedding = embedding
@@ -41,7 +26,7 @@ class Lstm2SeqEncoder(nn.Module):
         self.rnn_bias = rnn_bias
         self.device = device
         self.num_directions = 2 if self.bidirectional else 1
-        self.num_layers = 1
+        self.num_layers = num_layers
         self.allowed_combine_strategies = ["sum", "concat"]
         self.msg_printer = wasabi.Printer()
 
@@ -60,6 +45,7 @@ class Lstm2SeqEncoder(nn.Module):
             bias=self.rnn_bias,
             batch_first=True,
             bidirectional=self.bidirectional,
+            num_layers=self.num_layers,
         )
 
     def forward(
@@ -89,7 +75,7 @@ class Lstm2SeqEncoder(nn.Module):
         output = self.output_dropout(output)
 
         if self.bidirectional:
-            output = output.view(batch_size, seq_length, 2, -1)
+            output = output.view(batch_size, seq_length, self.num_directions, -1)
             forward_output = output[:, :, 0, :]  # batch_size, seq_length, hidden_dim
             backward_output = output[:, :, 1, :]  # batch_size, seq_length, hidden_dim
             if self.combine_strategy == "concat":
