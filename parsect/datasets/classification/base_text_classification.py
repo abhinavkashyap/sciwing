@@ -298,7 +298,7 @@ class BaseTextClassification(metaclass=ABCMeta):
     @classmethod
     def get_iter_dict(
         cls,
-        line: str,
+        lines: Union[List[str], str],
         word_vocab: Vocab,
         word_tokenizer: WordTokenizer,
         max_word_length: int,

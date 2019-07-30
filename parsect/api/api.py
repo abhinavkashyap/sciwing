@@ -16,8 +16,12 @@ api = application = falcon.API(middleware=[multipart_middleware])
 pdf_store = PdfStore(store_path=PDF_STORE_LOCATION)
 
 sect_label_resource = SectLabelResource(
-    pdf_store=pdf_store, pdfbox_jar_path=PDF_BOX_EXEC
+    pdf_store=pdf_store,
+    pdfbox_jar_path=PDF_BOX_EXEC,
+    model_filepath=str(SECT_MODEL_PATH),
+    model_infer_func=SECT_LABEL_INFER_FUNCTION,
 )
+
 
 # All routes in the application
 

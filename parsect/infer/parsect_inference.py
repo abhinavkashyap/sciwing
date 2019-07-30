@@ -7,7 +7,7 @@ from parsect.datasets.classification.base_text_classification import (
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
-from typing import Any, Dict, List, Optional, ClassVar
+from typing import Any, Dict, List, Optional, Union
 import pandas as pd
 from parsect.utils.tensor import move_to_device
 from parsect.tokenizers.word_tokenizer import WordTokenizer
@@ -67,10 +67,7 @@ class ParsectInference(BaseInference):
             self.metrics_calculator = PrecisionRecallFMeasure(
                 idx2labelname_mapping=self.idx2labelname_mapping
             )
-
-            with self.msg_printer.loading("Running inference on test data"):
-                self.output_analytics = self.run_inference()
-            self.msg_printer.good("Finished running inference on test data")
+            self.output_analytics = self.run_inference()
 
             # create a dataframe with all the information
             self.output_df = pd.DataFrame(self.output_analytics)
@@ -200,7 +197,10 @@ class ParsectInference(BaseInference):
         row_names.extend([f"Micro-Fscore", f"Macro-Fscore"])
         return paper_report, row_names
 
-    def on_user_input(self, line: str):
+    def infer_batch(self, lines: Union[List[str], str]):
+        if isinstance(lines, str):
+            lines = [lines]
+
         word_tokenizer = WordTokenizer()
         word_vocab = Vocab.load_from_file(self.vocab_store_location)
         max_word_length = self.max_length
@@ -209,14 +209,15 @@ class ParsectInference(BaseInference):
         idx2classnames = {idx: class_ for class_, idx in classnames2idx.items()}
 
         iter_dict = self.dataset_class.get_iter_dict(
-            line=line,
+            lines=lines,
             word_vocab=word_vocab,
             word_tokenizer=word_tokenizer,
             max_word_length=max_word_length,
             word_add_start_end_token=word_add_start_end_token,
         )
 
-        iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
+        if len(lines) == 1:
+            iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
 
         model_forward_dict = self.model(
             iter_dict, is_training=False, is_validation=False, is_test=True
@@ -225,6 +226,10 @@ class ParsectInference(BaseInference):
         # 1 * C - Number of classes
         normalized_probs = model_forward_dict["normalized_probs"]
         top_probs, top_indices = torch.topk(normalized_probs, k=1, dim=1)
-        top_index = top_indices.item()
+        top_indices = top_indices.squeeze().tolist()
+        classnames = [idx2classnames[top_index] for top_index in top_indices]
 
-        return idx2classnames[top_index]
+        return classnames
+
+    def on_user_input(self, line: str) -> str:
+        return self.infer_batch(lines=line)[0]

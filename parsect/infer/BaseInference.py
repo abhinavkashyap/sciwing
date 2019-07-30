@@ -54,15 +54,12 @@ class BaseInference(metaclass=ABCMeta):
 
     def load_model(self):
 
-        with self.msg_printer.loading(
-            "LOADING MODEL FROM FILE {0}".format(self.model_filepath)
-        ):
-            model_chkpoint = torch.load(self.model_filepath)
-            model_state_dict = model_chkpoint["model_state"]
-            loss_value = model_chkpoint["loss"]
-            self.model.load_state_dict(model_state_dict)
-            self.model.to(self.device)
-            self.model.eval()
+        model_chkpoint = torch.load(self.model_filepath)
+        model_state_dict = model_chkpoint["model_state"]
+        loss_value = model_chkpoint["loss"]
+        self.model.load_state_dict(model_state_dict)
+        self.model.to(self.device)
+        self.model.eval()
 
         self.msg_printer.good(
             "Loaded Best Model with loss value {0}".format(loss_value)

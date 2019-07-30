@@ -2,13 +2,23 @@ import falcon
 from typing import Dict, Callable
 from parsect.api.pdf_store import PdfStore
 import subprocess
-import pathlib
+from parsect.utils.common import chunks
+import itertools
 
 
 class SectLabelResource:
-    def __init__(self, pdf_store: PdfStore, pdfbox_jar_path: str):
+    def __init__(
+        self,
+        pdf_store: PdfStore,
+        pdfbox_jar_path: str,
+        model_filepath: str,
+        model_infer_func: Callable,
+    ):
         self.pdf_store = pdf_store
         self.pdfbox_jar_path = pdfbox_jar_path
+        self.model_filepath = model_filepath
+        self.model_infer_func = model_infer_func
+        self.infer_client = self.model_infer_func(self.model_filepath)
 
     def on_post(self, req, resp) -> Dict[str, str]:
         """ Post the base64 url encoded pdf file to sect label
@@ -44,6 +54,17 @@ class SectLabelResource:
                 capture_output=True,
             )
             text = text.stdout
-            resp.data = text
+            text = str(text)
+            lines = text.split("\\n")
+
+            labels = []
+            for batch_lines in chunks(lines, 64):
+                label = self.infer_client.infer_batch(lines=batch_lines)
+                labels.append(label)
+
+            labels = itertools.chain.from_iterable(labels)
+            labels = list(labels)
+
+            resp.media = {"labels": labels, "lines": lines}
 
         resp.status = falcon.HTTP_201

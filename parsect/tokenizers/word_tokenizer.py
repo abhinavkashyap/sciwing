@@ -56,8 +56,6 @@ class WordTokenizer(BaseTokenizer):
 
     def tokenize_batch(self, texts: List[str]) -> List[List[str]]:
         tokenized = []
-        for text in tqdm(texts, total=len(texts), desc="Batch word_tokenize"):
+        for text in texts:
             tokenized.append(self.tokenize(text))
-
-        self.msg_printer.good("Finished Tokenizing Text")
         return tokenized
