@@ -1,5 +1,5 @@
 from torch.utils.data import Dataset
-from typing import Union, Dict, List, Any
+from typing import Union, Dict, List, Any, Optional
 from parsect.utils.common import convert_generic_sect_to_json
 import wasabi
 from parsect.tokenizers.word_tokenizer import WordTokenizer
@@ -86,34 +86,17 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         return len(self.instances)
 
     def __getitem__(self, idx: int) -> Dict[str, Any]:
-        instance = self.instances[idx]
+        line = self.headers[idx]
         label = self.labels[idx]
-        label_idx = self.label2idx[label]
-        len_instance = len(instance)
 
-        padded_instance = pack_to_length(
-            tokenized_text=instance,
-            max_length=self.max_length,
-            pad_token=self.pad_token,
-            add_start_end_token=self.add_start_end_token,
-            start_token=self.start_token,
-            end_token=self.end_token,
+        return self.get_iter_dict(
+            line=line,
+            word_vocab=self.vocab,
+            word_tokenizer=self.word_tokenizer,
+            max_word_length=self.max_length,
+            word_add_start_end_token=True,
+            labels=label,
         )
-
-        tokens = self.numericalizer.numericalize_instance(padded_instance)
-        tokens = torch.LongTensor(tokens)
-        len_tokens = torch.LongTensor([len_instance])
-        label = torch.LongTensor([label_idx])
-
-        instance_dict = {
-            "tokens": tokens,
-            "len_tokens": len_tokens,
-            "label": label,
-            "instance": " ".join(padded_instance),
-            "raw_instance": " ".join(instance),
-        }
-
-        return instance_dict
 
     def get_lines_labels(self) -> (List[str], List[str]):
         headers = []
@@ -218,3 +201,49 @@ class GenericSectDataset(Dataset, BaseTextClassification):
             "instance": f"A string that is padded to ``max_length``.",
             "raw_instance": f"A string that is not padded",
         }
+
+    @classmethod
+    def get_iter_dict(
+        cls,
+        line: str,
+        word_vocab: Vocab,
+        word_tokenizer: WordTokenizer,
+        max_word_length: int,
+        word_add_start_end_token: bool,
+        labels: Optional[List[str]],
+    ):
+        word_instance = word_tokenizer.tokenize(line)
+        len_instance = len(word_instance)
+        word_numericalizer = Numericalizer(vocabulary=word_vocab)
+        classnames2idx = GenericSectDataset.get_classname2idx()
+        labels = classnames2idx[labels]
+
+        if labels is not None:
+            assert len_instance == len(word_instance)
+            label = torch.LongTensor([labels])
+
+        padded_instance = pack_to_length(
+            tokenized_text=word_instance,
+            max_length=max_word_length,
+            pad_token=word_vocab.pad_token,
+            add_start_end_token=True,  # TODO: remove hard coded value here
+            start_token=word_vocab.start_token,
+            end_token=word_vocab.end_token,
+        )
+
+        tokens = word_numericalizer.numericalize_instance(padded_instance)
+
+        tokens = torch.LongTensor(tokens)
+        len_tokens = torch.LongTensor([len_instance])
+
+        instance_dict = {
+            "tokens": tokens,
+            "len_tokens": len_tokens,
+            "instance": " ".join(padded_instance),
+            "raw_instance": " ".join(word_instance),
+        }
+
+        if labels is not None:
+            instance_dict["label"] = label
+
+        return instance_dict

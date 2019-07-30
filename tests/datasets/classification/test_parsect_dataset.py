@@ -64,40 +64,6 @@ def setup_parsect_train_dataset_returns_instances(tmpdir):
     )
 
 
-@pytest.fixture
-def setup_parsect_train_dataset_bert_tokenizer(tmpdir):
-    MAX_NUM_WORDS = 1000
-    MAX_LENGTH = 10
-    vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
-    DEBUG = True
-
-    train_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
-        dataset_type="train",
-        max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
-        word_vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-        train_size=0.8,
-        test_size=0.2,
-        validation_size=0.5,
-        word_tokenization_type="bert",
-        word_tokenizer=BertTokenizer.from_pretrained("bert-base-cased"),
-        start_token="[CLS]",
-        end_token="[SEP]",
-        pad_token="[PAD]",
-    )
-
-    return (
-        train_dataset,
-        {
-            "MAX_NUM_WORDS": MAX_NUM_WORDS,
-            "MAX_LENGTH": MAX_LENGTH,
-            "vocab_store_location": vocab_store_location,
-        },
-    )
-
-
 class TestParsectDataset:
     def test_label_mapping_len(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
@@ -187,44 +153,6 @@ class TestParsectDataset:
         lines, labels = dataset.get_lines_labels()
         assert all([bool(line.strip()) for line in lines])
         assert all([bool(label.strip()) for label in labels])
-
-    def test_lines_not_empty_bert_tokenization(
-        self, setup_parsect_train_dataset_bert_tokenizer
-    ):
-        dataset, options = setup_parsect_train_dataset_bert_tokenizer
-        lines, labels = dataset.get_lines_labels()
-        assert all([bool(line.strip()) for line in lines])
-        assert all([bool(label.strip()) for label in labels])
-
-    def test_bert_tokens_exists_bert_tokneization(
-        self, setup_parsect_train_dataset_bert_tokenizer
-    ):
-        dataset, options = setup_parsect_train_dataset_bert_tokenizer
-        instance_dict = dataset[0]
-        assert type(instance_dict["bert_tokens"]) != type(int)
-        assert type(instance_dict["segment_ids"]) != type(int)
-
-    def test_bert_tokens_len(self, setup_parsect_train_dataset_bert_tokenizer):
-        dataset, options = setup_parsect_train_dataset_bert_tokenizer
-        iter_dict = dataset[0]
-        max_len = options["MAX_LENGTH"]
-
-        assert iter_dict["bert_tokens"].size(0) == max_len
-
-    def test_segment_ids_len(self, setup_parsect_train_dataset_bert_tokenizer):
-        dataset, options = setup_parsect_train_dataset_bert_tokenizer
-        iter_dict = dataset[0]
-        max_len = options["MAX_LENGTH"]
-
-        assert iter_dict["segment_ids"].size(0) == max_len
-
-    def test_bert_tokens_batch_size(self, setup_parsect_train_dataset_bert_tokenizer):
-        dataset, options = setup_parsect_train_dataset_bert_tokenizer
-        loader = DataLoader(dataset=dataset, batch_size=3, shuffle=False)
-        instances_dict = next(iter(loader))
-
-        assert instances_dict["bert_tokens"].size() == (3, options["MAX_LENGTH"])
-        assert instances_dict["segment_ids"].size() == (3, options["MAX_LENGTH"])
 
     def test_print_stats_works(self, setup_parsect_train_dataset):
         dataset, options = setup_parsect_train_dataset

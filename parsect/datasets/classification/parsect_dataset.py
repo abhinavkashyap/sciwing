@@ -2,7 +2,7 @@ import torch
 import wasabi
 import collections
 from torch.utils.data import Dataset
-from typing import List, Dict, Union, Any
+from typing import List, Dict, Union, Any, Optional
 import parsect.constants as constants
 from parsect.utils.common import convert_sectlabel_to_json
 from parsect.utils.common import pack_to_length
@@ -97,46 +97,17 @@ class ParsectDataset(Dataset, BaseTextClassification):
         return len(self.instances)
 
     def __getitem__(self, idx) -> Dict[str, Any]:
-        instance = self.instances[idx]
+        line = self.lines[idx]
         label = self.labels[idx]
-        label_idx = self.classname2idx[label]
-        len_instance = len(instance)
 
-        padded_instance = pack_to_length(
-            tokenized_text=instance,
-            max_length=self.max_length,
-            pad_token=self.vocab.pad_token,
-            add_start_end_token=True,  # TODO: remove hard coded value here
-            start_token=self.vocab.start_token,
-            end_token=self.vocab.end_token,
+        return self.get_iter_dict(
+            line=line,
+            word_vocab=self.vocab,
+            word_tokenizer=self.word_tokenizer,
+            max_word_length=self.max_length,
+            word_add_start_end_token=True,
+            labels=label,
         )
-
-        tokens = self.numericalizer.numericalize_instance(padded_instance)
-
-        bert_tokens = -1  # -1 indicates no bert tokens
-        segment_ids = -1  # -1 indicates no bert tokens
-
-        if self.word_tokenization_type == "bert":
-            bert_tokens = self.word_tokenizer.convert_tokens_to_ids(padded_instance)
-            segment_ids = [0] * len(padded_instance)
-            bert_tokens = torch.LongTensor(bert_tokens)
-            segment_ids = torch.LongTensor(segment_ids)
-
-        tokens = torch.LongTensor(tokens)
-        len_tokens = torch.LongTensor([len_instance])
-        label = torch.LongTensor([label_idx])
-
-        instance_dict = {
-            "tokens": tokens,
-            "len_tokens": len_tokens,
-            "label": label,
-            "instance": " ".join(padded_instance),
-            "raw_instance": " ".join(instance),
-            "bert_tokens": bert_tokens,
-            "segment_ids": segment_ids,
-        }
-
-        return instance_dict
 
     @deprecated(reason="Deprecated because of bad train-valid-test split.")
     def get_lines_labels_deprecated(self) -> (List[str], List[str]):
@@ -329,8 +300,50 @@ class ParsectDataset(Dataset, BaseTextClassification):
             f"instance. Example [2] representing class 2",
             "instance": f"A string that is padded to ``max_length``.",
             "raw_instance": f"A string that is not padded",
-            "bert_tokens": f"A torch.LongTensor that represents a set of bert tokens given "
-            f"by the BertTokenizer",
-            "segment_ids": f"A torch.LongTensor of zeros which means that all instances "
-            f"are single sentences. Bert requires to indicate sentences.",
         }
+
+    @classmethod
+    def get_iter_dict(
+        cls,
+        line: str,
+        word_vocab: Vocab,
+        word_tokenizer: WordTokenizer,
+        max_word_length: int,
+        word_add_start_end_token: bool,
+        labels: Optional[str],
+    ):
+        word_instance = word_tokenizer.tokenize(line)
+        len_instance = len(word_instance)
+        word_numericalizer = Numericalizer(vocabulary=word_vocab)
+        classnames2idx = ParsectDataset.get_classname2idx()
+        labels = classnames2idx[labels]
+
+        if labels is not None:
+            assert len_instance == len(word_instance)
+            label = torch.LongTensor([labels])
+
+        padded_instance = pack_to_length(
+            tokenized_text=word_instance,
+            max_length=max_word_length,
+            pad_token=word_vocab.pad_token,
+            add_start_end_token=True,  # TODO: remove hard coded value here
+            start_token=word_vocab.start_token,
+            end_token=word_vocab.end_token,
+        )
+
+        tokens = word_numericalizer.numericalize_instance(padded_instance)
+
+        tokens = torch.LongTensor(tokens)
+        len_tokens = torch.LongTensor([len_instance])
+
+        instance_dict = {
+            "tokens": tokens,
+            "len_tokens": len_tokens,
+            "instance": " ".join(padded_instance),
+            "raw_instance": " ".join(word_instance),
+        }
+
+        if labels is not None:
+            instance_dict["label"] = label
+
+        return instance_dict

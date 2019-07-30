@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from typing import Union, Dict, List, Any
+from typing import Union, Dict, List, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
+from parsect.vocab.vocab import Vocab
 import wasabi
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
@@ -292,4 +293,16 @@ class BaseTextClassification(metaclass=ABCMeta):
             A dictionary representing different keys emitted and their corresponding human
             readable description
         """
+        pass
+
+    @classmethod
+    def get_iter_dict(
+        cls,
+        line: str,
+        word_vocab: Vocab,
+        word_tokenizer: WordTokenizer,
+        max_word_length: int,
+        word_add_start_end_token: bool,
+        labels: Optional[List[str]],
+    ):
         pass
