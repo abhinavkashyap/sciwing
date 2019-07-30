@@ -66,6 +66,7 @@ def get_bow_lc_gensect_infer(dirname: str):
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,
         dataset=dataset,
+        dataset_class=GenericSectDataset,
     )
 
     return parsect_inference

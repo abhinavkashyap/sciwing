@@ -310,16 +310,16 @@ class ParsectDataset(Dataset, BaseTextClassification):
         word_tokenizer: WordTokenizer,
         max_word_length: int,
         word_add_start_end_token: bool,
-        labels: Optional[str],
+        labels: Optional[str] = None,
     ):
         word_instance = word_tokenizer.tokenize(line)
         len_instance = len(word_instance)
         word_numericalizer = Numericalizer(vocabulary=word_vocab)
         classnames2idx = ParsectDataset.get_classname2idx()
-        labels = classnames2idx[labels]
 
         if labels is not None:
             assert len_instance == len(word_instance)
+            labels = classnames2idx[labels]
             label = torch.LongTensor([labels])
 
         padded_instance = pack_to_length(

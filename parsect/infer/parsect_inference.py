@@ -1,12 +1,17 @@
 import parsect.constants as constants
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from parsect.infer.BaseInference import BaseInference
+from parsect.datasets.classification.base_text_classification import (
+    BaseTextClassification,
+)
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, ClassVar
 import pandas as pd
 from parsect.utils.tensor import move_to_device
+from parsect.tokenizers.word_tokenizer import WordTokenizer
+from parsect.vocab.vocab import Vocab
 from wasabi.util import MESSAGES
 
 FILES = constants.FILES
@@ -34,7 +39,8 @@ class ParsectInference(BaseInference):
         model: nn.Module,
         model_filepath: str,
         hyperparam_config_filepath: str,
-        dataset,
+        dataset_class: type,
+        dataset: Optional[BaseTextClassification] = None,
     ):
         """
         :param model: type: torch.nn.Module
@@ -51,35 +57,25 @@ class ParsectInference(BaseInference):
             hyperparam_config_filepath=hyperparam_config_filepath,
             dataset=dataset,
         )
+        self.dataset_class = dataset_class
+        if self.test_dataset is not None:
+            self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
+            self.idx2labelname_mapping = {
+                idx: label_name
+                for label_name, idx in self.labelname2idx_mapping.items()
+            }
+            self.metrics_calculator = PrecisionRecallFMeasure(
+                idx2labelname_mapping=self.idx2labelname_mapping
+            )
 
-        self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
-        self.idx2labelname_mapping = {
-            idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
-        }
-        self.metrics_calculator = PrecisionRecallFMeasure(
-            idx2labelname_mapping=self.idx2labelname_mapping
-        )
+            with self.msg_printer.loading("Running inference on test data"):
+                self.output_analytics = self.run_inference()
+            self.msg_printer.good("Finished running inference on test data")
+
+            # create a dataframe with all the information
+            self.output_df = pd.DataFrame(self.output_analytics)
 
         self.load_model()
-
-        with self.msg_printer.loading("Running inference on test data"):
-            self.output_analytics = self.run_inference()
-        self.msg_printer.good("Finished running inference on test data")
-
-        # create a dataframe with all the information
-        self.output_df = pd.DataFrame(
-            {
-                "true_labels_indices": self.output_analytics[
-                    "true_labels_indices"
-                ].tolist(),
-                "pred_class_names": self.output_analytics["pred_class_names"],
-                "true_class_names": self.output_analytics["true_class_names"],
-                "sentences": self.output_analytics["sentences"],
-                "predicted_labels_indices": self.output_analytics[
-                    "predicted_labels_indices"
-                ],
-            }
-        )
 
     def run_inference(self) -> Dict[str, Any]:
         loader = DataLoader(
@@ -203,3 +199,32 @@ class ParsectInference(BaseInference):
         ]
         row_names.extend([f"Micro-Fscore", f"Macro-Fscore"])
         return paper_report, row_names
+
+    def on_user_input(self, line: str):
+        word_tokenizer = WordTokenizer()
+        word_vocab = Vocab.load_from_file(self.vocab_store_location)
+        max_word_length = self.max_length
+        word_add_start_end_token = True
+        classnames2idx = self.dataset_class.get_classname2idx()
+        idx2classnames = {idx: class_ for class_, idx in classnames2idx.items()}
+
+        iter_dict = self.dataset_class.get_iter_dict(
+            line=line,
+            word_vocab=word_vocab,
+            word_tokenizer=word_tokenizer,
+            max_word_length=max_word_length,
+            word_add_start_end_token=word_add_start_end_token,
+        )
+
+        iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
+
+        model_forward_dict = self.model(
+            iter_dict, is_training=False, is_validation=False, is_test=True
+        )
+
+        # 1 * C - Number of classes
+        normalized_probs = model_forward_dict["normalized_probs"]
+        top_probs, top_indices = torch.topk(normalized_probs, k=1, dim=1)
+        top_index = top_indices.item()
+
+        return idx2classnames[top_index]

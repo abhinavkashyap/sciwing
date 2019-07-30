@@ -71,6 +71,7 @@ def get_bow_bert_emb_lc_parsect_infer(dirname: str):
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,
         dataset=dataset,
+        dataset_class=ParsectDataset,
     )
 
     return parsect_inference

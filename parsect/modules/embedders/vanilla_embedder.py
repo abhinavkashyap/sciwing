@@ -11,7 +11,13 @@ class VanillaEmbedder(nn.Module):
     def forward(self, iter_dict: Dict[str, Any]):
         try:
             tokens = iter_dict["tokens"]  # N * T
+            assert tokens.dim() == 2
             embedding = self.embedding(tokens)  # N * T * D
             return embedding
         except AttributeError:
             raise ValueError(f"iter_dict passed should have tokens in them")
+        except AssertionError:
+            raise ValueError(
+                f"tokens passed to vanilla embedder must be 2 dimensions. "
+                f"You passed tokens having {tokens.dim()}"
+            )

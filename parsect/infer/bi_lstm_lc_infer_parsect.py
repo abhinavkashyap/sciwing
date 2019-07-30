@@ -70,6 +70,7 @@ def get_bilstm_lc_infer_parsect(dirname: str):
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,
         dataset=dataset,
+        dataset_class=ParsectDataset,
     )
 
     return inference

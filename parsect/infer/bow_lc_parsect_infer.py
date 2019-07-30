@@ -67,6 +67,7 @@ def get_bow_lc_parsect_infer(dirname: str):
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,
+        dataset_class=ParsectDataset,
         dataset=dataset,
     )
 

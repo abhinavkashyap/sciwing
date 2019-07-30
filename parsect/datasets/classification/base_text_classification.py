@@ -303,6 +303,6 @@ class BaseTextClassification(metaclass=ABCMeta):
         word_tokenizer: WordTokenizer,
         max_word_length: int,
         word_add_start_end_token: bool,
-        labels: Optional[List[str]],
+        labels: Optional[List[str]] = None,
     ):
         pass
