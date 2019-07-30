@@ -2,9 +2,10 @@ import json
 import os
 import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
-from parsect.models.bow_elmo_linear_classifier import BowElmoLinearClassifier
+from parsect.models.simpleclassifier import SimpleClassifier
+from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
-from parsect.modules.bow_elmo_encoder import BowElmoEncoder
+from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -18,7 +19,6 @@ def get_elmo_emb_lc_infer_gensect(dirname: str):
         config = json.load(fp)
 
     EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
-    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIM)
 
     NUM_CLASSES = config["NUM_CLASSES"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
@@ -28,9 +28,22 @@ def get_elmo_emb_lc_infer_gensect(dirname: str):
     vocab_store_location = config["VOCAB_STORE_LOCATION"]
     DEBUG = config["DEBUG"]
     DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
+    LAYER_AGGREGATION = config["LAYER_AGGREGATION"]
+    WORD_AGGREGATION = config["WORD_AGGREGATION"]
 
-    model = BowElmoLinearClassifier(
-        encoder=encoder, encoding_dim=EMBEDDING_DIM, num_classes=NUM_CLASSES
+    embedder = BowElmoEmbedder(
+        emb_dim=EMBEDDING_DIMENSION, layer_aggregation=LAYER_AGGREGATION
+    )
+    encoder = BOW_Encoder(
+        emb_dim=EMBEDDING_DIMENSION,
+        embedder=embedder,
+        aggregation_type=WORD_AGGREGATION,
+    )
+    model = SimpleClassifier(
+        encoder=encoder,
+        encoding_dim=EMBEDDING_DIM,
+        num_classes=NUM_CLASSES,
+        classification_layer_bias=True,
     )
 
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]

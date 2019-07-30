@@ -1,6 +1,7 @@
-from parsect.models.bow_elmo_linear_classifier import BowElmoLinearClassifier
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
-from parsect.modules.bow_elmo_encoder import BowElmoEncoder
+from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import parsect.constants as constants
 import os
@@ -161,9 +162,17 @@ if __name__ == "__main__":
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_word_embedding()
 
-    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIMENSION)
+    embedder = BowElmoEmbedder(
+        emb_dim=EMBEDDING_DIMENSION, layer_aggregation=LAYER_AGGREGATION
+    )
 
-    model = BowElmoLinearClassifier(
+    encoder = BOW_Encoder(
+        emb_dim=EMBEDDING_DIMENSION,
+        aggregation_type=WORD_AGGREGATION,
+        embedder=embedder,
+    )
+
+    model = SimpleClassifier(
         encoder=encoder,
         encoding_dim=EMBEDDING_DIMENSION,
         num_classes=NUM_CLASSES,

@@ -1,10 +1,10 @@
 import torch
 from allennlp.commands.elmo import ElmoEmbedder
 import wasabi
-from typing import List, Iterable
+from typing import List, Iterable, Dict, Any
 
 
-class BowElmoEncoder:
+class BowElmoEmbedder:
     """
     This trains a non trainable bi-LSTM Elmo Model
     Takes only the last layer of inputs from Elmo
@@ -18,7 +18,6 @@ class BowElmoEncoder:
         emb_dim: int = 1024,
         dropout_value: float = 0.0,
         layer_aggregation: str = "sum",
-        word_aggregation: str = "sum",
         cuda_device_id: int = -1,
     ):
         """
@@ -33,17 +32,13 @@ class BowElmoEncoder:
         average - average all layers of elmo embedding
         first - gets the first layer of embeddings only
         last - gets only last layer of embeddings
-        :param word_aggregation: type: str
-        sum - sum the embeddings across words to obtain sentence embedding
-        average - average the embeddings across words to obtain sentence embedding
         :param cuda_device_id: type: int
         Cuda device that is used to run the model
         """
-        super(BowElmoEncoder, self).__init__()
+        super(BowElmoEmbedder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
         self.layer_aggregation_type = layer_aggregation
-        self.word_aggregation_type = word_aggregation
         self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
         self.cuda_device_id = cuda_device_id
         self.msg_printer = wasabi.Printer()
@@ -60,13 +55,12 @@ class BowElmoEncoder:
             self.elmo = ElmoEmbedder(cuda_device=self.cuda_device_id)
         self.msg_printer.good("Finished Loading Elmo object")
 
-    def forward(self, x: Iterable[List[str]]) -> torch.Tensor:
-        """
-        :param x - The input should be a list of instances
-        The words are tokenized
-        """
+    def forward(self, iter_dict: Dict[str, Any]) -> torch.Tensor:
         # [np.array] - A generator of embeddings
         # each array in the list is of the shape (3, #words_in_sentence, 1024)
+        x = iter_dict["instance"]
+        x = [instance.split() for instance in x]
+
         embedded = list(self.elmo.embed_sentences(x))
 
         # bs, 3, #words_in_sentence, 1024
@@ -90,13 +84,7 @@ class BowElmoEncoder:
             # bs, max_len, 1024
             embedding_ = embedded[:, 0, :, :]
 
-        if self.word_aggregation_type == "sum":
-            embedding_ = torch.sum(embedding_, dim=1)
-
-        elif self.word_aggregation_type == "average":
-            embedding_ = torch.mean(embedding_, dim=1)
-
         return embedding_
 
-    def __call__(self, x: List[str]):
-        return self.forward(x)
+    def __call__(self, iter_dict: Dict[str, Any]):
+        return self.forward(iter_dict)

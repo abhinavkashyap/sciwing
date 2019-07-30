@@ -3,27 +3,28 @@ import os
 import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 import torch.nn as nn
 
 PATHS = constants.PATHS
+FILES = constants.FILES
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 CONFIGS_DIR = PATHS["CONFIGS_DIR"]
-FILES = constants.FILES
-GENERIC_SECT_LABEL_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
+GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
 
 
-def get_glove_emb_lc_genericsect_infer(dirname: str):
+def get_bow_lc_gensect_infer(dirname: str):
     hyperparam_config_filepath = os.path.join(dirname, "config.json")
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
 
+    EMBEDDING_TYPE = config.get("EMBEDDING_TYPE", "random")
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
     VOCAB_SIZE = config["VOCAB_SIZE"]
     NUM_CLASSES = config["NUM_CLASSES"]
-    EMBEDDING_TYPE = config.get("EMBEDDING_TYPE", "random")
     MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
     MAX_LENGTH = config["MAX_LENGTH"]
     vocab_store_location = config["VOCAB_STORE_LOCATION"]
@@ -32,13 +33,11 @@ def get_glove_emb_lc_genericsect_infer(dirname: str):
 
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
-    # it does not matter what random embeddings you have here
-    # it will be filled with the learnt parameters while loading the model
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
-
+    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         aggregation_type="sum",
     )
@@ -51,7 +50,7 @@ def get_glove_emb_lc_genericsect_infer(dirname: str):
     )
 
     dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECT_LABEL_FILE,
+        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
@@ -70,8 +69,3 @@ def get_glove_emb_lc_genericsect_infer(dirname: str):
     )
 
     return parsect_inference
-
-
-if __name__ == "__main__":
-    experiment_dirname = os.path.join(OUTPUT_DIR, "debug_bow_glove_genericsect")
-    inference_client = get_glove_emb_lc_genericsect_infer(experiment_dirname)

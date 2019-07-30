@@ -1,5 +1,5 @@
 import torch.nn as nn
-from parsect.modules.bow_elmo_encoder import BowElmoEncoder
+from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from torch.nn import CrossEntropyLoss
 from torch.nn.functional import softmax
 import wasabi
@@ -10,7 +10,7 @@ import torch
 class BowElmoLinearClassifier(nn.Module):
     def __init__(
         self,
-        encoder: BowElmoEncoder,
+        encoder: BowElmoEmbedder,
         encoding_dim: int,
         num_classes: int,
         classification_layer_bias: bool = True,

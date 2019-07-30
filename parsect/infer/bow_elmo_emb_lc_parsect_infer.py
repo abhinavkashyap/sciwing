@@ -2,8 +2,9 @@ import json
 import os
 import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
-from parsect.models.bow_elmo_linear_classifier import BowElmoLinearClassifier
-from parsect.modules.bow_elmo_encoder import BowElmoEncoder
+from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
 
 PATHS = constants.PATHS
@@ -25,11 +26,21 @@ def get_elmo_emb_lc_infer_parsect(dirname: str):
     EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
     EMBEDDING_TYPE = config.get("EMBEDDING_TYPE", "random")
     NUM_CLASSES = config["NUM_CLASSES"]
+    LAYER_AGGREGATION = config.get("LAYER_AGGREGATION")
+    WORD_AGGREGATION = config.get("WORD_AGGREGATION")
 
-    encoder = BowElmoEncoder(emb_dim=EMBEDDING_DIM)
+    embedder = BowElmoEmbedder(
+        emb_dim=EMBEDDING_DIM, layer_aggregation=LAYER_AGGREGATION
+    )
+    encoder = BOW_Encoder(
+        emb_dim=EMBEDDING_DIM, aggregation_type=WORD_AGGREGATION, embedder=embedder
+    )
 
-    model = BowElmoLinearClassifier(
-        encoder=encoder, encoding_dim=EMBEDDING_DIM, num_classes=NUM_CLASSES
+    model = SimpleClassifier(
+        encoder=encoder,
+        encoding_dim=EMBEDDING_DIM,
+        num_classes=NUM_CLASSES,
+        classification_layer_bias=True,
     )
 
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]

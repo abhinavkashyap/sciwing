@@ -1,10 +1,8 @@
 import questionary
 from questionary import Choice
 from typing import List
-from parsect.infer.bow_random_emb_lc_parsect_infer import (
-    get_random_emb_linear_classifier_infer_parsect,
-)
-from parsect.infer.bow_glove_emb_lc_parsect_infer import get_glove_emb_lc_parsect_infer
+from parsect.infer.bow_lc_parsect_infer import get_bow_lc_parsect_infer
+
 from parsect.infer.bow_elmo_emb_lc_parsect_infer import get_elmo_emb_lc_infer_parsect
 from parsect.infer.bow_elmo_emb_lc_gensect_infer import get_elmo_emb_lc_infer_gensect
 from parsect.infer.bow_bert_emb_lc_parsect_infer import (
@@ -17,12 +15,7 @@ from parsect.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
 from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 from parsect.infer.bert_seq_classifier_infer import get_bert_seq_classifier_infer
-from parsect.infer.bow_random_emb_lc_genericsect_infer import (
-    get_random_emb_linear_classifier_infer_genericsect,
-)
-from parsect.infer.bow_glove_emb_lc_genericsect_infer import (
-    get_glove_emb_lc_genericsect_infer,
-)
+from parsect.infer.bow_lc_gensect_infer import get_bow_lc_gensect_infer
 from parsect.infer.bilstm_crf_infer import get_bilstm_crf_infer
 from parsect.infer.science_ie_infer import get_science_ie_infer
 import wasabi
@@ -82,10 +75,10 @@ class ParsectCli:
             "lstm-crf-scienceie-tagger": "lstm_crf_scienceie",
         }
         self.model_type2inf_func = {
-            "parsect-random-embedding-bow-encoder-linear-classifier": get_random_emb_linear_classifier_infer_parsect,
-            "genericsect-random-embedding-bow-encoder-linear-classifier": get_random_emb_linear_classifier_infer_genericsect,
-            "parsect-glove-embedding-bow-encoder-linear-classifier": get_glove_emb_lc_parsect_infer,
-            "genericsect-glove-embedding-bow-encoder-linear-classifier": get_glove_emb_lc_genericsect_infer,
+            "parsect-random-embedding-bow-encoder-linear-classifier": get_bow_lc_parsect_infer,
+            "genericsect-random-embedding-bow-encoder-linear-classifier": get_bow_lc_gensect_infer,
+            "parsect-glove-embedding-bow-encoder-linear-classifier": get_bow_lc_parsect_infer,
+            "genericsect-glove-embedding-bow-encoder-linear-classifier": get_bow_lc_gensect_infer,
             "elmo-embedding-bow-encoder-linear-classifier-parsect": get_elmo_emb_lc_infer_parsect,
             "elmo-embedding-bow-encoder-linear-classifier-gensect": get_elmo_emb_lc_infer_gensect,
             "bert-embedding-bow-encoder-linear-classifier-parsect": get_bow_bert_emb_lc_parsect_infer,

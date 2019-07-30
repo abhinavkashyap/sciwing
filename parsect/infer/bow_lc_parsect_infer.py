@@ -3,8 +3,9 @@ import os
 import parsect.constants as constants
 from parsect.infer.parsect_inference import ParsectInference
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.modules.bow_encoder import BOW_Encoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import torch.nn as nn
 
 PATHS = constants.PATHS
@@ -14,7 +15,7 @@ CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-def get_glove_emb_lc_parsect_infer(dirname: str):
+def get_bow_lc_parsect_infer(dirname: str):
     hyperparam_config_filepath = os.path.join(dirname, "config.json")
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
@@ -32,13 +33,11 @@ def get_glove_emb_lc_parsect_infer(dirname: str):
 
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
-    # it does not matter what random embeddings you have here
-    # it will be filled with the learnt parameters while loading the model
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
-
+    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         aggregation_type="sum",
     )
@@ -62,6 +61,8 @@ def get_glove_emb_lc_parsect_infer(dirname: str):
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
+    dataset.print_stats()
+
     parsect_inference = ParsectInference(
         model=model,
         model_filepath=model_filepath,
@@ -70,10 +71,3 @@ def get_glove_emb_lc_parsect_infer(dirname: str):
     )
 
     return parsect_inference
-
-
-if __name__ == "__main__":
-    experiment_dirname = os.path.join(
-        OUTPUT_DIR, "bow_glove_emb_lc_3kw_10ml_50d_10e_1e-3lr"
-    )
-    inference_client = get_glove_emb_lc_parsect_infer(experiment_dirname)
