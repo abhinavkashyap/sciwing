@@ -41,3 +41,41 @@ def move_to_device(obj, cuda_device: torch.device):
         return tuple([move_to_device(item, cuda_device) for item in obj])
     else:
         return obj
+
+
+def get_mask(batch_size: int, max_size: int, lengths: torch.LongTensor):
+    """ Returns mask given the lengths tensor. A convenience method
+
+    Given a lengths tensor as in
+        >> torch.LongTensor([3, 1, 2])
+
+    which often indicates the original length of the tensor
+    without padding, `get_mask()` returns a mask that indicates
+    the positions without mask
+
+    Parameters
+    ----------
+    batch_size : int
+        Batch size of the tensors
+    max_size : int
+        Maximum size or often Maximum number of time steps
+    lengths : torch.LongTensor
+        The original length of the tensors in the batch without padding
+
+    Returns
+    -------
+    torch.LongTensor
+        Mask having 1 where there are no paddings
+    """
+    assert batch_size == lengths.size(0)
+    mask = []
+
+    for length in lengths:
+        zero_row = torch.zeros(max_size, dtype=torch.long)
+        zero_row[: length.item()] = 1
+        mask.append(zero_row.unsqueeze(0))
+
+    mask = torch.cat(mask, dim=0)
+    mask = torch.LongTensor(mask)
+    print(mask)
+    return mask
