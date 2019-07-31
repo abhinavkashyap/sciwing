@@ -77,5 +77,4 @@ def get_mask(batch_size: int, max_size: int, lengths: torch.LongTensor):
 
     mask = torch.cat(mask, dim=0)
     mask = torch.LongTensor(mask)
-    print(mask)
     return mask
