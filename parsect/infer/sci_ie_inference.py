@@ -259,7 +259,7 @@ class ScienceIEInference(BaseInference):
             pred_tag_names = self.output_df.predicted_process_tag_names
 
         elif first_class > 15 and second_class > 15:
-            true_tag_indices = self.output_df.true_mataerial_tag_indices.tolist()
+            true_tag_indices = self.output_df.true_material_tag_indices.tolist()
             pred_tag_indices = self.output_df.predicted_material_tag_indices.tolist()
             true_tag_names = self.output_df.true_material_tag_names
             pred_tag_names = self.output_df.predicted_material_tag_names
@@ -322,6 +322,8 @@ class ScienceIEInference(BaseInference):
             char_tokenizer=char_tokenizer,
             max_char_length=max_char_length,
         )
+
+        iter_dict = move_to_device(iter_dict, cuda_device=self.device)
         iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
         iter_dict["char_tokens"] = iter_dict["char_tokens"].unsqueeze(0)
 
