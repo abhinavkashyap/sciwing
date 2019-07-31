@@ -2,10 +2,13 @@ import pytest
 from parsect.models.science_ie_tagger import ScienceIETagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from allennlp.modules.conditional_random_field import allowed_transitions
+from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 import itertools
 import torch.nn as nn
 import torch
 import numpy as np
+from typing import List
 
 lstm2encoder_options = itertools.product(
     [True, False], ["sum", "concat"], [True, False]
@@ -27,15 +30,21 @@ def setup_science_ie_tagger(request):
     BIDIRECTIONAL = request.param[0]
     COMBINE_STRATEGY = request.param[1]
     HAVE_CHARACTER_ENCODER = request.param[2]
-    NUM_CLASSES = 24
+    NUM_CLASSES = 8
     EMBEDDING = nn.Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMBEDDING_DIM]))
     CHARACTER_EMBEDDING = nn.Embedding.from_pretrained(
         torch.zeros([CHAR_VOCAB_SIZE, CHARACTER_EMBEDDING_DIM])
     )
-    tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TIME_STEPS))
-    labels = np.random.randint(
-        0, NUM_CLASSES - 1, size=(BATCH_SIZE, 3 * NUM_TIME_STEPS)
-    )
+    tokens = np.random.randint(0, VOCAB_SIZE, size=(BATCH_SIZE, NUM_TIME_STEPS))
+
+    task_labels = np.random.randint(0, 8, size=(BATCH_SIZE, NUM_TIME_STEPS))
+    process_labels = np.random.randint(8, 16, size=(BATCH_SIZE, NUM_TIME_STEPS))
+    material_labels = np.random.randint(16, 24, size=(BATCH_SIZE, NUM_TIME_STEPS))
+    task_labels = torch.LongTensor(task_labels)
+    process_labels = torch.LongTensor(process_labels)
+    material_labels = torch.LongTensor(material_labels)
+    labels = torch.cat([task_labels, process_labels, material_labels], dim=1)
+
     char_tokens = np.random.randint(
         0, CHAR_VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TIME_STEPS, MAX_CHAR_LENGTH)
     )
@@ -43,6 +52,33 @@ def setup_science_ie_tagger(request):
     labels = torch.LongTensor(labels)
     char_tokens = torch.LongTensor(char_tokens)
     char_encoder = None
+    classnames2idx = ScienceIEDataset.get_classname2idx()
+    idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
+    task_idx2classnames = {
+        idx: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(0, 8)
+    }
+    process_idx2classnames = {
+        idx - 8: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(8, 16)
+    }
+    material_idx2classnames = {
+        idx - 16: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(16, 24)
+    }
+
+    task_constraints: List[(int, int)] = allowed_transitions(
+        constraint_type="BIOUL", labels=task_idx2classnames
+    )
+    process_constraints: List[(int, int)] = allowed_transitions(
+        constraint_type="BIOUL", labels=process_idx2classnames
+    )
+    material_constraints: List[(int, int)] = allowed_transitions(
+        constraint_type="BIOUL", labels=material_idx2classnames
+    )
 
     if HAVE_CHARACTER_ENCODER:
         char_encoder = LSTM2VecEncoder(
@@ -70,6 +106,9 @@ def setup_science_ie_tagger(request):
         else HIDDEN_DIM,
         num_classes=NUM_CLASSES,
         character_encoder=char_encoder,
+        task_constraints=task_constraints,
+        process_constraints=process_constraints,
+        material_constraints=material_constraints,
     )
 
     return (

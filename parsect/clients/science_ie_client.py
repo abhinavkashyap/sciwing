@@ -5,6 +5,8 @@ from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.science_ie import ScienceIEDataUtils
 import parsect.constants as constants
+from typing import List
+from allennlp.modules.conditional_random_field import allowed_transitions
 import os
 import torch
 import torch.optim as optim
@@ -292,6 +294,8 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
     classnames2idx = train_dataset.classnames2idx
+    idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
+
     ignore_indices = [
         classnames2idx["starting-Task"],
         classnames2idx["ending-Task"],
@@ -303,6 +307,31 @@ if __name__ == "__main__":
         classnames2idx["ending-Material"],
         classnames2idx["padding-Material"],
     ]
+    task_idx2classnames = {
+        idx: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(0, 8)
+    }
+    process_idx2classnames = {
+        idx - 8: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(8, 16)
+    }
+    material_idx2classnames = {
+        idx - 16: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(16, 24)
+    }
+
+    task_constraints = allowed_transitions(
+        constraint_type="BIOUL", labels=task_idx2classnames
+    )
+    process_constraints = allowed_transitions(
+        constraint_type="BIOUL", labels=process_idx2classnames
+    )
+    material_constraints = allowed_transitions(
+        constraint_type="BIOUL", labels=material_idx2classnames
+    )
     metric = TokenClassificationAccuracy(
         idx2labelname_mapping=train_dataset.idx2classnames,
         mask_label_indices=ignore_indices,

@@ -1,6 +1,6 @@
 import torch.nn as nn
-from typing import Dict, Any, Union
-from torchcrf import CRF
+from typing import Dict, Any, Tuple, List, Optional
+from allennlp.modules.conditional_random_field import ConditionalRandomField as CRF
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import torch
@@ -13,17 +13,37 @@ class ScienceIETagger(nn.Module):
         rnn2seqencoder: Lstm2SeqEncoder,
         hid_dim: int,
         num_classes: int,
-        character_encoder: Union[LSTM2VecEncoder, None] = None,
+        task_constraints: Optional[List[Tuple[int, int]]] = None,
+        process_constraints: Optional[List[Tuple[int, int]]] = None,
+        material_constraints: Optional[List[Tuple[int, int]]] = None,
+        character_encoder: Optional[LSTM2VecEncoder] = None,
+        include_start_end_transitions: Optional[bool] = False,
     ):
         super(ScienceIETagger, self).__init__()
         self.rnn2seqencoder = rnn2seqencoder
         self.hid_dim = hid_dim
         self.num_classes = num_classes
+        self._task_constraints = task_constraints
+        self._process_constraints = process_constraints
+        self._material_constraints = material_constraints
         self.character_encoder = character_encoder
+        self.include_start_end_transitions = include_start_end_transitions
 
-        self.task_crf = CRF(num_tags=self.num_classes, batch_first=True)
-        self.process_crf = CRF(num_tags=self.num_classes, batch_first=True)
-        self.material_crf = CRF(num_tags=self.num_classes, batch_first=True)
+        self.task_crf = CRF(
+            num_tags=self.num_classes,
+            constraints=task_constraints,
+            include_start_end_transitions=include_start_end_transitions,
+        )
+        self.process_crf = CRF(
+            num_tags=self.num_classes,
+            constraints=process_constraints,
+            include_start_end_transitions=include_start_end_transitions,
+        )
+        self.material_crf = CRF(
+            num_tags=self.num_classes,
+            constraints=material_constraints,
+            include_start_end_transitions=include_start_end_transitions,
+        )
 
         self.hidden2task = nn.Linear(self.hid_dim, self.num_classes)
         self.hidden2process = nn.Linear(self.hid_dim, self.num_classes)
@@ -57,12 +77,25 @@ class ScienceIETagger(nn.Module):
         process_logits = self.hidden2process(encoding)
         material_logits = self.hidden2material(encoding)
 
+        batch_size, time_steps, _ = task_logits.size()
+        mask = torch.ones(size=(batch_size, time_steps), dtype=torch.long)
+        mask = torch.LongTensor(mask)
+
         assert task_logits.size(1) == process_logits.size(1) == material_logits.size(1)
         assert task_logits.size(2) == process_logits.size(2) == material_logits.size(2)
 
-        predicted_task_tags = self.task_crf.decode(task_logits)  # List[List[int]] N * T
-        predicted_process_tags = self.process_crf.decode(process_logits)
-        predicted_material_tags = self.material_crf.decode(material_logits)
+        # List[List[int]] N * T
+        predicted_task_tags = self.task_crf.viterbi_tags(logits=task_logits, mask=mask)
+        predicted_process_tags = self.process_crf.viterbi_tags(
+            logits=process_logits, mask=mask
+        )
+        predicted_material_tags = self.material_crf.viterbi_tags(
+            logits=material_logits, mask=mask
+        )
+
+        predicted_task_tags = [tag for tag, _ in predicted_task_tags]
+        predicted_process_tags = [tag for tag, _ in predicted_process_tags]
+        predicted_material_tags = [tag for tag, _ in predicted_material_tags]
 
         # add the appropriate numbers
         predicted_task_tags = torch.LongTensor(predicted_task_tags)
