@@ -402,6 +402,9 @@ class ScienceIEInference(BaseInference):
                 except AssertionError:
                     continue
 
+                conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
+                ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
+                conll_lines = []
                 for sent in sents:
                     task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
                         line=sent
@@ -428,18 +431,17 @@ class ScienceIEInference(BaseInference):
                         sent, task_tag_names, process_tag_names, material_tag_names
                     )
 
-                    conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
-                    ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
+                    for text_tag_name in zipped_text_tag_names:
+                        word, task_tag, process_tag, material_tag = text_tag_name
+                        conll_line = " ".join(
+                            [word, task_tag, process_tag, material_tag]
+                        )
+                        conll_lines.append(conll_line)
 
-                    with open(conll_filepath, "w") as fp:
-                        for text_tag_name in zipped_text_tag_names:
-                            word, task_tag, process_tag, material_tag = text_tag_name
-                            conll_line = " ".join(
-                                [word, task_tag, process_tag, material_tag]
-                            )
-                            fp.write(conll_line)
-                            fp.write("\n")
+                with open(conll_filepath, "w") as fp:
+                    fp.writelines("\n".join(conll_lines))
+                    fp.write("\n")
 
-                    write_ann_file_from_conll_file(
-                        conll_filepath=conll_filepath, ann_filepath=ann_filepath
-                    )
+                write_ann_file_from_conll_file(
+                    conll_filepath=conll_filepath, ann_filepath=ann_filepath
+                )
