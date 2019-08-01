@@ -2,7 +2,7 @@ import pytest
 import parsect.constants as constants
 import pathlib
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
-from parsect.utils.science_ie import ScienceIEDataUtils
+from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from torch.utils.data import DataLoader
 import torch
 

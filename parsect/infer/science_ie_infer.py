@@ -1,6 +1,6 @@
 import pathlib
 import parsect.constants as constants
-from parsect.utils.science_ie import ScienceIEDataUtils
+from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.models.science_ie_tagger import ScienceIETagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder

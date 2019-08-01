@@ -4,7 +4,7 @@ from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.science_ie_tagger import ScienceIETagger
-from parsect.utils.science_ie import ScienceIEDataUtils
+from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 import parsect.constants as constants
 import pathlib
 import json

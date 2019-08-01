@@ -8,7 +8,7 @@ from parsect.infer.BaseInference import BaseInference
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.vis_seq_tags import VisTagging
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
-from parsect.utils.science_ie import ScienceIEDataUtils
+from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer

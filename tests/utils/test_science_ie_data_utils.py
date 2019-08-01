@@ -1,8 +1,9 @@
 import parsect.constants as constants
 import pytest
-from parsect.utils.science_ie import ScienceIEDataUtils
+from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 import pathlib
 from collections import Counter
+import spacy
 
 FILES = constants.FILES
 SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
@@ -60,52 +61,6 @@ class TestScienceIEDataUtils:
             )
 
     @pytest.mark.parametrize(
-        "words, tag, expected_lines, mark_as_O",
-        [
-            (["word"], "Process", ["word U-Process U-Process U-Process"], False),
-            (["word"], "Process", ["word O-Process O-Process O-Process"], True),
-            (
-                ["word", "word", "word"],
-                "Process",
-                [
-                    "word O-Process O-Process O-Process",
-                    "word O-Process O-Process O-Process",
-                    "word O-Process O-Process O-Process",
-                ],
-                True,
-            ),
-            (["word"], "Process", ["word U-Process U-Process U-Process"], False),
-            (
-                ["word", "word"],
-                "Process",
-                [
-                    "word B-Process B-Process B-Process",
-                    "word L-Process L-Process L-Process",
-                ],
-                False,
-            ),
-            (
-                ["word", "word", "word"],
-                "Process",
-                [
-                    "word B-Process B-Process B-Process",
-                    "word I-Process I-Process I-Process",
-                    "word L-Process L-Process L-Process",
-                ],
-                False,
-            ),
-        ],
-    )
-    def test_bilou_for_words(
-        self, setup_science_ie_train_data_utils, words, tag, expected_lines, mark_as_O
-    ):
-        utils = setup_science_ie_train_data_utils
-        lines = utils._get_bilou_for_words(words=words, tag=tag, mark_as_O=mark_as_O)
-        for idx, line in enumerate(lines):
-            print(line)
-            assert line == expected_lines[idx]
-
-    @pytest.mark.parametrize(
         "text, annotations, expected_lines",
         [
             (
@@ -116,17 +71,15 @@ class TestScienceIEDataUtils:
             (
                 "word word",
                 [{"start": 0, "end": 4, "tag": "Process"}],
-                [
-                    "word U-Process U-Process U-Process",
-                    "word O-Process O-Process O-Process",
-                ],
+                ["word U-Process U-Process U-Process", "word O O O"],
             ),
             (
                 "word. word",
-                [{"start": 0, "end": 4, "tag": "Process"}],
+                [{"start": 0, "end": 5, "tag": "Process"}],
                 [
-                    "word. U-Process U-Process U-Process",
-                    "word O-Process O-Process O-Process",
+                    "word B-Process B-Process B-Process",
+                    ". L-Process L-Process L-Process",
+                    "word O O O",
                 ],
             ),
             (
@@ -141,7 +94,8 @@ class TestScienceIEDataUtils:
                 "word. word",
                 [{"start": 0, "end": 10, "tag": "Process"}],
                 [
-                    "word. B-Process B-Process B-Process",
+                    "word B-Process B-Process B-Process",
+                    ". I-Process I-Process I-Process",
                     "word L-Process L-Process L-Process",
                 ],
             ),
@@ -149,54 +103,42 @@ class TestScienceIEDataUtils:
                 "word. word word",
                 [{"start": 0, "end": 10, "tag": "Process"}],
                 [
-                    "word. B-Process B-Process B-Process",
+                    "word B-Process B-Process B-Process",
+                    ". I-Process I-Process I-Process",
                     "word L-Process L-Process L-Process",
-                    "word O-Process O-Process O-Process",
+                    "word O O O",
                 ],
             ),
             (
                 "(word) word word",
                 [{"start": 1, "end": 5, "tag": "Process"}],
                 [
-                    "(word) U-Process U-Process U-Process",
-                    "word O-Process O-Process O-Process",
-                    "word O-Process O-Process O-Process",
+                    "( O O O",
+                    "word U-Process U-Process U-Process",
+                    ") O O O",
+                    "word O O O",
+                    "word O O O",
                 ],
             ),
             (
                 "(word) word word",
                 [{"start": 1, "end": 16, "tag": "Process"}],
                 [
-                    "(word) B-Process B-Process B-Process",
+                    "( O O O",
+                    "word B-Process B-Process B-Process",
+                    ") I-Process I-Process I-Process",
                     "word I-Process I-Process I-Process",
                     "word L-Process L-Process L-Process",
                 ],
             ),
-            (
-                "(word) word word",
-                [{"start": 1, "end": 16, "tag": "Process"}],
-                [
-                    "(word) B-Process B-Process B-Process",
-                    "word I-Process I-Process I-Process",
-                    "word L-Process L-Process L-Process",
-                ],
-            ),
-            (
-                "(word) word word",
-                [],
-                [
-                    "(word) O-Process O-Process O-Process",
-                    "word O-Process O-Process O-Process",
-                    "word O-Process O-Process O-Process",
-                ],
-            ),
+            ("word word word", [], ["word O O O", "word O O O", "word O O O"]),
             (
                 "Poor oxidation behavior",
                 [{"start": 5, "end": 14, "tag": "Process"}],
                 [
-                    "Poor O-Process O-Process O-Process",
+                    "Poor O O O",
                     "oxidation U-Process U-Process U-Process",
-                    "behavior O-Process O-Process O-Process",
+                    "behavior O O O",
                 ],
             ),
         ],
@@ -243,23 +185,24 @@ class TestScienceIEDataUtils:
         bilou_lines = utils.get_bilou_lines_for_entity(
             file_id=file_id, entity=entity_type
         )
+        nlp = spacy.load("en_core_web_sm")
 
         annotation_words = []
         for annotation in annotations:
             words = annotation["words"]
-            words = words.split()
+            words = words.strip()
+            doc = nlp(words)
+            words = [tok.text for tok in doc]
             annotation_words.extend(words)
 
         bilou_words_without_o = []
         for bilou_line in bilou_lines:
             word, _, _, tag = bilou_line.split()
-            if not tag.startswith("O-"):
-                word = word.replace(",", "")
-                word = word.replace(".", "")
-                word = word.replace("(", "")
-                word = word.replace(")", "")
+            if not tag.startswith("O"):
                 bilou_words_without_o.append(word)
 
+        print(annotation_words)
+        print(bilou_words_without_o)
         assert len(annotation_words) == len(bilou_words_without_o)
 
     @pytest.mark.parametrize("entity_type", ["Task", "Process", "Material"])
@@ -270,11 +213,8 @@ class TestScienceIEDataUtils:
         try:
             file_ids = utils.file_ids
             for file_id in file_ids:
-                bilou_lines = utils.get_bilou_lines_for_entity(
-                    file_id=file_id, entity=entity_type
-                )
-                sentence_wise_bilou_lines = utils._get_sentence_wise_bilou_lines(
-                    bilou_lines=bilou_lines
+                sentence_wise_bilou_lines = utils.get_sentence_wise_bilou_lines(
+                    file_id=file_id, entity_type=entity_type
                 )
         except:
             pytest.fail("Failed to run bilou lines")
