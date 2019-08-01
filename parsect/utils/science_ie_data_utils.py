@@ -22,6 +22,7 @@ class ScienceIEDataUtils:
         self.file_ids = self.get_file_ids()
         self.msg_printer = wasabi.Printer()
         self.nlp = spacy.load("en_core_web_sm")
+        self._conll_col_sep = " "
 
     def get_file_ids(self) -> List[str]:
         file_ids = [file.stem for file in self.folderpath.iterdir()]
@@ -112,8 +113,9 @@ class ScienceIEDataUtils:
         bilou_lines = []
 
         for token, tag in zip(doc, tags):
-            bilou_line = f"{token.text} {' '.join([tag] * 3)}"
-            bilou_lines.append(bilou_line)
+            if not token.is_space:
+                bilou_line = f"{token.text}{self._conll_col_sep}{self._conll_col_sep.join([tag] * 3)}"
+                bilou_lines.append(bilou_line)
 
         return bilou_lines
 
@@ -165,13 +167,19 @@ class ScienceIEDataUtils:
 
         sentences = []
 
-        current_sent = [f"{doc[0].text} {' '.join([tags[0]] * 3)}"]
+        current_sent = [f"{doc[0].text} {self._conll_col_sep.join([tags[0]] * 3)}"]
         for tag, token in zip(tags[1:], doc[1:]):
             if token.is_sent_start:
                 sentences.append(current_sent)
-                current_sent = [f"{token.text} {' '.join([tag] * 3)}"]
+                if not token.is_space:
+                    current_sent = [
+                        f"{token.text}{self._conll_col_sep}{self._conll_col_sep.join([tag] * 3)}"
+                    ]
             else:
-                current_sent.append(f"{token.text} {' '.join([tag] * 3)}")
+                if not token.is_space:
+                    current_sent.append(
+                        f"{token.text}{self._conll_col_sep}{self._conll_col_sep.join([tag] * 3)}"
+                    )
 
         # finally add the last sentence
         sentences.append(current_sent)
@@ -197,16 +205,24 @@ class ScienceIEDataUtils:
                 for task_line, process_line, material_line in zip(
                     task_fp, process_fp, material_fp
                 ):
-                    if task_line.strip() != "":
-                        word, _, _, task_tag = task_line.split()
-                        word, _, _, process_tag = process_line.split()
-                        word, _, _, material_tag = material_line.split()
+                    if bool(task_line.strip()):
+                        word, _, _, task_tag = task_line.strip().split(
+                            self._conll_col_sep
+                        )
+                        word, _, _, process_tag = process_line.strip().split(
+                            self._conll_col_sep
+                        )
+                        word, _, _, material_tag = material_line.strip().split(
+                            self._conll_col_sep
+                        )
                         out_fp.write(
-                            " ".join([word, task_tag, process_tag, material_tag])
+                            self._conll_col_sep.join(
+                                [word, task_tag, process_tag, material_tag]
+                            )
                         )
                         out_fp.write("\n")
                     else:
-                        out_fp.write(task_line)
+                        out_fp.write("\n")
             self.msg_printer.good("Finished Merging Task Process and Material Files")
 
     def get_sents(self, text: str):
@@ -225,5 +241,12 @@ if __name__ == "__main__":
     utils = ScienceIEDataUtils(
         folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
     )
-    output_filename = pathlib.Path(DATA_DIR, "sentence_wise_train.txt")
-    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=True)
+    output_filename = pathlib.Path(DATA_DIR, "train.txt")
+    # utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=False)
+
+    utils.merge_files(
+        pathlib.Path(DATA_DIR, "train_task_conll.txt"),
+        pathlib.Path(DATA_DIR, "train_process_conll.txt"),
+        pathlib.Path(DATA_DIR, "train_material_conll.txt"),
+        pathlib.Path(DATA_DIR, "train_conll.txt"),
+    )
