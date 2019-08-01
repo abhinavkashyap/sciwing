@@ -71,7 +71,10 @@ class TestScienceIEDataUtils:
             (
                 "word word",
                 [{"start": 0, "end": 4, "tag": "Process"}],
-                ["word U-Process U-Process U-Process", "word O O O"],
+                [
+                    "word U-Process U-Process U-Process",
+                    "word O-Process O-Process O-Process",
+                ],
             ),
             (
                 "word. word",
@@ -79,7 +82,7 @@ class TestScienceIEDataUtils:
                 [
                     "word B-Process B-Process B-Process",
                     ". L-Process L-Process L-Process",
-                    "word O O O",
+                    "word O-Process O-Process O-Process",
                 ],
             ),
             (
@@ -106,39 +109,47 @@ class TestScienceIEDataUtils:
                     "word B-Process B-Process B-Process",
                     ". I-Process I-Process I-Process",
                     "word L-Process L-Process L-Process",
-                    "word O O O",
+                    "word O-Process O-Process O-Process",
                 ],
             ),
             (
                 "(word) word word",
                 [{"start": 1, "end": 5, "tag": "Process"}],
                 [
-                    "( O O O",
+                    "( O-Process O-Process O-Process",
                     "word U-Process U-Process U-Process",
-                    ") O O O",
-                    "word O O O",
-                    "word O O O",
+                    ") O-Process O-Process O-Process",
+                    "word O-Process O-Process O-Process",
+                    "word O-Process O-Process O-Process",
                 ],
             ),
             (
                 "(word) word word",
                 [{"start": 1, "end": 16, "tag": "Process"}],
                 [
-                    "( O O O",
+                    "( O-Process O-Process O-Process",
                     "word B-Process B-Process B-Process",
                     ") I-Process I-Process I-Process",
                     "word I-Process I-Process I-Process",
                     "word L-Process L-Process L-Process",
                 ],
             ),
-            ("word word word", [], ["word O O O", "word O O O", "word O O O"]),
+            (
+                "word word word",
+                [],
+                [
+                    "word O-Process O-Process O-Process",
+                    "word O-Process O-Process O-Process",
+                    "word O-Process O-Process O-Process",
+                ],
+            ),
             (
                 "Poor oxidation behavior",
                 [{"start": 5, "end": 14, "tag": "Process"}],
                 [
-                    "Poor O O O",
+                    "Poor O-Process O-Process O-Process",
                     "oxidation U-Process U-Process U-Process",
-                    "behavior O O O",
+                    "behavior O-Process O-Process O-Process",
                 ],
             ),
         ],

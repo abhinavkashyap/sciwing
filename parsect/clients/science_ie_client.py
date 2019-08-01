@@ -263,36 +263,6 @@ if __name__ == "__main__":
     char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
     char_encoder = None
 
-    if USE_CHAR_ENCODER:
-        char_encoder = LSTM2VecEncoder(
-            emb_dim=CHAR_EMBEDDING_DIMENSION,
-            embedding=char_embedding,
-            bidirectional=True,
-            hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
-            combine_strategy="concat",
-        )
-        EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
-
-    lstm2seqencoder = Lstm2SeqEncoder(
-        emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
-        dropout_value=0.0,
-        hidden_dim=HIDDEN_DIM,
-        bidirectional=BIDIRECTIONAL,
-        combine_strategy=COMBINE_STRATEGY,
-        rnn_bias=True,
-        device=torch.device(DEVICE),
-    )
-    model = ScienceIETagger(
-        rnn2seqencoder=lstm2seqencoder,
-        num_classes=NUM_CLASSES,
-        hid_dim=2 * HIDDEN_DIM
-        if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
-        else HIDDEN_DIM,
-        character_encoder=char_encoder,
-    )
-
-    optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
     classnames2idx = train_dataset.classnames2idx
     idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
 
@@ -332,6 +302,41 @@ if __name__ == "__main__":
     material_constraints = allowed_transitions(
         constraint_type="BIOUL", labels=material_idx2classnames
     )
+
+    if USE_CHAR_ENCODER:
+        char_encoder = LSTM2VecEncoder(
+            emb_dim=CHAR_EMBEDDING_DIMENSION,
+            embedding=char_embedding,
+            bidirectional=True,
+            hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
+            combine_strategy="concat",
+        )
+        EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
+
+    lstm2seqencoder = Lstm2SeqEncoder(
+        emb_dim=EMBEDDING_DIMENSION,
+        embedding=embedding,
+        dropout_value=0.0,
+        hidden_dim=HIDDEN_DIM,
+        bidirectional=BIDIRECTIONAL,
+        combine_strategy=COMBINE_STRATEGY,
+        rnn_bias=True,
+        device=torch.device(DEVICE),
+    )
+    model = ScienceIETagger(
+        rnn2seqencoder=lstm2seqencoder,
+        num_classes=NUM_CLASSES,
+        hid_dim=2 * HIDDEN_DIM
+        if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
+        else HIDDEN_DIM,
+        character_encoder=char_encoder,
+        task_constraints=task_constraints,
+        process_constraints=process_constraints,
+        material_constraints=material_constraints,
+    )
+
+    optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+
     metric = TokenClassificationAccuracy(
         idx2labelname_mapping=train_dataset.idx2classnames,
         mask_label_indices=ignore_indices,

@@ -109,6 +109,11 @@ class ScienceIEDataUtils:
 
         doc = self.nlp(text)
         tags = biluo_tags_from_offsets(doc, entities)
+        tags = map(
+            lambda tag: f"O-{entity}" if tag.startswith("O") or tag == "-" else tag,
+            tags,
+        )
+        tags = list(tags)
 
         bilou_lines = []
 
@@ -164,6 +169,13 @@ class ScienceIEDataUtils:
 
         doc = self.nlp(text)
         tags = biluo_tags_from_offsets(doc, entities)
+        tags = map(
+            lambda tag: f"O-{entity_type}"
+            if tag.startswith("O") or tag == "-"
+            else tag,
+            tags,
+        )
+        tags = list(tags)
 
         sentences = []
 
@@ -242,7 +254,7 @@ if __name__ == "__main__":
         folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
     )
     output_filename = pathlib.Path(DATA_DIR, "train.txt")
-    # utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=False)
+    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=False)
 
     utils.merge_files(
         pathlib.Path(DATA_DIR, "train_task_conll.txt"),
