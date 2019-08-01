@@ -80,6 +80,7 @@ class ScienceIETagger(nn.Module):
         batch_size, time_steps, _ = task_logits.size()
         mask = torch.ones(size=(batch_size, time_steps), dtype=torch.long)
         mask = torch.LongTensor(mask)
+        mask = mask.cuda() if torch.cuda.is_available() else mask
 
         assert task_logits.size(1) == process_logits.size(1) == material_logits.size(1)
         assert task_logits.size(2) == process_logits.size(2) == material_logits.size(2)
@@ -140,9 +141,9 @@ class ScienceIETagger(nn.Module):
             )
             process_labels -= 8
             material_labels -= 16
-            task_loss = -self.task_crf(task_logits, task_labels)
-            process_loss = -self.process_crf(process_logits, process_labels)
-            material_loss = -self.material_crf(material_logits, material_labels)
+            task_loss = -self.task_crf(task_logits, task_labels, mask)
+            process_loss = -self.process_crf(process_logits, process_labels, mask)
+            material_loss = -self.material_crf(material_logits, material_labels, mask)
             loss = task_loss + process_loss + material_loss
             output_dict["loss"] = loss
 
