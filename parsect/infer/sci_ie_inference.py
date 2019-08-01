@@ -12,7 +12,6 @@ from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
-from parsect.utils.common import write_ann_file_from_conll_file
 from parsect.utils.tensor import move_to_device
 import pandas as pd
 
@@ -405,6 +404,7 @@ class ScienceIEInference(BaseInference):
                 conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
                 ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
                 conll_lines = []
+
                 for sent in sents:
                     task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
                         line=sent
@@ -442,6 +442,6 @@ class ScienceIEInference(BaseInference):
                     fp.writelines("\n".join(conll_lines))
                     fp.write("\n")
 
-                write_ann_file_from_conll_file(
+                science_ie_data_utils.write_ann_file_from_conll_file(
                     conll_filepath=conll_filepath, ann_filepath=ann_filepath
                 )

@@ -1,9 +1,10 @@
 import pathlib
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple
 import wasabi
 import spacy
 import parsect.constants as constants
 from spacy.gold import biluo_tags_from_offsets
+from spacy.gold import offsets_from_biluo_tags
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -242,6 +243,66 @@ class ScienceIEDataUtils:
         sents = doc.sents
         sents = [sent.text for sent in sents]
         return sents
+
+    def write_ann_file_from_conll_file(
+        self, conll_filepath: pathlib.Path, ann_filepath: pathlib.Path
+    ):
+        words = []
+        task_tags = []
+        process_tags = []
+        material_tags = []
+        with open(conll_filepath, "r") as fp:
+            for line in fp:
+                word, task_tag, process_tag, material_tag = line.split()
+                words.append(word)
+                task_tags.append(task_tag)
+                process_tags.append(process_tag)
+                material_tags.append(material_tag)
+
+        doc = self.nlp(" ".join(words))
+        task_char_offsets = offsets_from_biluo_tags(doc=doc, tags=task_tags)
+        process_char_offsets = offsets_from_biluo_tags(doc=doc, tags=process_tags)
+        material_char_offsets = offsets_from_biluo_tags(doc=doc, tags=material_tags)
+
+        ann_lines = []
+        term_idx = 0
+        for idx, char_offset in enumerate(task_char_offsets):
+            id_ = term_idx
+            ann_line = self._form_ann_line(
+                idx=id_, char_offset=char_offset, tag_name="Task"
+            )
+            ann_lines.append(ann_line)
+            term_idx += 1
+
+        for idx, char_offset in enumerate(process_char_offsets):
+            id_ = term_idx
+            ann_line = self._form_ann_line(
+                idx=id_, char_offset=char_offset, tag_name="Task"
+            )
+            ann_lines.append(ann_line)
+            term_idx += 1
+
+        for idx, char_offset in enumerate(material_char_offsets):
+            id_ = term_idx
+            ann_line = self._form_ann_line(
+                idx=id_, char_offset=char_offset, tag_name="Task"
+            )
+            ann_lines.append(ann_line)
+            term_idx += 1
+
+        with open(ann_filepath, "w") as fp:
+            fp.write("\n".join(ann_lines))
+
+    @staticmethod
+    def _form_ann_line(idx: str, char_offset: Tuple[int, int, str], tag_name: str):
+        start_offset, end_offset, surface_form = char_offset
+        start_offset = str(start_offset)
+        end_offset = str(end_offset)
+        ann_line = " ".join([start_offset, end_offset])
+        ann_line = "\t".join([ann_line, surface_form])
+        ann_line = " ".join([tag_name, ann_line])
+        ann_line = "\t".join([f"T{idx}", ann_line])
+        return ann_line
 
 
 if __name__ == "__main__":

@@ -6,28 +6,39 @@ from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from torch.utils.data import DataLoader
 import torch
 
-
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
 FILES = constants.FILES
 SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
+SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 
 
-@pytest.fixture(params=["train_science_ie", "dev_science_ie"])
+@pytest.fixture(
+    params=[
+        ("pytest_train_science_ie", SCIENCE_IE_TRAIN_FOLDER),
+        ("pytest_dev_science_ie", SCIENCE_IE_DEV_FOLDER),
+    ]
+)
 def setup_science_ie_dataset(tmpdir, request):
+    train_tag = request.param[0]
+    data_folder = request.param[1]
+    task_filename = pathlib.Path(DATA_DIR, f"{train_tag}_task_conll.txt")
+    process_filename = pathlib.Path(DATA_DIR, f"{train_tag}_process_conll.txt")
+    material_filename = pathlib.Path(DATA_DIR, f"{train_tag}_material_conll.txt")
+    out_filename = pathlib.Path(DATA_DIR, f"{train_tag}.txt")
+    conll_file = pathlib.Path(DATA_DIR, f"{train_tag}.txt")
+
     sci_ie_train_data_utils = ScienceIEDataUtils(
-        folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
+        folderpath=pathlib.Path(data_folder), ignore_warnings=True
     )
-    sci_ie_train_data_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, f"{request.param}.txt")
-    )
+    sci_ie_train_data_utils.write_bilou_lines(out_filename=out_filename)
     sci_ie_train_data_utils.merge_files(
-        task_filename=pathlib.Path(DATA_DIR, f"{request.param}_task_conll.txt"),
-        process_filename=pathlib.Path(DATA_DIR, f"{request.param}_process_conll.txt"),
-        material_filename=pathlib.Path(DATA_DIR, f"{request.param}_material_conll.txt"),
-        out_filename=pathlib.Path(DATA_DIR, f"{request.param}.txt"),
+        task_filename=task_filename,
+        process_filename=process_filename,
+        material_filename=material_filename,
+        out_filename=out_filename,
     )
-    conll_file = pathlib.Path(DATA_DIR, f"{request.param}.txt")
+
     vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
     char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = False
@@ -57,7 +68,11 @@ def setup_science_ie_dataset(tmpdir, request):
         "MAX_CHAR_LENGTH": MAX_CHAR_LENGTH,
         "EMBEDDING_DIM": EMBEDDING_DIM,
     }
-    return dataset, options
+    yield dataset, options
+
+    task_filename.unlink()
+    process_filename.unlink()
+    material_filename.unlink()
 
 
 class TestScienceIE:

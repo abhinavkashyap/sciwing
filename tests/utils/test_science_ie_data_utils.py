@@ -229,3 +229,30 @@ class TestScienceIEDataUtils:
                 )
         except:
             pytest.fail("Failed to run bilou lines")
+
+    def test_write_ann_file_from_conll_file(
+        self, tmpdir, setup_science_ie_train_data_utils
+    ):
+        utils = setup_science_ie_train_data_utils
+
+        conll_lines = [
+            "word B-Task B-Process B-Material",
+            "word I-Task I-Process I-Material",
+            "word L-Task L-Process L-Material",
+        ]
+
+        dummy_dir = tmpdir.mkdir("fake_dir")
+        dummy_conll = dummy_dir.join("dummy.conll")
+        dummy_ann = dummy_dir.join("dummy.ann")
+
+        dummy_conll.write("\n".join(conll_lines))
+        conll_filepath = pathlib.Path(dummy_conll)
+        ann_filepath = pathlib.Path(dummy_ann)
+
+        utils.write_ann_file_from_conll_file(
+            conll_filepath=conll_filepath, ann_filepath=ann_filepath
+        )
+
+        with open(ann_filepath) as fp:
+            num_lines = sum([1 for line in fp])
+            assert num_lines == 3
