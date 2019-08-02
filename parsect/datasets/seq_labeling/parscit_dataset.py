@@ -356,6 +356,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         char_tokenizer: Optional[CharacterTokenizer] = None,
         max_char_length: Optional[int] = None,
         labels: Optional[List[str]] = None,
+        need_padding: bool = True,
     ):
         word_instance = word_tokenizer.tokenize(line)
         len_instance = len(word_instance)

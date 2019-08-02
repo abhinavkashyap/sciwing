@@ -406,12 +406,12 @@ class ScienceIEInference(BaseInference):
                 conll_lines = []
 
                 for sent in sents:
+                    line = [token.text for token in sent]
+                    line = " ".join(line)
                     task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
-                        line=sent
+                        line=line
                     )
 
-                    sent = sent.split()
-                    sent = sent[: self.max_length]
                     len_sent = len(sent)
                     task_tag_names = task_tag_names[:len_sent]
                     process_tag_names = process_tag_names[:len_sent]
@@ -432,9 +432,10 @@ class ScienceIEInference(BaseInference):
                     )
 
                     for text_tag_name in zipped_text_tag_names:
-                        word, task_tag, process_tag, material_tag = text_tag_name
+                        token, task_tag, process_tag, material_tag = text_tag_name
+                        token = token.text
                         conll_line = " ".join(
-                            [word, task_tag, process_tag, material_tag]
+                            [token, task_tag, process_tag, material_tag]
                         )
                         conll_lines.append(conll_line)
 
@@ -443,5 +444,5 @@ class ScienceIEInference(BaseInference):
                     fp.write("\n")
 
                 science_ie_data_utils.write_ann_file_from_conll_file(
-                    conll_filepath=conll_filepath, ann_filepath=ann_filepath
+                    conll_filepath=conll_filepath, ann_filepath=ann_filepath, text=text
                 )

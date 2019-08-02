@@ -186,7 +186,9 @@ class ParsectCli:
                     dev_folder=dev_folder, pred_folder=pred_folder
                 )
                 calculateMeasures(
-                    folder_gold=str(dev_folder), folder_pred=str(pred_folder)
+                    folder_gold=str(dev_folder),
+                    folder_pred=str(pred_folder),
+                    remove_anno="rel",
                 )
             elif interaction_choice == "exit":
                 self.msg_printer.text("See you again!")

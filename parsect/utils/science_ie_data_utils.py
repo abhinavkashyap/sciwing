@@ -180,7 +180,11 @@ class ScienceIEDataUtils:
 
         sentences = []
 
-        current_sent = [f"{doc[0].text} {self._conll_col_sep.join([tags[0]] * 3)}"]
+        if not doc[0].is_space:
+            current_sent = [f"{doc[0].text} {self._conll_col_sep.join([tags[0]] * 3)}"]
+        else:
+            current_sent = []
+
         for tag, token in zip(tags[1:], doc[1:]):
             if token.is_sent_start:
                 sentences.append(current_sent)
@@ -241,11 +245,11 @@ class ScienceIEDataUtils:
     def get_sents(self, text: str):
         doc = self.nlp(text)
         sents = doc.sents
-        sents = [sent.text for sent in sents]
+        sents = list(sents)
         return sents
 
     def write_ann_file_from_conll_file(
-        self, conll_filepath: pathlib.Path, ann_filepath: pathlib.Path
+        self, conll_filepath: pathlib.Path, ann_filepath: pathlib.Path, text: str
     ):
         words = []
         task_tags = []
@@ -253,13 +257,18 @@ class ScienceIEDataUtils:
         material_tags = []
         with open(conll_filepath, "r") as fp:
             for line in fp:
-                word, task_tag, process_tag, material_tag = line.split()
+                try:
+                    word, task_tag, process_tag, material_tag = line.split()
+                except ValueError:
+                    word = " "
+                    task_tag, process_tag, material_tag = line.split()
                 words.append(word)
                 task_tags.append(task_tag)
                 process_tags.append(process_tag)
                 material_tags.append(material_tag)
 
-        doc = self.nlp(" ".join(words))
+        doc = self.nlp(text)
+
         task_char_offsets = offsets_from_biluo_tags(doc=doc, tags=task_tags)
         process_char_offsets = offsets_from_biluo_tags(doc=doc, tags=process_tags)
         material_char_offsets = offsets_from_biluo_tags(doc=doc, tags=material_tags)
@@ -269,7 +278,7 @@ class ScienceIEDataUtils:
         for idx, char_offset in enumerate(task_char_offsets):
             id_ = term_idx
             ann_line = self._form_ann_line(
-                idx=id_, char_offset=char_offset, tag_name="Task"
+                idx=id_, char_offset=char_offset, tag_name="Task", doc=doc
             )
             ann_lines.append(ann_line)
             term_idx += 1
@@ -277,7 +286,7 @@ class ScienceIEDataUtils:
         for idx, char_offset in enumerate(process_char_offsets):
             id_ = term_idx
             ann_line = self._form_ann_line(
-                idx=id_, char_offset=char_offset, tag_name="Task"
+                idx=id_, char_offset=char_offset, tag_name="Process", doc=doc
             )
             ann_lines.append(ann_line)
             term_idx += 1
@@ -285,7 +294,7 @@ class ScienceIEDataUtils:
         for idx, char_offset in enumerate(material_char_offsets):
             id_ = term_idx
             ann_line = self._form_ann_line(
-                idx=id_, char_offset=char_offset, tag_name="Task"
+                idx=id_, char_offset=char_offset, tag_name="Material", doc=doc
             )
             ann_lines.append(ann_line)
             term_idx += 1
@@ -294,8 +303,14 @@ class ScienceIEDataUtils:
             fp.write("\n".join(ann_lines))
 
     @staticmethod
-    def _form_ann_line(idx: str, char_offset: Tuple[int, int, str], tag_name: str):
-        start_offset, end_offset, surface_form = char_offset
+    def _form_ann_line(
+        idx: str,
+        char_offset: Tuple[int, int, str],
+        tag_name: str,
+        doc: spacy.tokens.doc.Doc,
+    ):
+        start_offset, end_offset, entity_type = char_offset
+        surface_form = doc.char_span(start_offset, end_offset).text
         start_offset = str(start_offset)
         end_offset = str(end_offset)
         ann_line = " ".join([start_offset, end_offset])
