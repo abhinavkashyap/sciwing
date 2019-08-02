@@ -1,7 +1,7 @@
 import torch
 from pytorch_pretrained_bert import BertTokenizer, BertModel
 from parsect.utils.common import pack_to_length
-from typing import List, Dict, Any
+from typing import Dict, Any
 import wasabi
 import parsect.constants as constants
 import os
