@@ -48,7 +48,8 @@ class ParscitTagger(nn.Module):
         if self.character_encoder is not None:
             char_tokens = iter_dict["char_tokens"]
             char_tokens = char_tokens.view(batch_size * max_time_steps, -1)
-            character_encoding = self.character_encoder(char_tokens)
+            encoder_dict = {"tokens": char_tokens}
+            character_encoding = self.character_encoder(encoder_dict)
             # batch size, time steps, hidden_dim
             character_encoding = character_encoding.view(batch_size, max_time_steps, -1)
 

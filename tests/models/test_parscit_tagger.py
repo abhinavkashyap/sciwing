@@ -2,6 +2,7 @@ import pytest
 from parsect.models.parscit_tagger import ParscitTagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import itertools
 import torch.nn as nn
 import torch
@@ -45,7 +46,9 @@ def setup_parscit_tagger(request):
     if HAVE_CHARACTER_ENCODER:
         char_encoder = LSTM2VecEncoder(
             emb_dim=CHARACTER_EMBEDDING_DIM,
-            embedding=CHARACTER_EMBEDDING,
+            embedder=VanillaEmbedder(
+                embedding=CHARACTER_EMBEDDING, embedding_dim=CHARACTER_EMBEDDING_DIM
+            ),
             hidden_dim=CHARACTER_ENCODER_HIDDEN_DIM,
             bidirectional=False,
         )

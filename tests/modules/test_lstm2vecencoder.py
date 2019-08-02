@@ -2,16 +2,14 @@ import pytest
 import torch
 import torch.nn as nn
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import numpy as np
 import itertools
 
 directions = [True, False]  # True for bi-directions
 combination_strategy = ["concat", "sum"]
-have_additional_embedding_ = [True, False]
 
-directions_combine_strategy = itertools.product(
-    directions, combination_strategy, have_additional_embedding_
-)
+directions_combine_strategy = itertools.product(directions, combination_strategy)
 directions_combine_strategy = list(directions_combine_strategy)
 
 
@@ -25,18 +23,15 @@ def setup_lstm2vecencoder(request):
     hidden_dimension = 1024
     combine_strategy = request.param[1]
     bidirectional = request.param[0]
-    have_additional_embedding = request.param[2]
     tokens = np.random.randint(0, vocab_size - 1, size=(batch_size, time_steps))
     tokens = torch.LongTensor(tokens)
-    additional_embedding = None
 
-    if have_additional_embedding:
-        additional_embedding = torch.zeros(batch_size, time_steps, emb_dim)
-        emb_dim += emb_dim
+    iter_dict = {"tokens": tokens}
+    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=emb_dim)
 
     encoder = LSTM2VecEncoder(
         emb_dim=emb_dim,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=hidden_dimension,
         bidirectional=bidirectional,
@@ -56,33 +51,34 @@ def setup_lstm2vecencoder(request):
             "combine_strategy": combine_strategy,
             "tokens": tokens,
             "batch_size": batch_size,
-            "have_additional_embedding": have_additional_embedding,
-            "additional_embedding": additional_embedding,
+            "iter_dict": iter_dict,
         },
     )
 
 
 class TestLstm2VecEncoder:
-    def test_raises_error_on_wrong_combine_strategy(self):
+    def test_raises_error_on_wrong_combine_strategy(self, setup_lstm2vecencoder):
         with pytest.raises(AssertionError):
+
             encoder = LSTM2VecEncoder(
-                emb_dim=300, embedding=nn.Embedding(10, 1024), combine_strategy="add"
+                emb_dim=300,
+                embedder=VanillaEmbedder(nn.Embedding(10, 1024), embedding_dim=1024),
+                combine_strategy="add",
             )
 
     def test_zero_embedding_dimension(self, setup_lstm2vecencoder):
         encoder, options = setup_lstm2vecencoder
-        x = options["tokens"]
         hidden_dim = options["hidden_dim"]
         batch_size = options["batch_size"]
-        encoding = encoder(x, additional_embedding=options["additional_embedding"])
+        encoding = encoder(iter_dict=options["iter_dict"])
         assert encoding.size() == (batch_size, hidden_dim)
 
     def test_lstm2vec_encoder(self, setup_lstm2vecencoder):
         encoder, options = setup_lstm2vecencoder
-        x = options["tokens"]
+        iter_dict = options["iter_dict"]
         hidden_dim = options["hidden_dim"]
         batch_size = options["batch_size"]
-        encoding = encoder(x, additional_embedding=options["additional_embedding"])
+        encoding = encoder(iter_dict=iter_dict)
         assert torch.all(
             torch.eq(encoding, torch.zeros([batch_size, hidden_dim]))
         ).item()
