@@ -104,6 +104,14 @@ if __name__ == "__main__":
 
     parser.add_argument("--device", help="Device on which the model is run", type=str)
 
+    parser.add_argument("--reg", help="Regularization strength", type=float)
+    parser.add_argument(
+        "--dropout", help="Dropout added to multiple layer lstm", type=float
+    )
+    parser.add_argument(
+        "--seq_num_layers", help="Number of layers in the Seq2Seq encoder", type=int
+    )
+
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
 
@@ -128,6 +136,9 @@ if __name__ == "__main__":
         "COMBINE_STRATEGY": args.combine_strategy,
         "USE_CHAR_ENCODER": args.use_char_encoder,
         "CHAR_ENCODER_HIDDEN_DIM": args.char_encoder_hidden_dim,
+        "REGULARIZATION_STRENGTH": args.reg,
+        "DROPOUT": args.dropout,
+        "NUM_LAYERS": args.seq_num_layers,
     }
 
     DEBUG = config["DEBUG"]
@@ -149,7 +160,10 @@ if __name__ == "__main__":
     MAX_CHAR_LENGTH = config["MAX_CHAR_LENGTH"]
     USE_CHAR_ENCODER = config["USE_CHAR_ENCODER"]
     CHAR_ENCODER_HIDDEN_DIM = config["CHAR_ENCODER_HIDDEN_DIM"]
+    REGULARIZATION_STRENGTH = config["REGULARIZATION_STRENGTH"]
+    DROPOUT = config["DROPOUT"]
     EXP_NAME = config["EXP_NAME"]
+    NUM_LAYERS = config["NUM_LAYERS"]
     EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
     MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
 
@@ -310,11 +324,12 @@ if __name__ == "__main__":
             embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
         )
         char_encoder = CharLSTMEncoder(
-            emb_dim=CHAR_EMBEDDING_DIMENSION,
-            embedder=char_embedder,
+            char_emb_dim=CHAR_EMBEDDING_DIMENSION,
+            char_embedder=char_embedder,
             bidirectional=True,
             hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
             combine_strategy="concat",
+            device=torch.device(DEVICE),
         )
         embedder = ConcatEmbedders([embedder, char_encoder])
         EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
@@ -322,10 +337,11 @@ if __name__ == "__main__":
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedder=embedder,
-        dropout_value=0.0,
+        dropout_value=DROPOUT,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
+        num_layers=NUM_LAYERS,
         rnn_bias=True,
         device=torch.device(DEVICE),
     )
@@ -340,7 +356,11 @@ if __name__ == "__main__":
         material_constraints=material_constraints,
     )
 
-    optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(
+        params=model.parameters(),
+        lr=LEARNING_RATE,
+        weight_decay=REGULARIZATION_STRENGTH,
+    )
 
     metric = TokenClassificationAccuracy(
         idx2labelname_mapping=train_dataset.idx2classnames,

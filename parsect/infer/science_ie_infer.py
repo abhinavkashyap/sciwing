@@ -56,6 +56,7 @@ def get_science_ie_infer(dirname: str):
     CHAR_EMBEDDING_DIMENSION = config.get("CHAR_EMBEDDING_DIMENSION", None)
     USE_CHAR_ENCODER = config.get("USE_CHAR_ENCODER", None)
     CHAR_ENCODER_HIDDEN_DIM = config.get("CHAR_ENCODER_HIDDEN_DIM", None)
+    NUM_LAYERS = config.get("NUM_LAYERS", 1)
 
     test_science_ie_conll_filepath = pathlib.Path(DATA_DIR, "dev_science_ie.txt")
 
@@ -97,6 +98,7 @@ def get_science_ie_infer(dirname: str):
             bidirectional=True,
             hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
             combine_strategy="concat",
+            device=torch.device(DEVICE),
         )
         embedder = ConcatEmbedders([embedder, char_encoder])
         EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
@@ -110,6 +112,7 @@ def get_science_ie_infer(dirname: str):
         combine_strategy=COMBINE_STRATEGY,
         rnn_bias=True,
         device=torch.device(DEVICE),
+        NUM_LAYERS=NUM_LAYERS,
     )
     model = ScienceIETagger(
         rnn2seqencoder=lstm2seqencoder,

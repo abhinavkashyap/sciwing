@@ -47,6 +47,7 @@ class Lstm2SeqEncoder(nn.Module):
             batch_first=True,
             bidirectional=self.bidirectional,
             num_layers=self.num_layers,
+            dropout=self.dropout_value,
         )
 
     def forward(

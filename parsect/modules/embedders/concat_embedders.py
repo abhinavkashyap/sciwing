@@ -8,6 +8,9 @@ class ConcatEmbedders(nn.Module):
         super(ConcatEmbedders, self).__init__()
         self.embedders = embedders
 
+        for idx, embedder in enumerate(self.embedders):
+            self.add_module(f"embedder {idx}", embedder)
+
     def forward(self, iter_dict: Dict[str, Any]):
         embeddings = []
         for embedder in self.embedders:
