@@ -250,7 +250,9 @@ class TestScienceIEDataUtils:
         ann_filepath = pathlib.Path(dummy_ann)
 
         utils.write_ann_file_from_conll_file(
-            conll_filepath=conll_filepath, ann_filepath=ann_filepath
+            conll_filepath=conll_filepath,
+            ann_filepath=ann_filepath,
+            text="word word word",
         )
 
         with open(ann_filepath) as fp:

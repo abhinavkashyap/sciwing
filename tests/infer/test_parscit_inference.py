@@ -2,7 +2,9 @@ import pytest
 from parsect.infer.parscit_inference import ParscitInference
 from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from parsect.modules.embedders.concat_embedders import ConcatEmbedders
+from parsect.modules.charlstm_encoder import CharLSTMEncoder
 from parsect.models.parscit_tagger import ParscitTagger
 import parsect.constants as constants
 import pathlib
@@ -70,21 +72,26 @@ def setup_base_parscit_inference():
     char_embedding = test_dataset.get_preloaded_char_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding)
 
-    char_encoder = None
+    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
     if USE_CHAR_ENCODER:
-        char_encoder = LSTM2VecEncoder(
-            emb_dim=CHAR_EMBEDDING_DIMENSION,
-            embedding=char_embedding,
+        char_embedder = VanillaEmbedder(
+            embedding_dim=CHAR_EMBEDDING_DIMENSION, embedding=char_embedding
+        )
+
+        char_encoder = CharLSTMEncoder(
+            char_emb_dim=CHAR_EMBEDDING_DIMENSION,
+            char_embedder=char_embedder,
             bidirectional=True,
             hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
             combine_strategy="concat",
         )
+        embedder = ConcatEmbedders([embedder, char_encoder])
         EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
 
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
@@ -98,7 +105,6 @@ def setup_base_parscit_inference():
         hid_dim=2 * HIDDEN_DIMENSION
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIMENSION,
-        character_encoder=char_encoder,
     )
 
     inference_client = ParscitInference(

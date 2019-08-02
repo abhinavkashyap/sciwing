@@ -1,7 +1,9 @@
 import pytest
 from parsect.models.science_ie_tagger import ScienceIETagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.charlstm_encoder import CharLSTMEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from parsect.modules.embedders.concat_embedders import ConcatEmbedders
 from allennlp.modules.conditional_random_field import allowed_transitions
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 import itertools
@@ -51,7 +53,7 @@ def setup_science_ie_tagger(request):
     tokens = torch.LongTensor(tokens)
     labels = torch.LongTensor(labels)
     char_tokens = torch.LongTensor(char_tokens)
-    char_encoder = None
+
     classnames2idx = ScienceIEDataset.get_classname2idx()
     idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
     task_idx2classnames = {
@@ -80,18 +82,25 @@ def setup_science_ie_tagger(request):
         constraint_type="BIOUL", labels=material_idx2classnames
     )
 
+    embedder = VanillaEmbedder(embedding=EMBEDDING, embedding_dim=EMBEDDING_DIM)
+
     if HAVE_CHARACTER_ENCODER:
-        char_encoder = LSTM2VecEncoder(
-            emb_dim=CHARACTER_EMBEDDING_DIM,
-            embedding=CHARACTER_EMBEDDING,
-            hidden_dim=CHARACTER_ENCODER_HIDDEN_DIM,
-            bidirectional=False,
+        char_embedder = VanillaEmbedder(
+            embedding=CHARACTER_EMBEDDING, embedding_dim=CHARACTER_EMBEDDING_DIM
         )
-        EMBEDDING_DIM = EMBEDDING_DIM + CHARACTER_ENCODER_HIDDEN_DIM
+        char_encoder = CharLSTMEncoder(
+            char_embedder=char_embedder,
+            char_emb_dim=CHARACTER_EMBEDDING_DIM,
+            hidden_dim=CHARACTER_ENCODER_HIDDEN_DIM,
+            bidirectional=True,
+            combine_strategy="concat",
+        )
+        embedder = ConcatEmbedders([embedder, char_encoder])
+        EMBEDDING_DIM += 2 * CHARACTER_ENCODER_HIDDEN_DIM
 
     encoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIM,
-        embedding=EMBEDDING,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
@@ -105,7 +114,6 @@ def setup_science_ie_tagger(request):
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIM,
         num_classes=NUM_CLASSES,
-        character_encoder=char_encoder,
         task_constraints=task_constraints,
         process_constraints=process_constraints,
         material_constraints=material_constraints,

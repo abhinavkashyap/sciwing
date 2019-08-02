@@ -1,11 +1,12 @@
 from parsect.models.science_ie_tagger import ScienceIETagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.charlstm_encoder import CharLSTMEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from parsect.modules.embedders.concat_embedders import ConcatEmbedders
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 import parsect.constants as constants
-from typing import List
 from allennlp.modules.conditional_random_field import allowed_transitions
 import os
 import torch
@@ -261,7 +262,6 @@ if __name__ == "__main__":
     embedding = nn.Embedding.from_pretrained(embedding, freeze=False)
     char_embedding = train_dataset.get_preloaded_char_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
-    char_encoder = None
 
     classnames2idx = train_dataset.classnames2idx
     idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
@@ -303,19 +303,25 @@ if __name__ == "__main__":
         constraint_type="BIOUL", labels=material_idx2classnames
     )
 
+    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
+
     if USE_CHAR_ENCODER:
-        char_encoder = LSTM2VecEncoder(
+        char_embedder = VanillaEmbedder(
+            embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
+        )
+        char_encoder = CharLSTMEncoder(
             emb_dim=CHAR_EMBEDDING_DIMENSION,
-            embedding=char_embedding,
+            embedder=char_embedder,
             bidirectional=True,
             hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
             combine_strategy="concat",
         )
+        embedder = ConcatEmbedders([embedder, char_encoder])
         EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
 
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
@@ -329,7 +335,6 @@ if __name__ == "__main__":
         hid_dim=2 * HIDDEN_DIM
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIM,
-        character_encoder=char_encoder,
         task_constraints=task_constraints,
         process_constraints=process_constraints,
         material_constraints=material_constraints,

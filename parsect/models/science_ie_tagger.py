@@ -56,21 +56,7 @@ class ScienceIETagger(nn.Module):
         is_validation: bool,
         is_test: bool,
     ):
-        tokens = iter_dict["tokens"]
-
-        batch_size, max_time_steps = tokens.size()
-
-        character_encoding = None
-        if self.character_encoder is not None:
-            char_tokens = iter_dict["char_tokens"]
-            char_tokens = char_tokens.view(batch_size * max_time_steps, -1)
-            character_encoding = self.character_encoder(char_tokens)
-            # batch size, time steps, hidden_dim
-            character_encoding = character_encoding.view(batch_size, max_time_steps, -1)
-
-        encoding = self.rnn2seqencoder(
-            x=tokens, additional_embedding=character_encoding
-        )
+        encoding = self.rnn2seqencoder(iter_dict=iter_dict)
 
         # batch_size * time_steps * num_classes
         task_logits = self.hidden2task(encoding)
