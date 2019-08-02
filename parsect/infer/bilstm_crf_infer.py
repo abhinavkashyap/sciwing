@@ -3,7 +3,9 @@ import pathlib
 import json
 from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.charlstm_encoder import CharLSTMEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from parsect.modules.embedders.concat_embedders import ConcatEmbedders
 from parsect.models.parscit_tagger import ParscitTagger
 from parsect.infer.parscit_inference import ParscitInference
 import torch
@@ -65,25 +67,29 @@ def get_bilstm_crf_infer(dirname: str):
 
     embedding = test_dataset.get_preloaded_word_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
+    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
     char_embedding = test_dataset.get_preloaded_char_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding)
 
-    char_encoder = None
-
     if USE_CHAR_ENCODER:
-        char_encoder = LSTM2VecEncoder(
-            emb_dim=CHAR_EMBEDDING_DIMENSION,
-            embedding=char_embedding,
-            bidirectional=True,
+        char_embedder = VanillaEmbedder(
+            embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
+        )
+        char_encoder = CharLSTMEncoder(
+            char_embedder=char_embedder,
+            char_emb_dim=CHAR_EMBEDDING_DIMENSION,
             hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
+            bidirectional=True,
             combine_strategy="concat",
         )
+        embedder = ConcatEmbedders([embedder, char_encoder])
+
         EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
 
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=embedding,
+        embedder=embedder,
         dropout_value=DROPOUT,
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
@@ -97,7 +103,6 @@ def get_bilstm_crf_infer(dirname: str):
         hid_dim=2 * HIDDEN_DIMENSION
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIMENSION,
-        character_encoder=char_encoder,
     )
 
     inference_client = ParscitInference(
