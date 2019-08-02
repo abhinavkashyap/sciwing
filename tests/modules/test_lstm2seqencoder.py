@@ -1,14 +1,13 @@
 import pytest
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import torch
 import torch.nn as nn
 import numpy as np
 import itertools
 
 is_additional_embedding = [True, False]
-lstm2encoder_options = itertools.product(
-    [True, False], ["sum", "concat"], [1, 2], is_additional_embedding
-)
+lstm2encoder_options = itertools.product([True, False], ["sum", "concat"], [1, 2])
 lstm2encoder_options = list(lstm2encoder_options)
 
 
@@ -22,19 +21,15 @@ def setup_lstm2seqencoder(request):
     BIDIRECTIONAL = request.param[0]
     COMBINE_STRATEGY = request.param[1]
     NUM_LAYERS = request.param[2]
-    IS_ADDITIONAL_EMBEDDING = request.param[3]
     EMBEDDING = nn.Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMBEDDING_DIM]))
     tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TIME_STEPS))
     tokens = torch.LongTensor(tokens)
-    additional_embedding = None
 
-    if IS_ADDITIONAL_EMBEDDING:
-        additional_embedding = torch.zeros(BATCH_SIZE, NUM_TIME_STEPS, EMBEDDING_DIM)
-        EMBEDDING_DIM += EMBEDDING_DIM
+    embedder = VanillaEmbedder(embedding=EMBEDDING, embedding_dim=EMBEDDING_DIM)
 
     encoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIM,
-        embedding=EMBEDDING,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
@@ -57,7 +52,6 @@ def setup_lstm2seqencoder(request):
             if COMBINE_STRATEGY == "concat" and BIDIRECTIONAL
             else HIDDEN_DIM,
             "TIME_STEPS": NUM_TIME_STEPS,
-            "ADDITIONAL_EMBEDDING": additional_embedding,
             "NUM_LAYERS": NUM_LAYERS,
         },
     )
@@ -70,8 +64,7 @@ class TestLstm2SeqEncoder:
         batch_size = options["BATCH_SIZE"]
         num_time_steps = options["TIME_STEPS"]
         expected_hidden_size = options["EXPECTED_HIDDEN_DIM"]
-        additional_embedding = options["ADDITIONAL_EMBEDDING"]
-        encoding = encoder(tokens, additional_embedding=additional_embedding)
+        encoding = encoder({"tokens": tokens})
         assert encoding.size() == (batch_size, num_time_steps, expected_hidden_size)
 
     def test_encoder_produces_zero_encoding(self, setup_lstm2seqencoder):
@@ -80,8 +73,7 @@ class TestLstm2SeqEncoder:
         batch_size = options["BATCH_SIZE"]
         num_time_steps = options["TIME_STEPS"]
         expected_hidden_size = options["EXPECTED_HIDDEN_DIM"]
-        additional_embedding = options["ADDITIONAL_EMBEDDING"]
-        encoding = encoder(tokens, additional_embedding=additional_embedding)
+        encoding = encoder({"tokens": tokens})
         assert torch.all(
             torch.eq(
                 encoding, torch.zeros(batch_size, num_time_steps, expected_hidden_size)

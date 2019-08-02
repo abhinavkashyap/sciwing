@@ -1,13 +1,14 @@
 import torch
 import torch.nn as nn
 import wasabi
+from typing import Dict, Any
 
 
 class Lstm2SeqEncoder(nn.Module):
     def __init__(
         self,
         emb_dim: int,
-        embedding: torch.nn.Embedding,
+        embedder: nn.Module,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
@@ -18,7 +19,7 @@ class Lstm2SeqEncoder(nn.Module):
     ):
         super(Lstm2SeqEncoder, self).__init__()
         self.emb_dim = emb_dim
-        self.embedding = embedding
+        self.embedder = embedder
         self.dropout_value = dropout_value
         self.hidden_dim = hidden_dim
         self.bidirectional = bidirectional
@@ -50,19 +51,13 @@ class Lstm2SeqEncoder(nn.Module):
 
     def forward(
         self,
-        x: torch.LongTensor,
-        additional_embedding: torch.FloatTensor = None,
+        iter_dict: Dict[str, Any],
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.Tensor:
-        batch_size, seq_length = x.size()
+        batch_size, seq_length = iter_dict["tokens"].size()
 
-        # batch_size * time steps * embedding dimension
-        embedded_tokens = self.embedding(x)
-        embedded_tokens = self.emb_dropout(embedded_tokens)
-
-        if additional_embedding is not None:
-            embedded_tokens = torch.cat([embedded_tokens, additional_embedding], dim=2)
+        embeddings = self.embedder(iter_dict=iter_dict)
 
         if h0 is None or c0 is None:
             h0, c0 = self.get_initial_hidden(batch_size=batch_size)
@@ -70,7 +65,7 @@ class Lstm2SeqEncoder(nn.Module):
         # output = batch_size, sequence_length, hidden_dim * num_directions
         # h_n = num_layers * num_directions, batch_size, hidden_dimension
         # c_n = num_layers * num_directions, batch_size, hidden_dimension
-        output, (_, _) = self.rnn(embedded_tokens, (h0, c0))
+        output, (_, _) = self.rnn(embeddings, (h0, c0))
 
         output = self.output_dropout(output)
 
