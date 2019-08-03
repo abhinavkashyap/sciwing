@@ -2,9 +2,10 @@ import torch
 from allennlp.commands.elmo import ElmoEmbedder
 import wasabi
 from typing import List, Iterable, Dict, Any
+import torch.nn as nn
 
 
-class BowElmoEmbedder:
+class BowElmoEmbedder(nn.Module):
     """
     This trains a non trainable bi-LSTM Elmo Model
     Takes only the last layer of inputs from Elmo

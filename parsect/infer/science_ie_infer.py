@@ -7,6 +7,7 @@ from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.embedders.concat_embedders import ConcatEmbedders
 from parsect.modules.charlstm_encoder import CharLSTMEncoder
+from allennlp.modules.conditional_random_field import allowed_transitions
 import json
 import torch
 import torch.nn as nn
@@ -21,18 +22,6 @@ DATA_DIR = PATHS["DATA_DIR"]
 def get_science_ie_infer(dirname: str):
     model_folder = pathlib.Path(dirname)
     hyperparam_config_filename = model_folder.joinpath("config.json")
-    sci_ie_dev_utils = ScienceIEDataUtils(
-        folderpath=pathlib.Path(SCIENCE_IE_DEV_FOLDER), ignore_warnings=True
-    )
-    sci_ie_dev_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, "dev_science_ie.txt")
-    )
-    sci_ie_dev_utils.merge_files(
-        task_filename=pathlib.Path(DATA_DIR, "dev_science_ie_task_conll.txt"),
-        process_filename=pathlib.Path(DATA_DIR, "dev_science_ie_process_conll.txt"),
-        material_filename=pathlib.Path(DATA_DIR, "dev_science_ie_material_conll.txt"),
-        out_filename=pathlib.Path(DATA_DIR, "dev_science_ie.txt"),
-    )
 
     with open(hyperparam_config_filename, "r") as fp:
         config = json.load(fp)
@@ -57,8 +46,11 @@ def get_science_ie_infer(dirname: str):
     USE_CHAR_ENCODER = config.get("USE_CHAR_ENCODER", None)
     CHAR_ENCODER_HIDDEN_DIM = config.get("CHAR_ENCODER_HIDDEN_DIM", None)
     NUM_LAYERS = config.get("NUM_LAYERS", 1)
+    DROPOUT = config.get("DROPOUT", 0.0)
 
-    test_science_ie_conll_filepath = pathlib.Path(DATA_DIR, "dev_science_ie.txt")
+    print(f"NUM_LAYERS", NUM_LAYERS)
+
+    test_science_ie_conll_filepath = pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt")
 
     test_dataset = ScienceIEDataset(
         science_ie_conll_file=test_science_ie_conll_filepath,
@@ -86,6 +78,35 @@ def get_science_ie_infer(dirname: str):
     char_embedding = test_dataset.get_preloaded_char_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding)
 
+    classnames2idx = ScienceIEDataset.get_classname2idx()
+    idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
+
+    task_idx2classnames = {
+        idx: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(0, 8)
+    }
+    process_idx2classnames = {
+        idx - 8: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(8, 16)
+    }
+    material_idx2classnames = {
+        idx - 16: classname
+        for idx, classname in idx2classnames.items()
+        if idx in range(16, 24)
+    }
+
+    task_constraints = allowed_transitions(
+        constraint_type="BIOUL", labels=task_idx2classnames
+    )
+    process_constraints = allowed_transitions(
+        constraint_type="BIOUL", labels=process_idx2classnames
+    )
+    material_constraints = allowed_transitions(
+        constraint_type="BIOUL", labels=material_idx2classnames
+    )
+
     embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
     if USE_CHAR_ENCODER:
@@ -106,13 +127,13 @@ def get_science_ie_infer(dirname: str):
     lstm2seqencoder = Lstm2SeqEncoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedder=embedder,
-        dropout_value=0.0,
+        dropout_value=DROPOUT,
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
+        num_layers=NUM_LAYERS,
         rnn_bias=True,
         device=torch.device(DEVICE),
-        NUM_LAYERS=NUM_LAYERS,
     )
     model = ScienceIETagger(
         rnn2seqencoder=lstm2seqencoder,
@@ -120,6 +141,9 @@ def get_science_ie_infer(dirname: str):
         hid_dim=2 * HIDDEN_DIMENSION
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
         else HIDDEN_DIMENSION,
+        task_constraints=task_constraints,
+        process_constraints=process_constraints,
+        material_constraints=material_constraints,
     )
 
     inference_client = ScienceIEInference(

@@ -336,5 +336,19 @@ if __name__ == "__main__":
         pathlib.Path(DATA_DIR, "train_task_conll.txt"),
         pathlib.Path(DATA_DIR, "train_process_conll.txt"),
         pathlib.Path(DATA_DIR, "train_material_conll.txt"),
-        pathlib.Path(DATA_DIR, "train_conll.txt"),
+        pathlib.Path(DATA_DIR, "train_science_ie_conll.txt"),
+    )
+
+    SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
+    utils = ScienceIEDataUtils(
+        folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
+    )
+    output_filename = pathlib.Path(DATA_DIR, "dev.txt")
+    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=False)
+
+    utils.merge_files(
+        pathlib.Path(DATA_DIR, "dev_task_conll.txt"),
+        pathlib.Path(DATA_DIR, "dev_process_conll.txt"),
+        pathlib.Path(DATA_DIR, "dev_material_conll.txt"),
+        pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
     )

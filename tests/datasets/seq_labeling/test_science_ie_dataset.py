@@ -2,7 +2,6 @@ import pytest
 import parsect.constants as constants
 import pathlib
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
-from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from torch.utils.data import DataLoader
 import torch
 
@@ -13,34 +12,18 @@ SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
 SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 
 
-@pytest.fixture(
-    params=[
-        ("pytest_train_science_ie", SCIENCE_IE_TRAIN_FOLDER),
-        ("pytest_dev_science_ie", SCIENCE_IE_DEV_FOLDER),
-    ]
-)
-def setup_science_ie_dataset(tmpdir, request):
-    train_tag = request.param[0]
-    data_folder = request.param[1]
+@pytest.fixture(params=["train", "dev"], scope="session")
+def setup_science_ie_dataset(request, tmpdir_factory):
+    train_tag = request.param
     task_filename = pathlib.Path(DATA_DIR, f"{train_tag}_task_conll.txt")
     process_filename = pathlib.Path(DATA_DIR, f"{train_tag}_process_conll.txt")
     material_filename = pathlib.Path(DATA_DIR, f"{train_tag}_material_conll.txt")
-    out_filename = pathlib.Path(DATA_DIR, f"{train_tag}.txt")
-    conll_file = pathlib.Path(DATA_DIR, f"{train_tag}.txt")
+    out_filename = pathlib.Path(DATA_DIR, f"{train_tag}_science_ie_conll.txt")
 
-    sci_ie_train_data_utils = ScienceIEDataUtils(
-        folderpath=pathlib.Path(data_folder), ignore_warnings=True
+    vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
+    char_vocab_store_location = tmpdir_factory.mktemp("tempdir_char").join(
+        "char_vocab.json"
     )
-    sci_ie_train_data_utils.write_bilou_lines(out_filename=out_filename)
-    sci_ie_train_data_utils.merge_files(
-        task_filename=task_filename,
-        process_filename=process_filename,
-        material_filename=material_filename,
-        out_filename=out_filename,
-    )
-
-    vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
-    char_vocab_store_location = tmpdir.mkdir("tempdir_char").join("char_vocab.json")
     DEBUG = False
     MAX_NUM_WORDS = 10000
     MAX_LENGTH = 300
@@ -49,7 +32,7 @@ def setup_science_ie_dataset(tmpdir, request):
     CHAR_EMBEDDING_DIM = 25
 
     dataset = ScienceIEDataset(
-        science_ie_conll_file=conll_file,
+        science_ie_conll_file=out_filename,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -69,10 +52,6 @@ def setup_science_ie_dataset(tmpdir, request):
         "EMBEDDING_DIM": EMBEDDING_DIM,
     }
     yield dataset, options
-
-    task_filename.unlink()
-    process_filename.unlink()
-    material_filename.unlink()
 
 
 class TestScienceIE:
