@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from typing import Any, Dict, List, Optional, Union
 import pandas as pd
-from parsect.utils.tensor import move_to_device
+from parsect.utils.tensor_utils import move_to_device
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from wasabi.util import MESSAGES

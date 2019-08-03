@@ -12,7 +12,7 @@ from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from parsect.vocab.vocab import Vocab
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
-from parsect.utils.tensor import move_to_device
+from parsect.utils.tensor_utils import move_to_device
 import pandas as pd
 
 

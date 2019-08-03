@@ -144,6 +144,7 @@ def get_science_ie_infer(dirname: str):
         task_constraints=task_constraints,
         process_constraints=process_constraints,
         material_constraints=material_constraints,
+        device=torch.device(DEVICE),
     )
 
     inference_client = ScienceIEInference(

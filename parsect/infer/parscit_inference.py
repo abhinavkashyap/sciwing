@@ -3,7 +3,7 @@ import torch.nn as nn
 from parsect.infer.BaseInference import BaseInference
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from torch.utils.data import DataLoader
-from parsect.utils.tensor import move_to_device
+from parsect.utils.tensor_utils import move_to_device
 import torch
 import pandas as pd
 from parsect.utils.vis_seq_tags import VisTagging

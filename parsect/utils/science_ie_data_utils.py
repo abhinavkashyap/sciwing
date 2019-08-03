@@ -330,7 +330,7 @@ if __name__ == "__main__":
         folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
     )
     output_filename = pathlib.Path(DATA_DIR, "train.txt")
-    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=False)
+    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=True)
 
     utils.merge_files(
         pathlib.Path(DATA_DIR, "train_task_conll.txt"),
@@ -344,7 +344,7 @@ if __name__ == "__main__":
         folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
     )
     output_filename = pathlib.Path(DATA_DIR, "dev.txt")
-    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=False)
+    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=True)
 
     utils.merge_files(
         pathlib.Path(DATA_DIR, "dev_task_conll.txt"),

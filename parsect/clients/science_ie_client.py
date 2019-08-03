@@ -177,37 +177,8 @@ if __name__ == "__main__":
     CHAR_VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "char_vocab.json")
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
-    sci_ie_train_data_utils = ScienceIEDataUtils(
-        folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
-    )
-    sci_ie_dev_data_utils = ScienceIEDataUtils(
-        folderpath=pathlib.Path(SCIENCE_IE_DEV_FOLDER), ignore_warnings=True
-    )
-
-    sci_ie_train_data_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt"),
-        is_sentence_wise=True,
-    )
-    sci_ie_dev_data_utils.write_bilou_lines(
-        out_filename=pathlib.Path(DATA_DIR, "dev_science_ie.txt"), is_sentence_wise=True
-    )
-
-    sci_ie_train_data_utils.merge_files(
-        task_filename=pathlib.Path(DATA_DIR, "train_science_ie_task_conll.txt"),
-        process_filename=pathlib.Path(DATA_DIR, "train_science_ie_process_conll.txt"),
-        material_filename=pathlib.Path(DATA_DIR, "train_science_ie_material_conll.txt"),
-        out_filename=pathlib.Path(DATA_DIR, "train_science_ie.txt"),
-    )
-
-    sci_ie_dev_data_utils.merge_files(
-        task_filename=pathlib.Path(DATA_DIR, "dev_science_ie_task_conll.txt"),
-        process_filename=pathlib.Path(DATA_DIR, "dev_science_ie_process_conll.txt"),
-        material_filename=pathlib.Path(DATA_DIR, "dev_science_ie_material_conll.txt"),
-        out_filename=pathlib.Path(DATA_DIR, "dev_science_ie.txt"),
-    )
-
     train_dataset = ScienceIEDataset(
-        science_ie_conll_file=pathlib.Path(DATA_DIR, "train_science_ie.txt"),
+        science_ie_conll_file=pathlib.Path(DATA_DIR, "train_science_ie_conll.txt"),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -227,7 +198,7 @@ if __name__ == "__main__":
     )
 
     validation_dataset = ScienceIEDataset(
-        science_ie_conll_file=pathlib.Path(DATA_DIR, "dev_science_ie.txt"),
+        science_ie_conll_file=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -247,7 +218,7 @@ if __name__ == "__main__":
     )
 
     test_dataset = ScienceIEDataset(
-        science_ie_conll_file=pathlib.Path(DATA_DIR, "dev_science_ie.txt"),
+        science_ie_conll_file=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -354,6 +325,7 @@ if __name__ == "__main__":
         task_constraints=task_constraints,
         process_constraints=process_constraints,
         material_constraints=material_constraints,
+        device=torch.device(DEVICE),
     )
 
     optimizer = optim.Adam(

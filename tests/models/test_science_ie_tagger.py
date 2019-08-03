@@ -32,6 +32,7 @@ def setup_science_ie_tagger(request):
     BIDIRECTIONAL = request.param[0]
     COMBINE_STRATEGY = request.param[1]
     HAVE_CHARACTER_ENCODER = request.param[2]
+    DEVICE = torch.device("cpu")
     NUM_CLASSES = 8
     EMBEDDING = nn.Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMBEDDING_DIM]))
     CHARACTER_EMBEDDING = nn.Embedding.from_pretrained(
@@ -117,6 +118,7 @@ def setup_science_ie_tagger(request):
         task_constraints=task_constraints,
         process_constraints=process_constraints,
         material_constraints=material_constraints,
+        device=DEVICE,
     )
 
     return (
@@ -152,8 +154,15 @@ class TestScienceIETagger:
         BATCH_SIZE = options["BATCH_SIZE"]
         TIME_STEPS = options["TIME_STEPS"]
         NUM_CLASSES = options["NUM_CLASSES"]
+        len_tokens = torch.LongTensor([TIME_STEPS])
+        len_tokens = len_tokens.repeat(BATCH_SIZE)
 
-        iter_dict = {"tokens": tokens, "label": labels, "char_tokens": char_tokens}
+        iter_dict = {
+            "tokens": tokens,
+            "label": labels,
+            "char_tokens": char_tokens,
+            "len_tokens": len_tokens,
+        }
 
         output_dict = tagger(
             iter_dict=iter_dict, is_training=True, is_validation=False, is_test=False

@@ -5,6 +5,7 @@ from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import torch
 import copy
+from parsect.utils.tensor_utils import get_mask
 
 
 class ScienceIETagger(nn.Module):
@@ -13,6 +14,7 @@ class ScienceIETagger(nn.Module):
         rnn2seqencoder: Lstm2SeqEncoder,
         hid_dim: int,
         num_classes: int,
+        device: torch.device = torch.device("cpu"),
         task_constraints: Optional[List[Tuple[int, int]]] = None,
         process_constraints: Optional[List[Tuple[int, int]]] = None,
         material_constraints: Optional[List[Tuple[int, int]]] = None,
@@ -23,6 +25,7 @@ class ScienceIETagger(nn.Module):
         self.rnn2seqencoder = rnn2seqencoder
         self.hid_dim = hid_dim
         self.num_classes = num_classes
+        self.device = device
         self._task_constraints = task_constraints
         self._process_constraints = process_constraints
         self._material_constraints = material_constraints
@@ -66,7 +69,7 @@ class ScienceIETagger(nn.Module):
         batch_size, time_steps, _ = task_logits.size()
         mask = torch.ones(size=(batch_size, time_steps), dtype=torch.long)
         mask = torch.LongTensor(mask)
-        mask = mask.cuda() if torch.cuda.is_available() else mask
+        mask = mask.to(self.device)
 
         assert task_logits.size(1) == process_logits.size(1) == material_logits.size(1)
         assert task_logits.size(2) == process_logits.size(2) == material_logits.size(2)
@@ -113,7 +116,11 @@ class ScienceIETagger(nn.Module):
 
         if is_training or is_validation:
             labels = iter_dict["label"]
-
+            len_tokens = iter_dict["len_tokens"]
+            mask = get_mask(
+                batch_size=batch_size, max_size=time_steps, lengths=len_tokens
+            )
+            mask = mask.to(self.device)
             # if you change label then iter_dict["label"] gets screwed
             labels_copy = copy.deepcopy(labels)
             assert labels.ndimension() == 2, self.msg_printer(

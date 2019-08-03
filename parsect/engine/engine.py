@@ -14,7 +14,7 @@ import json_logging
 import logging
 from torch.utils.data._utils.collate import default_collate
 import torch
-from parsect.utils.tensor import move_to_device
+from parsect.utils.tensor_utils import move_to_device
 from copy import deepcopy
 
 
