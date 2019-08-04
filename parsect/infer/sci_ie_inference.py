@@ -283,6 +283,10 @@ class ScienceIEInference(BaseInference):
             sentence = self.output_analytics["sentences"][idx].split()
             true_tag_labels = true_tag_names[idx].split()
             pred_tag_labels = pred_tag_names[idx].split()
+            len_sentence = len(sentence)
+
+            true_tag_labels = true_tag_labels[:len_sentence]
+            pred_tag_labels = pred_tag_labels[:len_sentence]
 
             stylized_string_true = self.seq_tagging_visualizer.visualize_tokens(
                 sentence, true_tag_labels

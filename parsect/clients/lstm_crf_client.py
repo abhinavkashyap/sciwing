@@ -266,6 +266,7 @@ if __name__ == "__main__":
                 bidirectional=True,
                 hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
                 combine_strategy="concat",
+                device=torch.device(DEVICE),
             )
             embedder = ConcatEmbedders([embedder, char_encoder])
             EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
@@ -288,7 +289,7 @@ if __name__ == "__main__":
             else HIDDEN_DIM,
         )
 
-        optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
+        optimizer = optim.SGD(params=model.parameters(), lr=LEARNING_RATE)
         classnames2idx = train_dataset.classnames2idx
         ignore_indices = [
             classnames2idx["starting"],

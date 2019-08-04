@@ -60,6 +60,8 @@ class Lstm2SeqEncoder(nn.Module):
 
         embeddings = self.embedder(iter_dict=iter_dict)
 
+        embeddings = self.emb_dropout(embeddings)
+
         if h0 is None or c0 is None:
             h0, c0 = self.get_initial_hidden(batch_size=batch_size)
 
@@ -67,8 +69,6 @@ class Lstm2SeqEncoder(nn.Module):
         # h_n = num_layers * num_directions, batch_size, hidden_dimension
         # c_n = num_layers * num_directions, batch_size, hidden_dimension
         output, (_, _) = self.rnn(embeddings, (h0, c0))
-
-        output = self.output_dropout(output)
 
         if self.bidirectional:
             output = output.view(batch_size, seq_length, self.num_directions, -1)

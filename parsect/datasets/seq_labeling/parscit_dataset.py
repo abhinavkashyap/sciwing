@@ -11,6 +11,7 @@ from parsect.utils.common import pack_to_length
 import numpy as np
 import torch
 import collections
+from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
 
 
 class ParscitDataset(Dataset, BaseSeqLabelingDataset):
@@ -116,12 +117,17 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         self.max_char_length = max_char_length
         self.word_add_start_end_token = word_add_start_end_token
         self.classnames2idx = self.get_classname2idx()
+        self.instance_preprocessor = InstancePreprocessing()
         self.idx2classname = {
             idx: classname for classname, idx in self.classnames2idx.items()
         }
 
         self.lines, self.labels = self.get_lines_labels()
         self.word_instances = self.word_tokenize(self.lines)
+        self.word_instance = map(
+            self.instance_preprocessor.lowercase, self.word_instances
+        )
+        self.word_instances = list(self.word_instances)
         self.word_vocab = Vocab(
             instances=self.word_instances,
             max_num_tokens=self.max_num_words,
