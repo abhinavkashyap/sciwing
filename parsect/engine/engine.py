@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
-from typing import Iterator, Callable, Any, List
+from typing import Iterator, Callable, Any, List, Optional
 from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
@@ -36,6 +36,7 @@ class Engine:
         track_for_best: str = "loss",
         collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
         device=torch.device("cpu"),
+        gradient_norm_clip_value: Optional[float] = 5.0,
     ):
         """
         This orchestrates the whole model training. The supervised machine learning
@@ -97,6 +98,7 @@ class Engine:
         self.device = device
         self.best_track_value = None
         self.set_best_track_value(self.best_track_value)
+        self.gradient_norm_clip_value = gradient_norm_clip_value
 
         self.num_workers = 0
 
@@ -222,6 +224,9 @@ class Engine:
                     self.optimizer.zero_grad()
                     loss = model_forward_out["loss"]
                     loss.backward()
+                    torch.nn.utils.clip_grad_norm_(
+                        self.model.parameters(), max_norm=self.gradient_norm_clip_value
+                    )
                     self.optimizer.step()
                     self.train_loss_meter.add_loss(loss.item(), batch_size)
 
