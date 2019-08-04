@@ -24,6 +24,8 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         max_char_length: int,
         word_vocab_store_location: str,
         char_vocab_store_location: str,
+        captialization_vocab_store_location: Optional[str] = None,
+        capitalization_emb_dim: Optional[str] = None,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
         word_embedding_type: Union[str, None] = None,
@@ -41,56 +43,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         word_add_start_end_token: bool = True,
         character_tokenizer=CharacterTokenizer(),
     ):
-        """
-
-        :param parscit_conll_file: type: str
-        The parscit file written in the conll format
-        The conll format for parscit consists of a line
-        word label label label
-        We cosndier only the word and the last label
-        Citation strings are separated by a new line
-         :param dataset_type: type: str
-        One of ['train', 'valid', 'test']
-        :param max_num_words: type: int
-        The top frequent `max_num_words` to consider
-        :param max_word_length: type: int
-        The maximum length after numericalization
-        :param word_vocab_store_location: type: str
-        The vocab store location to store vocabulary
-        This should be a json filename
-        :param debug: type: bool
-        If debug is true, then we randomly sample
-        10% of the dataset and work with it. This is useful
-        for faster automated tests and looking at random
-        examples
-        :param debug_dataset_proportion: type: float
-        Send a number (0.0, 1.0) and a random proportion of the dataset
-        will be used for debug purposes
-        :param word_embedding_type: type: str
-        Pre-loaded embedding type to load.
-        :param start_token: type: str
-        The start token is the token appended to the beginning of the list of tokens
-        :param end_token: type: str
-        The end token is the token appended to the end of the list of tokens
-        :param pad_token: type: str
-        The pad token is used when the length of the input is less than maximum length
-        :param unk_token: type: str
-        unk is the token that is used when the word is OOV
-        :param train_size: float
-        The proportion of the dataset that is used for training
-        :param test_size: float
-        The proportion of the dataset that is used for testing
-        :param validation_size: float
-        The proportion of the test dataset that is used for validation
-        :param word_tokenizer
-        The tokenizer that will be used to word_tokenize text
-        :param word_tokenization_type: str
-        Allowed type (vanilla, bert)
-        Two types of tokenization are allowed. Either vanilla tokenization that is based on spacy.
-        The default is WordTokenizer()
-        If bert, then bert tokenization is performed and additional fields will be included in the output
-        """
-
         super(ParscitDataset, self).__init__(
             filename=parscit_conll_file,
             dataset_type=dataset_type,
@@ -113,6 +65,9 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             character_tokenizer=character_tokenizer,
         )
         self.char_vocab_store_location = char_vocab_store_location
+        self.capitalization_vocab_store_location = captialization_vocab_store_location
+        self.capitalization_embedding_dimension = capitalization_emb_dim
+        self.capitalization_vocab = None
         self.character_embedding_dimension = character_embedding_dimension
         self.max_char_length = max_char_length
         self.word_add_start_end_token = word_add_start_end_token
@@ -123,9 +78,9 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         }
 
         self.lines, self.labels = self.get_lines_labels()
-        self.word_instances = self.word_tokenize(self.lines)
-        self.word_instance = map(
-            self.instance_preprocessor.lowercase, self.word_instances
+        self.word_instances_orig = self.word_tokenize(self.lines)
+        self.word_instances = map(
+            self.instance_preprocessor.lowercase, self.word_instances_orig
         )
         self.word_instances = list(self.word_instances)
         self.word_vocab = Vocab(
@@ -168,6 +123,27 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         )
         self.char_vocab.print_stats()
         self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
+
+        # capitalization feature
+        capitalization_instances = map(
+            self.instance_preprocessor.indicate_capitalization, self.word_instances_orig
+        )
+
+        if self.capitalization_vocab_store_location is not None:
+            self.capitalization_vocab = Vocab(
+                instances=capitalization_instances,
+                max_num_tokens=self.max_num_words,
+                unk_token=self.unk_token,
+                pad_token=self.pad_token,
+                start_token=self.start_token,
+                end_token=self.end_token,
+                store_location=self.store_location,
+                embedding_type="random",
+                embedding_dimension=self.capitalization_embedding_dimension,
+            )
+            self.capitalization_numericalizer = Numericalizer(
+                vocabulary=self.char_vocab
+            )
 
         self.msg_printer = wasabi.Printer()
         self.tag_visualizer = VisTagging()
@@ -327,6 +303,8 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             word_tokenizer=self.word_tokenizer,
             max_word_length=self.max_length,
             word_add_start_end_token=self.word_add_start_end_token,
+            instance_preprocessor=self.instance_preprocessor,
+            capitalization_vocab=self.capitalization_vocab,
             char_vocab=self.char_vocab,
             char_tokenizer=self.character_tokenizer,
             max_char_length=self.max_char_length,
@@ -358,6 +336,8 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         word_tokenizer: WordTokenizer,
         max_word_length: int,
         word_add_start_end_token: bool,
+        instance_preprocessor: Optional[InstancePreprocessing] = None,
+        capitalization_vocab: Optional[Vocab] = None,
         char_vocab: Optional[Vocab] = None,
         char_tokenizer: Optional[CharacterTokenizer] = None,
         max_char_length: Optional[int] = None,
@@ -369,6 +349,9 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         classnames2idx = ParscitDataset.get_classname2idx()
         word_numericalizer = Numericalizer(vocabulary=word_vocab)
         char_numericalizer = Numericalizer(vocabulary=char_vocab)
+
+        if instance_preprocessor is not None:
+            word_instance = instance_preprocessor.lowercase(word_instance)
 
         if labels is not None:
             assert len_instance == len(labels)
@@ -421,6 +404,13 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             "raw_instance": " ".join(word_instance),
             "char_tokens": character_tokens,
         }
+
+        if capitalization_vocab is not None:
+            capitalization_numericalizer = Numericalizer(capitalization_vocab)
+            capitalization_tokens = capitalization_numericalizer.numericalize_instance(
+                padded_word_instance
+            )
+            instance_dict["capitalization_tokens"]: capitalization_tokens
 
         if labels is not None:
             instance_dict["label"] = label

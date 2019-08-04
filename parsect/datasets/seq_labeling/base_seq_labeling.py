@@ -3,6 +3,7 @@ from typing import Union, Dict, List, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
+from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
 from parsect.vocab.vocab import Vocab
 import torch
 
@@ -283,9 +284,12 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         word_tokenizer: WordTokenizer,
         max_word_length: int,
         word_add_start_end_token: bool,
+        instance_preprocessor: Optional[InstancePreprocessing] = None,
+        capitalization_vocab: Optional[Vocab] = None,
         char_vocab: Optional[Vocab] = None,
         char_tokenizer: Optional[CharacterTokenizer] = None,
         max_char_length: Optional[int] = None,
         labels: Optional[List[str]] = None,
+        need_padding: bool = True,
     ):
         pass

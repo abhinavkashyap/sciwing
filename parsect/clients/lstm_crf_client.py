@@ -179,6 +179,10 @@ if __name__ == "__main__":
 
         VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "vocab.json")
         CHAR_VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "char_vocab.json")
+        CAPITALIZATION_VOCAB_STORE_LOCATION = os.path.join(
+            EXP_DIR_PATH, "capitalization_vocab.json"
+        )
+        CAPITALIZATION_EMBEDDING_DIMENSION = 10
         TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
         train_dataset = ParscitDataset(
@@ -189,6 +193,8 @@ if __name__ == "__main__":
             max_char_length=MAX_CHAR_LENGTH,
             word_vocab_store_location=VOCAB_STORE_LOCATION,
             char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
+            captialization_vocab_store_location=CAPITALIZATION_VOCAB_STORE_LOCATION,
+            capitalization_emb_dim=CAPITALIZATION_EMBEDDING_DIMENSION,
             debug=DEBUG,
             debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
             word_embedding_type=EMBEDDING_TYPE,
@@ -209,6 +215,8 @@ if __name__ == "__main__":
             max_char_length=MAX_CHAR_LENGTH,
             word_vocab_store_location=VOCAB_STORE_LOCATION,
             char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
+            captialization_vocab_store_location=CAPITALIZATION_VOCAB_STORE_LOCATION,
+            capitalization_emb_dim=CAPITALIZATION_EMBEDDING_DIMENSION,
             debug=DEBUG,
             debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
             word_embedding_type=EMBEDDING_TYPE,
@@ -229,6 +237,8 @@ if __name__ == "__main__":
             max_char_length=MAX_CHAR_LENGTH,
             word_vocab_store_location=VOCAB_STORE_LOCATION,
             char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
+            captialization_vocab_store_location=CAPITALIZATION_VOCAB_STORE_LOCATION,
+            capitalization_emb_dim=CAPITALIZATION_EMBEDDING_DIMENSION,
             debug=DEBUG,
             debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
             word_embedding_type=EMBEDDING_TYPE,

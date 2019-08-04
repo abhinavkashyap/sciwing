@@ -30,3 +30,36 @@ class InstancePreprocessing:
         clean_instance = filter(lambda token: token not in self.stop_words, instance)
         clean_instance = list(clean_instance)
         return clean_instance
+
+    def indicate_capitalization(self, instance: List[str]) -> List[str]:
+        """ Indicates whether every word is all small, all caps or captialized
+
+        Parameters
+        ----------
+        instance : List[str]
+            A list of tokens
+        Returns
+        -------
+        List[str]
+            Strings indicating capitalization
+        """
+        processed_instance = []
+        for word in instance:
+            processed_word = "[OTHER]"
+            if word.istitle() and word.isalpha():
+                processed_word = "[CAPITALIZED]"
+            if word.islower() and word.isalpha():
+                processed_word = "[LOWER]"
+            if word.isupper() and word.isalpha():
+                processed_word = "[UPPER]"
+            if word.isnumeric():
+                processed_word = "[NUMERIC]"
+            if word.isalnum() and not processed_word != "[OTHER]":
+                processed_word = "[ALNUM]"
+
+            processed_instance.append(processed_word)
+
+        assert len(instance) == len(
+            processed_instance
+        ), f"Length instance {len(instance)}, Lenght of Processed Instance {len(processed_instance)}"
+        return processed_instance
