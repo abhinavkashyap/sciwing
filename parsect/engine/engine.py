@@ -175,9 +175,16 @@ class Engine:
     def is_best_lower(self, current_best=None):
         return True if current_best < self.best_track_value else False
 
+    def is_best_higher(self, current_best=None):
+        return True if current_best > self.best_track_value else False
+
     def set_best_track_value(self, current_best=None):
         if self.track_for_best == "loss":
             self.best_track_value = np.inf if current_best is None else current_best
+        elif self.track_for_best == "macro-f1":
+            self.best_track_value = 0 if current_best is None else current_best
+        elif self.track_for_best == "micro-f1":
+            self.best_track_value = 0 if current_best is None else current_best
 
     def run(self):
         """
@@ -341,18 +348,25 @@ class Engine:
 
         if self.track_for_best == "loss":
             is_best = self.is_best_lower(average_loss)
-            if is_best:
-                self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
-                self.set_best_track_value(average_loss)
-                torch.save(
-                    {
-                        "epoch_num": epoch_num,
-                        "optimizer_state": self.optimizer.state_dict(),
-                        "model_state": self.model.state_dict(),
-                        "loss": average_loss,
-                    },
-                    os.path.join(self.save_dir, "best_model.pt"),
-                )
+        elif self.track_for_best == "macro-f1":
+            macro_f1 = self.validation_metric_calc.get_metric()["macro_fscore"]
+            is_best = self.is_best_higher(current_best=macro_f1)
+        elif self.track_for_best == "micro-f1":
+            micro_f1 = self.validation_metric_calc.get_metric()["micro_fscore"]
+            is_best = self.is_best_higher(micro_f1)
+
+        if is_best:
+            self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
+            self.set_best_track_value(average_loss)
+            torch.save(
+                {
+                    "epoch_num": epoch_num,
+                    "optimizer_state": self.optimizer.state_dict(),
+                    "model_state": self.model.state_dict(),
+                    "loss": average_loss,
+                },
+                os.path.join(self.save_dir, "best_model.pt"),
+            )
 
     def test_epoch(self, epoch_num: int):
         self.msg_printer.divider("Running on test batch")
