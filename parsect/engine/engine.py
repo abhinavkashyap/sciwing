@@ -176,7 +176,7 @@ class Engine:
         return True if current_best < self.best_track_value else False
 
     def is_best_higher(self, current_best=None):
-        return True if current_best > self.best_track_value else False
+        return True if current_best >= self.best_track_value else False
 
     def set_best_track_value(self, current_best=None):
         if self.track_for_best == "loss":
@@ -322,7 +322,7 @@ class Engine:
 
     def validation_epoch_end(self, epoch_num: int):
 
-        self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num))
+        self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num + 1))
 
         metrics = self.validation_metric_calc.report_metrics()
         precision_recall_fmeasure = self.validation_metric_calc.get_metric()
@@ -346,18 +346,25 @@ class Engine:
             epoch_num + 1,
         )
 
+        is_best: bool = None
+        value_tracked: float = None
+
         if self.track_for_best == "loss":
+            value_tracked = average_loss
             is_best = self.is_best_lower(average_loss)
+
         elif self.track_for_best == "macro-f1":
-            macro_f1 = self.validation_metric_calc.get_metric()["macro_fscore"]
+            macro_f1 = precision_recall_fmeasure["macro_fscore"]
+            value_tracked = macro_f1
             is_best = self.is_best_higher(current_best=macro_f1)
         elif self.track_for_best == "micro-f1":
-            micro_f1 = self.validation_metric_calc.get_metric()["micro_fscore"]
+            micro_f1 = precision_recall_fmeasure["micro_fscore"]
+            value_tracked = micro_f1
             is_best = self.is_best_higher(micro_f1)
 
         if is_best:
+            self.set_best_track_value(current_best=value_tracked)
             self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
-            self.set_best_track_value(average_loss)
             torch.save(
                 {
                     "epoch_num": epoch_num,

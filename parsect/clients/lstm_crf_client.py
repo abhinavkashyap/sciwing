@@ -299,7 +299,7 @@ if __name__ == "__main__":
             else HIDDEN_DIM,
         )
 
-        optimizer = optim.SGD(params=model.parameters(), lr=LEARNING_RATE)
+        optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
         classnames2idx = train_dataset.classnames2idx
         ignore_indices = [
             classnames2idx["starting"],
