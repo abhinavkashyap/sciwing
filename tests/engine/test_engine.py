@@ -18,11 +18,11 @@ FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-@pytest.fixture
-def setup_engine_test_with_simple_classifier(tmpdir):
+@pytest.fixture(scope="session", params=["loss", "micro-f1", "macro-f1"])
+def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     MAX_NUM_WORDS = 1000
     MAX_LENGTH = 50
-    vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
+    vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
     DEBUG = True
     BATCH_SIZE = 1
     NUM_TOKENS = 3
@@ -88,11 +88,12 @@ def setup_engine_test_with_simple_classifier(tmpdir):
         test_dataset,
         optimizer=optimizer,
         batch_size=BATCH_SIZE,
-        save_dir=tmpdir.mkdir("model_save"),
+        save_dir=tmpdir_factory.mktemp("model_save"),
         num_epochs=NUM_EPOCHS,
         save_every=1,
         log_train_metrics_every=10,
         metric=metric,
+        track_for_best=request.param,
     )
 
     options = {

@@ -310,6 +310,9 @@ if __name__ == "__main__":
             idx2labelname_mapping=train_dataset.idx2classname,
             mask_label_indices=ignore_indices,
         )
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer=optimizer, mode="max", factor=0.1, patience=2
+        )
 
         engine = Engine(
             model=model,
@@ -326,6 +329,7 @@ if __name__ == "__main__":
             device=torch.device(DEVICE),
             metric=metric,
             track_for_best="macro-f1",
+            lr_scheduler=scheduler,
         )
 
         config_dict["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION

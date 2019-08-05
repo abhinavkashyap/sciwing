@@ -37,47 +37,8 @@ class Engine:
         collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
         device=torch.device("cpu"),
         gradient_norm_clip_value: Optional[float] = 5.0,
+        lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
     ):
-        """
-        This orchestrates the whole model training. The supervised machine learning
-        that needs to be used
-        :param model: type: nnn.Module
-        Any pytorch model that takes in inputs
-        :param train_dataset: type: torch.utils.data.Dataset
-        training dataset, that can be iterated and follows the Dataset conventions of PyTorch
-        :param validation_dataset: type: torch.utils.data.Dataset
-        Validation dataset, that can be iterated and follows the Dataset convention of PyTorch
-        :param test_dataset: type: torch.utils.Dataset
-        Test Dataset, that can be iterated and follows the Dataset convention of PyTorch
-        :param optimizer: torch.optim
-        Any optimizer that belongs to the torch.optim module
-        :param batch_size: type: int
-        Batch size for the train, validation and test dataset
-        :param save_dir: type: str
-        The full location where the intermediate results are stored
-        :param num_epochs: type: int
-        Number of epochs to run training
-        :param save_every: type: int
-        The model state will be save every `save_every` num of epochs
-        :param log_train_metrics_every
-        The train metrics will logged every `log_train_metrics_every` iterations
-        :param metric: type:BaseMetric
-        Any metric that inherits BaseMetric can be forwarded here
-        :param tensorboard_logdir: type: str
-        pass in the directory where tensorboard logs are stored
-        By default it will be put in a directory called run/ in the same directory as the
-        script using Engine
-        :param track_for_best: type: str
-        This will be tracked in order to determine the best model parameters
-        to save
-        :param collate_fn: type: Callable[[List[Any]], List[Any]]
-        - The collate function that gets used with the data loader.
-        -The collate function provides the logic to group a batch of instances
-        - There are more details in `torch.utils.data.DataLoader`.
-        - If None, pytorchs default collate function will be used
-        :param device: torch.device
-        Torch device to which the model and the tensors will be converted
-        """
 
         self.model = model
         self.train_dataset = train_dataset
@@ -99,6 +60,10 @@ class Engine:
         self.best_track_value = None
         self.set_best_track_value(self.best_track_value)
         self.gradient_norm_clip_value = gradient_norm_clip_value
+        self.lr_scheduler = lr_scheduler
+        self.lr_scheduler_is_plateau = isinstance(
+            self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau
+        )
 
         self.num_workers = 0
 
@@ -128,14 +93,12 @@ class Engine:
         self.test_metric_calc = deepcopy(metric)
 
         self.msg_printer.divider("ENGINE STARTING")
+        self.msg_printer.info(f"Number of training examples {len(self.train_dataset)}")
         self.msg_printer.info(
-            "Number of training examples {0}".format(len(self.train_dataset))
+            f"Number of validation examples {len(self.validation_dataset)}"
         )
         self.msg_printer.info(
-            "Number of validation examples {0}".format(len(self.validation_dataset))
-        )
-        self.msg_printer.info(
-            "Number of test examples {0}".format(len(self.test_dataset))
+            f"Number of test examples {0}".format(len(self.test_dataset))
         )
         time.sleep(3)
 
@@ -161,6 +124,20 @@ class Engine:
 
         self.test_logger.setLevel(logging.DEBUG)
         self.test_logger.addHandler(logging.FileHandler(self.test_log_filename))
+
+        if self.lr_scheduler_is_plateau:
+            if self.best_track_value == "loss" and self.lr_scheduler.mode == "max":
+                self.msg_printer.warn(
+                    "You are optimizing loss and lr schedule mode is max instead of min"
+                )
+            if self.best_track_value == "macro-f1" and self.lr_scheduler.mode == "min":
+                self.msg_printer.warn(
+                    f"You are optimizing for macro-f1 and lr scheduler mode is min instead of max"
+                )
+            if self.best_track_value == "micro-f1" and self.lr_scheduler.mode == "min":
+                self.msg_printer.warn(
+                    f"You are optimizing for micro-f1 and lr scheduler mode is min instead of max"
+                )
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
         loader = DataLoader(
@@ -361,6 +338,12 @@ class Engine:
             micro_f1 = precision_recall_fmeasure["micro_fscore"]
             value_tracked = micro_f1
             is_best = self.is_best_higher(micro_f1)
+
+        if self.lr_scheduler is not None:
+            if self.lr_scheduler_is_plateau:
+                self.lr_scheduler.step(value_tracked)
+            else:
+                self.lr_scheduler.step()
 
         if is_best:
             self.set_best_track_value(current_best=value_tracked)

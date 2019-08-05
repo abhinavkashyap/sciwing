@@ -410,7 +410,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             capitalization_tokens = capitalization_numericalizer.numericalize_instance(
                 padded_word_instance
             )
-            instance_dict["capitalization_tokens"]: capitalization_tokens
+            instance_dict["capitalization_tokens"] = capitalization_tokens
 
         if labels is not None:
             instance_dict["label"] = label
