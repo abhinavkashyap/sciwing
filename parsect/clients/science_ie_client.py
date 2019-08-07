@@ -353,6 +353,7 @@ if __name__ == "__main__":
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
         metric=metric,
+        track_for_best="macro-f1",
     )
 
     engine.run()
