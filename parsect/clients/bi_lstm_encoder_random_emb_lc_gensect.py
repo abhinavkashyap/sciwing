@@ -1,6 +1,7 @@
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import parsect.constants as constants
 import os
 import torch.nn as nn
@@ -96,7 +97,6 @@ if __name__ == "__main__":
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
-        "RETURN_INSTANCES": args.return_instances,
         "BIDIRECTIONAL": bool(args.bidirectional),
         "COMBINE_STRATEGY": args.combine_strategy,
     }
@@ -124,7 +124,6 @@ if __name__ == "__main__":
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    RETURN_INSTANCES = config["RETURN_INSTANCES"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
@@ -133,7 +132,7 @@ if __name__ == "__main__":
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -145,7 +144,7 @@ if __name__ == "__main__":
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -157,7 +156,7 @@ if __name__ == "__main__":
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -165,14 +164,17 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
+    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_word_embedding()
     random_embeddings = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
+    embedder = VanillaEmbedder(
+        embedding_dim=EMBEDDING_DIMENSION, embedding=random_embeddings
+    )
     encoder = LSTM2VecEncoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=random_embeddings,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIMENSION,
         combine_strategy=COMBINE_STRATEGY,
@@ -188,7 +190,7 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
-    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2label)
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
 
     engine = Engine(
         model=model,

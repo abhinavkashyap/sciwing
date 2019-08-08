@@ -1,6 +1,7 @@
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import parsect.constants as constants
 import os
 import torch.nn as nn
@@ -144,7 +145,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     validation_dataset = ParsectDataset(
@@ -157,7 +157,6 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
     test_dataset = ParsectDataset(
@@ -170,17 +169,19 @@ if __name__ == "__main__":
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
-        return_instances=RETURN_INSTANCES,
     )
 
-    VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
+    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_word_embedding()
     random_embeddings = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
+    embedder = VanillaEmbedder(
+        embedding=random_embeddings, embedding_dim=EMBEDDING_DIMENSION
+    )
     encoder = LSTM2VecEncoder(
         emb_dim=EMBEDDING_DIMENSION,
-        embedding=random_embeddings,
+        embedder=embedder,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIMENSION,
         combine_strategy=COMBINE_STRATEGY,

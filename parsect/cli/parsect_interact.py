@@ -14,7 +14,6 @@ from parsect.infer.bow_bert_emb_lc_gensect_infer import (
 from parsect.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
 from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
 from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
-from parsect.infer.bert_seq_classifier_infer import get_bert_seq_classifier_infer
 from parsect.infer.bow_lc_gensect_infer import get_bow_lc_gensect_infer
 from parsect.infer.bilstm_crf_infer import get_bilstm_crf_infer
 from parsect.infer.science_ie_infer import get_science_ie_infer
@@ -54,7 +53,6 @@ class ParsectCli:
             "bi-lstm-random-emb-linear-classifier-parsect",
             "bi-lstm-random-emb-linear-classifier-gensect",
             "elmo-bilstm-linear-classifier",
-            "bert-seq-classifier",
             "lstm-crf-parscit-tagger",
             "lstm-crf-scienceie-tagger",
         ]
@@ -70,7 +68,6 @@ class ParsectCli:
             "bi-lstm-random-emb-linear-classifier-parsect": "parsect_bi_lstm_lc",
             "bi-lstm-random-emb-linear-classifier-gensect": "gensect_bi_lstm_lc",
             "elmo-bilstm-linear-classifier": "parsect_elmo_bi_lstm_lc",
-            "bert-seq-classifier": "parsect_bert_seq",
             "lstm-crf-parscit-tagger": "lstm_crf_parscit",
             "lstm-crf-scienceie-tagger": "lstm_crf_scienceie",
         }
@@ -86,7 +83,6 @@ class ParsectCli:
             "bi-lstm-random-emb-linear-classifier-parsect": get_bilstm_lc_infer_parsect,
             "bi-lstm-random-emb-linear-classifier-gensect": get_bilstm_lc_infer_gensect,
             "elmo-bilstm-linear-classifier": get_elmo_bilstm_lc_infer,
-            "bert-seq-classifier": get_bert_seq_classifier_infer,
             "lstm-crf-parscit-tagger": get_bilstm_crf_infer,
             "lstm-crf-scienceie-tagger": get_science_ie_infer,
         }

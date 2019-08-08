@@ -57,7 +57,7 @@ def get_bilstm_lc_infer_gensect(dirname: str):
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,

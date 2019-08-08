@@ -155,7 +155,7 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
+    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.get_preloaded_word_embedding()
 
