@@ -102,7 +102,7 @@ if __name__ == "__main__":
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    VOCAB_SIZE = train_dataset.vocab.get_vocab_len()
+    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
 
     random_embeddings = train_dataset.get_preloaded_word_embedding()
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
-    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2label)
+    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
 
     engine = Engine(
         model=model,

@@ -152,16 +152,16 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         )
 
     def get_num_classes(self):
-        return len(self.label2idx.keys())
+        return len(self.classname2idx.keys())
 
     def get_class_names_from_indices(self, indices: List):
-        return [self.idx2label[idx] for idx in indices]
+        return [self.idx2classname[idx] for idx in indices]
 
     def get_disp_sentence_from_indices(self, indices: List) -> str:
         token = [
-            self.vocab.get_token_from_idx(idx)
+            self.word_vocab.get_token_from_idx(idx)
             for idx in indices
-            if idx != self.vocab.special_vocab[self.vocab.pad_token]
+            if idx != self.word_vocab.special_vocab[self.word_vocab.pad_token]
         ]
         sentence = " ".join(token)
         return sentence
