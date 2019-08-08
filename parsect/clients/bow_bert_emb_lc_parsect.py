@@ -120,10 +120,10 @@ if __name__ == "__main__":
     MAX_LENGTH = config["MAX_LENGTH"]
 
     train_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -132,10 +132,10 @@ if __name__ == "__main__":
     )
 
     validation_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -144,10 +144,10 @@ if __name__ == "__main__":
     )
 
     test_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,

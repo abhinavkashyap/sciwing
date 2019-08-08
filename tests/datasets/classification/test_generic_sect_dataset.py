@@ -19,10 +19,10 @@ def setup_generic_sect_train_dataset(tmpdir):
     EMBEDDING_DIMENSION = 300
 
     dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -54,10 +54,10 @@ def setup_generic_sect_valid_dataset(tmpdir):
     EMBEDDING_DIMENSION = 300
 
     dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -89,10 +89,10 @@ def setup_generic_sect_test_dataset(tmpdir):
     EMBEDDING_DIMENSION = 300
 
     dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
@@ -119,12 +119,12 @@ class TestGenericSectDataset:
     ):
         dataset, options = setup_generic_sect_train_dataset
         headers = ["a"] * 100
-        labels = [dataset.idx2label[0]] * 100
+        labels = [dataset.idx2classname[0]] * 100
         (train_headers, train_labels), (valid_headers, valid_labels), (
             test_headers,
             test_labels,
         ) = dataset.get_train_valid_test_stratified_split(
-            headers, labels, dataset.label2idx
+            headers, labels, dataset.classname2idx
         )
 
         assert len(train_headers) == 80
@@ -136,38 +136,38 @@ class TestGenericSectDataset:
 
     def test_num_labels(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
-        label2idx = dataset.label2idx
-        num_labels = len(list(label2idx.keys()))
+        classname2idx = dataset.classname2idx
+        num_labels = len(list(classname2idx.keys()))
         assert num_labels == 12
 
     def test_no_train_header_empty(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
-        headers, labels = dataset.get_lines_labels()
+        headers, labels = dataset.get_lines_labels(GENERIC_SECTION_TRAIN_FILE)
         assert all([bool(header.strip()) for header in headers])
 
     def test_no_train_label_empty(self, setup_generic_sect_train_dataset):
         dataset, options = setup_generic_sect_train_dataset
-        headers, labels = dataset.get_lines_labels()
+        headers, labels = dataset.get_lines_labels(filename=GENERIC_SECTION_TRAIN_FILE)
         assert all([bool(label.strip()) for label in labels])
 
     def test_no_valid_header_empty(self, setup_generic_sect_valid_dataset):
         dataset, options = setup_generic_sect_valid_dataset
-        headers, labels = dataset.get_lines_labels()
+        headers, labels = dataset.get_lines_labels(filename=GENERIC_SECTION_TRAIN_FILE)
         assert all([bool(header.strip()) for header in headers])
 
     def test_no_valid_label_empty(self, setup_generic_sect_valid_dataset):
         dataset, options = setup_generic_sect_valid_dataset
-        headers, labels = dataset.get_lines_labels()
+        headers, labels = dataset.get_lines_labels(filename=GENERIC_SECTION_TRAIN_FILE)
         assert all([bool(label.strip()) for label in labels])
 
     def test_no_test_header_empty(self, setup_generic_sect_test_dataset):
         dataset, options = setup_generic_sect_test_dataset
-        headers, labels = dataset.get_lines_labels()
+        headers, labels = dataset.get_lines_labels(filename=GENERIC_SECTION_TRAIN_FILE)
         assert all([bool(header.strip()) for header in headers])
 
     def test_no_test_label_empty(self, setup_generic_sect_test_dataset):
         dataset, options = setup_generic_sect_test_dataset
-        headers, labels = dataset.get_lines_labels()
+        headers, labels = dataset.get_lines_labels(filename=GENERIC_SECTION_TRAIN_FILE)
         assert all([bool(label.strip()) for label in labels])
 
     def test_embedding_has_values(self, setup_generic_sect_train_dataset):

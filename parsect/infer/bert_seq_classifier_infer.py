@@ -39,10 +39,10 @@ def get_bert_seq_classifier_infer(dirname: str):
 
     bert_tokenizer = TokenizerForBert(bert_type=BERT_TYPE)
     dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         debug=DEBUG,
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,

@@ -55,7 +55,7 @@ def get_bow_bert_emb_lc_gensect_infer(dirname: str):
     )
 
     dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,

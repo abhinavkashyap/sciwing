@@ -11,15 +11,17 @@ import collections
 from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
+from parsect.datasets.classification.sprinkle_clf_dataset import sprinkle_clf_dataset
 
 
+@sprinkle_clf_dataset()
 class GenericSectDataset(Dataset, BaseTextClassification):
     def __init__(
         self,
-        generic_sect_filename: str,
+        filename: str,
         dataset_type: str,
         max_num_words: int,
-        max_length: int,
+        max_instance_length: int,
         word_vocab_store_location: str,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
@@ -36,73 +38,45 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         word_tokenization_type="vanilla",
         add_start_end_token: bool = True,
     ):
-        super(GenericSectDataset, self).__init__(
-            filename=generic_sect_filename,
-            dataset_type=dataset_type,
-            max_num_words=max_num_words,
-            max_length=max_length,
-            word_vocab_store_location=word_vocab_store_location,
-            debug=debug,
-            debug_dataset_proportion=debug_dataset_proportion,
-            word_embedding_type=word_embedding_type,
-            word_embedding_dimension=word_embedding_dimension,
-            start_token=start_token,
-            end_token=end_token,
-            pad_token=pad_token,
-            unk_token=unk_token,
-            train_size=train_size,
-            test_size=test_size,
-            validation_size=validation_size,
-            word_tokenizer=word_tokenizer,
-            word_tokenization_type=word_tokenization_type,
-        )
+        self.classname2idx = self.get_classname2idx()
+        self.idx2classname = {
+            idx: classname for classname, idx in self.classname2idx.items()
+        }
+        self.filename = filename
+        self.train_size = train_size
+        self.test_size = test_size
+        self.validation_size = validation_size
+        self.dataset_type = dataset_type
+        self.debug = debug
+        self.debug_dataset_proportion = debug_dataset_proportion
+        self.max_instance_length = max_instance_length
+        self.lines, self.labels = self.get_lines_labels(filename=self.filename)
+
         self.msg_printer = wasabi.Printer()
-        self.add_start_end_token = add_start_end_token
-
-        self.label2idx = self.get_classname2idx()
-        self.idx2label = {idx: class_name for class_name, idx in self.label2idx.items()}
-
-        self.generic_sect_json = convert_generic_sect_to_json(self.filename)
-        self.headers, self.labels = self.get_lines_labels()
-        self.instances = self.word_tokenize(self.headers)
-
-        self.vocab = Vocab(
-            instances=self.instances,
-            max_num_tokens=self.max_num_words,
-            unk_token=self.unk_token,
-            pad_token=self.pad_token,
-            start_token=self.start_token,
-            end_token=self.end_token,
-            store_location=self.store_location,
-            embedding_type=self.embedding_type,
-            embedding_dimension=self.embedding_dimension,
-        )
-        self.vocab.build_vocab()
-        self.vocab.print_stats()
-
-        self.numericalizer = Numericalizer(self.vocab)
+        Dataset.__init__(self)
 
     def __len__(self):
-        return len(self.instances)
+        return len(self.word_instances)
 
     def __getitem__(self, idx: int) -> Dict[str, Any]:
-        line = self.headers[idx]
+        line = self.lines[idx]
         label = self.labels[idx]
 
         return self.get_iter_dict(
             lines=line,
-            word_vocab=self.vocab,
+            word_vocab=self.word_vocab,
             word_tokenizer=self.word_tokenizer,
-            max_word_length=self.max_length,
+            max_word_length=self.max_instance_length,
             word_add_start_end_token=True,
             labels=label,
         )
 
-    def get_lines_labels(self) -> (List[str], List[str]):
+    def get_lines_labels(self, filename: str) -> (List[str], List[str]):
+        generic_sect_json = convert_generic_sect_to_json(filename=filename)
         headers = []
         labels = []
 
-        generic_sect_json = self.generic_sect_json["generic_sect"]
+        generic_sect_json = generic_sect_json["generic_sect"]
         for line in generic_sect_json:
             label = line["label"]
             header = line["header"]
@@ -114,7 +88,9 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         (train_headers, train_labels), (valid_headers, valid_labels), (
             test_headers,
             test_labels,
-        ) = self.get_train_valid_test_stratified_split(headers, labels, self.label2idx)
+        ) = self.get_train_valid_test_stratified_split(
+            headers, labels, self.classname2idx
+        )
 
         if self.dataset_type == "train":
             return train_headers, train_labels
@@ -124,7 +100,7 @@ class GenericSectDataset(Dataset, BaseTextClassification):
             return test_headers, test_labels
 
     def get_preloaded_word_embedding(self) -> torch.FloatTensor:
-        return self.vocab.load_embedding()
+        return self.word_vocab.load_embedding()
 
     @classmethod
     def get_classname2idx(cls) -> Dict[str, int]:
@@ -151,7 +127,7 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         """
                 Return some stats about the dataset
                 """
-        num_instances = len(self.instances)
+        num_instances = len(self.word_instances)
         all_labels = []
         for idx in range(num_instances):
             iter_dict = self[idx]
@@ -163,7 +139,8 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         classes = sorted(classes)
         header = ["label index", "label name", "count"]
         rows = [
-            (class_, self.idx2label[class_], labels_stats[class_]) for class_ in classes
+            (class_, self.idx2classname[class_], labels_stats[class_])
+            for class_ in classes
         ]
         formatted = wasabi.table(data=rows, header=header, divider=True)
         self.msg_printer.divider("Stats for {0} dataset".format(self.dataset_type))

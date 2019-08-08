@@ -120,7 +120,7 @@ if __name__ == "__main__":
     MAX_LENGTH = config["MAX_LENGTH"]
 
     train_dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     )
 
     validation_dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     )
 
     test_dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,

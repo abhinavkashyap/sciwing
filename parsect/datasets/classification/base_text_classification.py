@@ -2,19 +2,19 @@ from abc import ABCMeta, abstractmethod
 from typing import Union, Dict, List, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
-import wasabi
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
 import torch
 
 
 class BaseTextClassification(metaclass=ABCMeta):
+    @abstractmethod
     def __init__(
         self,
         filename: str,
         dataset_type: str,
         max_num_words: int,
-        max_length: int,
+        max_instance_length: int,
         word_vocab_store_location: str,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
@@ -42,7 +42,7 @@ class BaseTextClassification(metaclass=ABCMeta):
             One of ``[train, valid, test]``
         max_num_words : int
             The top ``max_num_words`` will be considered for building vocab
-        max_length : int
+        max_instance_length : int
             Every instance in the dataset will be padded to or curtailed to ``max_length`` number of
             tokens
         word_vocab_store_location : str
@@ -80,33 +80,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         word_tokenization_type : str
             The type of word tokenization that the word tokenizer represents
         """
-        self.filename = filename
-        self.dataset_type = dataset_type
-        self.max_num_words = max_num_words
-        self.max_length = max_length
-        self.store_location = word_vocab_store_location
-        self.debug = debug
-        self.debug_dataset_proportion = debug_dataset_proportion
-        self.embedding_type = word_embedding_type
-        self.embedding_dimension = word_embedding_dimension
-        self.start_token = start_token
-        self.end_token = end_token
-        self.pad_token = pad_token
-        self.unk_token = unk_token
-        self.train_size = train_size
-        self.validation_size = validation_size
-        self.test_size = test_size
-        self.word_tokenizer = word_tokenizer
-        self.word_tokenization_type = word_tokenization_type
-        self.msg_printer = wasabi.Printer()
-        self.allowable_dataset_types = ["train", "valid", "test"]
-
-        self.msg_printer.divider("{0} DATASET".format(self.dataset_type.upper()))
-
-        assert self.dataset_type in self.allowable_dataset_types, (
-            "You can Pass one of these "
-            "for dataset types: {0}".format(self.allowable_dataset_types)
-        )
+        pass
 
     @classmethod
     @abstractmethod
@@ -161,6 +135,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         str
             A string representing the index
         """
+        pass
 
     @abstractmethod
     def print_stats(self):
@@ -184,12 +159,17 @@ class BaseTextClassification(metaclass=ABCMeta):
         return instances
 
     @abstractmethod
-    def get_lines_labels(self) -> (List[str], List[str]):
+    def get_lines_labels(self, filename: str) -> (List[str], List[str]):
         """ A list of lines from the file and a list of corresponding labels
 
         This method is to be implemented by a new dataset. The decision on
         the implementation logic is left to the new class. Datasets come in all
         shapes and sizes.
+
+        Parameters
+        ---------
+        filename
+            The filename where the dataset is stored
 
         Returns
         -------

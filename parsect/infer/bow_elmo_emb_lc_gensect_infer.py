@@ -50,7 +50,7 @@ def get_elmo_emb_lc_infer_gensect(dirname: str):
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
     dataset = GenericSectDataset(
-        generic_sect_filename=GENERIC_SECTION_TRAIN_FILE,
+        filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_length=MAX_LENGTH,

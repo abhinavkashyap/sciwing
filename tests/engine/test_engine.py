@@ -29,10 +29,10 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     EMB_DIM = 300
 
     train_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         word_embedding_type="random",
@@ -40,10 +40,10 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     )
 
     validation_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         word_embedding_type="random",
@@ -51,17 +51,17 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     )
 
     test_dataset = ParsectDataset(
-        secthead_label_file=SECT_LABEL_FILE,
+        filename=SECT_LABEL_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
         word_embedding_type="random",
         word_embedding_dimension=EMB_DIM,
     )
 
-    VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.vocab.special_vocab)
+    VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.word_vocab.special_vocab)
     NUM_CLASSES = train_dataset.get_num_classes()
     NUM_EPOCHS = 1
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
