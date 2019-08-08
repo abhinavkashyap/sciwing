@@ -1,7 +1,7 @@
 import pytest
 import parsect.constants as constants
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
-from parsect.datasets.classfication.sprinkle_clf_dataset import sprinkle_clf_dataset
+from parsect.datasets.classification.sprinkle_clf_dataset import sprinkle_clf_dataset
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
