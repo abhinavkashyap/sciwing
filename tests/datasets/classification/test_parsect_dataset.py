@@ -9,11 +9,11 @@ FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-@pytest.fixture
-def setup_parsect_train_dataset(tmpdir):
+@pytest.fixture(scope="session")
+def setup_parsect_train_dataset(tmpdir_factory):
     MAX_NUM_WORDS = 1000
     MAX_LENGTH = 10
-    vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
+    vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
     DEBUG = True
 
     train_dataset = ParsectDataset(
@@ -26,32 +26,6 @@ def setup_parsect_train_dataset(tmpdir):
         train_size=0.8,
         test_size=0.2,
         validation_size=0.5,
-    )
-
-    return (
-        train_dataset,
-        {
-            "MAX_NUM_WORDS": MAX_NUM_WORDS,
-            "MAX_LENGTH": MAX_LENGTH,
-            "vocab_store_location": vocab_store_location,
-        },
-    )
-
-
-@pytest.fixture
-def setup_parsect_train_dataset_returns_instances(tmpdir):
-    MAX_NUM_WORDS = 1000
-    MAX_LENGTH = 10
-    vocab_store_location = tmpdir.mkdir("tempdir").join("vocab.json")
-    DEBUG = True
-
-    train_dataset = ParsectDataset(
-        filename=SECT_LABEL_FILE,
-        dataset_type="train",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        word_vocab_store_location=vocab_store_location,
-        debug=DEBUG,
     )
 
     return (
@@ -109,17 +83,13 @@ class TestParsectDataset:
         preloaded_emb = train_dataset.get_preloaded_word_embedding()
         assert type(preloaded_emb) == torch.Tensor
 
-    def test_dataset_returns_instances_when_required(
-        self, setup_parsect_train_dataset_returns_instances
-    ):
-        train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
+    def test_dataset_returns_instances_when_required(self, setup_parsect_train_dataset):
+        train_dataset, dataset_options = setup_parsect_train_dataset
         first_instance = train_dataset[0]["instance"].split()
         assert all([type(word) == str for word in first_instance])
 
-    def test_loader_returns_list_of_instances(
-        self, setup_parsect_train_dataset_returns_instances
-    ):
-        train_dataset, dataset_options = setup_parsect_train_dataset_returns_instances
+    def test_loader_returns_list_of_instances(self, setup_parsect_train_dataset):
+        train_dataset, dataset_options = setup_parsect_train_dataset
         loader = DataLoader(dataset=train_dataset, batch_size=3, shuffle=False)
         instances_dict = next(iter(loader))
 

@@ -59,6 +59,8 @@ class TestSprinklClfDataset:
             "word_tokenizer",
             "word_tokenization_type",
             "word_vocab",
+            "num_instances",
+            "label_stats_table",
         ],
     )
     def test_decorated_instance_has_attribute(self, attribute, parsect_dataset):

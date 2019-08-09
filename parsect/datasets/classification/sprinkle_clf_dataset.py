@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+import collections
 import inspect
 from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
@@ -8,6 +8,7 @@ from parsect.numericalizer.numericalizer import Numericalizer
 from parsect.vocab.vocab import Vocab
 import copy
 import wrapt
+import wasabi
 
 
 class sprinkle_clf_dataset:
@@ -16,6 +17,7 @@ class sprinkle_clf_dataset:
             vocab_pipe = ["word_vocab", "char_vocab"]
         self.autoset_attrs = autoset_attrs
         self.vocab_pipe = vocab_pipe
+        self.wrapped_cls = None
         self.init_signature = inspect.signature(BaseTextClassification.__init__)
         self.filename = None
         self.word_tokenizer = None
@@ -48,8 +50,22 @@ class sprinkle_clf_dataset:
         self.word_vocab.build_vocab()
         self.word_vocab.print_stats()
 
+    def _get_label_stats_table(self):
+        all_labels = [label for label in self.labels]
+        labels_stats = dict(collections.Counter(all_labels))
+        classes = list(set(labels_stats.keys()))
+        classes = sorted(classes)
+        header = ["label index", "label name", "count"]
+        classname2idx = self.wrapped_cls.get_classname2idx()
+        rows = [
+            (classname2idx[class_], class_, labels_stats[class_]) for class_ in classes
+        ]
+        formatted = wasabi.table(data=rows, header=header, divider=True)
+        return formatted
+
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
+        self.wrapped_cls = wrapped
         instance = wrapped(*args, **kwargs)
         for idx, (name, param) in enumerate(self.init_signature.parameters.items()):
             if name == "self":
@@ -99,5 +115,12 @@ class sprinkle_clf_dataset:
             self.set_word_vocab()
             instance.word_vocab = copy.deepcopy(self.word_vocab)
             instance.word_instances = copy.deepcopy(self.word_instances)
+            instance.num_instances = len(self.word_instances)
+
+        if "char_vocab" in self.vocab_pipe:
+            pass
+
+        label_stats_table = self._get_label_stats_table()
+        instance.label_stats_table = label_stats_table
 
         return instance

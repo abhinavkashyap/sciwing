@@ -182,28 +182,12 @@ class ParsectDataset(Dataset, BaseTextClassification):
         return sentence
 
     def print_stats(self):
-        num_instances = len(self.word_instances)
-        all_labels = []
-        for idx in range(num_instances):
-            iter_dict = self[idx]
-            labels = iter_dict["label"]
-            all_labels.append(labels.item())
-
-        labels_stats = dict(collections.Counter(all_labels))
-        classes = list(set(labels_stats.keys()))
-        classes = sorted(classes)
-        header = ["label index", "label name", "count"]
-        rows = [
-            (class_, self.idx2classname[class_], labels_stats[class_])
-            for class_ in classes
-        ]
-        formatted = wasabi.table(data=rows, header=header, divider=True)
+        num_instances = self.num_instances
+        formatted = self.label_stats_table
         self.msg_printer.divider("Stats for {0} dataset".format(self.dataset_type))
         print(formatted)
         self.msg_printer.info(
-            "Number of instances in {0} dataset - {1}".format(
-                self.dataset_type, len(self)
-            )
+            f"Number of instances in {self.dataset_type} dataset - {num_instances}"
         )
 
     def get_preloaded_word_embedding(self) -> torch.FloatTensor:
