@@ -18,30 +18,30 @@ class sprinkle_clf_dataset:
         self.autoset_attrs = autoset_attrs
         self.vocab_pipe = vocab_pipe
         self.wrapped_cls = None
-        self.init_signature = inspect.signature(BaseTextClassification.__init__)
+        self.init_signature = None
         self.filename = None
         self.word_tokenizer = None
         self.word_instances = None
         self.word_vocab = None
         self.max_num_words = None
-        self.unk_token = None
-        self.pad_token = None
-        self.start_token = None
-        self.end_token = None
         self.word_vocab_store_location = None
         self.word_embedding_type = None
         self.word_embedding_dimension = None
         self.word_numericalizer = None
+        self.word_unk_token = None
+        self.word_pad_token = None
+        self.word_start_token = None
+        self.word_end_token = None
 
     def set_word_vocab(self):
         self.word_instances = self.word_tokenizer.tokenize_batch(self.lines)
         self.word_vocab = Vocab(
             instances=self.word_instances,
             max_num_tokens=self.max_num_words,
-            unk_token=self.unk_token,
-            pad_token=self.pad_token,
-            start_token=self.start_token,
-            end_token=self.end_token,
+            unk_token=self.word_unk_token,
+            pad_token=self.word_pad_token,
+            start_token=self.word_start_token,
+            end_token=self.word_end_token,
             store_location=self.word_vocab_store_location,
             embedding_type=self.word_embedding_type,
             embedding_dimension=self.word_embedding_dimension,
@@ -66,6 +66,7 @@ class sprinkle_clf_dataset:
     @wrapt.decorator
     def __call__(self, wrapped, instance, args, kwargs):
         self.wrapped_cls = wrapped
+        self.init_signature = inspect.signature(wrapped.__init__)
         instance = wrapped(*args, **kwargs)
         for idx, (name, param) in enumerate(self.init_signature.parameters.items()):
             if name == "self":

@@ -20,10 +20,10 @@ class BaseTextClassification(metaclass=ABCMeta):
         debug_dataset_proportion: float = 0.1,
         word_embedding_type: Union[str, None] = None,
         word_embedding_dimension: Union[int, None] = None,
-        start_token: str = "<SOS>",
-        end_token: str = "<EOS>",
-        pad_token: str = "<PAD>",
-        unk_token: str = "<UNK>",
+        word_start_token: str = "<SOS>",
+        word_end_token: str = "<EOS>",
+        word_pad_token: str = "<PAD>",
+        word_unk_token: str = "<UNK>",
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
@@ -59,13 +59,13 @@ class BaseTextClassification(metaclass=ABCMeta):
             Any of the ``allowed_types`` in vocab.WordEmbLoader is allowed here
         word_embedding_dimension : int
             Dimension of word embedding
-        start_token : str
+        word_start_token : str
             Start token appended at the beginning of every instance
-        end_token : str
+        word_end_token : str
             End token appended at the end of every instance
-        pad_token : str
+        word_pad_token : str
             Pad token to be used for padding
-        unk_token : str
+        word_unk_token : str
             All OOV words (if they are less frequent than ``max_words`` or word is in
             test but not in train) will be mapped to ``unk_token``
         train_size : str
