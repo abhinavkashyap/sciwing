@@ -31,10 +31,10 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         word_embedding_type: Union[str, None] = None,
         word_embedding_dimension: Union[int, None] = None,
         character_embedding_dimension: Union[int, None] = None,
-        start_token: str = "<SOS>",
-        end_token: str = "<EOS>",
-        pad_token: str = "<PAD>",
-        unk_token: str = "<UNK>",
+        word_start_token: str = "<SOS>",
+        word_end_token: str = "<EOS>",
+        word_pad_token: str = "<PAD>",
+        word_unk_token: str = "<UNK>",
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
@@ -53,10 +53,10 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             debug_dataset_proportion=debug_dataset_proportion,
             word_embedding_type=word_embedding_type,
             word_embedding_dimension=word_embedding_dimension,
-            start_token=start_token,
-            end_token=end_token,
-            pad_token=pad_token,
-            unk_token=unk_token,
+            start_token=word_start_token,
+            end_token=word_end_token,
+            pad_token=word_pad_token,
+            unk_token=word_unk_token,
             train_size=train_size,
             test_size=test_size,
             validation_size=validation_size,
@@ -65,9 +65,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             character_tokenizer=character_tokenizer,
         )
         self.char_vocab_store_location = char_vocab_store_location
-        self.capitalization_vocab_store_location = captialization_vocab_store_location
-        self.capitalization_embedding_dimension = capitalization_emb_dim
-        self.capitalization_vocab = None
         self.character_embedding_dimension = character_embedding_dimension
         self.max_char_length = max_char_length
         self.word_add_start_end_token = word_add_start_end_token
@@ -123,27 +120,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         )
         self.char_vocab.print_stats()
         self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
-
-        # capitalization feature
-        capitalization_instances = map(
-            self.instance_preprocessor.indicate_capitalization, self.word_instances_orig
-        )
-
-        if self.capitalization_vocab_store_location is not None:
-            self.capitalization_vocab = Vocab(
-                instances=capitalization_instances,
-                max_num_tokens=self.max_num_words,
-                unk_token=self.unk_token,
-                pad_token=self.pad_token,
-                start_token=self.start_token,
-                end_token=self.end_token,
-                store_location=self.store_location,
-                embedding_type="random",
-                embedding_dimension=self.capitalization_embedding_dimension,
-            )
-            self.capitalization_numericalizer = Numericalizer(
-                vocabulary=self.char_vocab
-            )
 
         self.msg_printer = wasabi.Printer()
         self.tag_visualizer = VisTagging()
@@ -304,7 +280,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             max_word_length=self.max_length,
             word_add_start_end_token=self.word_add_start_end_token,
             instance_preprocessor=self.instance_preprocessor,
-            capitalization_vocab=self.capitalization_vocab,
             char_vocab=self.char_vocab,
             char_tokenizer=self.character_tokenizer,
             max_char_length=self.max_char_length,
@@ -337,7 +312,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         max_word_length: int,
         word_add_start_end_token: bool,
         instance_preprocessor: Optional[InstancePreprocessing] = None,
-        capitalization_vocab: Optional[Vocab] = None,
         char_vocab: Optional[Vocab] = None,
         char_tokenizer: Optional[CharacterTokenizer] = None,
         max_char_length: Optional[int] = None,
@@ -404,13 +378,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             "raw_instance": " ".join(word_instance),
             "char_tokens": character_tokens,
         }
-
-        if capitalization_vocab is not None:
-            capitalization_numericalizer = Numericalizer(capitalization_vocab)
-            capitalization_tokens = capitalization_numericalizer.numericalize_instance(
-                padded_word_instance
-            )
-            instance_dict["capitalization_tokens"] = capitalization_tokens
 
         if labels is not None:
             instance_dict["label"] = label

@@ -285,7 +285,6 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         max_word_length: int,
         word_add_start_end_token: bool,
         instance_preprocessor: Optional[InstancePreprocessing] = None,
-        capitalization_vocab: Optional[Vocab] = None,
         char_vocab: Optional[Vocab] = None,
         char_tokenizer: Optional[CharacterTokenizer] = None,
         max_char_length: Optional[int] = None,

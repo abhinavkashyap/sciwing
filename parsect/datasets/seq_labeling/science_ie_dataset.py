@@ -330,10 +330,12 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         word_tokenizer: WordTokenizer,
         max_word_length: int,
         word_add_start_end_token: bool,
+        instance_preprocessor=None,
         char_vocab: Optional[Vocab] = None,
         char_tokenizer: Optional[CharacterTokenizer] = None,
         max_char_length: Optional[int] = None,
         labels: Optional[List[str]] = None,
+        need_padding=True,
     ):
         word_instance = word_tokenizer.tokenize(line)
         len_instance = len(word_instance)
