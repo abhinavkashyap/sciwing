@@ -237,7 +237,7 @@ class ParsectDataset(Dataset, BaseTextClassification):
         word_instances = word_tokenizer.tokenize_batch(lines)
         len_instances = [len(instance) for instance in word_instances]
         word_numericalizer = Numericalizer(vocabulary=word_vocab)
-        classnames2idx = cls.get_classname2idx()
+        classnames2idx = ParsectDataset.get_classname2idx()
 
         if labels is not None:
             if isinstance(labels, str):
