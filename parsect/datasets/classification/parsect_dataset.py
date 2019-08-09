@@ -1,6 +1,4 @@
 import torch
-import wasabi
-import collections
 from torch.utils.data import Dataset
 from typing import List, Dict, Union, Any, Optional
 import parsect.constants as constants
@@ -14,13 +12,13 @@ import numpy as np
 from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
-from parsect.datasets.classification.sprinkle_clf_dataset import sprinkle_clf_dataset
+from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-@sprinkle_clf_dataset()
+@sprinkle_dataset()
 class ParsectDataset(Dataset, BaseTextClassification):
     """Parsect dataset consists of dataset for logical classification of scientific papers
 

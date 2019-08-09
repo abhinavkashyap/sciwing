@@ -7,14 +7,13 @@ from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
 from parsect.utils.common import pack_to_length
 import torch
-import collections
 from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
-from parsect.datasets.classification.sprinkle_clf_dataset import sprinkle_clf_dataset
+from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 
-@sprinkle_clf_dataset()
+@sprinkle_dataset()
 class GenericSectDataset(Dataset, BaseTextClassification):
     def __init__(
         self,

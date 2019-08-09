@@ -11,7 +11,7 @@ import wrapt
 import wasabi
 
 
-class sprinkle_clf_dataset:
+class sprinkle_dataset:
     def __init__(self, vocab_pipe=None, autoset_attrs=True):
         if vocab_pipe is None:
             vocab_pipe = ["word_vocab", "char_vocab"]
