@@ -227,6 +227,7 @@ class ParsectInference(BaseInference):
         normalized_probs = model_forward_dict["normalized_probs"]
         top_probs, top_indices = torch.topk(normalized_probs, k=1, dim=1)
         top_indices = top_indices.squeeze().tolist()
+        top_indices = [top_indices] if isinstance(top_indices, int) else top_indices
         classnames = [idx2classnames[top_index] for top_index in top_indices]
 
         return classnames
