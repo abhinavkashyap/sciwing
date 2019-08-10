@@ -20,10 +20,10 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         debug_dataset_proportion: float = 0.1,
         word_embedding_type: Union[str, None] = None,
         word_embedding_dimension: Union[int, None] = None,
-        start_token: str = "<SOS>",
-        end_token: str = "<EOS>",
-        pad_token: str = "<PAD>",
-        unk_token: str = "<UNK>",
+        word_start_token: str = "<SOS>",
+        word_end_token: str = "<EOS>",
+        word_pad_token: str = "<PAD>",
+        word_unk_token: str = "<UNK>",
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
@@ -60,13 +60,13 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
             Any of the ``allowed_types`` in vocab.WordEmbLoader is allowed here
         word_embedding_dimension : int
             Dimension of word embedding
-        start_token : str
+        word_start_token : str
             Start token appended at the beginning of every instance
-        end_token : str
+        word_end_token : str
             End token appended at the end of every instance
-        pad_token : str
+        word_pad_token : str
             Pad token to be used for padding
-        unk_token : str
+        word_unk_token : str
             All OOV words (if they are less frequent than ``max_words`` or word is in
             test but not in train) will be mapped to ``unk_token``
         train_size : str
@@ -93,16 +93,16 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         self.debug_dataset_proportion = debug_dataset_proportion
         self.embedding_type = word_embedding_type
         self.embedding_dimension = word_embedding_dimension
-        self.start_token = start_token
-        self.end_token = end_token
-        self.pad_token = pad_token
-        self.unk_token = unk_token
+        self.start_token = word_start_token
+        self.end_token = word_end_token
+        self.pad_token = word_pad_token
+        self.unk_token = word_unk_token
         self.train_size = train_size
         self.validation_size = validation_size
         self.test_size = test_size
         self.word_tokenizer = word_tokenizer
         self.word_tokenization_type = word_tokenization_type
-        self.character_tokenizer = character_tokenizer
+        self.char_tokenizer = character_tokenizer
         self.msg_printer = wasabi.Printer()
         self.allowable_dataset_types = ["train", "valid", "test"]
 
@@ -206,7 +206,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
             Returns the character tokenized sentences
 
         """
-        instances = self.character_tokenizer.tokenize_batch(lines)
+        instances = self.char_tokenizer.tokenize_batch(lines)
         return instances
 
     @abstractmethod

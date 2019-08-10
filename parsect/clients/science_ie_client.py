@@ -190,10 +190,10 @@ if __name__ == "__main__":
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
         character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
-        start_token="<SOS>",
-        end_token="<EOS>",
-        pad_token="<PAD>",
-        unk_token="<UNK>",
+        word_start_token="<SOS>",
+        word_end_token="<EOS>",
+        word_pad_token="<PAD>",
+        word_unk_token="<UNK>",
         word_add_start_end_token=False,
     )
 
@@ -210,10 +210,10 @@ if __name__ == "__main__":
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
         character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
-        start_token="<SOS>",
-        end_token="<EOS>",
-        pad_token="<PAD>",
-        unk_token="<UNK>",
+        word_start_token="<SOS>",
+        word_end_token="<EOS>",
+        word_pad_token="<PAD>",
+        word_unk_token="<UNK>",
         word_add_start_end_token=False,
     )
 
@@ -230,10 +230,10 @@ if __name__ == "__main__":
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
         character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
-        start_token="<SOS>",
-        end_token="<EOS>",
-        pad_token="<PAD>",
-        unk_token="<UNK>",
+        word_start_token="<SOS>",
+        word_end_token="<EOS>",
+        word_pad_token="<PAD>",
+        word_unk_token="<UNK>",
         word_add_start_end_token=False,
     )
 

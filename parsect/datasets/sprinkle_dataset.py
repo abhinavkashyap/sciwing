@@ -14,7 +14,7 @@ import wasabi
 class sprinkle_dataset:
     def __init__(self, vocab_pipe=None, autoset_attrs=True):
         if vocab_pipe is None:
-            vocab_pipe = ["word_vocab", "char_vocab"]
+            vocab_pipe = ["word_vocab"]
         self.autoset_attrs = autoset_attrs
         self.vocab_pipe = vocab_pipe
         self.wrapped_cls = None
@@ -34,7 +34,43 @@ class sprinkle_dataset:
         self.word_start_token = None
         self.word_end_token = None
 
+        self.char_tokenizer = None
+        self.char_instances = None
+        self.char_vocab = None
+        self.max_num_chars = None
+        self.char_vocab_store_location = None
+        self.char_embedding_type = None
+        self.char_embedding_dimension = None
+        self.char_numericalizer = None
+        self.char_unk_token = None
+        self.char_pad_token = None
+        self.char_start_token = None
+        self.char_end_token = None
+
+        self.word_vocab_required_attributes = [
+            "word_tokenizer",
+            "max_num_words",
+            "word_vocab_store_location",
+            "word_embedding_type",
+            "word_embedding_type",
+            "word_unk_token",
+            "word_pad_token",
+            "word_start_token",
+            "word_end_token",
+        ]
+
     def set_word_vocab(self):
+        if not all(
+            [
+                attribute in dir(self)
+                for attribute in self.word_vocab_required_attributes
+            ]
+        ):
+            raise ValueError(
+                f"For building word vocab, "
+                f"please pass these attributes in your "
+                f"dataset construction {self.word_vocab_required_attributes}"
+            )
         self.word_instances = self.word_tokenizer.tokenize_batch(self.lines)
         self.word_vocab = Vocab(
             instances=self.word_instances,
@@ -50,6 +86,33 @@ class sprinkle_dataset:
         self.word_numericalizer = Numericalizer(self.word_vocab)
         self.word_vocab.build_vocab()
         self.word_vocab.print_stats()
+
+    def set_char_vocab(self):
+        self.char_instances = self.char_tokenizer.tokenize_batch(self.lines)
+
+        self.char_vocab = Vocab(
+            instances=self.char_instances,
+            max_num_tokens=1e6,
+            min_count=1,
+            store_location=self.char_vocab_store_location,
+            embedding_type=self.char_embedding_type,
+            embedding_dimension=self.char_embedding_dimension,
+            start_token=self.char_start_token,
+            end_token=self.char_end_token,
+            unk_token=self.char_unk_token,
+            pad_token=self.char_pad_token,
+        )
+        self.char_vocab.build_vocab()
+
+        # adding these to help conversion to characters later
+        self.char_vocab.add_tokens(
+            list(self.word_start_token)
+            + list(self.word_end_token)
+            + list(self.word_unk_token)
+            + list(self.word_pad_token)
+        )
+        self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
+        self.char_vocab.print_stats()
 
     def _get_label_stats_table(self):
         all_labels = []
@@ -121,9 +184,14 @@ class sprinkle_dataset:
             instance.word_vocab = copy.deepcopy(self.word_vocab)
             instance.word_instances = copy.deepcopy(self.word_instances)
             instance.num_instances = len(self.word_instances)
+            instance.instance_max_len = max(
+                [len(instance) for instance in self.word_instances]
+            )
 
         if "char_vocab" in self.vocab_pipe:
-            pass
+            self.set_char_vocab()
+            instance.char_vocab = copy.deepcopy(self.char_vocab)
+            instance.char_instances = copy.deepcopy(self.char_instances)
 
         label_stats_table = self._get_label_stats_table()
         instance.label_stats_table = label_stats_table

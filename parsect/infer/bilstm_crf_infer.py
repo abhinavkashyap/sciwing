@@ -57,7 +57,7 @@ def get_bilstm_crf_infer(dirname: str):
         debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
         word_embedding_type=EMBEDDING_TYPE,
         word_embedding_dimension=EMBEDDING_DIMENSION,
-        character_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
+        char_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
         word_start_token="<SOS>",
         word_end_token="<EOS>",
         word_pad_token="<PAD>",

@@ -48,7 +48,7 @@ def setup_parscit_train_dataset(tmpdir):
             word_embedding_dimension=EMBEDDING_DIM,
             word_add_start_end_token=False,
             char_vocab_store_location=char_vocab_store_location,
-            character_embedding_dimension=CHAR_EMBEDDING_DIM,
+            char_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
         test_dataset = ParscitDataset(
             filename=str(test_file),
@@ -62,7 +62,7 @@ def setup_parscit_train_dataset(tmpdir):
             word_embedding_dimension=EMBEDDING_DIM,
             word_add_start_end_token=False,
             char_vocab_store_location=char_vocab_store_location,
-            character_embedding_dimension=CHAR_EMBEDDING_DIM,
+            char_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
 
     options = {
@@ -113,7 +113,7 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
             word_embedding_dimension=EMBEDDING_DIM,
             word_add_start_end_token=True,
             char_vocab_store_location=char_vocab_store_location,
-            character_embedding_dimension=CHAR_EMBEDDING_DIM,
+            char_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
         test_dataset = ParscitDataset(
             filename=str(test_file),
@@ -127,7 +127,7 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
             word_embedding_dimension=EMBEDDING_DIM,
             word_add_start_end_token=True,
             char_vocab_store_location=char_vocab_store_location,
-            character_embedding_dimension=CHAR_EMBEDDING_DIM,
+            char_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
 
     options = {
