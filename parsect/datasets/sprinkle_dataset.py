@@ -12,11 +12,12 @@ import wasabi
 
 
 class sprinkle_dataset:
-    def __init__(self, vocab_pipe=None, autoset_attrs=True):
+    def __init__(self, vocab_pipe=None, autoset_attrs=True, get_label_stats_table=True):
         if vocab_pipe is None:
             vocab_pipe = ["word_vocab"]
         self.autoset_attrs = autoset_attrs
         self.vocab_pipe = vocab_pipe
+        self.is_get_label_stats_table = get_label_stats_table
         self.wrapped_cls = None
         self.init_signature = None
         self.filename = None
@@ -193,7 +194,8 @@ class sprinkle_dataset:
             instance.char_vocab = copy.deepcopy(self.char_vocab)
             instance.char_instances = copy.deepcopy(self.char_instances)
 
-        label_stats_table = self._get_label_stats_table()
-        instance.label_stats_table = label_stats_table
+        if self.is_get_label_stats_table:
+            label_stats_table = self._get_label_stats_table()
+            instance.label_stats_table = label_stats_table
 
         return instance

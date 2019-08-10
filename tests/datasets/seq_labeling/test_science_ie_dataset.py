@@ -35,7 +35,7 @@ def setup_science_ie_dataset(request, tmpdir_factory):
         filename=out_filename,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
-        max_word_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         max_char_length=MAX_CHAR_LENGTH,
         word_vocab_store_location=vocab_store_location,
         debug=DEBUG,
@@ -43,7 +43,7 @@ def setup_science_ie_dataset(request, tmpdir_factory):
         word_embedding_dimension=EMBEDDING_DIM,
         word_add_start_end_token=False,
         char_vocab_store_location=char_vocab_store_location,
-        character_embedding_dimension=CHAR_EMBEDDING_DIM,
+        char_embedding_dimension=CHAR_EMBEDDING_DIM,
     )
     options = {
         "MAX_NUM_WORDS": MAX_NUM_WORDS,

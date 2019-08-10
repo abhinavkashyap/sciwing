@@ -12,23 +12,25 @@ from typing import Union
 import numpy as np
 import wasabi
 import collections
+from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 
+@sprinkle_dataset(vocab_pipe=["word_vocab", "char_vocab"], get_label_stats_table=False)
 class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
     def __init__(
         self,
         filename: str,
         dataset_type: str,
         max_num_words: int,
-        max_word_length: int,
-        max_char_length: int,
+        max_instance_length: int,
         word_vocab_store_location: str,
-        char_vocab_store_location: str,
+        max_char_length: Optional[int] = None,
+        char_vocab_store_location: Optional[str] = None,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
         word_embedding_type: Union[str, None] = None,
         word_embedding_dimension: Union[str, None] = None,
-        character_embedding_dimension: Union[str, None] = None,
+        char_embedding_dimension: Union[str, None] = None,
         word_start_token: str = "<SOS>",
         word_end_token: str = "<EOS>",
         word_pad_token: str = "<PAD>",
@@ -39,82 +41,28 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         word_tokenizer=WordTokenizer("vanilla"),
         word_tokenization_type="vanilla",
         word_add_start_end_token: bool = True,
-        character_tokenizer=CharacterTokenizer(),
+        char_tokenizer=CharacterTokenizer(),
+        max_num_chars: Optional[int] = 10000,
+        char_embedding_type: str = "random",
+        char_unk_token: str = " ",
+        char_pad_token: str = " ",
+        char_end_token: str = " ",
+        char_start_token: str = " ",
     ):
-        super(ScienceIEDataset, self).__init__(
-            filename=filename,
-            dataset_type=dataset_type,
-            max_num_words=max_num_words,
-            max_instance_length=max_word_length,
-            word_vocab_store_location=word_vocab_store_location,
-            debug=debug,
-            debug_dataset_proportion=debug_dataset_proportion,
-            word_embedding_type=word_embedding_type,
-            word_embedding_dimension=word_embedding_dimension,
-            word_start_token=word_start_token,
-            word_end_token=word_end_token,
-            word_pad_token=word_pad_token,
-            word_unk_token=word_unk_token,
-            train_size=train_size,
-            validation_size=validation_size,
-            test_size=test_size,
-            word_tokenizer=word_tokenizer,
-            word_tokenization_type=word_tokenization_type,
-            character_tokenizer=character_tokenizer,
-        )
-        self.char_vocab_store_location = char_vocab_store_location
-        self.character_embedding_dimension = character_embedding_dimension
-        self.max_char_length = max_char_length
-        self.word_add_start_end_token = word_add_start_end_token
+        Dataset.__init__(self)
+        self.filename = filename
+        self.train_size = train_size
+        self.test_size = test_size
+        self.validation_size = validation_size
+        self.dataset_type = dataset_type
+        self.debug = debug
+        self.debug_dataset_proportion = debug_dataset_proportion
+        self.max_instance_length = max_instance_length
         self.entity_types = ["Task", "Process", "Material"]
-
         self.classnames2idx = self.get_classname2idx()
         self.idx2classnames = {v: k for k, v in self.classnames2idx.items()}
 
         self.lines, self.labels = self.get_lines_labels(self.filename)
-        self.word_instances = self.word_tokenize(self.lines)
-        self.word_vocab = Vocab(
-            max_num_tokens=self.max_num_words,
-            min_count=1,
-            unk_token=self.unk_token,
-            pad_token=self.pad_token,
-            start_token=self.start_token,
-            end_token=self.end_token,
-            store_location=self.store_location,
-            instances=self.word_instances,
-            embedding_type=self.embedding_type,
-            embedding_dimension=self.embedding_dimension,
-        )
-
-        self.word_vocab.build_vocab()
-        self.word_vocab.print_stats()
-        self.word_numericalizer = Numericalizer(vocabulary=self.word_vocab)
-
-        self.character_instances = self.character_tokenize(self.lines)
-        self.char_vocab = Vocab(
-            max_num_tokens=1e6,
-            min_count=1,
-            unk_token=" ",
-            pad_token=" ",
-            start_token=" ",
-            end_token=" ",
-            store_location=self.char_vocab_store_location,
-            instances=self.character_instances,
-            embedding_type="random",
-            embedding_dimension=self.character_embedding_dimension,
-        )
-
-        self.char_vocab.build_vocab()
-
-        # adding these to help conversion to characters later
-        self.char_vocab.add_tokens(
-            list(self.start_token)
-            + list(self.end_token)
-            + list(self.unk_token)
-            + list(self.pad_token)
-        )
-        self.char_vocab.print_stats()
-        self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
 
         self.msg_printer = wasabi.Printer()
         self.tag_visualizer = VisTagging()
@@ -297,7 +245,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
             line=line,
             word_vocab=self.word_vocab,
             word_tokenizer=self.word_tokenizer,
-            max_word_length=self.max_length,
+            max_word_length=self.max_instance_length,
             word_add_start_end_token=self.word_add_start_end_token,
             char_vocab=self.char_vocab,
             char_tokenizer=self.char_tokenizer,
