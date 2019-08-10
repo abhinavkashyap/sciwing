@@ -32,7 +32,7 @@ def setup_science_ie_dataset(request, tmpdir_factory):
     CHAR_EMBEDDING_DIM = 25
 
     dataset = ScienceIEDataset(
-        science_ie_conll_file=out_filename,
+        filename=out_filename,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -50,6 +50,7 @@ def setup_science_ie_dataset(request, tmpdir_factory):
         "MAX_LENGTH": MAX_LENGTH,
         "MAX_CHAR_LENGTH": MAX_CHAR_LENGTH,
         "EMBEDDING_DIM": EMBEDDING_DIM,
+        "OUT_FILENAME": out_filename,
     }
     yield dataset, options
 
@@ -62,14 +63,14 @@ class TestScienceIE:
 
     def test_lines_labels_not_empty(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
-        lines, labels = dataset.get_lines_labels()
+        lines, labels = dataset.get_lines_labels(options["OUT_FILENAME"])
 
         assert all([bool(line.strip()) for line in lines])
         assert all([bool(label.strip())] for label in labels)
 
     def test_lines_labels_are_equal_length(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
-        lines, labels = dataset.get_lines_labels()
+        lines, labels = dataset.get_lines_labels(options["OUT_FILENAME"])
 
         len_lines_labels = zip(
             (len(line.split()) for line in lines),
@@ -88,7 +89,7 @@ class TestScienceIE:
 
     def test_tokens_max_length(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
-        lines, labels = dataset.get_lines_labels()
+        lines, labels = dataset.get_lines_labels(options["OUT_FILENAME"])
         num_lines = len(lines)
 
         for idx in range(num_lines):
@@ -96,7 +97,7 @@ class TestScienceIE:
 
     def test_char_tokens_max_length(self, setup_science_ie_dataset):
         dataset, options = setup_science_ie_dataset
-        lines, labels = dataset.get_lines_labels()
+        lines, labels = dataset.get_lines_labels(options["OUT_FILENAME"])
         num_lines = len(lines)
         for idx in range(num_lines):
             char_tokens = dataset[idx]["char_tokens"]

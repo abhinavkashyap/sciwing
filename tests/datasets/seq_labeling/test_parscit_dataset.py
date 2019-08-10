@@ -70,6 +70,8 @@ def setup_parscit_train_dataset(tmpdir):
         "MAX_LENGTH": MAX_LENGTH,
         "MAX_CHAR_LENGTH": MAX_CHAR_LENGTH,
         "EMBEDDING_DIM": EMBEDDING_DIM,
+        "TRAIN_FILE": str(train_file),
+        "TEST_FILE": str(test_file),
     }
 
     return train_dataset, test_dataset, options
@@ -133,6 +135,8 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
         "MAX_LENGTH": MAX_LENGTH,
         "MAX_CHAR_LENGTH": MAX_CHAR_LENGTH,
         "EMBEDDING_DIM": EMBEDDING_DIM,
+        "TRAIN_FILE": str(train_file),
+        "TEST_FILE": str(test_file),
     }
 
     return train_dataset, test_dataset, options
@@ -146,24 +150,28 @@ class TestParscitDataset:
 
     def test_lines_labels_not_empty(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
-        train_lines, train_labels = train_dataset.get_lines_labels()
+        train_lines, train_labels = train_dataset.get_lines_labels(
+            options["TRAIN_FILE"]
+        )
         assert all([bool(line.strip()) for line in train_lines])
         assert all([bool(label.strip()) for label in train_labels])
 
-        test_lines, test_labels = test_dataset.get_lines_labels()
+        test_lines, test_labels = test_dataset.get_lines_labels(options["TEST_FILE"])
         assert all([bool(line.strip()) for line in test_lines])
         assert all([bool(label.strip()) for label in test_labels])
 
     def test_lines_labels_are_equal_length(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
-        train_lines, train_labels = train_dataset.get_lines_labels()
+        train_lines, train_labels = train_dataset.get_lines_labels(
+            options["TRAIN_FILE"]
+        )
         len_lines_labels = zip(
             (len(line.split()) for line in train_lines),
             (len(label.split()) for label in train_labels),
         )
         assert all([len_line == len_label for len_line, len_label in len_lines_labels])
 
-        test_lines, test_labels = test_dataset.get_lines_labels()
+        test_lines, test_labels = test_dataset.get_lines_labels(options["TEST_FILE"])
         len_lines_labels = zip(
             (len(line.split()) for line in test_lines),
             (len(label.split()) for label in test_labels),
@@ -188,14 +196,14 @@ class TestParscitDataset:
 
     def test_tokens_max_length(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
-        lines, labels = train_dataset.get_lines_labels()
+        lines, labels = train_dataset.get_lines_labels(options["TRAIN_FILE"])
         num_lines = len(lines)
         for idx in range(num_lines):
             assert len(train_dataset[idx]["tokens"]) == options["MAX_LENGTH"]
 
     def test_char_tokens_max_length(self, setup_parscit_train_dataset):
         train_dataset, test_dataset, options = setup_parscit_train_dataset
-        lines, labels = train_dataset.get_lines_labels()
+        lines, labels = train_dataset.get_lines_labels(options["TRAIN_FILE"])
         num_lines = len(lines)
         for idx in range(num_lines):
             char_tokens = train_dataset[idx]["char_tokens"]

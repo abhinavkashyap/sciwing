@@ -178,7 +178,7 @@ if __name__ == "__main__":
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
     train_dataset = ScienceIEDataset(
-        science_ie_conll_file=pathlib.Path(DATA_DIR, "train_science_ie_conll.txt"),
+        filename=pathlib.Path(DATA_DIR, "train_science_ie_conll.txt"),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     )
 
     validation_dataset = ScienceIEDataset(
-        science_ie_conll_file=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
+        filename=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     )
 
     test_dataset = ScienceIEDataset(
-        science_ie_conll_file=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
+        filename=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,

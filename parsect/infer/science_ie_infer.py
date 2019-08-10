@@ -53,7 +53,7 @@ def get_science_ie_infer(dirname: str):
     test_science_ie_conll_filepath = pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt")
 
     test_dataset = ScienceIEDataset(
-        science_ie_conll_file=test_science_ie_conll_filepath,
+        filename=test_science_ie_conll_filepath,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_word_length=MAX_LENGTH,

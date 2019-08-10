@@ -210,7 +210,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         return instances
 
     @abstractmethod
-    def get_lines_labels(self) -> (List[str], List[str]):
+    def get_lines_labels(self, filename: str) -> (List[str], List[str]):
         """ A list of lines from the file and a list of corresponding labels
 
         This method is to be implemented by a new dataset. The decision on

@@ -74,7 +74,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             idx: classname for classname, idx in self.classnames2idx.items()
         }
 
-        self.lines, self.labels = self.get_lines_labels()
+        self.lines, self.labels = self.get_lines_labels(self.filename)
         self.word_instances_orig = self.word_tokenize(self.lines)
         self.word_instances = map(
             self.instance_preprocessor.lowercase, self.word_instances_orig
@@ -213,7 +213,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         self.msg_printer.divider(f"Other stats for Parscit {self.dataset_type} dataset")
         print(other_stats_table)
 
-    def get_lines_labels(self) -> (List[str], List[str]):
+    def get_lines_labels(self, filename: str) -> (List[str], List[str]):
         """
         Returns citation string, label
         citation string is a space separated string
@@ -222,7 +222,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         """
         lines = []
         labels = []
-        with open(self.filename) as fp:
+        with open(filename) as fp:
             words = []
             tags = []
             for line in fp:

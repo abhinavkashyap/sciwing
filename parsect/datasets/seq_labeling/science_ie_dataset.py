@@ -17,7 +17,7 @@ import collections
 class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
     def __init__(
         self,
-        science_ie_conll_file: str,
+        filename: str,
         dataset_type: str,
         max_num_words: int,
         max_word_length: int,
@@ -42,7 +42,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         character_tokenizer=CharacterTokenizer(),
     ):
         super(ScienceIEDataset, self).__init__(
-            filename=science_ie_conll_file,
+            filename=filename,
             dataset_type=dataset_type,
             max_num_words=max_num_words,
             max_length=max_word_length,
@@ -71,7 +71,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         self.classnames2idx = self.get_classname2idx()
         self.idx2classnames = {v: k for k, v in self.classnames2idx.items()}
 
-        self.lines, self.labels = self.get_lines_labels()
+        self.lines, self.labels = self.get_lines_labels(self.filename)
         self.word_instances = self.word_tokenize(self.lines)
         self.word_vocab = Vocab(
             max_num_tokens=self.max_num_words,
@@ -240,11 +240,11 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         )
         print(other_stats_table)
 
-    def get_lines_labels(self):
+    def get_lines_labels(self, filename: str):
         lines = []
         labels = []  # contains three labels per word
 
-        with open(self.filename) as fp:
+        with open(filename) as fp:
             words = []
             tags = []
             for line in fp:
