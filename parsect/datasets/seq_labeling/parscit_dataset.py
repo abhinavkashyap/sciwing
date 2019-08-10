@@ -20,7 +20,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         parscit_conll_file: str,
         dataset_type: str,
         max_num_words: int,
-        max_word_length: int,
+        max_instance_length: int,
         max_char_length: int,
         word_vocab_store_location: str,
         char_vocab_store_location: str,
@@ -47,7 +47,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             filename=parscit_conll_file,
             dataset_type=dataset_type,
             max_num_words=max_num_words,
-            max_length=max_word_length,
+            max_instance_length=max_instance_length,
             word_vocab_store_location=word_vocab_store_location,
             debug=debug,
             debug_dataset_proportion=debug_dataset_proportion,
@@ -64,21 +64,20 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             word_tokenization_type=word_tokenization_type,
             character_tokenizer=character_tokenizer,
         )
+        self.character_tokenizer = character_tokenizer
         self.char_vocab_store_location = char_vocab_store_location
         self.character_embedding_dimension = character_embedding_dimension
         self.max_char_length = max_char_length
         self.word_add_start_end_token = word_add_start_end_token
         self.classnames2idx = self.get_classname2idx()
-        self.instance_preprocessor = InstancePreprocessing()
+        self.instance_preprocessor = None
         self.idx2classname = {
             idx: classname for classname, idx in self.classnames2idx.items()
         }
 
         self.lines, self.labels = self.get_lines_labels(self.filename)
-        self.word_instances_orig = self.word_tokenize(self.lines)
-        self.word_instances = map(
-            self.instance_preprocessor.lowercase, self.word_instances_orig
-        )
+
+        self.word_instances = self.word_tokenize(self.lines)
         self.word_instances = list(self.word_instances)
         self.word_vocab = Vocab(
             instances=self.word_instances,

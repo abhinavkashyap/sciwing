@@ -45,7 +45,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
             filename=filename,
             dataset_type=dataset_type,
             max_num_words=max_num_words,
-            max_length=max_word_length,
+            max_instance_length=max_word_length,
             word_vocab_store_location=word_vocab_store_location,
             debug=debug,
             debug_dataset_proportion=debug_dataset_proportion,

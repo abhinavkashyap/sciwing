@@ -49,7 +49,7 @@ def get_bilstm_crf_infer(dirname: str):
         parscit_conll_file=test_conll_filepath,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
-        max_word_length=MAX_LENGTH,
+        max_instance_length=MAX_LENGTH,
         max_char_length=MAX_CHAR_LENGTH,
         word_vocab_store_location=VOCAB_STORE_LOCATION,
         char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,

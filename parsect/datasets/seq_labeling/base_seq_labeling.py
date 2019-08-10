@@ -14,7 +14,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         filename: str,
         dataset_type: str,
         max_num_words: int,
-        max_length: int,
+        max_instance_length: int,
         word_vocab_store_location: str,
         debug: bool = False,
         debug_dataset_proportion: float = 0.1,
@@ -43,7 +43,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
             One of ``[train, valid, test]``
         max_num_words : int
             The top ``max_num_words`` will be considered for building vocab
-        max_length : int
+        max_instance_length : int
             Every instance in the dataset will be padded to or curtailed to ``max_length`` number of
             tokens
         word_vocab_store_location : str
@@ -87,7 +87,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         self.filename = filename
         self.dataset_type = dataset_type
         self.max_num_words = max_num_words
-        self.max_length = max_length
+        self.max_length = max_instance_length
         self.store_location = word_vocab_store_location
         self.debug = debug
         self.debug_dataset_proportion = debug_dataset_proportion
