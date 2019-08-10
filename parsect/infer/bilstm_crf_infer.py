@@ -46,7 +46,7 @@ def get_bilstm_crf_infer(dirname: str):
     test_conll_filepath = pathlib.Path(DATA_DIR, "cora_conll.txt")
 
     test_dataset = ParscitDataset(
-        parscit_conll_file=test_conll_filepath,
+        filename=test_conll_filepath,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_instance_length=MAX_LENGTH,

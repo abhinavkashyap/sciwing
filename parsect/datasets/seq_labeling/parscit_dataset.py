@@ -12,12 +12,14 @@ import numpy as np
 import torch
 import collections
 from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
+from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 
+@sprinkle_dataset(vocab_pipe=["word_vocab"])
 class ParscitDataset(Dataset, BaseSeqLabelingDataset):
     def __init__(
         self,
-        parscit_conll_file: str,
+        filename: str,
         dataset_type: str,
         max_num_words: int,
         max_instance_length: int,
@@ -43,27 +45,37 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
         word_add_start_end_token: bool = True,
         character_tokenizer=CharacterTokenizer(),
     ):
-        super(ParscitDataset, self).__init__(
-            filename=parscit_conll_file,
-            dataset_type=dataset_type,
-            max_num_words=max_num_words,
-            max_instance_length=max_instance_length,
-            word_vocab_store_location=word_vocab_store_location,
-            debug=debug,
-            debug_dataset_proportion=debug_dataset_proportion,
-            word_embedding_type=word_embedding_type,
-            word_embedding_dimension=word_embedding_dimension,
-            start_token=word_start_token,
-            end_token=word_end_token,
-            pad_token=word_pad_token,
-            unk_token=word_unk_token,
-            train_size=train_size,
-            test_size=test_size,
-            validation_size=validation_size,
-            word_tokenizer=word_tokenizer,
-            word_tokenization_type=word_tokenization_type,
-            character_tokenizer=character_tokenizer,
-        )
+        # super(ParscitDataset, self).__init__(
+        #     filename=parscit_conll_file,
+        #     dataset_type=dataset_type,
+        #     max_num_words=max_num_words,
+        #     max_instance_length=max_instance_length,
+        #     word_vocab_store_location=word_vocab_store_location,
+        #     debug=debug,
+        #     debug_dataset_proportion=debug_dataset_proportion,
+        #     word_embedding_type=word_embedding_type,
+        #     word_embedding_dimension=word_embedding_dimension,
+        #     start_token=word_start_token,
+        #     end_token=word_end_token,
+        #     pad_token=word_pad_token,
+        #     unk_token=word_unk_token,
+        #     train_size=train_size,
+        #     test_size=test_size,
+        #     validation_size=validation_size,
+        #     word_tokenizer=word_tokenizer,
+        #     word_tokenization_type=word_tokenization_type,
+        #     character_tokenizer=character_tokenizer,
+        # )
+
+        self.filename = filename
+        self.train_size = train_size
+        self.test_size = test_size
+        self.validation_size = validation_size
+        self.dataset_type = dataset_type
+        self.debug = debug
+        self.debug_dataset_proportion = debug_dataset_proportion
+        self.max_instance_length = max_instance_length
+
         self.character_tokenizer = character_tokenizer
         self.char_vocab_store_location = char_vocab_store_location
         self.character_embedding_dimension = character_embedding_dimension
@@ -75,24 +87,24 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             idx: classname for classname, idx in self.classnames2idx.items()
         }
 
-        self.lines, self.labels = self.get_lines_labels(self.filename)
+        self.lines, self.labels = self.get_lines_labels(filename)
 
-        self.word_instances = self.word_tokenize(self.lines)
-        self.word_instances = list(self.word_instances)
-        self.word_vocab = Vocab(
-            instances=self.word_instances,
-            max_num_tokens=self.max_num_words,
-            unk_token=self.unk_token,
-            pad_token=self.pad_token,
-            start_token=self.start_token,
-            end_token=self.end_token,
-            store_location=self.store_location,
-            embedding_type=self.embedding_type,
-            embedding_dimension=self.embedding_dimension,
-        )
-        self.word_vocab.build_vocab()
-        self.word_vocab.print_stats()
-        self.word_numericalizer = Numericalizer(vocabulary=self.word_vocab)
+        # self.word_instances = self.word_tokenize(self.lines)
+        # self.word_instances = list(self.word_instances)
+        # self.word_vocab = Vocab(
+        #     instances=self.word_instances,
+        #     max_num_tokens=self.max_num_words,
+        #     unk_token=self.unk_token,
+        #     pad_token=self.pad_token,
+        #     start_token=self.start_token,
+        #     end_token=self.end_token,
+        #     store_location=self.store_location,
+        #     embedding_type=self.embedding_type,
+        #     embedding_dimension=self.embedding_dimension,
+        # )
+        # self.word_vocab.build_vocab()
+        # self.word_vocab.print_stats()
+        # self.word_numericalizer = Numericalizer(vocabulary=self.word_vocab)
 
         # get character instances
         self.character_instances = self.character_tokenize(self.lines)
@@ -112,10 +124,10 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
 
         # adding these to help conversion to characters later
         self.char_vocab.add_tokens(
-            list(self.start_token)
-            + list(self.end_token)
-            + list(self.unk_token)
-            + list(self.pad_token)
+            list(word_start_token)
+            + list(word_end_token)
+            + list(word_unk_token)
+            + list(word_pad_token)
         )
         self.char_vocab.print_stats()
         self.char_numericalizer = Numericalizer(vocabulary=self.char_vocab)
@@ -276,7 +288,7 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
             line=line,
             word_vocab=self.word_vocab,
             word_tokenizer=self.word_tokenizer,
-            max_word_length=self.max_length,
+            max_word_length=self.max_instance_length,
             word_add_start_end_token=self.word_add_start_end_token,
             instance_preprocessor=self.instance_preprocessor,
             char_vocab=self.char_vocab,

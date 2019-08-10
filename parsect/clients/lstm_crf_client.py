@@ -186,7 +186,7 @@ if __name__ == "__main__":
         TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
         train_dataset = ParscitDataset(
-            parscit_conll_file=str(train_data_filepath),
+            filename=str(train_data_filepath),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
@@ -208,7 +208,7 @@ if __name__ == "__main__":
         )
 
         validation_dataset = ParscitDataset(
-            parscit_conll_file=str(test_data_filepath),
+            filename=str(test_data_filepath),
             dataset_type="valid",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
@@ -230,7 +230,7 @@ if __name__ == "__main__":
         )
 
         test_dataset = ParscitDataset(
-            parscit_conll_file=str(test_data_filepath),
+            filename=str(test_data_filepath),
             dataset_type="test",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,

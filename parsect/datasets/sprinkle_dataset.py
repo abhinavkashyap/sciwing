@@ -20,6 +20,7 @@ class sprinkle_dataset:
         self.wrapped_cls = None
         self.init_signature = None
         self.filename = None
+
         self.word_tokenizer = None
         self.word_instances = None
         self.word_vocab = None
@@ -51,7 +52,10 @@ class sprinkle_dataset:
         self.word_vocab.print_stats()
 
     def _get_label_stats_table(self):
-        all_labels = [label for label in self.labels]
+        all_labels = []
+        for label in self.labels:
+            all_labels.extend(label.split())
+
         labels_stats = dict(collections.Counter(all_labels))
         classes = list(set(labels_stats.keys()))
         classes = sorted(classes)
