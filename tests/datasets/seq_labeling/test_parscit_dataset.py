@@ -37,7 +37,7 @@ def setup_parscit_train_dataset(tmpdir):
 
     if is_write_success:
         train_dataset = ParscitDataset(
-            parscit_conll_file=str(train_file),
+            filename=str(train_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
@@ -51,7 +51,7 @@ def setup_parscit_train_dataset(tmpdir):
             character_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
         test_dataset = ParscitDataset(
-            parscit_conll_file=str(test_file),
+            filename=str(test_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
@@ -102,7 +102,7 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
 
     if is_write_success:
         train_dataset = ParscitDataset(
-            parscit_conll_file=str(train_file),
+            filename=str(train_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
@@ -116,7 +116,7 @@ def setup_parscit_train_dataset_maxlen_2(tmpdir):
             character_embedding_dimension=CHAR_EMBEDDING_DIM,
         )
         test_dataset = ParscitDataset(
-            parscit_conll_file=str(test_file),
+            filename=str(test_file),
             dataset_type="train",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
