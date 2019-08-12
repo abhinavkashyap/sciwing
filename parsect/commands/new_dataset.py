@@ -7,7 +7,7 @@ import jinja2
 import pathlib
 import autopep8
 import wasabi
-from typing import Dict, Optional, Any
+from typing import Dict, Optional, Any, List
 
 
 PATHS = constants.PATHS
@@ -21,6 +21,7 @@ class ClassificationDatasetGenerator(object):
         self.template_file = pathlib.Path(
             TEMPLATES_DIR, "classification_dataset_template.txt"
         )
+        self.msg_printer = wasabi.Printer()
         self.template = self._get_template()
         self.filename = filename
         self.template_variables = self.interact()
@@ -128,6 +129,34 @@ class ClassificationDatasetGenerator(object):
 
         word_tokenizer = f"WordTokenizer(tokenizer={tokenizer_type})"
 
+        is_dataset_standard_fmt = questionary.confirm(
+            message="Is dataset in standard format?", default=False
+        ).ask()
+
+        is_valid_default_file = False
+        categories = None
+
+        # generate the appropriate code
+        if is_dataset_standard_fmt:
+            # ask the user for the filename where the dataset is stored
+            filename = questionary.text(
+                message="Enter the full path of the file where the file is stored",
+                validate=is_file_exist,
+            ).ask()
+            is_valid_file, lines, labels = self.parse_file(filename=filename)
+            if not is_valid_file:
+                self.msg_printer.fail(
+                    f"The file {filename} should be of the format text\tlabel."
+                )
+                is_valid_default_file = False
+            else:
+                is_valid_default_file = True
+
+                # what are the different labels in the dataset?
+                unique_labels = set(labels)
+                unique_labels = list(unique_labels)
+                categories = unique_labels
+
         template_options_dict = {
             "className": self.dataset_name,
             "word_embedding_type": word_embedding_type,
@@ -141,8 +170,28 @@ class ClassificationDatasetGenerator(object):
             "test_size": test_size,
             "word_tokenization_type": tokenizer_type,
             "word_tokenizer": word_tokenizer,
+            "debug": debug,
+            "debug_dataset_proportion": debug_dataset_proportion,
+            "valid_default_file": is_valid_default_file,
+            "categories": categories,
         }
         return template_options_dict
+
+    @staticmethod
+    def parse_file(filename: str) -> (bool, List[str], List[str]):
+        lines = []
+        labels = []
+        with open(filename, "r") as fp:
+            for line in fp:
+                line = line.strip()
+                try:
+                    columns = line.split("\t")
+                    text, label = columns[0], columns[-1]
+                    lines.append(text)
+                    labels.append(label)
+                except ValueError:
+                    return False, [], []
+        return True, lines, labels
 
 
 def create_new_dataset_interactive():
