@@ -23,7 +23,7 @@ class WordTokenizer(BaseTokenizer):
         self.tokenizer = tokenizer
         self.allowed_tokenizers = ["spacy", "nltk", "vanilla", "spacy-whitespace"]
         assert self.tokenizer in self.allowed_tokenizers, AssertionError(
-            "The word tokenizer can be either spacy or nltk"
+            f"The word tokenizer can be {self.allowed_tokenizers}"
         )
 
         if self.tokenizer == "spacy" or "spacy-whitespace":

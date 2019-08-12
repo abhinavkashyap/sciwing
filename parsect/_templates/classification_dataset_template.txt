@@ -8,7 +8,8 @@ from parsect.tokenizers.word_tokenizer import WordTokenizer
 
 @sprinkle_dataset()
 class {{className}}(Dataset, BaseTextClassification):
-    def __init__(self,
+    def __init__(
+    self,
     filename: str,
     dataset_type: str,
     max_num_words: int,
@@ -25,7 +26,8 @@ class {{className}}(Dataset, BaseTextClassification):
     test_size: float = {{test_size}},
     validation_size: float= {{validation_size}},
     word_tokenizer = WordTokenizer(),
-    word_tokenization_type="vanilla"):
+    word_tokenization_type="{{word_tokenization_type}}"
+    ):
         pass
 
     def __len__(self):
