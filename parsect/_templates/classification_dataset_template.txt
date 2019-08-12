@@ -2,9 +2,12 @@ from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 from parsect.datasets.classification.base_text_classification import BaseTextClassification
 from typing import Dict, Any, Optional, Union, List
 from parsect.vocab.vocab import Vocab
+from parsect.utils.common import pack_to_length
 from torch.utils.data import Dataset
 import torch
 from parsect.tokenizers.word_tokenizer import WordTokenizer
+from parsect.numericalizer.numericalizer import Numericalizer
+
 import numpy as np
 
 
@@ -154,4 +157,61 @@ class {{className}}(Dataset, BaseTextClassification):
         word_add_start_end_token: bool,
         labels: Optional[Union[str, List[str]]] = None,
     ):
-        pass
+    	if isinstance(lines, str):
+    		lines = [lines]
+
+        word_instances = word_tokenizer.tokenize_batch(lines)
+        len_instances = [len(instance) for instance in word_instances]
+        word_numericalizer = Numericalizer(vocabulary=word_vocab)
+        classnames2idx = cls.get_classname2idx()
+
+        if labels is not None:
+            if isinstance(labels, str):
+                labels = [labels]
+
+		labels = [classnames2idx[label] for label in labels]
+		label = torch.LongTensor(labels)
+
+        padded_instances = []
+        for word_instance in word_instances:
+            padded_instance = pack_to_length(
+                tokenized_text=word_instance,
+                max_length=max_word_length,
+                pad_token=word_vocab.pad_token,
+                add_start_end_token=True,
+                start_token=word_vocab.start_token,
+                end_token=word_vocab.end_token,
+            )
+            padded_instances.append(padded_instance)
+
+        tokens = word_numericalizer.numericalize_batch_instances(padded_instances)
+        tokens = torch.LongTensor(tokens)
+        tokens = tokens.squeeze(0)
+
+        instances = []
+        for instance in padded_instances:
+            instances.append(" ".join(instance))
+
+        raw_instances = []
+        for instance in word_instances:
+            raw_instances.append(" ".join(instance))
+
+        len_tokens = torch.LongTensor(len_instances)
+
+        # squeeze the dimensions if there are more than one dimension
+
+        if len(instances) == 1:
+            instances = instances[0]
+            raw_instances = raw_instances[0]
+
+        instance_dict = {
+            "tokens": tokens,
+            "len_tokens": len_tokens,
+            "instance": instances,
+            "raw_instance": raw_instances,
+        }
+
+        if labels is not None:
+            instance_dict["label"] = label
+
+        return instance_dict
