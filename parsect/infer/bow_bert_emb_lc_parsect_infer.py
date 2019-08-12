@@ -5,7 +5,7 @@ from parsect.modules.embedders.bert_embedder import BertEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
-from parsect.infer.parsect_inference import ParsectInference
+from parsect.infer.classification.classification_inference import ParsectInference
 import torch
 
 PATHS = constants.PATHS

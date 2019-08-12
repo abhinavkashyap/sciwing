@@ -1,6 +1,8 @@
 import parsect.constants as constants
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from parsect.infer.BaseInference import BaseInference
+from parsect.infer.classification.BaseClassificationInference import (
+    BaseClassificationInference,
+)
 from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
@@ -13,13 +15,14 @@ from parsect.utils.tensor_utils import move_to_device
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from wasabi.util import MESSAGES
+import json
 
 FILES = constants.FILES
 
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-class ParsectInference(BaseInference):
+class ParsectInference(BaseClassificationInference):
     """
     The parsect engine runs the test lines through the classifier
     and returns the predictions/probabilities for different classes
@@ -32,6 +35,9 @@ class ParsectInference(BaseInference):
     1) Show confusion matrix
     2) Investigate a particular example in the test dataset
     3) Get instances that were classified as 2 when their true label is 1 and others
+
+    All it needs is the configuration file stored under every experiment to have a
+    vocab already stored in the experiment folder
     """
 
     def __init__(
@@ -58,6 +64,14 @@ class ParsectInference(BaseInference):
             dataset=dataset,
         )
         self.dataset_class = dataset_class
+
+        with open(hyperparam_config_filepath, "r") as fp:
+            config = json.load(fp)
+
+        self.vocab_store_location = config.get("VOCAB_STORE_LOCATION", None)
+        self.max_length = config.get("MAX_LENGTH", None) or 200
+        self.batch_size = config.get("BATCH_SIZE", None) or 32
+
         if self.test_dataset is not None:
             self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
             self.idx2labelname_mapping = {
