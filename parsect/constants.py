@@ -11,6 +11,8 @@ PATHS = dict(
     MODELS_CACHE_DIR=os.path.join(UPROOT_DIR, ".model_cache"),
     AWS_CRED_DIR=os.path.join(UPROOT_DIR, ".aws"),
     TESTS_DIR=os.path.join(UPROOT_DIR, "tests"),
+    TEMPLATES_DIR=os.path.join(ROOT_DIR, "_templates"),
+    DATASETS_DIR=os.path.join(ROOT_DIR, "datasets"),
 )
 
 FILES = dict(
