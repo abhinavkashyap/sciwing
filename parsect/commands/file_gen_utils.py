@@ -97,7 +97,7 @@ class ClassificationDatasetGenerator(object):
 
         tokenizer_type = self._get_tokenizer_type()
 
-        word_tokenizer = f'WordTokenizer(type="{tokenizer_type}")'
+        word_tokenizer = f'WordTokenizer(tokenizer="{tokenizer_type}")'
 
         is_dataset_standard_fmt = self._get_is_dataset_standard_fmt()
 

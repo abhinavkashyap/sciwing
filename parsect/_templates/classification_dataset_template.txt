@@ -43,12 +43,11 @@ class {{className}}(Dataset, BaseTextClassification):
     char_end_token: str = "{{char_end_token}}",
     char_pad_token: str = "{{char_pad_token}}",
     char_unk_token: str = "{{char_unk_token}}",
+    char_tokenizer = {{char_tokenizer}}
     {% endif %}
     train_size: float = {{train_size}},
     test_size: float = {{test_size}},
     validation_size: float= {{validation_size}},
-    char_tokenizer = {{char_tokenizer}}
-
     ):
     	Dataset.__init__(self)
         self.classname2idx = self.get_classname2idx()
@@ -78,6 +77,11 @@ class {{className}}(Dataset, BaseTextClassification):
             word_vocab=self.word_vocab,
             word_tokenizer=self.word_tokenizer,
             max_word_length=self.max_instance_length,
+            {% if is_char_vocab %}
+            char_vocab=self.char_vocab,
+            char_tokenizer=self.char_tokenizer,
+            max_char_length=self.max_char_length,
+            {% endif %}
             word_add_start_end_token=True,
             labels=label,
         )
@@ -155,15 +159,17 @@ class {{className}}(Dataset, BaseTextClassification):
     def get_class_names_from_indices(self, indices: List) -> List[str]:
         return [self.idx2classname[idx] for idx in indices]
 
-
-    def get_disp_sentence_from_indices(self, indices: List) -> str:
-        pass
-
-    def get_preloaded_word_embedding(self) -> torch.FloatTensor:
-        pass
-
     def emits_keys(cls):
-        pass
+        return {
+        "tokens": f"A torch.LongTensor f size max_length where every number represents a number in the vocab",
+        "len_tokens": f"Number of tokens in each instance",
+        "label": "A torch.LongTensor representing the label corresponding to the instance",
+        "instance": f"A string that is padded to max_word_length",
+        "raw_instance": f"A sting that is not padded",
+        {%if is_char_vocab %}
+        "char_tokens": f"tokens of shape max_word_length * max_char_length representing characters for every word in the instance",
+        {% endif %}
+        }
 
     def print_stats(self):
     	pass
@@ -189,7 +195,6 @@ class {{className}}(Dataset, BaseTextClassification):
         word_instances = word_tokenizer.tokenize_batch(lines)
         len_instances = [len(instance) for instance in word_instances]
         word_numericalizer = Numericalizer(vocabulary=word_vocab)
-        char_numericalizer = Numericalizer(vocabulary=char_vocab)
         classnames2idx = cls.get_classname2idx()
 
         if labels is not None:
@@ -231,32 +236,38 @@ class {{className}}(Dataset, BaseTextClassification):
             instances = instances[0]
             raw_instances = raw_instances[0]
 
-        character_tokens = []
-        # 1. For every word we get characters in the word
-        # 2. Pad the characters to max_char_length
-        # 3. Convert them into numbers
-        # 4. Add them to character_tokens
-        for word in padded_instances:
-            char_instance = char_tokenizer.tokenize(word)
-            padded_character_instance = pack_to_length(
-                tokenized_text=char_instance,
-                max_length=max_char_length,
-                pad_token=char_vocab.pad_token,
-                add_start_end_token=False,
-            )
-            padded_character_tokens = char_numericalizer.numericalize_instance(
-                padded_character_instance
-            )
-            character_tokens.append(padded_character_tokens)
-        character_tokens = torch.LongTensor(character_tokens)
+		{% if is_char_vocab %}
+			character_tokens = []
+			char_numericalizer = Numericalizer(vocabulary=char_vocab)
+			# 1. For every word we get characters in the word
+			# 2. Pad the characters to max_char_length
+			# 3. Convert them into numbers
+			# 4. Add them to character_tokens
+			for word in padded_instances:
+				char_instance = char_tokenizer.tokenize(word)
+				padded_character_instance = pack_to_length(
+					tokenized_text=char_instance,
+					max_length=max_char_length,
+					pad_token=char_vocab.pad_token,
+					add_start_end_token=False,
+				)
+				padded_character_tokens = char_numericalizer.numericalize_instance(
+					padded_character_instance
+				)
+				character_tokens.append(padded_character_tokens)
+			character_tokens = torch.LongTensor(character_tokens)
+		{% endif %}
 
         instance_dict = {
             "tokens": tokens,
             "len_tokens": len_tokens,
             "instance": instances,
             "raw_instance": raw_instances,
-            "char_tokens": character_tokens,
         }
+
+        {% if is_char_vocab %}
+        instance_dict["char_tokens"] = char_tokens
+        {% endif %}
 
         if labels is not None:
             instance_dict["label"] = label
