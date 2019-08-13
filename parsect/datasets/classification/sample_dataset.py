@@ -1,5 +1,7 @@
 from parsect.datasets.sprinkle_dataset import sprinkle_dataset
-from parsect.datasets.classification.base_text_classification import BaseTextClassification
+from parsect.datasets.classification.base_text_classification import (
+    BaseTextClassification,
+)
 
 from typing import Dict, Any, Optional, Union, List
 from parsect.vocab.vocab import Vocab
@@ -13,44 +15,39 @@ from parsect.numericalizer.numericalizer import Numericalizer
 import numpy as np
 
 
-@sprinkle_dataset(vocab_pipe={{vocab_pipe}})
-class {{className}}(Dataset, BaseTextClassification):
+@sprinkle_dataset(vocab_pipe=["char_vocab", "word_vocab"])
+class sample_dataset(Dataset, BaseTextClassification):
     def __init__(
-    self,
-    filename: str,
-    dataset_type: str,
-    max_num_words: int,
-    max_instance_length: int,
-    word_vocab_store_location: str,
-    {%if is_char_vocab %}
-    char_vocab_store_location: str,
-    max_char_length: int,
-    {% endif %}
-    debug: bool = {{debug}},
-    debug_dataset_proportion={{debug_dataset_proportion}},
-    word_embedding_type: Optional[str] = "{{word_embedding_type}}",
-    word_embedding_dimension: Optional[int] = "{{word_embedding_dimension}}",
-    word_start_token: str = "{{word_start_token}}",
-    word_end_token: str = "{{word_end_token}}",
-    word_pad_token: str = "{{word_pad_token}}",
-    word_unk_token: str = "{{word_unk_token}}",
-    word_tokenizer = {{word_tokenizer}},
-    word_tokenization_type="{{word_tokenization_type}}",
-    {%if is_char_vocab %}
-    char_embedding_type: Optional[str] = "{{char_embedding_type}}",
-    char_embedding_dimension: Optional[int] = "{{char_embedding_dimension}}",
-    char_start_token: str = "{{char_start_token}}",
-    char_end_token: str = "{{char_end_token}}",
-    char_pad_token: str = "{{char_pad_token}}",
-    char_unk_token: str = "{{char_unk_token}}",
-    {% endif %}
-    train_size: float = {{train_size}},
-    test_size: float = {{test_size}},
-    validation_size: float= {{validation_size}},
-    char_tokenizer = {{char_tokenizer}}
-
+        self,
+        filename: str,
+        dataset_type: str,
+        max_num_words: int,
+        max_instance_length: int,
+        word_vocab_store_location: str,
+        char_vocab_store_location: str,
+        max_char_length: int,
+        debug: bool = False,
+        debug_dataset_proportion=0.1,
+        word_embedding_type: Optional[str] = "random",
+        word_embedding_dimension: Optional[int] = "100",
+        word_start_token: str = "<SOS>",
+        word_end_token: str = "<EOS>",
+        word_pad_token: str = "<PAD>",
+        word_unk_token: str = "<UNK>",
+        word_tokenizer=WordTokenizer(type="vanilla"),
+        word_tokenization_type="vanilla",
+        char_embedding_type: Optional[str] = "random",
+        char_embedding_dimension: Optional[int] = "25",
+        char_start_token: str = " ",
+        char_end_token: str = " ",
+        char_pad_token: str = " ",
+        char_unk_token: str = " ",
+        train_size: float = 0.8,
+        test_size: float = 0.2,
+        validation_size: float = 0.5,
+        char_tokenizer=CharacterTokenizer(),
     ):
-    	Dataset.__init__(self)
+        Dataset.__init__(self)
         self.classname2idx = self.get_classname2idx()
         self.idx2classname = {
             idx: classname for classname, idx in self.classname2idx.items()
@@ -68,7 +65,6 @@ class {{className}}(Dataset, BaseTextClassification):
     def __len__(self):
         return len(self.word_instances)
 
-
     def __getitem__(self, idx) -> Dict[str, Any]:
         line = self.lines[idx]
         label = self.labels[idx]
@@ -82,79 +78,67 @@ class {{className}}(Dataset, BaseTextClassification):
             labels=label,
         )
 
-
     def get_lines_labels(self, filename: str) -> (List[str], List[str]):
 
-        {% if valid_default_file %}
-            lines = []
-            labels = []
+        lines = []
+        labels = []
 
-            with open(self.filename) as fp:
-                for line in fp:
-                    line = line.strip()
-                    columns = line.split("\t")
-                    text, label = columns[0], columns[-1]
-                    lines.append(text)
-                    labels.append(label)
+        with open(self.filename) as fp:
+            for line in fp:
+                line = line.strip()
+                columns = line.split("\t")
+                text, label = columns[0], columns[-1]
+                lines.append(text)
+                labels.append(label)
 
-            (train_lines, train_labels), (validation_lines, validation_labels), (
-                test_lines,
-                test_labels,
-            ) = self.get_train_valid_test_stratified_split(
-                lines, labels, self.classname2idx
+        (train_lines, train_labels), (validation_lines, validation_labels), (
+            test_lines,
+            test_labels,
+        ) = self.get_train_valid_test_stratified_split(
+            lines, labels, self.classname2idx
+        )
+
+        if self.dataset_type == "train":
+            lines = train_lines
+            labels = train_labels
+        elif self.dataset_type == "valid":
+            lines = validation_lines
+            labels = validation_labels
+        elif self.dataset_type == "test":
+            lines = test_lines
+            labels = test_labels
+
+        if self.debug:
+            # randomly sample `self.debug_dataset_proportion`  samples and return
+            num_text = len(lines)
+            np.random.seed(1729)  # so we can debug deterministically
+            random_ints = np.random.randint(
+                0, num_text - 1, size=int(self.debug_dataset_proportion * num_text)
             )
+            random_ints = list(random_ints)
+            sample_texts = []
+            sample_labels = []
+            for random_int in random_ints:
+                sample_texts.append(lines[random_int])
+                sample_labels.append(labels[random_int])
+            lines = sample_texts
+            labels = sample_labels
 
-            if self.dataset_type == "train":
-                lines = train_lines
-                labels = train_labels
-            elif self.dataset_type == "valid":
-                lines = validation_lines
-                labels = validation_labels
-            elif self.dataset_type == "test":
-                lines = test_lines
-                labels = test_labels
-
-            if self.debug:
-                # randomly sample `self.debug_dataset_proportion`  samples and return
-                num_text = len(lines)
-                np.random.seed(1729)  # so we can debug deterministically
-                random_ints = np.random.randint(
-                    0, num_text - 1, size=int(self.debug_dataset_proportion * num_text)
-                )
-                random_ints = list(random_ints)
-                sample_texts = []
-                sample_labels = []
-                for random_int in random_ints:
-                    sample_texts.append(lines[random_int])
-                    sample_labels.append(labels[random_int])
-                lines = sample_texts
-                labels = sample_labels
-
-            return lines, labels
-
-        {% else %}
-            pass
-        {% endif %}
-
+        return lines, labels
 
     @classmethod
     def get_classname2idx(cls) -> Dict[str, int]:
-        {%if categories %}
-            categories = {{categories}}
-            classname2idx = [(word, idx) for idx, word in enumerate(categories)]
-            classname2idx = dict(classname2idx)
-            return classname2idx
-        {% else %}
-            pass
-        {% endif %}
 
+        categories = ["class_1", "class_2"]
+        classname2idx = [(word, idx) for idx, word in enumerate(categories)]
+        classname2idx = dict(classname2idx)
+        return classname2idx
 
     def get_num_classes(self) -> int:
         return len(self.classname2idx.keys())
 
     def get_class_names_from_indices(self, indices: List) -> List[str]:
         return [self.idx2classname[idx] for idx in indices]
-
 
     def get_disp_sentence_from_indices(self, indices: List) -> str:
         pass
@@ -166,7 +150,7 @@ class {{className}}(Dataset, BaseTextClassification):
         pass
 
     def print_stats(self):
-    	pass
+        pass
 
     @classmethod
     def get_iter_dict(
@@ -175,16 +159,14 @@ class {{className}}(Dataset, BaseTextClassification):
         word_vocab: Vocab,
         word_tokenizer: WordTokenizer,
         max_word_length: int,
-        {% if is_char_vocab %}
         char_vocab: Vocab,
         char_tokenizer: CharacterTokenizer,
         max_char_length: int,
-        {% endif %}
         word_add_start_end_token: bool,
         labels: Optional[Union[str, List[str]]] = None,
     ):
-    	if isinstance(lines, str):
-    		lines = [lines]
+        if isinstance(lines, str):
+            lines = [lines]
 
         word_instances = word_tokenizer.tokenize_batch(lines)
         len_instances = [len(instance) for instance in word_instances]
@@ -196,8 +178,8 @@ class {{className}}(Dataset, BaseTextClassification):
             if isinstance(labels, str):
                 labels = [labels]
 
-		labels = [classnames2idx[label] for label in labels]
-		label = torch.LongTensor(labels)
+                labels = [classnames2idx[label] for label in labels]
+                label = torch.LongTensor(labels)
 
         padded_instances = []
         for word_instance in word_instances:
