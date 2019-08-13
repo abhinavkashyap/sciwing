@@ -98,9 +98,6 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         elif self.dataset_type == "test":
             return test_headers, test_labels
 
-    def get_preloaded_word_embedding(self) -> torch.FloatTensor:
-        return self.word_vocab.load_embedding()
-
     @classmethod
     def get_classname2idx(cls) -> Dict[str, int]:
         categories = [

@@ -6,7 +6,7 @@ import os
 from wasabi import Printer
 import wasabi
 from copy import deepcopy
-from parsect.vocab.word_emb_loader import WordEmbLoader
+from parsect.vocab.embedding_loader import EmbeddingLoader
 from parsect.vocab.char_emb_loader import CharEmbLoader
 import torch
 from typing import Union
@@ -401,23 +401,15 @@ class Vocab:
         self.msg_printer.divider("VOCAB STATS")
         print(table_string)
 
-    def load_embedding(self, embedding_for: str = "word") -> torch.FloatTensor:
+    def load_embedding(self) -> torch.FloatTensor:
         if not self.vocab:
             raise ValueError("Please build the vocab first")
 
-        embedding_loader = None
-        if embedding_for == "word":
-            embedding_loader = WordEmbLoader(
-                token2idx=self.token2idx,
-                embedding_type=self.embedding_type,
-                embedding_dimension=self.embedding_dimension,
-            )
-        elif embedding_for == "character":
-            embedding_loader = CharEmbLoader(
-                token2idx=self.token2idx,
-                embedding_type="random",
-                embedding_dimension=self.embedding_dimension,
-            )
+        embedding_loader = EmbeddingLoader(
+            token2idx=self.token2idx,
+            embedding_type=self.embedding_type,
+            embedding_dimension=self.embedding_dimension,
+        )
 
         indices = [key for key in self.idx2token.keys()]
         indices = sorted(indices)

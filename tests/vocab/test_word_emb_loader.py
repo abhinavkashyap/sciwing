@@ -1,5 +1,5 @@
 import pytest
-from parsect.vocab.word_emb_loader import WordEmbLoader
+from parsect.vocab.embedding_loader import EmbeddingLoader
 from parsect.vocab.vocab import Vocab
 import os
 
@@ -16,7 +16,7 @@ class TestWordEmbLoader:
     def test_invalid_embedding_type(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader
         with pytest.raises(AssertionError):
-            emb_loader = WordEmbLoader(
+            emb_loader = EmbeddingLoader(
                 token2idx=vocab.get_token2idx_mapping(), embedding_type="notexistent"
             )
 
@@ -27,7 +27,7 @@ class TestWordEmbLoader:
     def test_preloaded_file_exists(self, setup_word_emb_loader, embedding_type):
         vocab = setup_word_emb_loader
 
-        emb_loader = WordEmbLoader(
+        emb_loader = EmbeddingLoader(
             token2idx=vocab.get_token2idx_mapping(), embedding_type=embedding_type
         )
         preloaded_filename = emb_loader.get_preloaded_filename()
@@ -49,7 +49,7 @@ class TestWordEmbLoader:
         self, setup_word_emb_loader, embedding_type
     ):
         vocab = setup_word_emb_loader
-        emb_loader = WordEmbLoader(
+        emb_loader = EmbeddingLoader(
             token2idx=vocab.get_token2idx_mapping(), embedding_type=embedding_type
         )
 

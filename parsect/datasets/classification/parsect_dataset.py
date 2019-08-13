@@ -172,9 +172,6 @@ class ParsectDataset(Dataset, BaseTextClassification):
             f"Number of instances in {self.dataset_type} dataset - {num_instances}"
         )
 
-    def get_preloaded_word_embedding(self) -> torch.FloatTensor:
-        return self.word_vocab.load_embedding()
-
     def emits_keys(cls):
         return {
             "tokens": f"A torch.LongTensor of size `max_length`. "

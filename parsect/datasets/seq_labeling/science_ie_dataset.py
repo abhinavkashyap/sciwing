@@ -219,12 +219,6 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
 
         return lines, labels
 
-    def get_preloaded_word_embedding(self):
-        return self.word_vocab.load_embedding()
-
-    def get_preloaded_char_embedding(self):
-        return self.char_vocab.load_embedding(embedding_for="character")
-
     def __len__(self):
         return len(self.word_instances)
 

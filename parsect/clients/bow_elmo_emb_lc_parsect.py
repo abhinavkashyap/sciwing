@@ -168,7 +168,7 @@ if __name__ == "__main__":
 
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    random_embeddings = train_dataset.get_preloaded_word_embedding()
+    random_embeddings = train_dataset.word_vocab.load_embedding()
 
     embedder = BowElmoEmbedder(
         emb_dim=EMBEDDING_DIMENSION,

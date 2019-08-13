@@ -283,13 +283,17 @@ class TestVocab:
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 
-    def test_load_embedding_has_all_words(self, instances):
+    @pytest.mark.parametrize(
+        "embedding_type",
+        ["glove_6B_50", "glove_6B_100", "glove_6B_200", "glove_6B_300", "random"],
+    )
+    def test_load_embedding_has_all_words(self, instances, embedding_type):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = 100
         vocab = Vocab(
             instances=single_instance,
             max_num_tokens=MAX_NUM_WORDS,
-            embedding_type="glove_6B_50",
+            embedding_type=embedding_type,
         )
         vocab.build_vocab()
         embedding = vocab.load_embedding()

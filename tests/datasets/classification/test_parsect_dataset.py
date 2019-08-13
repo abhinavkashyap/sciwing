@@ -82,7 +82,7 @@ class TestParsectDataset:
 
     def test_preloaded_embedding_has_values(self, setup_parsect_train_dataset):
         train_dataset, dataset_options = setup_parsect_train_dataset
-        preloaded_emb = train_dataset.get_preloaded_word_embedding()
+        preloaded_emb = train_dataset.word_vocab.load_embedding()
         assert type(preloaded_emb) == torch.Tensor
 
     def test_dataset_returns_instances_when_required(self, setup_parsect_train_dataset):

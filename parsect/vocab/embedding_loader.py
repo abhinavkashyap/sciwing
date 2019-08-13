@@ -11,7 +11,7 @@ PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
 
 
-class WordEmbLoader:
+class EmbeddingLoader:
     """
     This handles the loading of word embeddings for a vocab
     This can handle different kinds of embeddings.

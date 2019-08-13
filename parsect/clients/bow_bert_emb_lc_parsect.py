@@ -157,7 +157,6 @@ if __name__ == "__main__":
 
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    random_embeddings = train_dataset.get_preloaded_word_embedding()
 
     embedder = BertEmbedder(
         emb_dim=EMBEDDING_DIMENSION,

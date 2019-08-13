@@ -57,7 +57,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
             Percent of dataset that will be returned for debug purposes. Should be between 0 and 1
         word_embedding_type : str
             The kind of word embedding that will be associated with the words in the database
-            Any of the ``allowed_types`` in vocab.WordEmbLoader is allowed here
+            Any of the ``allowed_types`` in vocab.EmbeddingLoader is allowed here
         word_embedding_dimension : int
             Dimension of word embedding
         word_start_token : str
@@ -160,40 +160,6 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
     def print_stats(self):
         pass
 
-    def word_tokenize(self, lines: List[str]) -> List[List[str]]:
-        """ Tokenize a set of ``lines``.
-
-        Parameters
-        ----------
-        lines : List[str]
-            Word tokenize a set of lines
-
-        Returns
-        -------
-        List[List[int]]
-            Every line is tokenized into a set of words
-
-        """
-        instances = list(map(lambda line: self.word_tokenizer.tokenize(line), lines))
-        return instances
-
-    def character_tokenize(self, lines: List[str]) -> List[List[str]]:
-        """ Character tokenize instances
-
-        Parameters
-        ----------
-        lines : List[str]
-            Character tokenize a set of lines
-
-        Returns
-        -------
-        List[List[str]]
-            Returns the character tokenized sentences
-
-        """
-        instances = self.char_tokenizer.tokenize_batch(lines)
-        return instances
-
     @abstractmethod
     def get_lines_labels(self, filename: str) -> (List[str], List[str]):
         """ A list of lines from the file and a list of corresponding labels
@@ -209,36 +175,6 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         -------
         (List[str], List[str])
             Returns a list of text examples and corresponding labels
-
-        """
-        pass
-
-    @abstractmethod
-    def get_preloaded_word_embedding(self) -> torch.FloatTensor:
-        """ A torch.FloatTensor of 2 dimensions that has embedding values for all the words in vocab
-
-        This is a ``[vocab_len, embedding_dimension]`` matrix, that has embedding values
-        for all the words in the vocab
-
-        Returns
-        -------
-        torch.FloatTensor
-            Matrix containing the word representations
-
-        """
-        pass
-
-    @abstractmethod
-    def get_preloaded_char_embedding(self) -> torch.FloatTensor:
-        """ A torch.FloatTensor of 2 dimensions that has embedding values for all the words in vocab
-
-        This is a ``[char_vocab_len, embedding_dimension]`` matrix, that has embedding values
-        for all the characters in the vocab
-
-        Returns
-        -------
-        torch.FloatTensor
-            Matrix containing the embeddings for characters
 
         """
         pass

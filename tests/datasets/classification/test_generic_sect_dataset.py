@@ -81,7 +81,7 @@ class TestGenericSectDataset:
 
     def test_embedding_has_values(self, setup_generic_sect_dataset):
         dataset, options = setup_generic_sect_dataset
-        embedding_tensors = dataset.get_preloaded_word_embedding()
+        embedding_tensors = dataset.word_vocab.load_embedding()
         assert embedding_tensors.size(0) > 0
         assert embedding_tensors.size(1) == options["EMBEDDING_DIMENSION"]
 

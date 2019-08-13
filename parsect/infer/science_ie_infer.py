@@ -72,10 +72,10 @@ def get_science_ie_infer(dirname: str):
         word_add_start_end_token=False,
     )
 
-    embedding = test_dataset.get_preloaded_word_embedding()
+    embedding = test_dataset.word_vocab.load_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
 
-    char_embedding = test_dataset.get_preloaded_char_embedding()
+    char_embedding = test_dataset.char_vocab.load_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding)
 
     classnames2idx = ScienceIEDataset.get_classname2idx()
