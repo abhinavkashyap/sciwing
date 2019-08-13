@@ -75,7 +75,9 @@ class TestParsectDataset:
         instances_dict = next(iter(loader))
         tokens = instances_dict["tokens"]
         tokens_list = tokens.tolist()
-        train_sentence = train_dataset.get_disp_sentence_from_indices(tokens_list[0])
+        train_sentence = train_dataset.word_vocab.get_disp_sentence_from_indices(
+            tokens_list[0]
+        )
         assert all([True for sentence in train_sentence if type(sentence) == str])
 
     def test_preloaded_embedding_has_values(self, setup_parsect_train_dataset):

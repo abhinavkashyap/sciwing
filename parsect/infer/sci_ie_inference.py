@@ -116,7 +116,10 @@ class ScienceIEInference(BaseInference):
             true_material_labels_list = true_material_labels.cpu().tolist()
 
             batch_sentences = list(
-                map(self.test_dataset.get_disp_sentence_from_indices, tokens_list)
+                map(
+                    self.test_dataset.word_vocab.get_disp_sentence_from_indices,
+                    tokens_list,
+                )
             )
             sentences.extend(batch_sentences)
 

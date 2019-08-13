@@ -157,21 +157,6 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_disp_sentence_from_indices(self, indices: List[int]) -> str:
-        """ Given a set of indices in vocab, it returns a sentence mapping the index to string
-
-        Parameters
-        ----------
-        indices : List[int]
-            A list of indices where every index is between ``[0, vocab_len-1)``.
-
-        Returns
-        -------
-        str
-            A string representing the index
-        """
-
-    @abstractmethod
     def print_stats(self):
         pass
 

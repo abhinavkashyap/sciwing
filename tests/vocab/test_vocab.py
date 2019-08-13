@@ -351,3 +351,19 @@ class TestVocab:
         assert vocab.get_token_from_idx(8) == "much"
         assert vocab.get_idx_from_token("very") == 7
         assert vocab.get_idx_from_token("much") == 8
+
+    def test_disp_sentences_from_indices(self, instances, tmpdir):
+        instance_dict = instances
+        single_instance = instance_dict["single_instance"]
+        MAX_NUM_WORDS = 100
+        vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
+        vocab = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            embedding_type=None,
+            embedding_dimension=300,
+            store_location=vocab_file,
+        )
+        vocab.build_vocab()
+        sent = vocab.get_disp_sentence_from_indices([0, 1, 2, 3])
+        assert type(sent) is str

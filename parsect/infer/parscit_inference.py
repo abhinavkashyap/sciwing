@@ -84,7 +84,10 @@ class ParscitInference(BaseInference):
             labels_list = labels.tolist()
 
             batch_sentences = list(
-                map(self.test_dataset.get_disp_sentence_from_indices, tokens_list)
+                map(
+                    self.test_dataset.word_vocab.get_disp_sentence_from_indices,
+                    tokens_list,
+                )
             )
             sentences.extend(batch_sentences)
 

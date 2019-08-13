@@ -95,15 +95,6 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
     def get_class_names_from_indices(self, indices: List[int]):
         return [self.idx2classnames[idx] for idx in indices]
 
-    def get_disp_sentence_from_indices(self, indices: List[int]):
-        tokens = [
-            self.word_vocab.get_token_from_idx(idx)
-            for idx in indices
-            if idx != self.word_vocab.special_vocab[self.word_vocab.pad_token][1]
-        ]
-        sentence = " ".join(tokens)
-        return sentence
-
     def print_stats(self):
         num_instances = len(self.word_instances)
         len_instances = [len(instance) for instance in self.word_instances]

@@ -443,3 +443,29 @@ class Vocab:
 
     def set_token2idx(self, token2idx: Dict[str, int]):
         self.token2idx = token2idx
+
+    def get_disp_sentence_from_indices(self, indices: List[int]) -> str:
+        """ Given a set of indices in vocab, it returns a sentence mapping the index to string
+
+        Parameters
+        ----------
+        indices : List[int]
+            A list of indices where every index is between ``[0, vocab_len-1)``.
+
+        Returns
+        -------
+        str
+            A string representing the index
+        """
+        pad_token_index = self.get_idx_from_token(self.pad_token)
+        start_token_index = self.get_idx_from_token(self.start_token)
+        end_token_index = self.get_idx_from_token(self.end_token)
+        special_indices = [pad_token_index, start_token_index, end_token_index]
+
+        token = [
+            self.get_token_from_idx(idx)
+            for idx in indices
+            if idx not in special_indices
+        ]
+        sentence = " ".join(token)
+        return sentence

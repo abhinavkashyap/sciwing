@@ -163,22 +163,6 @@ class ParsectDataset(Dataset, BaseTextClassification):
     def get_class_names_from_indices(self, indices: List) -> List[str]:
         return [self.idx2classname[idx] for idx in indices]
 
-    def get_disp_sentence_from_indices(self, indices: List) -> str:
-        pad_token_index = self.word_vocab.special_vocab[self.word_vocab.pad_token][1]
-        start_token_index = self.word_vocab.special_vocab[self.word_vocab.start_token][
-            1
-        ]
-        end_token_index = self.word_vocab.special_vocab[self.word_vocab.end_token][1]
-        special_indices = [pad_token_index, start_token_index, end_token_index]
-
-        token = [
-            self.word_vocab.get_token_from_idx(idx)
-            for idx in indices
-            if idx not in special_indices
-        ]
-        sentence = " ".join(token)
-        return sentence
-
     def print_stats(self):
         num_instances = self.num_instances
         formatted = self.label_stats_table

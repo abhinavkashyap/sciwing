@@ -105,15 +105,6 @@ class ParscitDataset(Dataset, BaseSeqLabelingDataset):
     def get_class_names_from_indices(self, indices: List[int]):
         return [self.idx2classname[idx] for idx in indices]
 
-    def get_disp_sentence_from_indices(self, indices: List[int]) -> str:
-        token = [
-            self.word_vocab.get_token_from_idx(idx)
-            for idx in indices
-            if idx != self.word_vocab.vocab[self.word_vocab.pad_token][1]
-        ]
-        sentence = " ".join(token)
-        return sentence
-
     def print_stats(self):
         num_instances = self.num_instances
         formatted = self.label_stats_table
