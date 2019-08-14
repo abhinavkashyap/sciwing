@@ -5,10 +5,10 @@ import wasabi
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
 from parsect.vocab.vocab import Vocab
-import torch
+from torch.utils.data import Dataset
 
 
-class BaseSeqLabelingDataset(metaclass=ABCMeta):
+class BaseSeqLabelingDataset(Dataset, metaclass=ABCMeta):
     def __init__(
         self,
         filename: str,

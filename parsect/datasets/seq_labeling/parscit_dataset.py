@@ -3,20 +3,18 @@ from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 from parsect.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from parsect.utils.vis_seq_tags import VisTagging
-from torch.utils.data import Dataset
 import wasabi
 from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
 from parsect.utils.common import pack_to_length
 import numpy as np
 import torch
-import collections
 from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
 from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 
 @sprinkle_dataset(vocab_pipe=["word_vocab", "char_vocab"])
-class ParscitDataset(Dataset, BaseSeqLabelingDataset):
+class ParscitDataset(BaseSeqLabelingDataset):
     def __init__(
         self,
         filename: str,

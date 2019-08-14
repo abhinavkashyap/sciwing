@@ -1,4 +1,3 @@
-from torch.utils.data import Dataset
 from typing import Union, Dict, List, Any, Optional
 from parsect.utils.common import convert_generic_sect_to_json
 import wasabi
@@ -14,7 +13,7 @@ from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 
 @sprinkle_dataset()
-class GenericSectDataset(Dataset, BaseTextClassification):
+class GenericSectDataset(BaseTextClassification):
     def __init__(
         self,
         filename: str,
@@ -52,7 +51,6 @@ class GenericSectDataset(Dataset, BaseTextClassification):
         self.lines, self.labels = self.get_lines_labels(filename=self.filename)
 
         self.msg_printer = wasabi.Printer()
-        Dataset.__init__(self)
 
     def __len__(self):
         return len(self.word_instances)

@@ -1,5 +1,4 @@
 import torch
-from torch.utils.data import Dataset
 from typing import List, Dict, Union, Any, Optional
 import parsect.constants as constants
 from parsect.utils.common import convert_sectlabel_to_json
@@ -19,7 +18,7 @@ SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 @sprinkle_dataset()
-class ParsectDataset(Dataset, BaseTextClassification):
+class ParsectDataset(BaseTextClassification):
     """Parsect dataset consists of dataset for logical classification of scientific papers
 
     """
@@ -60,7 +59,6 @@ class ParsectDataset(Dataset, BaseTextClassification):
         self.lines, self.labels = self.get_lines_labels(filename=self.filename)
 
         self.msg_printer = Printer()
-        Dataset.__init__(self)
 
     def __len__(self) -> int:
         return len(self.word_instances)

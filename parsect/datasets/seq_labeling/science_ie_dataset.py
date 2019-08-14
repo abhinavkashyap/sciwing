@@ -1,6 +1,5 @@
 import torch
 from typing import List, Dict, Any, Optional
-from torch.utils.data import Dataset
 from parsect.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
@@ -16,7 +15,7 @@ from parsect.datasets.sprinkle_dataset import sprinkle_dataset
 
 
 @sprinkle_dataset(vocab_pipe=["word_vocab", "char_vocab"], get_label_stats_table=False)
-class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
+class ScienceIEDataset(BaseSeqLabelingDataset):
     def __init__(
         self,
         filename: str,
@@ -49,7 +48,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, Dataset):
         char_end_token: str = " ",
         char_start_token: str = " ",
     ):
-        Dataset.__init__(self)
+
         self.filename = filename
         self.train_size = train_size
         self.test_size = test_size

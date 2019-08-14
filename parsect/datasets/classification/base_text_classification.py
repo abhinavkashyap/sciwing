@@ -3,9 +3,10 @@ from typing import Union, Dict, List
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
+from torch.utils.data import Dataset
 
 
-class BaseTextClassification(metaclass=ABCMeta):
+class BaseTextClassification(Dataset, metaclass=ABCMeta):
     @abstractmethod
     def __init__(
         self,
@@ -78,7 +79,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         word_tokenization_type : str
             The type of word tokenization that the word tokenizer represents
         """
-        pass
+        Dataset.__init__()
 
     @classmethod
     @abstractmethod
