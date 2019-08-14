@@ -172,3 +172,4 @@ runs
 .aws
 parsect/reports/*
 parsect/scripts/*
+parsect/config/*
