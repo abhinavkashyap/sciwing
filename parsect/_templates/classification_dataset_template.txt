@@ -4,17 +4,16 @@ from parsect.datasets.classification.base_text_classification import BaseTextCla
 from typing import Dict, Any, Optional, Union, List
 from parsect.vocab.vocab import Vocab
 from parsect.utils.common import pack_to_length
-from torch.utils.data import Dataset
 import torch
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 from parsect.numericalizer.numericalizer import Numericalizer
-
+from parsect.utils.class_nursery import ClassNursery
 import numpy as np
 
 
 @sprinkle_dataset(vocab_pipe={{vocab_pipe}})
-class {{className}}(Dataset, BaseTextClassification):
+class {{className}}(BaseTextClassification, ClassNursery):
     def __init__(
     self,
     filename: str,
@@ -43,13 +42,12 @@ class {{className}}(Dataset, BaseTextClassification):
     char_end_token: str = "{{char_end_token}}",
     char_pad_token: str = "{{char_pad_token}}",
     char_unk_token: str = "{{char_unk_token}}",
-    char_tokenizer = {{char_tokenizer}}
+    char_tokenizer = {{char_tokenizer}},
     {% endif %}
     train_size: float = {{train_size}},
     test_size: float = {{test_size}},
     validation_size: float= {{validation_size}},
     ):
-    	Dataset.__init__(self)
         self.classname2idx = self.get_classname2idx()
         self.idx2classname = {
             idx: classname for classname, idx in self.classname2idx.items()
@@ -236,28 +234,6 @@ class {{className}}(Dataset, BaseTextClassification):
             instances = instances[0]
             raw_instances = raw_instances[0]
 
-		{% if is_char_vocab %}
-			character_tokens = []
-			char_numericalizer = Numericalizer(vocabulary=char_vocab)
-			# 1. For every word we get characters in the word
-			# 2. Pad the characters to max_char_length
-			# 3. Convert them into numbers
-			# 4. Add them to character_tokens
-			for word in padded_instances:
-				char_instance = char_tokenizer.tokenize(word)
-				padded_character_instance = pack_to_length(
-					tokenized_text=char_instance,
-					max_length=max_char_length,
-					pad_token=char_vocab.pad_token,
-					add_start_end_token=False,
-				)
-				padded_character_tokens = char_numericalizer.numericalize_instance(
-					padded_character_instance
-				)
-				character_tokens.append(padded_character_tokens)
-			character_tokens = torch.LongTensor(character_tokens)
-		{% endif %}
-
         instance_dict = {
             "tokens": tokens,
             "len_tokens": len_tokens,
@@ -266,7 +242,26 @@ class {{className}}(Dataset, BaseTextClassification):
         }
 
         {% if is_char_vocab %}
-        instance_dict["char_tokens"] = char_tokens
+        character_tokens = []
+        char_numericalizer = Numericalizer(vocabulary=char_vocab)
+        # 1. For every word we get characters in the word
+        # 2. Pad the characters to max_char_length
+        # 3. Convert them into numbers
+        # 4. Add them to character_tokens
+        for word in padded_instances:
+            char_instance = char_tokenizer.tokenize(word)
+            padded_character_instance = pack_to_length(
+                tokenized_text=char_instance,
+                max_length=max_char_length,
+                pad_token=char_vocab.pad_token,
+                add_start_end_token=False,
+            )
+        padded_character_tokens = char_numericalizer.numericalize_instance(
+            padded_character_instance
+        )
+        character_tokens.append(padded_character_tokens)
+        character_tokens = torch.LongTensor(character_tokens)
+        instance_dict["char_tokens"] = character_tokens
         {% endif %}
 
         if labels is not None:
