@@ -4,6 +4,8 @@ import pathlib
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from torch.utils.data import DataLoader
 import torch
+from parsect.utils.class_nursery import ClassNursery
+
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -136,3 +138,6 @@ class TestScienceIE:
             assert torch.all(
                 torch.ge(material_label, 15) & torch.le(material_label, 23)
             ).item()
+
+    def test_science_ie_in_nursery(self):
+        assert ClassNursery.class_nursery.get("ScienceIEDataset") is not None

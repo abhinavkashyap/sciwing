@@ -12,13 +12,14 @@ from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
 from parsect.datasets.sprinkle_dataset import sprinkle_dataset
+from parsect.utils.class_nursery import ClassNursery
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 @sprinkle_dataset()
-class ParsectDataset(BaseTextClassification):
+class ParsectDataset(BaseTextClassification, ClassNursery):
     """Parsect dataset consists of dataset for logical classification of scientific papers
 
     """

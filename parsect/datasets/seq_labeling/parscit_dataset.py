@@ -11,10 +11,11 @@ import numpy as np
 import torch
 from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
 from parsect.datasets.sprinkle_dataset import sprinkle_dataset
+from parsect.utils.class_nursery import ClassNursery
 
 
 @sprinkle_dataset(vocab_pipe=["word_vocab", "char_vocab"])
-class ParscitDataset(BaseSeqLabelingDataset):
+class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
     def __init__(
         self,
         filename: str,

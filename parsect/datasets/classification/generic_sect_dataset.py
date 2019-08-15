@@ -10,10 +10,11 @@ from parsect.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
 from parsect.datasets.sprinkle_dataset import sprinkle_dataset
+from parsect.utils.class_nursery import ClassNursery
 
 
 @sprinkle_dataset()
-class GenericSectDataset(BaseTextClassification):
+class GenericSectDataset(BaseTextClassification, ClassNursery):
     def __init__(
         self,
         filename: str,

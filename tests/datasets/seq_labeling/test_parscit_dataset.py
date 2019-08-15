@@ -3,6 +3,7 @@ import pytest
 from parsect.utils.common import write_nfold_parscit_train_test
 from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from torch.utils.data import DataLoader
+from parsect.utils.class_nursery import ClassNursery
 
 import pathlib
 
@@ -246,3 +247,6 @@ class TestParscitDataset:
         tokens = [train_dataset.word_vocab.idx2token[token_idx] for token_idx in tokens]
         assert label == ["starting", "ending"]
         assert tokens == ["<SOS>", "<EOS>"]
+
+    def test_parscit_in_nursery(self):
+        assert ClassNursery.class_nursery.get("ParscitDataset") is not None

@@ -2,7 +2,7 @@ from parsect.datasets.classification.generic_sect_dataset import GenericSectData
 import pytest
 import parsect.constants as constants
 from torch.utils.data import DataLoader
-
+from parsect.utils.class_nursery import ClassNursery
 
 FILES = constants.FILES
 GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
@@ -106,3 +106,6 @@ class TestGenericSectDataset:
             dataset.print_stats()
         except:
             pytest.fail("print_stats() of GenericSect Dataset fails")
+
+    def test_generic_sect_in_nursery(self):
+        assert ClassNursery.class_nursery.get("GenericSectDataset") is not None

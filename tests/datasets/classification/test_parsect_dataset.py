@@ -3,7 +3,7 @@ import pytest
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import torch
 from torch.utils.data import DataLoader
-
+from parsect.utils.class_nursery import ClassNursery
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
@@ -132,3 +132,6 @@ class TestParsectDataset:
             dataset.print_stats()
         except:
             pytest.fail("Test print stats works")
+
+    def test_parsect_in_sciwing_class_nursery(self):
+        assert ClassNursery.class_nursery.get("ParsectDataset") is not None

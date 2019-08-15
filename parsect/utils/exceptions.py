@@ -1,0 +1,2 @@
+class ClassInNurseryError(KeyError):
+    pass
