@@ -1,7 +1,10 @@
 import pathlib
 import toml
 from parsect.utils.exceptions import TOMLConfigurationError
-from parsect.datasets.sprinkle_dataset import sprinkle_dataset
+from parsect.datasets import *
+import copy
+from parsect.utils.class_nursery import ClassNursery
+from parsect.utils.common import create_class
 
 
 class SciWingTOMLParse:
@@ -31,12 +34,24 @@ class SciWingTOMLParse:
         dataset = self.doc.get("dataset")
 
         dataset_name = dataset.get("name")
-        dataset_class = dataset.get("class")
-        if dataset_name is None or dataset_class is None:
+        dataset_classname = dataset.get("class")
+        if dataset_name is None or dataset_classname is None:
             raise TOMLConfigurationError(
                 f"Dataset section needs to have a name and class section"
             )
         args = dataset.get("args")
+        try:
+            dataset_cls = create_class(
+                classname=dataset_classname,
+                module_name=ClassNursery.class_nursery[dataset_classname],
+            )
+            dataset = dataset_cls(**args)
+        except ModuleNotFoundError:
+            print(
+                f"Module {ClassNursery.class_nursery[dataset_classname]} is not found"
+            )
+        except AttributeError:
+            print(f"Class {dataset_classname} is not found ")
 
 
 if __name__ == "__main__":
