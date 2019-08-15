@@ -6,8 +6,10 @@ from parsect.utils.common import convert_generic_sect_to_json
 from parsect.utils.common import convert_parscit_to_conll
 from parsect.utils.common import write_cora_to_conll_file
 from parsect.utils.common import write_parscit_to_conll_file
+from parsect.utils.common import create_class
 import pytest
 import pathlib
+from parsect.engine.engine import Engine
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -267,3 +269,19 @@ class TestCommon:
             write_parscit_to_conll_file(parscit_train_path)
         except:
             pytest.fail("Failed to write parscit train conll format file")
+
+    @pytest.mark.parametrize(
+        "classname, modulename", [(Engine.__name__, Engine.__module__)]
+    )
+    def test_create_class(self, classname, modulename):
+        cls = create_class(classname, modulename)
+        assert cls.__name__ == classname
+        assert cls.__module__ == modulename
+
+    def test_create_class_raises_module_not_found_error(self):
+        with pytest.raises(ModuleNotFoundError):
+            create_class("dummy", "dummy")
+
+    def test_create_class_raises_class_not_found_error(self):
+        with pytest.raises(AttributeError):
+            create_class(classname="dummy", module_name=Engine.__module__)

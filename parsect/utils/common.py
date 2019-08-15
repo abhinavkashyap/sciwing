@@ -1,12 +1,10 @@
 from typing import Dict, List, Any, Iterable, Iterator, Tuple
 
-import wasabi
 from tqdm import tqdm
 import requests
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from parsect.vocab.vocab import Vocab
 from parsect.numericalizer.numericalizer import Numericalizer
-from parsect.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer
 from wasabi import Printer
 import zipfile
 from sys import stdout
@@ -16,7 +14,7 @@ from sklearn.model_selection import KFold
 import numpy as np
 import parsect.constants as constants
 from itertools import tee
-import spacy
+import importlib
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -345,3 +343,31 @@ def chunks(seq, n):
     """ Yield successive n-sized chunks from seq."""
     for i in range(0, len(seq), n):
         yield seq[i : i + n]
+
+
+def create_class(classname: str, module_name: str) -> type:
+    """ Given the classname and module, creates a class object and returns it
+
+    Parameters
+    ----------
+    classname : str
+        Class name to import
+    module_name : str
+        The module in which the class is present
+
+    Returns
+    -------
+    type
+
+    """
+    try:
+        module = importlib.import_module(module_name)
+        try:
+            cls = getattr(module, classname)
+            return cls
+        except AttributeError:
+            raise AttributeError(
+                f"class {classname} is not found in module {module_name}"
+            )
+    except ModuleNotFoundError:
+        raise ModuleNotFoundError(f"Module {module_name} is not found")
