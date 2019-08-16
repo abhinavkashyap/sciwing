@@ -5,8 +5,10 @@
 [dataset]
 	name = "train_parsect_dataset"
 	class = "ParsectDataset"
+	train_filename="/Users/abhinav/abhi/parsect/parsect/data/sectLabel.train.data"
+	valid_filename="/Users/abhinav/abhi/parsect/parsect/data/sectLabel.train.data"
+	test_filename="/Users/abhinav/abhi/parsect/parsect/data/sectLabel.train.data"
 	[dataset.args]
-	filename = "/Users/abhinav/abhi/parsect/parsect/data/sectLabel.train.data"
 	max_num_words = 1000
 	max_instance_length = 100
 	word_vocab_store_location = "/Users/abhinav/abhi/parsect/parsect/outputs/debug_parsect_dataset/vocab.json"
@@ -14,4 +16,3 @@
 	debug_dataset_proportion = 0.1
 	word_embedding_type = "random"
 	word_embedding_dimension = 300
-	dataset_type="train"
