@@ -4,9 +4,10 @@ from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
 from typing import Dict, Any
 from wasabi import Printer
+from parsect.utils.class_nursery import ClassNursery
 
 
-class SimpleClassifier(nn.Module):
+class SimpleClassifier(nn.Module, ClassNursery):
     def __init__(
         self,
         encoder: nn.Module,

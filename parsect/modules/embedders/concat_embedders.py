@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 from typing import Dict, Any, List
+from parsect.utils.class_nursery import ClassNursery
 
 
-class ConcatEmbedders(nn.Module):
+class ConcatEmbedders(nn.Module, ClassNursery):
     def __init__(self, embedders: List[nn.Module]):
         super(ConcatEmbedders, self).__init__()
         self.embedders = embedders

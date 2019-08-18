@@ -1,4 +1,5 @@
 import pytest
+
 import torch
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
@@ -6,6 +7,7 @@ from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from torch.nn import Embedding
 import numpy as np
+from parsect.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture
@@ -87,3 +89,6 @@ class TestSimpleClassifier:
 
         for class_label, precision_value in precision.items():
             assert precision_value == expected_precision[class_label]
+
+    def test_simple_classifier_in_class_nursery(self):
+        assert ClassNursery.class_nursery.get("SimpleClassifier") is not None

@@ -5,6 +5,7 @@ import torch.nn as nn
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import itertools
+from parsect.utils.class_nursery import ClassNursery
 
 aggregation_types = ["sum", "average"]
 embedding_type = ["zeros", "ones"]
@@ -61,3 +62,6 @@ class TestBOWEncoder:
 
         assert embeddings.size() == (BATCH_SIZE, EMB_DIM)
         assert torch.all(torch.eq(embeddings, expected_embedding)).item()
+
+    def test_bow_encoder_in_class_nursery(self):
+        assert ClassNursery.class_nursery.get("BOW_Encoder") is not None

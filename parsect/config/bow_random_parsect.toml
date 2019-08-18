@@ -16,3 +16,21 @@
 	debug_dataset_proportion = 0.1
 	word_embedding_type = "random"
 	word_embedding_dimension = 300
+
+[model]
+    name="simple_classifier"
+    class="SimpleClassifier"
+    encoding_dim=300
+    num_classes=10
+    classification_layer_bias=true
+    [model.encoder]
+        emb_dim = 300
+        class="BOW_Encoder"
+        name="bag of words encoder"
+        dropout_value = 0.5
+        aggregation_type="sum"
+        [[model.encoder.embedder]]
+        name="vanilla embedder"
+        class="VanillaEmbedder"
+        embed="word_vocab"
+        freeze=false

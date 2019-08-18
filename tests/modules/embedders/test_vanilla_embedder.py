@@ -2,6 +2,7 @@ import pytest
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import torch.nn as nn
 import torch
+from parsect.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture
@@ -37,3 +38,6 @@ class TestVanillaEmbedder:
 
         embedding = embedder(iter_dict=iter_dict)
         assert embedding.size() == (batch_size, time_steps, embedding_size)
+
+    def test_vanilla_embedder_in_class_nursery(self):
+        assert ClassNursery.class_nursery["VanillaEmbedder"] is not None

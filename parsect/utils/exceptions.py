@@ -10,6 +10,9 @@ class TOMLConfigurationError(Exception):
     def __repr__(self):
         return self.message
 
+    def __str__(self):
+        return repr(self)
+
 
 class DatasetPresentError(Exception):
     def __init__(self, message: str):
