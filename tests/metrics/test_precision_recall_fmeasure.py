@@ -1,6 +1,7 @@
 import pytest
 import torch
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from parsect.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture
@@ -286,3 +287,6 @@ class TestAccuracy:
         assert num_tps == expected_num_tps
         assert num_fp == expected_num_fps
         assert num_fn == expected_num_fns
+
+    def test_precision_recall_fmeasure_in_class_nursery(self):
+        assert ClassNursery.class_nursery.get("PrecisionRecallFMeasure") is not None

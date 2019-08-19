@@ -4,12 +4,10 @@ from parsect.utils.exceptions import TOMLConfigurationError
 from parsect.datasets import *
 from parsect.models import *
 from parsect.modules import *
-import copy
-import torch.nn as nn
 from parsect.utils.class_nursery import ClassNursery
 from parsect.utils.common import create_class
-import inspect
 import torch.nn as nn
+import inspect
 
 
 class SciWingTOMLParse:
@@ -38,18 +36,27 @@ class SciWingTOMLParse:
                 f"{self.toml_filename} does not have a datasets section. Please "
                 f"Provide a dataset section in your toml file"
             )
-        self.all_datasets = self.parse_dataset_section()
+        else:
+            self.all_datasets = self.parse_dataset_section()
 
         # get the model section from toml
         model_section = self.doc.get("model")
-
         if model_section is None:
             raise TOMLConfigurationError(
-                f"{self.toml_filename} does not have model secction."
+                f"{self.toml_filename} does not have model section."
                 f"Please provide a model section to construct the model"
             )
         else:
-            self.parse_model_section()
+            self.model = self.parse_model_section()
+
+        # get the engine section from toml
+        engine_section = self.doc.get("engine")
+        if engine_section is None:
+            raise TOMLConfigurationError(
+                f"{self.toml_filename} does not have an engine section"
+            )
+        else:
+            engine = self.parse_engine_section()
 
     def parse_dataset_section(self):
         dataset_section = self.doc.get("dataset")
@@ -89,15 +96,12 @@ class SciWingTOMLParse:
             # we will instantiate the submodules in this
             elif isinstance(value, dict):
                 insider_args = self._parse_model_section(section[key], args={})
-                print("insider_args", insider_args)
                 module_classname = section[key]["class"]
                 cls_obj = create_class(
                     module_name=ClassNursery.class_nursery[module_classname],
                     classname=section[key]["class"],
                 )
                 submodule = cls_obj(**insider_args)
-                print(f"submodule {submodule}")
-                print(f"insider arg {insider_args}")
                 args[key] = submodule
             # special handling for embedders
             elif isinstance(value, list):
@@ -141,6 +145,43 @@ class SciWingTOMLParse:
         cls_obj = create_class(classname=model_classname, module_name=model_module_name)
         model = cls_obj(**args)
         return model
+
+    def parse_engine_section(self):
+        engine_section = self.doc.get("engine")
+        engine_args = {}
+        for key, value in engine_section.items():
+            if not isinstance(value, dict):
+                engine_args[key] = value
+
+        optimizer_section = engine_section.get("optimizer")
+
+        if optimizer_section is None:
+            optimizer_cls = ClassNursery.class_nursery["SGD"]
+            optimizer_args = {"lr": 1e-2}
+        else:
+            optimizer_classname = optimizer_section.get("class")
+            optimizer_cls = ClassNursery.class_nursery[optimizer_classname]
+            optimizer_args = {}
+            for arg_, value in optimizer_section.items():
+                if arg_ != "class":
+                    optimizer_args[arg_] = value
+
+        optimizer = optimizer_cls(params=self.model.parameters(), **optimizer_args)
+        # patching optimizer
+        engine_args["optimizer"] = optimizer
+
+        metric_section = engine_section.get("metric")
+        metric_classname = metric_section.get("class")
+        metric_args = {}
+        for key, value in metric_section.items():
+            if key == "class":
+                pass
+            else:
+                metric_args[key] = value
+
+        train_dataset = self.all_datasets["train"]
+        valid_dataset = self.all_datasets["valid"]
+        test_dataset = self.all_datasets["test"]
 
 
 if __name__ == "__main__":

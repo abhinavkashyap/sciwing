@@ -9,7 +9,7 @@ import torch.optim as optim
 import torch
 import numpy as np
 import os
-
+from parsect.utils.class_nursery import ClassNursery
 
 import pytest
 import parsect.constants as constants
@@ -185,3 +185,6 @@ class TestEngine:
         engine.load_model_from_file(
             os.path.join(engine.save_dir, "model_epoch_{0}.pt".format(1))
         )
+
+    def test_engine_in_class_nursery(self):
+        assert ClassNursery.class_nursery["Engine"] is not None

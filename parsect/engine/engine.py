@@ -16,9 +16,10 @@ from torch.utils.data._utils.collate import default_collate
 import torch
 from parsect.utils.tensor_utils import move_to_device
 from copy import deepcopy
+from parsect.utils.class_nursery import ClassNursery
 
 
-class Engine:
+class Engine(ClassNursery):
     def __init__(
         self,
         model: nn.Module,

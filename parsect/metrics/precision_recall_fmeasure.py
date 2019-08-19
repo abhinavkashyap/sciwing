@@ -5,6 +5,7 @@ from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
 import pandas as pd
 from parsect.metrics.BaseMetric import BaseMetric
+from parsect.utils.class_nursery import ClassNursery
 from parsect.metrics.classification_metrics_utils import ClassificationMetricsUtils
 
 
