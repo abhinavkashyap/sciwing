@@ -13,11 +13,11 @@ class PrecisionRecallFMeasure(BaseMetric):
     def __init__(
         self,
         idx2labelname_mapping: Dict[int, str],
-        masked_label_indics: Optional[List[int]] = None,
+        masked_label_indices: Optional[List[int]] = None,
     ):
         super(PrecisionRecallFMeasure, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping
-        self.mask_label_indices = masked_label_indics
+        self.mask_label_indices = masked_label_indices
         self.msg_printer = Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
             masked_label_indices=self.mask_label_indices,
@@ -59,6 +59,7 @@ class PrecisionRecallFMeasure(BaseMetric):
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             predicted_tag_indices=top_indices_numpy, true_tag_indices=true_labels_numpy
         )
+
         classes_with_names = [
             f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
         ]
@@ -202,28 +203,12 @@ class PrecisionRecallFMeasure(BaseMetric):
         micro_fscore = accuracy_metrics["micro_fscore"]
 
         if report_type == "wasabi":
-            classes = precision.keys()
-            classes = sorted(classes)
-            header_row = [" ", "Precision", "Recall", "F_measure"]
-            rows = []
-            for class_num in classes:
-                p = precision[class_num]
-                r = recall[class_num]
-                f = fscore[class_num]
-                rows.append(
-                    (
-                        f"cls_{class_num} ({self.idx2labelname_mapping[int(class_num)]})",
-                        p,
-                        r,
-                        f,
-                    )
-                )
-
-            rows.append(["-"] * 4)
-            rows.append(["Macro", macro_precision, macro_recall, macro_fscore])
-            rows.append(["Micro", micro_precision, micro_recall, micro_fscore])
-
-            return table(rows, header=header_row, divider=True)
+            table = self.classification_metrics_utils.generate_table_report_from_counters(
+                tp_counter=self.tp_counter,
+                fp_counter=self.fp_counter,
+                fn_counter=self.fn_counter,
+            )
+            return table
 
         elif report_type == "paper":
             "Refer to the paper Logical Structure Recovery in Scholarly Articles with " "Rich Document Features Table 2. It generates just fscores and returns"

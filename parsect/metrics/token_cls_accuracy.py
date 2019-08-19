@@ -144,28 +144,11 @@ class TokenClassificationAccuracy(BaseMetric):
         micro_fscore = accuracy_metrics["micro_fscore"]
 
         if report_type == "wasabi":
-            classes = precision.keys()
-            classes = sorted(classes)
-            header_row = [" ", "Precision", "Recall", "F_measure"]
-            rows = []
-            for class_num in classes:
-                p = precision[class_num]
-                r = recall[class_num]
-                f = fscore[class_num]
-                rows.append(
-                    (
-                        f"cls_{class_num} ({self.idx2labelname_mapping[int(class_num)]})",
-                        p,
-                        r,
-                        f,
-                    )
-                )
-
-            rows.append(["-"] * 4)
-            rows.append(["Macro", macro_precision, macro_recall, macro_fscore])
-            rows.append(["Micro", micro_precision, micro_recall, micro_fscore])
-
-            return wasabi.table(rows, header=header_row, divider=True)
+            return self.classification_metrics_utils.generate_table_report_from_counters(
+                tp_counter=self.tp_counter,
+                fp_counter=self.fp_counter,
+                fn_counter=self.fn_counter,
+            )
 
         elif report_type == "paper":
             class_nums = fscore.keys()

@@ -223,13 +223,7 @@ class Engine:
                 num_iterations += 1
                 if (num_iterations + 1) % self.log_train_metrics_every == 0:
                     metrics = self.train_metric_calc.report_metrics()
-                    precision_recall_fmeasure = self.train_metric_calc.get_metric()
                     print(metrics)
-                    self.train_logger.info(
-                        "Training Metrics at iteration {0} - {1}".format(
-                            num_iterations + 1, precision_recall_fmeasure
-                        )
-                    )
             except StopIteration:
                 self.train_epoch_end(epoch_num)
                 break
@@ -302,17 +296,12 @@ class Engine:
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num + 1))
 
         metrics = self.validation_metric_calc.report_metrics()
-        precision_recall_fmeasure = self.validation_metric_calc.get_metric()
+
         average_loss = self.validation_loss_meter.get_average()
         print(metrics)
 
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
 
-        self.validation_logger.info(
-            "Validation Metrics @ Epoch {0} - {1}".format(
-                epoch_num + 1, precision_recall_fmeasure
-            )
-        )
         self.validation_logger.info(
             "Validation Loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
         )
@@ -331,11 +320,11 @@ class Engine:
             is_best = self.is_best_lower(average_loss)
 
         elif self.track_for_best == "macro-f1":
-            macro_f1 = precision_recall_fmeasure["macro_fscore"]
+            macro_f1 = self.validation_metric_calc.get_metric()["macro_fscore"]
             value_tracked = macro_f1
             is_best = self.is_best_higher(current_best=macro_f1)
         elif self.track_for_best == "micro-f1":
-            micro_f1 = precision_recall_fmeasure["micro_fscore"]
+            micro_f1 = self.validation_metric_calc.get_metric()["micro_fscore"]
             value_tracked = micro_f1
             is_best = self.is_best_higher(micro_f1)
 
