@@ -31,6 +31,7 @@ class SimpleClassifier(nn.Module, ClassNursery):
         self.encoder = encoder
         self.encoding_dim = encoding_dim
         self.num_classes = num_classes
+        print(self.num_classes)
         self.classification_layer_bias = classification_layer_bias
         self.classification_layer = nn.Linear(
             encoding_dim, num_classes, bias=self.classification_layer_bias

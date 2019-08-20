@@ -6,9 +6,10 @@ import numpy as np
 import pandas as pd
 from parsect.metrics.classification_metrics_utils import ClassificationMetricsUtils
 import torch
+from parsect.utils.class_nursery import ClassNursery
 
 
-class TokenClassificationAccuracy(BaseMetric):
+class TokenClassificationAccuracy(BaseMetric, ClassNursery):
     def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
         super(TokenClassificationAccuracy, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping

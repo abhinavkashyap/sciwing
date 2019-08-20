@@ -7,9 +7,10 @@ import pandas as pd
 from parsect.metrics.BaseMetric import BaseMetric
 from parsect.utils.class_nursery import ClassNursery
 from parsect.metrics.classification_metrics_utils import ClassificationMetricsUtils
+from parsect.utils.class_nursery import ClassNursery
 
 
-class PrecisionRecallFMeasure(BaseMetric):
+class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
     def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
         """
 

@@ -12,7 +12,7 @@
 	max_num_words = 1000
 	max_instance_length = 100
 	word_vocab_store_location = "/Users/abhinav/abhi/parsect/parsect/outputs/debug_parsect_dataset/vocab.json"
-	debug = false
+	debug = true
 	debug_dataset_proportion = 0.1
 	word_embedding_type = "random"
 	word_embedding_dimension = 300
@@ -21,7 +21,7 @@
     name="simple_classifier"
     class="SimpleClassifier"
     encoding_dim=300
-    num_classes=10
+    num_classes=23
     classification_layer_bias=true
     [model.encoder]
         emb_dim = 300
@@ -41,11 +41,11 @@
     num_epochs=1
     save_every=10
     log_train_metrics_every=10
-    [engine.metric]
-        class="PrecisionRecallFMeasure"
     tensorboard_logdir="/Users/abhinav/abhi/parsect/parsect/outputs/debug_parsect_dataset"
     device="cpu"
     gradient_norm_clip_value=5.0
+    [engine.metric]
+        class="PrecisionRecallFMeasure"
     [engine.optimizer]
         class="Adam"
         lr=1e-3

@@ -1,6 +1,7 @@
 import pytest
 import torch
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
+from parsect.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture
@@ -178,3 +179,6 @@ class TestTokenClsAccuracy:
         assert all([class_ not in masked_label_indices for class_ in precision_classes])
         assert all([class_ not in masked_label_indices for class_ in recall_classes])
         assert all([class_ not in masked_label_indices for class_ in fscore_classes])
+
+    def test_token_cls_accuracy_in_class_nursery(self):
+        assert ClassNursery.class_nursery.get("TokenClassificationAccuracy") is not None

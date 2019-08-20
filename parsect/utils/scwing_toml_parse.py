@@ -3,6 +3,8 @@ import toml
 from parsect.utils.exceptions import TOMLConfigurationError
 from parsect.datasets import *
 from parsect.models import *
+from parsect.metrics import *
+from parsect.engine import *
 from parsect.modules import *
 from parsect.utils.class_nursery import ClassNursery
 from parsect.utils.common import create_class
@@ -17,7 +19,10 @@ class SciWingTOMLParse:
         self.all_datasets = (
             None
         )  # Dict {'train': Dataset, 'valid': Dataset, 'test': Dataset}
+        self.model = None
+        self.engine = None
         self._parse()
+        self.engine.run()
 
     def _parse_toml_file(self):
         try:
@@ -56,7 +61,7 @@ class SciWingTOMLParse:
                 f"{self.toml_filename} does not have an engine section"
             )
         else:
-            engine = self.parse_engine_section()
+            self.engine = self.parse_engine_section()
 
     def parse_dataset_section(self):
         dataset_section = self.doc.get("dataset")
@@ -156,16 +161,20 @@ class SciWingTOMLParse:
         optimizer_section = engine_section.get("optimizer")
 
         if optimizer_section is None:
-            optimizer_cls = ClassNursery.class_nursery["SGD"]
+            optimizer_classname = "SGD"
+            optimizer_module = ClassNursery.class_nursery[optimizer_classname]
             optimizer_args = {"lr": 1e-2}
         else:
             optimizer_classname = optimizer_section.get("class")
-            optimizer_cls = ClassNursery.class_nursery[optimizer_classname]
+            optimizer_module = ClassNursery.class_nursery[optimizer_classname]
             optimizer_args = {}
             for arg_, value in optimizer_section.items():
                 if arg_ != "class":
                     optimizer_args[arg_] = value
 
+        optimizer_cls = create_class(
+            module_name=optimizer_module, classname=optimizer_classname
+        )
         optimizer = optimizer_cls(params=self.model.parameters(), **optimizer_args)
         # patching optimizer
         engine_args["optimizer"] = optimizer
@@ -179,9 +188,26 @@ class SciWingTOMLParse:
             else:
                 metric_args[key] = value
 
+        metric_cls = create_class(
+            module_name=ClassNursery.class_nursery[metric_classname],
+            classname=metric_classname,
+        )
+        metric = metric_cls(**metric_args)
+        engine_args["metric"] = metric
+
         train_dataset = self.all_datasets["train"]
         valid_dataset = self.all_datasets["valid"]
         test_dataset = self.all_datasets["test"]
+        engine_args["train_dataset"] = train_dataset
+        engine_args["validation_dataset"] = valid_dataset
+        engine_args["test_dataset"] = test_dataset
+        engine_args["model"] = self.model
+
+        engine_module = ClassNursery.class_nursery["Engine"]
+        engine_classname = "Engine"
+        engine_cls = create_class(classname=engine_classname, module_name=engine_module)
+        engine = engine_cls(**engine_args)
+        return engine
 
 
 if __name__ == "__main__":

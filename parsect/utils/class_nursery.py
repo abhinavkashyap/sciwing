@@ -3,7 +3,7 @@ import torch
 
 
 class ClassNursery:
-    class_nursery = {"Adam": torch.optim.Adam, "SGD": torch.optim.SGD}
+    class_nursery = {"Adam": torch.optim.__name__, "SGD": torch.optim.__name__}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

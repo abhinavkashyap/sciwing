@@ -41,6 +41,9 @@ class Engine(ClassNursery):
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
     ):
 
+        if isinstance(device, str):
+            device = torch.device(device)
+
         self.model = model
         self.train_dataset = train_dataset
         self.validation_dataset = validation_dataset
