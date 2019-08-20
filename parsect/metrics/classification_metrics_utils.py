@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 import itertools
 from sklearn.metrics import confusion_matrix
 from sklearn.utils.multiclass import unique_labels
+import torch
 
 
 class ClassificationMetricsUtils:
@@ -13,14 +14,9 @@ class ClassificationMetricsUtils:
     that helps in calculating these.
     """
 
-    def __init__(
-        self,
-        idx2labelname_mapping: Optional[Dict[int, str]] = None,
-        masked_label_indices: Optional[List[int]] = None,
-    ):
+    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
         self.msg_printer = wasabi.Printer()
         self.idx2labelname_mapping = idx2labelname_mapping
-        self.mask_label_indices = masked_label_indices or []
 
     def get_prf_from_counters(
         self,
@@ -136,15 +132,28 @@ class ClassificationMetricsUtils:
 
         return macro_precision, macro_recall, macro_fscore
 
+    @staticmethod
     def get_confusion_matrix_and_labels(
-        self, predicted_tag_indices: List[List[int]], true_tag_indices: List[List[int]]
+        predicted_tag_indices: List[List[int]],
+        true_tag_indices: List[List[int]],
+        masked_label_indices: List[List[int]],
     ) -> (np.array, List[int]):
         """
-        Returns the confusion matrix and associated classes in the order
-        :param predicted_tag_indices:
-        :param true_tag_indices:
-        :return:
+        Parameters
+        ----------
+        predicted_tag_indices
+        true_tag_indices
+        masked_label_indices : List[List[int]]
+            Every integer is either a 0 or 1, where 1 will indicate that the
+            label in `true_tag_indices` will be ignored
         """
+        # get the masked label indices
+        masked_label_indices = torch.ByteTensor(masked_label_indices)
+        masked_label_indices = torch.masked_select(
+            torch.Tensor(true_tag_indices), masked_label_indices
+        )
+        masked_label_indices = masked_label_indices.tolist()
+
         predicted_tags_flat = list(itertools.chain.from_iterable(predicted_tag_indices))
         labels = list(itertools.chain.from_iterable(true_tag_indices))
         predicted_tags_flat = np.array(predicted_tags_flat)
@@ -152,7 +161,7 @@ class ClassificationMetricsUtils:
 
         # filter the classes
         classes = unique_labels(labels_numpy, predicted_tags_flat)
-        classes = filter(lambda class_: class_ not in self.mask_label_indices, classes)
+        classes = filter(lambda class_: class_ not in masked_label_indices, classes)
         classes = list(classes)
 
         confusion_mtrx = confusion_matrix(
@@ -180,8 +189,6 @@ class ClassificationMetricsUtils:
 
         classes = precision_dict.keys()
         classes = sorted(classes)
-        classes = filter(lambda class_: class_ not in self.mask_label_indices, classes)
-        classes = list(classes)
 
         if self.idx2labelname_mapping is None:
             idx2labelname_mapping = {class_num: class_num for class_num in classes}

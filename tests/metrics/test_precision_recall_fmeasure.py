@@ -131,7 +131,10 @@ def setup_data_for_all_zeros():
 class TestAccuracy:
     def test_print_confusion_matrix_works(self, setup_data_basecase):
         predicted_probs, labels, accuracy, expected = setup_data_basecase
-        accuracy.print_confusion_metrics(predicted_probs, labels)
+        labels_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
+        accuracy.print_confusion_metrics(
+            predicted_probs=predicted_probs, labels=labels, labels_mask=labels_mask
+        )
 
     def test_accuracy_basecase(self, setup_data_basecase):
         predicted_probs, labels, accuracy, expected = setup_data_basecase
@@ -139,7 +142,8 @@ class TestAccuracy:
         expected_recall = expected["expected_recall"]
         expected_fmeasure = expected["expected_fscore"]
 
-        iter_dict = {"label": labels}
+        label_mask = torch.zeros_like(labels).type(torch.ByteTensor)
+        iter_dict = {"label": labels, "label_mask": label_mask}
         forward_dict = {"normalized_probs": predicted_probs}
         accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         accuracy_metrics = accuracy.get_metric()
@@ -163,7 +167,8 @@ class TestAccuracy:
         expected_recall = expected["expected_recall"]
         expected_fscore = expected["expected_fscore"]
 
-        iter_dict = {"label": labels}
+        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
+        iter_dict = {"label": labels, "label_mask": label_mask}
         forward_dict = {"normalized_probs": predicted_probs}
         accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         accuracy_metrics = accuracy.get_metric()
@@ -193,7 +198,8 @@ class TestAccuracy:
         expected_micro_recall = expected["expected_micro_recall"]
         expected_micro_fscore = expected["expected_micro_fscore"]
 
-        iter_dict = {"label": labels}
+        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
+        iter_dict = {"label": labels, "label_mask": label_mask}
         forward_dict = {"normalized_probs": predicted_probs}
         accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         metrics = accuracy.get_metric()
@@ -224,7 +230,8 @@ class TestAccuracy:
         expected_recall = expected["expected_recall"]
         expected_fmeasure = expected["expected_fscore"]
 
-        iter_dict = {"label": labels}
+        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
+        iter_dict = {"label": labels, "label_mask": label_mask}
         forward_dict = {"normalized_probs": predicted_probs}
         accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         accuracy_metrics = accuracy.get_metric()
@@ -254,7 +261,8 @@ class TestAccuracy:
         expected_num_fps = expected["expected_num_fps"]
         expected_num_fns = expected["expected_num_fns"]
 
-        iter_dict = {"label": labels}
+        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
+        iter_dict = {"label": labels, "label_mask": label_mask}
         forward_dict = {"normalized_probs": predicted_probs}
         accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
         accuracy_metrics = accuracy.get_metric()

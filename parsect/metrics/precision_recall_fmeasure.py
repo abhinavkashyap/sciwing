@@ -1,27 +1,28 @@
 import torch
 from typing import Dict, Union, Any, Optional, List
 from wasabi import Printer
-from wasabi import table
 from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
 import pandas as pd
 from parsect.metrics.BaseMetric import BaseMetric
-from parsect.utils.classification_metrics_utils import ClassificationMetricsUtils
+from parsect.metrics.classification_metrics_utils import ClassificationMetricsUtils
 
 
 class PrecisionRecallFMeasure(BaseMetric):
-    def __init__(
-        self,
-        idx2labelname_mapping: Dict[int, str],
-        masked_label_indices: Optional[List[int]] = None,
-    ):
+    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
+        """
+
+        Parameters
+        ----------
+        idx2labelname_mapping : Dict[int, str]
+            Mapping from index to label. If this is not provided
+            then we are going to use the class indices in all the reports
+        """
         super(PrecisionRecallFMeasure, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping
-        self.mask_label_indices = masked_label_indices
         self.msg_printer = Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
-            masked_label_indices=self.mask_label_indices,
-            idx2labelname_mapping=idx2labelname_mapping,
+            idx2labelname_mapping=idx2labelname_mapping
         )
 
         # setup counters to calculate true positives, false positives,
@@ -32,7 +33,10 @@ class PrecisionRecallFMeasure(BaseMetric):
         self.tn_counter = {}
 
     def print_confusion_metrics(
-        self, predicted_probs: torch.FloatTensor, labels: torch.LongTensor
+        self,
+        predicted_probs: torch.FloatTensor,
+        labels: torch.LongTensor,
+        labels_mask: torch.ByteTensor,
     ) -> None:
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -57,12 +61,19 @@ class PrecisionRecallFMeasure(BaseMetric):
         true_labels_numpy = labels.cpu().numpy().tolist()
 
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
-            predicted_tag_indices=top_indices_numpy, true_tag_indices=true_labels_numpy
+            predicted_tag_indices=top_indices_numpy,
+            true_tag_indices=true_labels_numpy,
+            masked_label_indices=labels_mask,
         )
 
-        classes_with_names = [
-            f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
-        ]
+        if self.idx2labelname_mapping is not None:
+            classes_with_names = [
+                f"cls_{class_}({self.idx2labelname_mapping[class_]})"
+                for class_ in classes
+            ]
+        else:
+            classes_with_names = classes
+
         assert (
             len(classes) == confusion_mtrx.shape[1]
         ), f"len(classes) = {len(classes)} confusion matrix shape {confusion_mtrx.shape}"
@@ -83,6 +94,10 @@ class PrecisionRecallFMeasure(BaseMetric):
 
         normalized_probs = model_forward_dict["normalized_probs"]
         labels = iter_dict["label"]
+        labels_mask = iter_dict.get("label_mask")
+        if labels_mask is None:
+            labels_mask = torch.zeros_like(labels).type(torch.ByteTensor)
+
         normalized_probs = normalized_probs.cpu()
         labels = labels.cpu()
 
@@ -108,8 +123,12 @@ class PrecisionRecallFMeasure(BaseMetric):
         # convert labels to 1 dimension
         true_labels_numpy = labels.cpu().numpy().tolist()
 
+        labels_mask = labels_mask.tolist()
+
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
-            true_labels_numpy, top_indices_numpy
+            true_tag_indices=true_labels_numpy,
+            predicted_tag_indices=top_indices_numpy,
+            masked_label_indices=labels_mask,
         )
 
         # For further confirmation on how I calculated this I searched for stackoverflow on

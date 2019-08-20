@@ -55,7 +55,7 @@ def setup_masked_indices():
     predicted_tags = [[1, 0, 1]]
     labels = torch.LongTensor([[1, 0, 2]])
     idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "ignore_class"}
-    masked_label_indices = [2]
+    label_mask = [0, 0, 1]
 
     expected_precision = {0: 1.0, 1: 1.0}
     expected_recall = {0: 1.0, 1: 1.0}
@@ -71,11 +71,10 @@ def setup_masked_indices():
     expected_micro_fscore = 1.0
 
     token_cls_metric = TokenClassificationAccuracy(
-        idx2labelname_mapping=idx2labelname_mapping,
-        mask_label_indices=masked_label_indices,
+        idx2labelname_mapping=idx2labelname_mapping
     )
 
-    iter_dict = {"label": labels}
+    iter_dict = {"label": labels, "label_mask": label_mask}
     model_forward_dict = {"predicted_tags": predicted_tags}
 
     return (
@@ -95,7 +94,7 @@ def setup_masked_indices():
             "expected_micro_precision": expected_micro_precision,
             "expected_micro_recall": expected_micro_recall,
             "expected_micro_fscore": expected_micro_fscore,
-            "masked_label_indices": masked_label_indices,
+            "masked_label_indices": [2],
         },
     )
 
@@ -153,11 +152,13 @@ class TestTokenClsAccuracy:
     def test_confusion_mtrx_works(self, setup_basecase):
         metric, iter_dict, model_forward_dict, expected = setup_basecase
         try:
-            true_tag_indices = iter_dict["label"].tolist()
+            true_tag_indices = iter_dict["label"]
+            true_tag_indices_list = true_tag_indices.tolist()
             predicted_tag_indices = model_forward_dict["predicted_tags"]
             metric.print_confusion_metrics(
-                true_tag_indices=true_tag_indices,
+                true_tag_indices=true_tag_indices_list,
                 predicted_tag_indices=predicted_tag_indices,
+                labels_mask=torch.zeros_like(true_tag_indices).type(torch.ByteTensor),
             )
         except:
             pytest.fail("print_counfusion_metric() failed")

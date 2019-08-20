@@ -16,6 +16,8 @@ from parsect.utils.class_nursery import ClassNursery
 
 @sprinkle_dataset(vocab_pipe=["word_vocab", "char_vocab"])
 class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
+    ignored_labels = ["padding", "starting", "ending"]
+
     def __init__(
         self,
         filename: str,
@@ -238,6 +240,7 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
         word_instance = word_tokenizer.tokenize(line)
         len_instance = len(word_instance)
         classnames2idx = ParscitDataset.get_classname2idx()
+        idx2classname = {idx: classname for classname, idx in classnames2idx.items()}
         word_numericalizer = Numericalizer(vocabulary=word_vocab)
         char_numericalizer = Numericalizer(vocabulary=char_vocab)
 
@@ -255,7 +258,14 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
                 end_token="ending",
             )
             padded_labels = [classnames2idx[label] for label in padded_labels]
+            labels_mask = []
+            for class_idx in padded_labels:
+                if idx2classname[class_idx] in cls.ignored_labels:
+                    labels_mask.append(1)
+                else:
+                    labels_mask.append(0)
             label = torch.LongTensor(padded_labels)
+            labels_mask = torch.ByteTensor(labels_mask)
 
         padded_word_instance = pack_to_length(
             tokenized_text=word_instance,
@@ -298,5 +308,6 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
 
         if labels is not None:
             instance_dict["label"] = label
+            instance_dict["label_mask"] = labels_mask
 
         return instance_dict

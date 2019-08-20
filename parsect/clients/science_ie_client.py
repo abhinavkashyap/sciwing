@@ -251,17 +251,6 @@ if __name__ == "__main__":
     classnames2idx = train_dataset.classnames2idx
     idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
 
-    ignore_indices = [
-        classnames2idx["starting-Task"],
-        classnames2idx["ending-Task"],
-        classnames2idx["padding-Task"],
-        classnames2idx["starting-Process"],
-        classnames2idx["ending-Process"],
-        classnames2idx["padding-Process"],
-        classnames2idx["starting-Material"],
-        classnames2idx["ending-Material"],
-        classnames2idx["padding-Material"],
-    ]
     task_idx2classnames = {
         idx: classname
         for idx, classname in idx2classnames.items()
@@ -335,8 +324,7 @@ if __name__ == "__main__":
     )
 
     metric = TokenClassificationAccuracy(
-        idx2labelname_mapping=train_dataset.idx2classnames,
-        mask_label_indices=ignore_indices,
+        idx2labelname_mapping=train_dataset.idx2classnames
     )
 
     engine = Engine(

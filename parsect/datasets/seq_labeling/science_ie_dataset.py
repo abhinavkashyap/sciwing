@@ -17,6 +17,18 @@ from parsect.utils.class_nursery import ClassNursery
 
 @sprinkle_dataset(vocab_pipe=["word_vocab", "char_vocab"], get_label_stats_table=False)
 class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
+    ignore_labels = [
+        "starting-Task",
+        "ending-Task",
+        "padding-Task",
+        "starting-Process",
+        "ending-Process",
+        "padding-Process",
+        "starting-Material",
+        "ending-Material",
+        "padding-Material",
+    ]
+
     def __init__(
         self,
         filename: str,
@@ -273,6 +285,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
         word_instance = word_tokenizer.tokenize(line)
         len_instance = len(word_instance)
         classnames2idx = ScienceIEDataset.get_classname2idx()
+        idx2classname = {idx: classname for classname, idx in classnames2idx.items()}
         word_numericalizer = Numericalizer(vocabulary=word_vocab)
         char_numericalizer = Numericalizer(vocabulary=char_vocab)
 
@@ -334,10 +347,30 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
                 classnames2idx[label] for label in padded_material_labels
             ]
 
+            mask_task_label = [
+                1 if idx2classname[class_idx] in cls.ignore_labels else 0
+                for class_idx in padded_task_labels
+            ]
+            mask_process_label = [
+                1 if idx2classname[class_idx] in cls.ignore_labels else 0
+                for class_idx in padded_process_labels
+            ]
+            mask_material_label = [
+                1 if idx2classname[class_idx] in cls.ignore_labels else 0
+                for class_idx in padded_material_labels
+            ]
+
             task_label = torch.LongTensor(padded_task_labels)
             process_label = torch.LongTensor(padded_process_labels)
             material_label = torch.LongTensor(padded_material_labels)
+            mask_task_label = torch.ByteTensor(mask_task_label)
+            mask_process_label = torch.ByteTensor(mask_process_label)
+            mask_material_label = torch.ByteTensor(mask_material_label)
+
             label = torch.cat([task_label, process_label, material_label], dim=0)
+            label_mask = torch.cat(
+                [mask_task_label, mask_process_label, mask_material_label], dim=0
+            )
 
         padded_word_instance = pack_to_length(
             tokenized_text=word_instance,
@@ -380,5 +413,6 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
 
         if labels is not None:
             instance_dict["label"] = label
+            instance_dict["label_mask"] = label_mask
 
         return instance_dict

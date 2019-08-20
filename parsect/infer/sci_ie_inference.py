@@ -52,8 +52,7 @@ class ScienceIEInference(BaseInference):
                 self.labelname2idx_mapping["padding-Material"],
             ]
             self.metrics_calculator = TokenClassificationAccuracy(
-                idx2labelname_mapping=self.idx2labelname_mapping,
-                mask_label_indices=self.ignore_indices,
+                idx2labelname_mapping=self.idx2labelname_mapping
             )
 
             with self.msg_printer.loading("Running inference on test data"):

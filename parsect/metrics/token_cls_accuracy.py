@@ -1,25 +1,20 @@
-from typing import Dict, Union, Any, List
+from typing import Dict, Union, Any, List, Optional
 from parsect.metrics.BaseMetric import BaseMetric
 import wasabi
 from parsect.utils.common import merge_dictionaries_with_sum
 import numpy as np
 import pandas as pd
-from parsect.utils.classification_metrics_utils import ClassificationMetricsUtils
+from parsect.metrics.classification_metrics_utils import ClassificationMetricsUtils
+import torch
 
 
 class TokenClassificationAccuracy(BaseMetric):
-    def __init__(
-        self,
-        idx2labelname_mapping: Dict[int, str],
-        mask_label_indices: Union[List[int], None] = None,
-    ):
+    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
         super(TokenClassificationAccuracy, self).__init__()
         self.idx2labelname_mapping = idx2labelname_mapping
-        self.mask_label_indices = mask_label_indices or []
         self.msg_printer = wasabi.Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
-            idx2labelname_mapping=idx2labelname_mapping,
-            masked_label_indices=self.mask_label_indices,
+            idx2labelname_mapping=idx2labelname_mapping
         )
 
         self.tp_counter = {}
@@ -50,6 +45,10 @@ class TokenClassificationAccuracy(BaseMetric):
             "predicted_tags", None
         )  # List[List[int]]
 
+        labels_mask = iter_dict.get("label_mask")
+        if labels_mask is None:
+            labels_mask = torch.zeros_like(labels).type(torch.ByteTensor)
+
         if labels is None or predicted_tags is None:
             raise ValueError(
                 f"While calling {self.__class__.__name__}, the iter_dict should"
@@ -66,6 +65,7 @@ class TokenClassificationAccuracy(BaseMetric):
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             true_tag_indices=labels.numpy().tolist(),
             predicted_tag_indices=predicted_tags,
+            masked_label_indices=labels_mask,
         )
 
         tps = np.around(np.diag(confusion_mtrx), decimals=4)
@@ -170,16 +170,44 @@ class TokenClassificationAccuracy(BaseMetric):
         self.tn_counter = {}
 
     def print_confusion_metrics(
-        self, predicted_tag_indices: List[List[int]], true_tag_indices: List[List[int]]
+        self,
+        predicted_tag_indices: List[List[int]],
+        true_tag_indices: List[List[int]],
+        labels_mask: Optional[torch.ByteTensor] = None,
     ) -> None:
+        """
+
+        Parameters
+        ----------
+        predicted_tag_indices
+        true_tag_indices
+        labels_mask : Optional[torch.ByteTensor]
+            The labels mask is made optional because we can see how
+            the different masked labels are getting classified as well
+
+        Returns
+        -------
+
+        """
+
+        if labels_mask is None:
+            labels_mask = torch.zeros_like(torch.Tensor(true_tag_indices)).type(
+                torch.ByteTensor
+            )
 
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             predicted_tag_indices=predicted_tag_indices,
             true_tag_indices=true_tag_indices,
+            masked_label_indices=labels_mask,
         )
-        classes_with_names = [
-            f"cls_{class_}({self.idx2labelname_mapping[class_]})" for class_ in classes
-        ]
+
+        if self.idx2labelname_mapping is not None:
+            classes_with_names = [
+                f"cls_{class_}({self.idx2labelname_mapping[class_]})"
+                for class_ in classes
+            ]
+        else:
+            classes_with_names = classes
 
         confusion_mtrx = pd.DataFrame(confusion_mtrx)
         confusion_mtrx.insert(0, "class_name", classes_with_names)

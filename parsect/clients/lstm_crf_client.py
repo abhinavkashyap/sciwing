@@ -8,7 +8,7 @@ from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from parsect.utils.common import write_nfold_parscit_train_test
 from parsect.utils.common import merge_dictionaries_with_sum
 from parsect.utils.common import write_cora_to_conll_file
-from parsect.utils.classification_metrics_utils import ClassificationMetricsUtils
+from parsect.metrics.classification_metrics_utils import ClassificationMetricsUtils
 from typing import Dict
 import parsect.constants as constants
 import os
@@ -300,15 +300,8 @@ if __name__ == "__main__":
         )
 
         optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
-        classnames2idx = train_dataset.classnames2idx
-        ignore_indices = [
-            classnames2idx["starting"],
-            classnames2idx["ending"],
-            classnames2idx["padding"],
-        ]
         metric = TokenClassificationAccuracy(
-            idx2labelname_mapping=train_dataset.idx2classname,
-            mask_label_indices=ignore_indices,
+            idx2labelname_mapping=train_dataset.idx2classname
         )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer=optimizer, mode="max", factor=0.1, patience=2
@@ -387,7 +380,7 @@ if __name__ == "__main__":
     ]
 
     classification_metrics_utils = ClassificationMetricsUtils(
-        idx2labelname_mapping=idx2_classname, masked_label_indices=ignore_indices
+        idx2labelname_mapping=idx2_classname
     )
     table = classification_metrics_utils.generate_table_report_from_counters(
         tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
