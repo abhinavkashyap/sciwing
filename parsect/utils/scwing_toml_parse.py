@@ -12,7 +12,7 @@ import torch.nn as nn
 import inspect
 
 
-class SciWingTOMLParse:
+class SciWingTOMLRunner:
     def __init__(self, toml_filename: pathlib.Path):
         self.toml_filename = toml_filename
         self.doc = self._parse_toml_file()
@@ -22,7 +22,6 @@ class SciWingTOMLParse:
         self.model = None
         self.engine = None
         self._parse()
-        self.engine.run()
 
     def _parse_toml_file(self):
         try:
@@ -209,6 +208,9 @@ class SciWingTOMLParse:
         engine = engine_cls(**engine_args)
         return engine
 
+    def run(self):
+        self.engine.run()
+
 
 if __name__ == "__main__":
     import parsect.constants as constants
@@ -216,4 +218,4 @@ if __name__ == "__main__":
     PATHS = constants.PATHS
     CONFIGS_DIR = PATHS["CONFIGS_DIR"]
     bow_random_parsect_toml = pathlib.Path(CONFIGS_DIR, "bow_random_parsect.toml")
-    toml_parser = SciWingTOMLParse(toml_filename=bow_random_parsect_toml)
+    toml_parser = SciWingTOMLRunner(toml_filename=bow_random_parsect_toml)
