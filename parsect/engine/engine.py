@@ -10,13 +10,13 @@ from tensorboardX import SummaryWriter
 from parsect.metrics.BaseMetric import BaseMetric
 import numpy as np
 import time
-import json_logging
 import logging
 from torch.utils.data._utils.collate import default_collate
 import torch
 from parsect.utils.tensor_utils import move_to_device
 from copy import deepcopy
 from parsect.utils.class_nursery import ClassNursery
+import logzero
 
 
 class Engine(ClassNursery):
@@ -107,27 +107,21 @@ class Engine(ClassNursery):
         time.sleep(3)
 
         # get the loggers ready
-        # TODO - use loguru - seems simple and has many advantages
-        json_logging.ENABLE_JSON_LOGGING = True
-        json_logging.init()
         self.train_log_filename = os.path.join(self.save_dir, "train.log")
         self.validation_log_filename = os.path.join(self.save_dir, "validation.log")
         self.test_log_filename = os.path.join(self.save_dir, "test.log")
 
-        self.train_logger = logging.getLogger("train-logger")
-        self.validation_logger = logging.getLogger("validation-logger")
-        self.test_logger = logging.getLogger("test-logger")
-
-        self.train_logger.setLevel(logging.DEBUG)
-        self.train_logger.addHandler(logging.FileHandler(self.train_log_filename))
-
-        self.validation_logger.setLevel(logging.DEBUG)
-        self.validation_logger.addHandler(
-            logging.FileHandler(self.validation_log_filename)
+        self.train_logger = logzero.setup_logger(
+            name="train-logger", logfile=self.train_log_filename, level=logging.INFO
         )
-
-        self.test_logger.setLevel(logging.DEBUG)
-        self.test_logger.addHandler(logging.FileHandler(self.test_log_filename))
+        self.validation_logger = logzero.setup_logger(
+            name="valid-logger",
+            logfile=self.validation_log_filename,
+            level=logging.INFO,
+        )
+        self.test_logger = logzero.setup_logger(
+            name="test-logger", logfile=self.test_log_filename, level=logging.INFO
+        )
 
         if self.lr_scheduler_is_plateau:
             if self.best_track_value == "loss" and self.lr_scheduler.mode == "max":
@@ -188,9 +182,9 @@ class Engine(ClassNursery):
         # refresh everything necessary before training begins
         num_iterations = 0
         train_iter = self.get_iter(self.train_loader)
-        self.model.train()
         self.train_loss_meter.reset()
         self.train_metric_calc.reset()
+        self.model.train()
 
         self.msg_printer.info("starting training epoch")
         while True:
