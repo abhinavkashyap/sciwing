@@ -18,7 +18,7 @@ FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-@pytest.fixture(scope="session", params=["loss", "micro-f1", "macro-f1"])
+@pytest.fixture(scope="session", params=["loss", "micro_fscore", "macro_fscore"])
 def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     MAX_NUM_WORDS = 1000
     MAX_LENGTH = 50
@@ -174,17 +174,23 @@ class TestEngine:
         Just tests runs without any errors
         """
         engine, tokens, labels, options = setup_engine_test_with_simple_classifier
-        engine.run()
+        try:
+            engine.run()
+        except:
+            pytest.fail("Engine failed to run")
 
     def test_load_model(self, setup_engine_test_with_simple_classifier):
         """
         Test whether engine loads the model without any error.
         """
         engine, tokens, labels, options = setup_engine_test_with_simple_classifier
-        engine.train_epoch_end(0)
-        engine.load_model_from_file(
-            os.path.join(engine.save_dir, "model_epoch_{0}.pt".format(1))
-        )
+        try:
+            engine.train_epoch_end(0)
+            engine.load_model_from_file(
+                os.path.join(engine.save_dir, "model_epoch_{0}.pt".format(1))
+            )
+        except:
+            pytest.fail("Engine train epoch end failed")
 
     def test_engine_in_class_nursery(self):
         assert ClassNursery.class_nursery["Engine"] is not None

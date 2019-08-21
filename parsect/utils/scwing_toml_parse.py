@@ -16,6 +16,8 @@ class SciWingTOMLRunner:
     def __init__(self, toml_filename: pathlib.Path):
         self.toml_filename = toml_filename
         self.doc = self._parse_toml_file()
+
+        self.experiment_name = None
         self.all_datasets = (
             None
         )  # Dict {'train': Dataset, 'valid': Dataset, 'test': Dataset}
@@ -32,6 +34,10 @@ class SciWingTOMLRunner:
             print(f"File {self.toml_filename} is not found")
 
     def _parse(self):
+
+        # experiment section
+        experiment_section = self.doc.get("experiment")
+        self.experiment_name = experiment_section.get("exp_name")
 
         # get the dataset section from toml
         dataset_section = self.doc.get(f"dataset")
@@ -201,6 +207,8 @@ class SciWingTOMLRunner:
         engine_args["validation_dataset"] = valid_dataset
         engine_args["test_dataset"] = test_dataset
         engine_args["model"] = self.model
+        engine_args["experiment_name"] = self.experiment_name
+        engine_args["experiment_hyperparams"] = self.doc
 
         engine_module = ClassNursery.class_nursery["Engine"]
         engine_classname = "Engine"

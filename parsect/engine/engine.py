@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
-from typing import Iterator, Callable, Any, List, Optional
+from typing import Iterator, Callable, Any, List, Optional, Dict
 from parsect.meters.loss_meter import LossMeter
 import os
 from tensorboardX import SummaryWriter
@@ -17,6 +17,12 @@ from parsect.utils.tensor_utils import move_to_device
 from copy import deepcopy
 from parsect.utils.class_nursery import ClassNursery
 import logzero
+import hashlib
+
+try:
+    import wandb
+except ImportError:
+    wandb = None
 
 
 class Engine(ClassNursery):
@@ -33,12 +39,15 @@ class Engine(ClassNursery):
         save_every: int,
         log_train_metrics_every: int,
         metric: BaseMetric,
+        experiment_name: Optional[str] = None,
+        experiment_hyperparams: Optional[Dict[str, Any]] = None,
         tensorboard_logdir: str = None,
         track_for_best: str = "loss",
         collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
         device=torch.device("cpu"),
         gradient_norm_clip_value: Optional[float] = 5.0,
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
+        use_wandb: bool = False,
     ):
 
         if isinstance(device, str):
@@ -68,14 +77,24 @@ class Engine(ClassNursery):
         self.lr_scheduler_is_plateau = isinstance(
             self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau
         )
+        self.use_wandb = wandb and use_wandb
+        if experiment_name is None:
+            hash_ = hashlib.sha1()
+            hash_.update(str(time.time()).encode("utf-8"))
+            digest = hash_.hexdigest()
+            experiment_name = digest[:10]
+
+        self.experiment_name = experiment_name
+        self.experiment_hyperparams = experiment_hyperparams or {}
+
+        if self.use_wandb:
+            wandb.init(
+                project="project-scwing",
+                name=self.experiment_name,
+                config=self.experiment_hyperparams,
+            )
 
         self.num_workers = 0
-
-        # get the data loader
-        # TODO: For now we randomly sample the dataset to obtain instances, we can have different
-        #       sampling strategies. For one, there are BucketIterators, that bucket different
-        #       isntances of the same length together
-
         self.model.to(self.device)
 
         self.train_loader = self.get_loader(self.train_dataset)
@@ -128,13 +147,19 @@ class Engine(ClassNursery):
                 self.msg_printer.warn(
                     "You are optimizing loss and lr schedule mode is max instead of min"
                 )
-            if self.best_track_value == "macro-f1" and self.lr_scheduler.mode == "min":
+            if (
+                self.best_track_value == "macro_fscore"
+                and self.lr_scheduler.mode == "min"
+            ):
                 self.msg_printer.warn(
-                    f"You are optimizing for macro-f1 and lr scheduler mode is min instead of max"
+                    f"You are optimizing for macro_fscore and lr scheduler mode is min instead of max"
                 )
-            if self.best_track_value == "micro-f1" and self.lr_scheduler.mode == "min":
+            if (
+                self.best_track_value == "micro_fscore"
+                and self.lr_scheduler.mode == "min"
+            ):
                 self.msg_printer.warn(
-                    f"You are optimizing for micro-f1 and lr scheduler mode is min instead of max"
+                    f"You are optimizing for micro_fscore and lr scheduler mode is min instead of max"
                 )
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
@@ -156,9 +181,9 @@ class Engine(ClassNursery):
     def set_best_track_value(self, current_best=None):
         if self.track_for_best == "loss":
             self.best_track_value = np.inf if current_best is None else current_best
-        elif self.track_for_best == "macro-f1":
+        elif self.track_for_best == "macro_fscore":
             self.best_track_value = 0 if current_best is None else current_best
-        elif self.track_for_best == "micro-f1":
+        elif self.track_for_best == "micro_fscore":
             self.best_track_value = 0 if current_best is None else current_best
 
     def run(self):
@@ -239,6 +264,12 @@ class Engine(ClassNursery):
         self.train_logger.info(
             "Average loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
         )
+        metric = self.train_metric_calc.get_metric()
+
+        # if wandb is not None:
+        #     wandb.log({"train_loss": average_loss})
+        #     if self.track_for_best != "loss":
+        #         wandb.log({f"train_{self.track_for_best}": metric[self.track_for_best]})
 
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
@@ -293,16 +324,24 @@ class Engine(ClassNursery):
 
         self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num + 1))
 
-        metrics = self.validation_metric_calc.report_metrics()
+        metric_report = self.validation_metric_calc.report_metrics()
 
         average_loss = self.validation_loss_meter.get_average()
-        print(metrics)
+        print(metric_report)
 
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
 
         self.validation_logger.info(
             "Validation Loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
         )
+
+        if self.use_wandb:
+            wandb.log({"validation_loss": average_loss})
+            metric = self.validation_metric_calc.get_metric()
+            if self.track_for_best != "loss":
+                wandb.log(
+                    {f"validation_{self.track_for_best}": metric[self.track_for_best]}
+                )
 
         self.summaryWriter.add_scalars(
             "train_validation_loss",
@@ -311,26 +350,18 @@ class Engine(ClassNursery):
         )
 
         is_best: bool = None
-        value_tracked: float = None
-
+        value_tracked: str = None
         if self.track_for_best == "loss":
             value_tracked = average_loss
             is_best = self.is_best_lower(average_loss)
-
-        elif self.track_for_best == "macro-f1":
-            macro_f1 = self.validation_metric_calc.get_metric()["macro_fscore"]
-            value_tracked = macro_f1
-            is_best = self.is_best_higher(current_best=macro_f1)
-        elif self.track_for_best == "micro-f1":
-            micro_f1 = self.validation_metric_calc.get_metric()["micro_fscore"]
-            value_tracked = micro_f1
-            is_best = self.is_best_higher(micro_f1)
-
-        if self.lr_scheduler is not None:
-            if self.lr_scheduler_is_plateau:
-                self.lr_scheduler.step(value_tracked)
-            else:
-                self.lr_scheduler.step()
+        elif (
+            self.track_for_best == "micro_fscore"
+            or self.track_for_best == "macro_fscore"
+        ):
+            value_tracked = self.validation_metric_calc.get_metric()[
+                self.track_for_best
+            ]
+            is_best = self.is_best_higher(current_best=value_tracked)
 
         if is_best:
             self.set_best_track_value(current_best=value_tracked)
@@ -367,15 +398,20 @@ class Engine(ClassNursery):
                 break
 
     def test_epoch_end(self, epoch_num: int):
-        metrics = self.test_metric_calc.report_metrics()
+        metric_report = self.test_metric_calc.report_metrics()
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
-        print(metrics)
+        print(metric_report)
         self.test_logger.info(
             "Test Metrics @ Epoch {0} - {1}".format(
                 epoch_num + 1, precision_recall_fmeasure
             )
         )
+        if self.use_wandb:
+            metric = self.test_metric_calc.get_metric()
+            wandb.run.summary[f"{self.track_for_best}"] = metric[
+                f"{self.track_for_best}"
+            ]
 
     def get_train_dataset(self):
         return self.train_dataset

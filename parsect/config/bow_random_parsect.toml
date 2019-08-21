@@ -38,12 +38,13 @@
 [engine]
     batch_size=32
     save_dir="/Users/abhinav/abhi/parsect/parsect/outputs/debug_parsect_dataset"
-    num_epochs=1
+    num_epochs=10
     save_every=10
     log_train_metrics_every=10
     tensorboard_logdir="/Users/abhinav/abhi/parsect/parsect/outputs/debug_parsect_dataset"
     device="cpu"
     gradient_norm_clip_value=5.0
+    track_for_best="macro_fscore"
     [engine.metric]
         class="PrecisionRecallFMeasure"
     [engine.optimizer]

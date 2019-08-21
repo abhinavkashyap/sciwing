@@ -173,3 +173,4 @@ runs
 parsect/reports/*
 parsect/scripts/*
 parsect/config/*
+/wandb/*
