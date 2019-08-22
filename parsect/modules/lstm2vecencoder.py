@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import wasabi
 from typing import Dict, Any
+from parsect.utils.class_nursery import ClassNursery
 
 
-class LSTM2VecEncoder(nn.Module):
+class LSTM2VecEncoder(nn.Module, ClassNursery):
     def __init__(
         self,
         emb_dim: int,

@@ -1,2 +1,4 @@
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.embedders.concat_embedders import ConcatEmbedders
+from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from parsect.modules.embedders.bert_embedder import BertEmbedder

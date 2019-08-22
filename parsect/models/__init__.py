@@ -1,1 +1,2 @@
 from parsect.models.simpleclassifier import SimpleClassifier
+from parsect.models.science_ie_tagger import ScienceIETagger

@@ -1,23 +1,25 @@
 import torch
+import torch.nn as nn
 from pytorch_pretrained_bert import BertTokenizer, BertModel
 from parsect.utils.common import pack_to_length
-from typing import Dict, Any
+from typing import Dict, Any, Union
 import wasabi
 import parsect.constants as constants
 import os
+from parsect.utils.class_nursery import ClassNursery
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 
 
-class BertEmbedder:
+class BertEmbedder(nn.Module, ClassNursery):
     def __init__(
         self,
         emb_dim: int = 768,
         dropout_value: float = 0.0,
         aggregation_type: str = "sum",
         bert_type: str = "bert-base-uncased",
-        device: torch.device = torch.device("cpu"),
+        device: Union[torch.device, str] = torch.device("cpu"),
     ):
         """
 
@@ -40,7 +42,10 @@ class BertEmbedder:
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
         self.bert_type = bert_type
-        self.device = device
+        if isinstance(device, str):
+            self.device = torch.device(device)
+        else:
+            self.device = device
         self.msg_printer = wasabi.Printer()
         self.allowed_bert_types = [
             "bert-base-uncased",

@@ -38,6 +38,12 @@ class SciWingTOMLRunner:
         # experiment section
         experiment_section = self.doc.get("experiment")
         self.experiment_name = experiment_section.get("exp_name")
+        self.experiment_dir = pathlib.Path(experiment_section.get("exp_dir"))
+
+        if self.experiment_dir.is_dir():
+            raise FileExistsError(f"{self.experiment_dir} already exists")
+        else:
+            self.experiment_dir.mkdir()
 
         # get the dataset section from toml
         dataset_section = self.doc.get(f"dataset")
@@ -132,6 +138,21 @@ class SciWingTOMLRunner:
                             embedding_dim=embedding_dim, embedding=embedding
                         )
                         embedders.append(embedder)
+                    else:
+                        classname = subsection.get("class")
+                        embedder_args = {}
+                        for attr_key, attr in subsection.items():
+                            if attr_key in ["class", "name"]:
+                                pass
+                            else:
+                                embedder_args[attr_key] = attr
+                        cls_obj = create_class(
+                            classname=classname,
+                            module_name=ClassNursery.class_nursery[classname],
+                        )
+                        embedder = cls_obj(**embedder_args)
+                        embedders.append(embedder)
+
                 final_embedder = ConcatEmbedders(embedders=embedders)
                 args["embedder"] = final_embedder
 

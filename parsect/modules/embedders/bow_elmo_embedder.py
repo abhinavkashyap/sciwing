@@ -3,9 +3,10 @@ from allennlp.commands.elmo import ElmoEmbedder
 import wasabi
 from typing import List, Iterable, Dict, Any
 import torch.nn as nn
+from parsect.utils.class_nursery import ClassNursery
 
 
-class BowElmoEmbedder(nn.Module):
+class BowElmoEmbedder(nn.Module, ClassNursery):
     """
     This trains a non trainable bi-LSTM Elmo Model
     Takes only the last layer of inputs from Elmo

@@ -6,9 +6,10 @@ from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 import torch
 import copy
 from parsect.utils.tensor_utils import get_mask
+from parsect.utils.class_nursery import ClassNursery
 
 
-class ScienceIETagger(nn.Module):
+class ScienceIETagger(nn.Module, ClassNursery):
     def __init__(
         self,
         rnn2seqencoder: Lstm2SeqEncoder,
