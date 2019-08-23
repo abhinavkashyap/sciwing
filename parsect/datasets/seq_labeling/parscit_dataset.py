@@ -190,18 +190,7 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
         line = self.lines[idx]
         labels = self.labels[idx].split()
 
-        return self.get_iter_dict(
-            line=line,
-            word_vocab=self.word_vocab,
-            word_tokenizer=self.word_tokenizer,
-            max_word_length=self.max_instance_length,
-            word_add_start_end_token=self.word_add_start_end_token,
-            instance_preprocessor=self.instance_preprocessor,
-            char_vocab=self.char_vocab,
-            char_tokenizer=self.char_tokenizer,
-            max_char_length=self.max_char_length,
-            labels=labels,
-        )
+        return self.get_iter_dict(line=line, label=labels)
 
     @classmethod
     def emits_keys(cls) -> Dict[str, str]:
@@ -220,60 +209,24 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
             f"char_tokens for an instance is a torch.LongTensor of shape [max_word_len, max_char_len]",
         }
 
-    @classmethod
-    def get_iter_dict(
-        cls,
-        line: str,
-        word_vocab: Vocab,
-        word_tokenizer: WordTokenizer,
-        max_word_length: int,
-        word_add_start_end_token: bool,
-        instance_preprocessor: Optional[InstancePreprocessing] = None,
-        char_vocab: Optional[Vocab] = None,
-        char_tokenizer: Optional[CharacterTokenizer] = None,
-        max_char_length: Optional[int] = None,
-        labels: Optional[List[str]] = None,
-        need_padding: bool = True,
-    ):
-        word_instance = word_tokenizer.tokenize(line)
+    def get_iter_dict(self, line: str, label: Optional[List[str]] = None):
+        word_instance = self.word_tokenizer.tokenize(line)
         len_instance = len(word_instance)
         classnames2idx = ParscitDataset.get_classname2idx()
         idx2classname = {idx: classname for classname, idx in classnames2idx.items()}
-        word_numericalizer = Numericalizer(vocabulary=word_vocab)
-        char_numericalizer = Numericalizer(vocabulary=char_vocab)
 
-        if instance_preprocessor is not None:
-            word_instance = instance_preprocessor.lowercase(word_instance)
-
-        if labels is not None:
-            assert len_instance == len(labels)
-            padded_labels = pack_to_length(
-                tokenized_text=labels,
-                max_length=max_word_length,
-                pad_token="padding",
-                add_start_end_token=word_add_start_end_token,
-                start_token="starting",
-                end_token="ending",
-            )
-            padded_labels = [classnames2idx[label] for label in padded_labels]
-            labels_mask = []
-            for class_idx in padded_labels:
-                if idx2classname[class_idx] in cls.ignored_labels:
-                    labels_mask.append(1)
-                else:
-                    labels_mask.append(0)
-            label = torch.LongTensor(padded_labels)
-            labels_mask = torch.ByteTensor(labels_mask)
+        if self.instance_preprocessor is not None:
+            word_instance = self.instance_preprocessor.lowercase(word_instance)
 
         padded_word_instance = pack_to_length(
             tokenized_text=word_instance,
-            max_length=max_word_length,
-            pad_token=word_vocab.pad_token,
-            add_start_end_token=word_add_start_end_token,
-            start_token=word_vocab.start_token,
-            end_token=word_vocab.end_token,
+            max_length=self.max_instance_length,
+            pad_token=self.word_vocab.pad_token,
+            add_start_end_token=self.word_add_start_end_token,
+            start_token=self.word_vocab.start_token,
+            end_token=self.word_vocab.end_token,
         )
-        tokens = word_numericalizer.numericalize_instance(padded_word_instance)
+        tokens = self.word_numericalizer.numericalize_instance(padded_word_instance)
         tokens = torch.LongTensor(tokens)
         len_tokens = torch.LongTensor([len_instance])
 
@@ -283,14 +236,14 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
         # 3. Convert them into numbers
         # 4. Add them to character_tokens
         for word in padded_word_instance:
-            char_instance = char_tokenizer.tokenize(word)
+            char_instance = self.char_tokenizer.tokenize(word)
             padded_character_instance = pack_to_length(
                 tokenized_text=char_instance,
-                max_length=max_char_length,
+                max_length=self.max_char_length,
                 pad_token=" ",
                 add_start_end_token=False,
             )
-            padded_character_tokens = char_numericalizer.numericalize_instance(
+            padded_character_tokens = self.char_numericalizer.numericalize_instance(
                 padded_character_instance
             )
             character_tokens.append(padded_character_tokens)
@@ -304,7 +257,26 @@ class ParscitDataset(BaseSeqLabelingDataset, ClassNursery):
             "char_tokens": character_tokens,
         }
 
-        if labels is not None:
+        if label is not None:
+            assert len_instance == len(label)
+            padded_labels = pack_to_length(
+                tokenized_text=label,
+                max_length=self.max_instance_length,
+                pad_token="padding",
+                add_start_end_token=self.word_add_start_end_token,
+                start_token="starting",
+                end_token="ending",
+            )
+            padded_labels = [classnames2idx[label] for label in padded_labels]
+            labels_mask = []
+            for class_idx in padded_labels:
+                if idx2classname[class_idx] in self.ignored_labels:
+                    labels_mask.append(1)
+                else:
+                    labels_mask.append(0)
+            label = torch.LongTensor(padded_labels)
+            labels_mask = torch.ByteTensor(labels_mask)
+
             instance_dict["label"] = label
             instance_dict["label_mask"] = labels_mask
 

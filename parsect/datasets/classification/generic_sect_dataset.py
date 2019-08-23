@@ -59,14 +59,7 @@ class GenericSectDataset(BaseTextClassification, ClassNursery):
         line = self.lines[idx]
         label = self.labels[idx]
 
-        return self.get_iter_dict(
-            lines=line,
-            word_vocab=self.word_vocab,
-            word_tokenizer=self.word_tokenizer,
-            max_word_length=self.max_instance_length,
-            word_add_start_end_token=True,
-            labels=label,
-        )
+        return self.get_iter_dict(lines=line, labels=label)
 
     def get_lines_labels(self, filename: str) -> (List[str], List[str]):
         generic_sect_json = convert_generic_sect_to_json(filename=filename)
@@ -147,44 +140,31 @@ class GenericSectDataset(BaseTextClassification, ClassNursery):
             "raw_instance": f"A string that is not padded",
         }
 
-    @classmethod
     def get_iter_dict(
-        cls,
+        self,
         lines: Union[List[str], str],
-        word_vocab: Vocab,
-        word_tokenizer: WordTokenizer,
-        max_word_length: int,
-        word_add_start_end_token: bool,
         labels: Optional[Union[str, List[str]]] = None,
     ):
         if isinstance(lines, str):
             lines = [lines]
 
-        word_instances = word_tokenizer.tokenize_batch(lines)
+        word_instances = self.word_tokenizer.tokenize_batch(lines)
         len_instances = [len(instance) for instance in word_instances]
-        word_numericalizer = Numericalizer(vocabulary=word_vocab)
-        classnames2idx = GenericSectDataset.get_classname2idx()
-
-        if labels is not None:
-            if isinstance(labels, str):
-                labels = [labels]
-
-            labels = [classnames2idx[label] for label in labels]
-            label = torch.LongTensor(labels)
+        classnames2idx = self.get_classname2idx()
 
         padded_instances = []
         for word_instance in word_instances:
             padded_instance = pack_to_length(
                 tokenized_text=word_instance,
-                max_length=max_word_length,
-                pad_token=word_vocab.pad_token,
-                add_start_end_token=True,  # TODO: remove hard coded value here
-                start_token=word_vocab.start_token,
-                end_token=word_vocab.end_token,
+                max_length=self.max_instance_length,
+                pad_token=self.word_vocab.pad_token,
+                add_start_end_token=True,
+                start_token=self.word_vocab.start_token,
+                end_token=self.word_vocab.end_token,
             )
             padded_instances.append(padded_instance)
 
-        tokens = word_numericalizer.numericalize_batch_instances(padded_instances)
+        tokens = self.word_numericalizer.numericalize_batch_instances(padded_instances)
         tokens = torch.LongTensor(tokens)
         tokens = tokens.squeeze(0)
 
@@ -212,6 +192,12 @@ class GenericSectDataset(BaseTextClassification, ClassNursery):
         }
 
         if labels is not None:
+            if isinstance(labels, str):
+                labels = [labels]
+
+            labels = [classnames2idx[label] for label in labels]
+            label = torch.LongTensor(labels)
+
             instance_dict["label"] = label
 
         return instance_dict

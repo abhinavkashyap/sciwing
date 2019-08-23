@@ -182,6 +182,7 @@ class sprinkle_dataset:
             self.word_tokenizer = WordTokenizer(self.word_tokenization_type)
             self.set_word_vocab()
             instance.word_tokenizer = self.word_tokenizer
+            instance.word_numericalizer = self.word_numericalizer
             instance.word_vocab = copy.deepcopy(self.word_vocab)
             instance.word_instances = copy.deepcopy(self.word_instances)
             instance.num_instances = len(self.word_instances)
@@ -195,6 +196,7 @@ class sprinkle_dataset:
             instance.char_vocab = copy.deepcopy(self.char_vocab)
             instance.char_instances = copy.deepcopy(self.char_instances)
             instance.char_tokenizer = self.char_tokenizer
+            instance.char_numericalizer = self.char_numericalizer
 
         if self.is_get_label_stats_table:
             label_stats_table = self._get_label_stats_table()

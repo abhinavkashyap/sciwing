@@ -236,17 +236,7 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
         line = self.lines[idx]
         labels_string = self.labels[idx].split()
 
-        return self.get_iter_dict(
-            line=line,
-            word_vocab=self.word_vocab,
-            word_tokenizer=self.word_tokenizer,
-            max_word_length=self.max_instance_length,
-            word_add_start_end_token=self.word_add_start_end_token,
-            char_vocab=self.char_vocab,
-            char_tokenizer=self.char_tokenizer,
-            max_char_length=self.max_char_length,
-            labels=labels_string,
-        )
+        return self.get_iter_dict(line=line, label=labels_string)
 
     @classmethod
     def emits_keys(cls):
@@ -265,35 +255,58 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
             f"char_tokens for an instance is a torch.LongTensor of shape [max_word_len, max_char_len]",
         }
 
-    @classmethod
-    def get_iter_dict(
-        cls,
-        line: str,
-        word_vocab: Vocab,
-        word_tokenizer: WordTokenizer,
-        max_word_length: int,
-        word_add_start_end_token: bool,
-        instance_preprocessor=None,
-        char_vocab: Optional[Vocab] = None,
-        char_tokenizer: Optional[CharacterTokenizer] = None,
-        max_char_length: Optional[int] = None,
-        labels: Optional[List[str]] = None,
-        need_padding=True,
-    ):
-        word_instance = word_tokenizer.tokenize(line)
+    def get_iter_dict(self, line: str, label: Optional[List[str]] = None):
+        word_instance = self.word_tokenizer.tokenize(line)
         len_instance = len(word_instance)
         classnames2idx = ScienceIEDataset.get_classname2idx()
         idx2classname = {idx: classname for classname, idx in classnames2idx.items()}
-        word_numericalizer = Numericalizer(vocabulary=word_vocab)
-        char_numericalizer = Numericalizer(vocabulary=char_vocab)
 
-        if labels is not None:
-            assert len_instance == len(labels)
+        padded_word_instance = pack_to_length(
+            tokenized_text=word_instance,
+            max_length=self.max_instance_length,
+            pad_token=self.word_vocab.pad_token,
+            add_start_end_token=self.word_add_start_end_token,
+            start_token=self.word_vocab.start_token,
+            end_token=self.word_vocab.end_token,
+        )
+        tokens = self.word_numericalizer.numericalize_instance(padded_word_instance)
+        tokens = torch.LongTensor(tokens)
+        len_tokens = torch.LongTensor([len_instance])
+
+        character_tokens = []
+        # 1. For every word we get characters in the word
+        # 2. Pad the characters to max_char_length
+        # 3. Convert them into numbers
+        # 4. Add them to character_tokens
+        for word in padded_word_instance:
+            char_instance = self.char_tokenizer.tokenize(word)
+            padded_character_instance = pack_to_length(
+                tokenized_text=char_instance,
+                max_length=self.max_char_length,
+                pad_token=" ",
+                add_start_end_token=False,
+            )
+            padded_character_tokens = self.char_numericalizer.numericalize_instance(
+                padded_character_instance
+            )
+            character_tokens.append(padded_character_tokens)
+        character_tokens = torch.LongTensor(character_tokens)
+
+        instance_dict = {
+            "tokens": tokens,
+            "len_tokens": len_tokens,
+            "instance": " ".join(padded_word_instance),
+            "raw_instance": " ".join(word_instance),
+            "char_tokens": character_tokens,
+        }
+
+        if label is not None:
+            assert len_instance == len(label)
             task_labels = []
             process_labels = []
             material_labels = []
 
-            for string in labels:
+            for string in label:
                 task_label, process_label, material_label = string.split(":")
                 task_labels.append(task_label)
                 process_labels.append(process_label)
@@ -305,27 +318,27 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
 
             padded_task_labels = pack_to_length(
                 tokenized_text=task_labels,
-                max_length=max_word_length,
+                max_length=self.max_instance_length,
                 pad_token="padding-Task",
-                add_start_end_token=word_add_start_end_token,
+                add_start_end_token=self.word_add_start_end_token,
                 start_token="starting-Task",
                 end_token="ending-Task",
             )
 
             padded_process_labels = pack_to_length(
                 tokenized_text=process_labels,
-                max_length=max_word_length,
+                max_length=self.max_instance_length,
                 pad_token="padding-Process",
-                add_start_end_token=word_add_start_end_token,
+                add_start_end_token=self.word_add_start_end_token,
                 start_token="starting-Process",
                 end_token="ending-Process",
             )
 
             padded_material_labels = pack_to_length(
                 tokenized_text=material_labels,
-                max_length=max_word_length,
+                max_length=self.max_instance_length,
                 pad_token="padding-Material",
-                add_start_end_token=word_add_start_end_token,
+                add_start_end_token=self.word_add_start_end_token,
                 start_token="starting-Material",
                 end_token="ending-Material",
             )
@@ -346,15 +359,15 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
             ]
 
             mask_task_label = [
-                1 if idx2classname[class_idx] in cls.ignore_labels else 0
+                1 if idx2classname[class_idx] in self.ignore_labels else 0
                 for class_idx in padded_task_labels
             ]
             mask_process_label = [
-                1 if idx2classname[class_idx] in cls.ignore_labels else 0
+                1 if idx2classname[class_idx] in self.ignore_labels else 0
                 for class_idx in padded_process_labels
             ]
             mask_material_label = [
-                1 if idx2classname[class_idx] in cls.ignore_labels else 0
+                1 if idx2classname[class_idx] in self.ignore_labels else 0
                 for class_idx in padded_material_labels
             ]
 
@@ -369,47 +382,6 @@ class ScienceIEDataset(BaseSeqLabelingDataset, ClassNursery):
             label_mask = torch.cat(
                 [mask_task_label, mask_process_label, mask_material_label], dim=0
             )
-
-        padded_word_instance = pack_to_length(
-            tokenized_text=word_instance,
-            max_length=max_word_length,
-            pad_token=word_vocab.pad_token,
-            add_start_end_token=word_add_start_end_token,
-            start_token=word_vocab.start_token,
-            end_token=word_vocab.end_token,
-        )
-        tokens = word_numericalizer.numericalize_instance(padded_word_instance)
-        tokens = torch.LongTensor(tokens)
-        len_tokens = torch.LongTensor([len_instance])
-
-        character_tokens = []
-        # 1. For every word we get characters in the word
-        # 2. Pad the characters to max_char_length
-        # 3. Convert them into numbers
-        # 4. Add them to character_tokens
-        for word in padded_word_instance:
-            char_instance = char_tokenizer.tokenize(word)
-            padded_character_instance = pack_to_length(
-                tokenized_text=char_instance,
-                max_length=max_char_length,
-                pad_token=" ",
-                add_start_end_token=False,
-            )
-            padded_character_tokens = char_numericalizer.numericalize_instance(
-                padded_character_instance
-            )
-            character_tokens.append(padded_character_tokens)
-        character_tokens = torch.LongTensor(character_tokens)
-
-        instance_dict = {
-            "tokens": tokens,
-            "len_tokens": len_tokens,
-            "instance": " ".join(padded_word_instance),
-            "raw_instance": " ".join(word_instance),
-            "char_tokens": character_tokens,
-        }
-
-        if labels is not None:
             instance_dict["label"] = label
             instance_dict["label_mask"] = label_mask
 

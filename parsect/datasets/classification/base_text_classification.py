@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import Union, Dict, List
+from typing import Union, Dict, List, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 from sklearn.model_selection import StratifiedShuffleSplit
 import numpy as np
@@ -226,6 +226,5 @@ class BaseTextClassification(Dataset, metaclass=ABCMeta):
         """
         pass
 
-    @classmethod
-    def get_iter_dict(cls, *args, **kwargs):
+    def get_iter_dict(self, lines: List[str], labels: Optional[List[str]]):
         pass

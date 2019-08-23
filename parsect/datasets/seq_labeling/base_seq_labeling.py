@@ -197,19 +197,5 @@ class BaseSeqLabelingDataset(Dataset, metaclass=ABCMeta):
         """
         pass
 
-    @classmethod
-    def get_iter_dict(
-        cls,
-        line: str,
-        word_vocab: Vocab,
-        word_tokenizer: WordTokenizer,
-        max_word_length: int,
-        word_add_start_end_token: bool,
-        instance_preprocessor: Optional[InstancePreprocessing] = None,
-        char_vocab: Optional[Vocab] = None,
-        char_tokenizer: Optional[CharacterTokenizer] = None,
-        max_char_length: Optional[int] = None,
-        labels: Optional[List[str]] = None,
-        need_padding: bool = True,
-    ):
+    def get_iter_dict(self, line: str, label: Optional[List[str]] = None):
         pass
