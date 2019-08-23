@@ -6,6 +6,8 @@ from parsect.datasets.classification.base_text_classification import (
 )
 from parsect.numericalizer.numericalizer import Numericalizer
 from parsect.vocab.vocab import Vocab
+from parsect.tokenizers.word_tokenizer import WordTokenizer
+from parsect.tokenizers.character_tokenizer import CharacterTokenizer
 import copy
 import wrapt
 import wasabi
@@ -22,6 +24,7 @@ class sprinkle_dataset:
         self.init_signature = None
         self.filename = None
 
+        self.word_tokenization_type = None
         self.word_tokenizer = None
         self.word_instances = None
         self.word_vocab = None
@@ -49,15 +52,10 @@ class sprinkle_dataset:
         self.char_end_token = None
 
         self.word_vocab_required_attributes = [
-            "word_tokenizer",
             "max_num_words",
             "word_vocab_store_location",
             "word_embedding_type",
-            "word_embedding_type",
-            "word_unk_token",
-            "word_pad_token",
-            "word_start_token",
-            "word_end_token",
+            "word_embedding_dimension",
         ]
 
     def set_word_vocab(self):
@@ -181,7 +179,9 @@ class sprinkle_dataset:
         self.word_vocab = None
 
         if "word_vocab" in self.vocab_pipe:
+            self.word_tokenizer = WordTokenizer(self.word_tokenization_type)
             self.set_word_vocab()
+            instance.word_tokenizer = self.word_tokenizer
             instance.word_vocab = copy.deepcopy(self.word_vocab)
             instance.word_instances = copy.deepcopy(self.word_instances)
             instance.num_instances = len(self.word_instances)
@@ -190,9 +190,11 @@ class sprinkle_dataset:
             )
 
         if "char_vocab" in self.vocab_pipe:
+            self.char_tokenizer = CharacterTokenizer()
             self.set_char_vocab()
             instance.char_vocab = copy.deepcopy(self.char_vocab)
             instance.char_instances = copy.deepcopy(self.char_instances)
+            instance.char_tokenizer = self.char_tokenizer
 
         if self.is_get_label_stats_table:
             label_stats_table = self._get_label_stats_table()

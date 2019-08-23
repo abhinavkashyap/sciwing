@@ -9,12 +9,13 @@ FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-@pytest.fixture(scope="session")
-def setup_parsect_train_dataset(tmpdir_factory):
+@pytest.fixture(scope="session", params=["vanilla", "spacy"])
+def setup_parsect_train_dataset(tmpdir_factory, request):
     MAX_NUM_WORDS = 1000
     MAX_LENGTH = 10
     vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
     DEBUG = True
+    tokenization_type = request.param
 
     train_dataset = ParsectDataset(
         filename=SECT_LABEL_FILE,
@@ -26,6 +27,7 @@ def setup_parsect_train_dataset(tmpdir_factory):
         train_size=0.8,
         test_size=0.2,
         validation_size=0.5,
+        word_tokenization_type=tokenization_type,
     )
 
     return (

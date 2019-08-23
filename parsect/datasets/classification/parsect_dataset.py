@@ -42,7 +42,6 @@ class ParsectDataset(BaseTextClassification, ClassNursery):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
-        word_tokenizer=WordTokenizer(),
         word_tokenization_type="vanilla",
     ):
         self.classname2idx = self.get_classname2idx()

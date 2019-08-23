@@ -33,7 +33,6 @@ class GenericSectDataset(BaseTextClassification, ClassNursery):
         train_size: float = 0.8,
         test_size: float = 0.2,
         validation_size: float = 0.5,
-        word_tokenizer=WordTokenizer(),
         word_tokenization_type="vanilla",
         add_start_end_token: bool = True,
     ):
