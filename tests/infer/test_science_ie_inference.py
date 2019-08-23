@@ -22,7 +22,7 @@ SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 
 @pytest.fixture(scope="session")
 def setup_science_ie_inference():
-    debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "lstm_crf_scienceie_debug")
+    debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "debug_science_ie")
     return get_science_ie_infer(debug_parscit_model_folder)
 
 

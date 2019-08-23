@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
+from parsect.utils.class_nursery import ClassNursery
 
 
-class CharLSTMEncoder(nn.Module):
+class CharLSTMEncoder(nn.Module, ClassNursery):
     def __init__(
         self,
         char_embedder: nn.Module,

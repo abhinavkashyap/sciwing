@@ -9,12 +9,16 @@ from parsect.modules import *
 from parsect.utils.class_nursery import ClassNursery
 from parsect.utils.common import create_class
 import torch.nn as nn
-import inspect
+from typing import Dict
+import networkx as nx
+import copy
+import wasabi
 
 
 class SciWingTOMLRunner:
     def __init__(self, toml_filename: pathlib.Path):
         self.toml_filename = toml_filename
+        self.msg_printer = wasabi.Printer()
         self.doc = self._parse_toml_file()
 
         self.experiment_name = None
@@ -23,7 +27,7 @@ class SciWingTOMLRunner:
         )  # Dict {'train': Dataset, 'valid': Dataset, 'test': Dataset}
         self.model = None
         self.engine = None
-        self._parse()
+        self.model_dag = nx.DiGraph()
 
     def _parse_toml_file(self):
         try:
@@ -54,6 +58,7 @@ class SciWingTOMLRunner:
             )
         else:
             self.all_datasets = self.parse_dataset_section()
+            pass
 
         # get the model section from toml
         model_section = self.doc.get("model")
@@ -78,9 +83,8 @@ class SciWingTOMLRunner:
         dataset_section = self.doc.get("dataset")
         all_datasets = {}
 
-        dataset_name = dataset_section.get("name")
         dataset_classname = dataset_section.get("class")
-        if dataset_name is None or dataset_classname is None:
+        if dataset_classname is None:
             raise TOMLConfigurationError(
                 f"Dataset section needs to have a name and class section"
             )
@@ -103,62 +107,169 @@ class SciWingTOMLRunner:
                 print(f"Class {dataset_classname} is not found ")
         return all_datasets
 
-    def _parse_model_section(self, section: dict, args={}):
-        for key in section.keys():
-            value = section[key]
-            if key in ["class", "name", "self"]:
-                pass
+    def _form_dag(self, section_name: str, section: Dict, parent: str):
+        """ Forms a DAG of the model section for execution
 
-            # we will instantiate the submodules in this
-            elif isinstance(value, dict):
-                insider_args = self._parse_model_section(section[key], args={})
-                module_classname = section[key]["class"]
-                cls_obj = create_class(
-                    module_name=ClassNursery.class_nursery[module_classname],
-                    classname=section[key]["class"],
-                )
-                submodule = cls_obj(**insider_args)
-                args[key] = submodule
-            # special handling for embedders
+        The model can be a complex structure with various other sub-components that can be used
+        One depends on the other and the order of execution has to be decided
+        DAG is a good abstract model to define the dependence between different modules
+        This method instantiates a DAG given the section name, the TOML section that is being
+        parsed with a directed edge between the parent and the child
+
+        Parameters
+        ----------
+        section_name : str
+            The name of the TOML section being parsed
+        section : Dict
+            The details of the actual section
+        parent : str
+            The node id of the parent graph
+
+        Returns
+        -------
+
+        """
+        classname = section.get("class")
+        name = f"{section_name}__{classname}"
+        self.model_dag.add_node(name)
+        self.model_dag.nodes[name]["tag"] = section_name
+
+        if parent is not None:
+            self.model_dag.add_edge(parent, name)
+
+        subsections = []
+        for key, value in section.items():
+            # another submodule is being used for this module in TOML
+            if isinstance(value, dict):
+                subsections.append({"section_name": key, "section": value})
+            # This possibly is an embedder
             elif isinstance(value, list):
-                embedders = []
                 for subsection in value:
-                    if subsection.get("embed") == "word_vocab":
-                        is_freeze = subsection.get("freeze", False)
-                        embedding = self.all_datasets[
-                            "train"
-                        ].word_vocab.load_embedding()
-                        embedding = nn.Embedding.from_pretrained(
-                            embeddings=embedding, freeze=is_freeze
-                        )
-                        embedding_dim = self.all_datasets[
-                            "train"
-                        ].word_vocab.embedding_dimension
-                        embedder = VanillaEmbedder(
-                            embedding_dim=embedding_dim, embedding=embedding
-                        )
-                        embedders.append(embedder)
-                    else:
-                        classname = subsection.get("class")
-                        embedder_args = {}
-                        for attr_key, attr in subsection.items():
-                            if attr_key in ["class", "name"]:
-                                pass
-                            else:
-                                embedder_args[attr_key] = attr
-                        cls_obj = create_class(
-                            classname=classname,
-                            module_name=ClassNursery.class_nursery[classname],
-                        )
-                        embedder = cls_obj(**embedder_args)
-                        embedders.append(embedder)
-
-                final_embedder = ConcatEmbedders(embedders=embedders)
-                args["embedder"] = final_embedder
-
+                    subsections.append({"section_name": key, "section": subsection})
             else:
-                args[key] = section[key]
-        return args
+                self.model_dag.nodes[name][key] = value
+
+        for subsection in subsections:
+            self._form_dag(
+                section_name=subsection["section_name"],
+                section=subsection["section"],
+                parent=name,
+            )
+
+    def _instantiate_model_using_dag(self):
+        topo_order = nx.algorithms.topological_sort(self.model_dag)
+        topo_order = reversed(list(topo_order))
+        topo_order = list(topo_order)
+        root_nodename = topo_order[-1]
+
+        for node_id in topo_order:
+            node_data = self.model_dag.nodes[node_id]
+            tag = node_data.get("tag", None)
+            classname = node_data.pop("class", None)
+            if classname is None:
+                raise TOMLConfigurationError(
+                    f"class is missing for one of the components of your model"
+                )
+            class_args = copy.deepcopy(self.model_dag.nodes[node_id])
+            class_args.pop("instantiated_class", None)
+            current_node_tag = class_args.pop("tag", None)
+            # leaf node
+            # we always assume that vanilla embedder is used at the lower level
+            # This is a reasonable assumption to make
+            if not list(self.model_dag.successors(node_id)):
+                if node_data.get("embed") == "word_vocab":
+                    embedding = self.all_datasets["train"].word_vocab.load_embedding()
+                    embedding_dim = self.all_datasets[
+                        "train"
+                    ].word_vocab.embedding_dimension
+                    freeze = node_data.get("freeze", False)
+                    embedding = nn.Embedding.from_pretrained(embedding, freeze=freeze)
+                    embedder = VanillaEmbedder(
+                        embedding_dim=embedding_dim, embedding=embedding
+                    )
+                    self.model_dag.nodes[node_id]["instantiated_class"] = {
+                        "key": tag,
+                        "object": embedder,
+                    }
+                elif node_data.get("embed") == "char_vocab":
+                    embedding = self.all_datasets["train"].char_vocab.load_embedding()
+                    embedding_dim = self.all_datasets[
+                        "train"
+                    ].char_vocab.embedding_dimension
+                    freeze = node_data.get("freeze", False)
+                    embedding = nn.Embedding.from_pretrained(embedding, freeze=freeze)
+                    embedder = VanillaEmbedder(
+                        embedding_dim=embedding_dim, embedding=embedding
+                    )
+                    self.model_dag.nodes[node_id]["instantiated_class"] = {
+                        "key": tag,
+                        "object": embedder,
+                    }
+                else:
+                    cls_obj = create_class(
+                        classname=classname,
+                        module_name=ClassNursery.class_nursery[classname],
+                    )
+                    cls_obj = cls_obj(**class_args)
+                    self.model_dag.nodes[node_id]["instantiated_class"] = {
+                        "key": tag,
+                        "object": cls_obj,
+                    }
+
+            # must have children that would have been instantiated
+            else:
+                successors = list(self.model_dag.successors(node_id))
+                num_successors = len(successors)
+                different_tags = set(
+                    self.model_dag.nodes[child]["tag"] for child in successors
+                )
+                num_different_tags = len(different_tags)
+
+                if num_successors > 1 and num_different_tags == 1:
+                    # pass through concat embedders
+                    embedders = []
+                    unique_tag = different_tags.pop()
+                    for successor in successors:
+                        node_data = self.model_dag.nodes[successor]
+                        embedder = node_data["instantiated_class"]["object"]
+                        embedders.append(embedder)
+
+                    embedder = ConcatEmbedders(embedders=embedders)
+
+                    # instantiate the current node here
+                    class_args[unique_tag] = embedder
+                    cls_obj = create_class(
+                        classname=classname,
+                        module_name=ClassNursery.class_nursery[classname],
+                    )
+                    cls_obj = cls_obj(**class_args)
+                    self.model_dag.nodes[node_id]["instantiated_class"] = {
+                        "key": current_node_tag,
+                        "object": cls_obj,
+                    }
+
+                # use their tags separately as attributes of the parent node
+                else:
+                    for successor in successors:
+                        successor_node_data = self.model_dag.nodes[successor]
+                        instantiated_class_data = successor_node_data[
+                            "instantiated_class"
+                        ]
+                        successor_key = instantiated_class_data["key"]
+                        successor_obj = instantiated_class_data["object"]
+                        class_args[successor_key] = successor_obj
+
+                    cls_obj = create_class(
+                        classname=classname,
+                        module_name=ClassNursery.class_nursery[classname],
+                    )
+                    cls_obj = cls_obj(**class_args)
+                    self.model_dag.nodes[node_id]["instantiated_class"] = {
+                        "key": current_node_tag,
+                        "object": cls_obj,
+                    }
+
+        return self.model_dag.nodes[root_nodename]["instantiated_class"]["object"]
 
     def parse_model_section(self):
         """ Parses the Model section of the toml file
@@ -168,13 +279,15 @@ class SciWingTOMLRunner:
             nn.Module
                 A torch module representing the model
             """
-        model_section = self.doc.get("model")
-        # parse all the different arguments
-        args = self._parse_model_section(section=model_section)
-        model_classname = model_section.get("class")
-        model_module_name = ClassNursery.class_nursery.get(model_classname)
-        cls_obj = create_class(classname=model_classname, module_name=model_module_name)
-        model = cls_obj(**args)
+        with self.msg_printer.loading("Loading Model from file"):
+            model_section = self.doc.get("model")
+            self._form_dag(section_name="model", section=model_section, parent=None)
+            # it has to be a DAG (no cycles please!)
+            assert nx.dag.is_directed_acyclic_graph(self.model_dag)
+
+            # now we can instantiate the model by parsing in a bottom up manner
+            model = self._instantiate_model_using_dag()
+        self.msg_printer.good("Finished Loading Model")
         return model
 
     def parse_engine_section(self):
@@ -238,6 +351,7 @@ class SciWingTOMLRunner:
         return engine
 
     def run(self):
+        self._parse()
         self.engine.run()
 
 
@@ -246,5 +360,6 @@ if __name__ == "__main__":
 
     PATHS = constants.PATHS
     CONFIGS_DIR = PATHS["CONFIGS_DIR"]
-    bow_random_parsect_toml = pathlib.Path(CONFIGS_DIR, "bow_random_parsect.toml")
+    bow_random_parsect_toml = pathlib.Path(CONFIGS_DIR, "bow_random_gensect.toml")
     toml_parser = SciWingTOMLRunner(toml_filename=bow_random_parsect_toml)
+    toml_parser.run()
