@@ -1,6 +1,5 @@
 import pathlib
 import parsect.constants as constants
-from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from parsect.models.science_ie_tagger import ScienceIETagger
 from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
@@ -11,7 +10,7 @@ from allennlp.modules.conditional_random_field import allowed_transitions
 import json
 import torch
 import torch.nn as nn
-from parsect.infer.sci_ie_inference import ScienceIEInference
+from parsect.infer.seq_label_inference.science_ie_inference import ScienceIEInference
 
 FILES = constants.FILES
 PATHS = constants.PATHS
@@ -148,9 +147,6 @@ def get_science_ie_infer(dirname: str):
     )
 
     inference_client = ScienceIEInference(
-        model=model,
-        model_filepath=str(model_filepath),
-        hyperparam_config_filepath=str(hyperparam_config_filename),
-        dataset=test_dataset,
+        model=model, model_filepath=str(model_filepath), dataset=test_dataset
     )
     return inference_client

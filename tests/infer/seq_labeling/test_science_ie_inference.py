@@ -1,17 +1,7 @@
 import pytest
-from parsect.infer.sci_ie_inference import ScienceIEInference
-from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
-from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.charlstm_encoder import CharLSTMEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.modules.embedders.concat_embedders import ConcatEmbedders
-from parsect.models.science_ie_tagger import ScienceIETagger
 from parsect.infer.science_ie_infer import get_science_ie_infer
 import parsect.constants as constants
 import pathlib
-import json
-import torch.nn as nn
-import torch
 
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
@@ -22,13 +12,14 @@ SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 
 @pytest.fixture(scope="session")
 def setup_science_ie_inference():
-    debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "debug_science_ie")
+    debug_parscit_model_folder = pathlib.Path(OUTPUT_DIR, "lstm_crf_scienceie_debug")
     return get_science_ie_infer(debug_parscit_model_folder)
 
 
 class TestScienceIEInference:
     def test_print_prf_table_works(self, setup_science_ie_inference):
         inference = setup_science_ie_inference
+        inference.run_test()
         try:
             inference.print_prf_table()
         except:
@@ -36,6 +27,7 @@ class TestScienceIEInference:
 
     def test_print_confusion_matrix_works(self, setup_science_ie_inference):
         inference = setup_science_ie_inference
+        inference.run_test()
         try:
             inference.print_confusion_matrix()
         except:
@@ -47,6 +39,7 @@ class TestScienceIEInference:
         self, setup_science_ie_inference, first_class, second_class
     ):
         inference = setup_science_ie_inference
+        inference.run_test()
         try:
             inference.get_misclassified_sentences(first_class, second_class)
         except:
@@ -54,6 +47,7 @@ class TestScienceIEInference:
 
     def test_generate_report_for_paper_works(self, setup_science_ie_inference):
         inference = setup_science_ie_inference
+        inference.run_test()
         try:
             inference.generate_report_for_paper()
         except:
@@ -61,6 +55,7 @@ class TestScienceIEInference:
 
     def test_science_ie_user_input(self, setup_science_ie_inference):
         inference = setup_science_ie_inference
+        inference.run_test()
         try:
             inference.infer_single_sentence("This is a sentence")
         except:
@@ -70,6 +65,7 @@ class TestScienceIEInference:
         self, setup_science_ie_inference, tmpdir_factory
     ):
         inference = setup_science_ie_inference
+        inference.run_test()
         try:
             dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
             pred_folder = tmpdir_factory.mktemp("science_ie_pred_folder")

@@ -199,7 +199,7 @@ class ClassificationInference(BaseClassificationInference):
             iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
 
         model_output_dict = self.model_forward_on_iter_dict(iter_dict=iter_dict)
-        pred_indices, pred_classnames = self.model_output_dict_to_prediction_indices_names(
+        _, pred_classnames = self.model_output_dict_to_prediction_indices_names(
             model_output_dict=model_output_dict
         )
         return pred_classnames

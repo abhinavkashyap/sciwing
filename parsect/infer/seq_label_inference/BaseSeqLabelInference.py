@@ -5,9 +5,7 @@ import wasabi
 
 
 class BaseSeqLabelInference(metaclass=ABCMeta):
-    def __init__(
-        self, model, model_filepath, dataset, device: Optional[Union[str, torch.device]]
-    ):
+    def __init__(self, model, model_filepath, dataset, device):
         self.model = model
         self.model_filepath = model_filepath
         self.dataset = dataset
