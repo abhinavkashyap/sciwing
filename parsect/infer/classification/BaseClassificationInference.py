@@ -3,7 +3,7 @@ import torch.nn as nn
 import json
 import torch
 import wasabi
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Union, List
 
 
 class BaseClassificationInference(metaclass=ABCMeta):
@@ -11,27 +11,23 @@ class BaseClassificationInference(metaclass=ABCMeta):
         self,
         model: nn.Module,
         model_filepath: str,
-        hyperparam_config_filepath: str,
         dataset,
+        device: Optional[Union[str, torch.device]] = torch.device("cpu"),
     ):
         """
-               :param model: type: torch.nn.Module
-               Pass the model on which inference should be run
-               :param model_filepath: type: str
-               The model filepath is the chkpoint file where the model state is stored
-               :param hyperparam_config_filepath: type: str
-               The path where all hyper-parameters necessary for restoring the model
-               is necessary
+
+        Parameters
+        ----------
+        model
+        model_filepath
+        dataset
+        device
         """
         self.model = model
         self.model_filepath = model_filepath
-        self.hyperparam_config_filename = hyperparam_config_filepath
-        self.test_dataset = dataset
+        self.dataset = dataset
 
-        with open(self.hyperparam_config_filename, "r") as fp:
-            config = json.load(fp)
-
-        self.device = torch.device(config.get("DEVICE", "cpu"))
+        self.device = torch.device(device) if isinstance(device, str) else device
         self.msg_printer = wasabi.Printer()
 
     def load_model(self):
@@ -49,4 +45,32 @@ class BaseClassificationInference(metaclass=ABCMeta):
 
     @abstractmethod
     def run_inference(self) -> Dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def model_forward_on_iter_dict(self, iter_dict: Dict[str, Any]):
+        pass
+
+    @abstractmethod
+    def metric_calc_on_iter_dict(
+        self, iter_dict: Dict[str, Any], model_output_dict: Dict[str, Any]
+    ):
+        pass
+
+    @abstractmethod
+    def model_output_dict_to_prediction_indices_names(
+        self, model_output_dict: Dict[str, Any]
+    ) -> (List[int], List[str]):
+        pass
+
+    @abstractmethod
+    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]):
+        pass
+
+    @abstractmethod
+    def iter_dict_to_true_indices_names(self, iter_dict: Dict[str, Any]):
+        pass
+
+    @abstractmethod
+    def print_metrics(self):
         pass

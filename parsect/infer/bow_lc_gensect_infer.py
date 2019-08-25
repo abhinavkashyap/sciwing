@@ -1,7 +1,9 @@
 import json
 import os
 import parsect.constants as constants
-from parsect.infer.classification.classification_inference import ParsectInference
+from parsect.infer.classification.classification_inference import (
+    ClassificationInference,
+)
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
@@ -61,7 +63,7 @@ def get_bow_lc_gensect_infer(dirname: str):
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    parsect_inference = ParsectInference(
+    parsect_inference = ClassificationInference(
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,

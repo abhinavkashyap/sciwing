@@ -1,7 +1,9 @@
 import json
 import os
 import parsect.constants as constants
-from parsect.infer.classification.classification_inference import ParsectInference
+from parsect.infer.classification.classification_inference import (
+    ClassificationInference,
+)
 from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
@@ -58,7 +60,7 @@ def get_elmo_emb_lc_infer_parsect(dirname: str):
         word_embedding_dimension=EMBEDDING_DIM,
     )
 
-    parsect_inference = ParsectInference(
+    parsect_inference = ClassificationInference(
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,

@@ -11,7 +11,7 @@ from parsect.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture
-def setup_classifier_bs_1():
+def setup_simple_classifier():
     BATCH_SIZE = 1
     NUM_TOKENS = 3
     EMB_DIM = 300
@@ -36,8 +36,10 @@ def setup_classifier_bs_1():
 
 
 class TestSimpleClassifier:
-    def test_classifier_produces_0_logits_for_0_embedding(self, setup_classifier_bs_1):
-        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
+    def test_classifier_produces_0_logits_for_0_embedding(
+        self, setup_simple_classifier
+    ):
+        iter_dict, simple_classifier, batch_size, num_classes = setup_simple_classifier
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
@@ -46,9 +48,9 @@ class TestSimpleClassifier:
         assert torch.allclose(logits, expected_logits)
 
     def test_classifier_produces_equal_probs_for_0_embedding(
-        self, setup_classifier_bs_1
+        self, setup_simple_classifier
     ):
-        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
+        iter_dict, simple_classifier, batch_size, num_classes = setup_simple_classifier
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
@@ -57,9 +59,9 @@ class TestSimpleClassifier:
         assert torch.allclose(probs, expected_probs)
 
     def test_classifier_produces_correct_initial_loss_for_0_embedding(
-        self, setup_classifier_bs_1
+        self, setup_simple_classifier
     ):
-        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
+        iter_dict, simple_classifier, batch_size, num_classes = setup_simple_classifier
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )
@@ -67,8 +69,8 @@ class TestSimpleClassifier:
         correct_loss = -np.log(1 / num_classes)
         assert torch.allclose(torch.Tensor([loss]), torch.Tensor([correct_loss]))
 
-    def test_classifier_produces_correct_precision(self, setup_classifier_bs_1):
-        iter_dict, simple_classifier, batch_size, num_classes = setup_classifier_bs_1
+    def test_classifier_produces_correct_precision(self, setup_simple_classifier):
+        iter_dict, simple_classifier, batch_size, num_classes = setup_simple_classifier
         output = simple_classifier(
             iter_dict, is_training=True, is_validation=False, is_test=False
         )

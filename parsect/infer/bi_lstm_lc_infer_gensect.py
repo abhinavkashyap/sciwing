@@ -2,7 +2,9 @@ import os
 import parsect.constants as constants
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.infer.classification.classification_inference import ParsectInference
+from parsect.infer.classification.classification_inference import (
+    ClassificationInference,
+)
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 import json
 import torch.nn as nn
@@ -65,7 +67,7 @@ def get_bilstm_lc_infer_gensect(dirname: str):
         word_embedding_dimension=EMBEDDING_DIM,
     )
 
-    inference = ParsectInference(
+    inference = ClassificationInference(
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,

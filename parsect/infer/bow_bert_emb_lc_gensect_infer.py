@@ -5,7 +5,9 @@ from parsect.modules.embedders.bert_embedder import BertEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
-from parsect.infer.classification.classification_inference import ParsectInference
+from parsect.infer.classification.classification_inference import (
+    ClassificationInference,
+)
 import torch
 
 PATHS = constants.PATHS
@@ -66,7 +68,7 @@ def get_bow_bert_emb_lc_gensect_infer(dirname: str):
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    parsect_inference = ParsectInference(
+    parsect_inference = ClassificationInference(
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,

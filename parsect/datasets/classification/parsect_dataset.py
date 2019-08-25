@@ -3,9 +3,6 @@ from typing import List, Dict, Union, Any, Optional
 import parsect.constants as constants
 from parsect.utils.common import convert_sectlabel_to_json
 from parsect.utils.common import pack_to_length
-from parsect.vocab.vocab import Vocab
-from parsect.tokenizers.word_tokenizer import WordTokenizer
-from parsect.numericalizer.numericalizer import Numericalizer
 from wasabi import Printer
 import numpy as np
 from parsect.datasets.classification.base_text_classification import (

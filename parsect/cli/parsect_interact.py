@@ -127,6 +127,7 @@ class ParsectCli:
         exp_dir_path = pathlib.Path(exp_dir)
         inference_func = self.model_type2inf_func[self.model_type_answer]
         inference_client = inference_func(exp_dir)
+        inference_client.run_test()
 
         while True:
             choices = [
@@ -164,7 +165,7 @@ class ParsectCli:
 
                 self.msg_printer.divider("")
             elif interaction_choice == "See-prf-table":
-                inference_client.print_prf_table()
+                inference_client.print_metrics()
 
             elif interaction_choice == "enter_text":
                 text = questionary.text("Enter Text: ").ask()

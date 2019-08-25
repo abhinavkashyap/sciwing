@@ -38,7 +38,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         self,
         predicted_probs: torch.FloatTensor,
         labels: torch.LongTensor,
-        labels_mask: torch.ByteTensor,
+        labels_mask: Optional[torch.ByteTensor] = None,
     ) -> None:
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -52,6 +52,9 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             "The labels that you passed have shape "
             "{0}".format(labels.size())
         )
+
+        if labels_mask is None:
+            labels_mask = torch.zeros_like(labels).type(torch.ByteTensor)
 
         # TODO: for now k=1, change it to different number of ks
         top_probs, top_indices = predicted_probs.topk(k=1, dim=1)

@@ -4,7 +4,9 @@ from parsect.models.elmo_lstm_classifier import ElmoLSTMClassifier
 from parsect.modules.elmo_lstm_encoder import ElmoLSTMEncoder
 from parsect.modules.embedders.elmo_embedder import ElmoEmbedder
 from parsect.datasets.classification.parsect_dataset import ParsectDataset
-from parsect.infer.classification.classification_inference import ParsectInference
+from parsect.infer.classification.classification_inference import (
+    ClassificationInference,
+)
 import json
 import torch
 import torch.nn as nn
@@ -74,7 +76,7 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         word_embedding_dimension=EMBEDDING_DIM,
     )
 
-    inference = ParsectInference(
+    inference = ClassificationInference(
         model=model,
         model_filepath=model_filepath,
         hyperparam_config_filepath=hyperparam_config_filepath,
