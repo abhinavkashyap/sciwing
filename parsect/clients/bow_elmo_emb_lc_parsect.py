@@ -166,6 +166,18 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
+    test_dataset_params = {
+        "filename": SECT_LABEL_FILE,
+        "dataset_type": "test",
+        "max_num_words": MAX_NUM_WORDS,
+        "max_instance_length": MAX_LENGTH,
+        "word_vocab_store_location": VOCAB_STORE_LOCATION,
+        "debug": DEBUG,
+        "debug_dataset_proportion": DEBUG_DATASET_PROPORTION,
+        "word_embedding_type": EMBEDDING_TYPE,
+        "word_embedding_dimension": EMBEDDING_DIMENSION,
+    }
+
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
     random_embeddings = train_dataset.word_vocab.load_embedding()
@@ -214,5 +226,9 @@ if __name__ == "__main__":
     config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
     config["VOCAB_SIZE"] = VOCAB_SIZE
     config["NUM_CLASSES"] = NUM_CLASSES
+
     with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
         json.dump(config, fp)
+
+    with open(os.path.join(EXP_DIR_PATH, "test_dataset_params.json"), "w") as fp:
+        json.dump(test_dataset_params, fp)

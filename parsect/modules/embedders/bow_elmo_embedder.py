@@ -61,7 +61,10 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         # [np.array] - A generator of embeddings
         # each array in the list is of the shape (3, #words_in_sentence, 1024)
         x = iter_dict["instance"]
+        x = x if isinstance(x, list) else [x]
         x = [instance.split() for instance in x]
+
+        print(f"x {x}")
 
         embedded = list(self.elmo.embed_sentences(x))
 

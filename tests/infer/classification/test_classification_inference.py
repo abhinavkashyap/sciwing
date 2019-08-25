@@ -1,16 +1,19 @@
 import pytest
-import torch
-import torch.nn as nn
-from parsect.modules.embedders import VanillaEmbedder
-from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.models.simpleclassifier import SimpleClassifier
 import parsect.constants as constants
-from parsect.infer.classification.classification_inference import (
-    ClassificationInference,
-)
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
 import pathlib
-import json
+from parsect.infer.bow_lc_parsect_infer import get_bow_lc_parsect_infer
+from parsect.infer.bow_lc_gensect_infer import get_bow_lc_gensect_infer
+from parsect.infer.bow_elmo_emb_lc_parsect_infer import get_elmo_emb_lc_infer_parsect
+from parsect.infer.bow_elmo_emb_lc_gensect_infer import get_elmo_emb_lc_infer_gensect
+from parsect.infer.bow_bert_emb_lc_parsect_infer import (
+    get_bow_bert_emb_lc_parsect_infer,
+)
+from parsect.infer.bow_bert_emb_lc_gensect_infer import (
+    get_bow_bert_emb_lc_gensect_infer,
+)
+from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
+from parsect.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
+from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
@@ -18,72 +21,56 @@ PATHS = constants.PATHS
 
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
+directory_infer_client_mapping = {
+    "parsect_bow_random_emb_lc_debug": get_bow_lc_parsect_infer,
+    "gensect_bow_random_emb_lc_debug": get_bow_lc_gensect_infer,
+    "parsect_bow_elmo_emb_lc_debug": get_elmo_emb_lc_infer_parsect,
+    "debug_gensect_bow_elmo_emb_lc": get_elmo_emb_lc_infer_gensect,
+    "parsect_bow_bert_debug": get_bow_bert_emb_lc_parsect_infer,
+    "gensect_bow_bert_debug": get_bow_bert_emb_lc_gensect_infer,
+    "parsect_bi_lstm_lc_debug": get_bilstm_lc_infer_parsect,
+    "debug_gensect_bi_lstm_lc": get_bilstm_lc_infer_gensect,
+    "debug_parsect_elmo_bi_lstm_lc": get_elmo_bilstm_lc_infer,
+}
 
-@pytest.fixture
-def setup_inference(tmpdir_factory):
-    debug_experiment_path = pathlib.Path(OUTPUT_DIR, "parsect_bow_random_emb_lc_debug")
-    config_file = debug_experiment_path.joinpath(debug_experiment_path, "config.json")
-    test_dataset_params = debug_experiment_path.joinpath("test_dataset_params.json")
-    model_filepath = debug_experiment_path.joinpath("checkpoints", "best_model.pt")
+directory_infer_client_mapping = directory_infer_client_mapping.items()
 
-    with open(config_file) as fp:
-        config = json.load(fp)
 
-    EMB_DIM = config.get("EMBEDDING_DIMENSION")
-    VOCAB_SIZE = config.get("VOCAB_SIZE")
-    NUM_CLASSES = config.get("NUM_CLASSES")
+@pytest.fixture(params=directory_infer_client_mapping)
+def setup_inference(tmpdir_factory, request):
 
-    # setup the model
-    embedding = nn.Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
-    embedder = VanillaEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
+    dirname = request.param[0]
+    infer_func = request.param[1]
+    debug_experiment_path = pathlib.Path(OUTPUT_DIR, dirname)
 
-    encoder = BOW_Encoder(
-        emb_dim=EMB_DIM, embedder=embedder, dropout_value=0, aggregation_type="sum"
-    )
-
-    simple_classifier = SimpleClassifier(
-        encoder=encoder,
-        encoding_dim=EMB_DIM,
-        num_classes=NUM_CLASSES,
-        classification_layer_bias=True,
-    )
-    # setup the dataset
-    with open(test_dataset_params) as fp:
-        test_dataset_params = json.load(fp)
-
-    dataset = ParsectDataset(**test_dataset_params)
-
-    inference = ClassificationInference(
-        model=simple_classifier, model_filepath=model_filepath, dataset=dataset
-    )
-
-    return inference, dataset
+    inference_client = infer_func(str(debug_experiment_path))
+    return inference_client
 
 
 class TestClassificationInference:
     def test_run_inference_works(self, setup_inference):
-        inference_client, dataset = setup_inference
+        inference_client = setup_inference
         try:
             inference_client.run_inference()
         except:
             pytest.fail("Run inference for classification dataset fails")
 
     def test_run_test_works(self, setup_inference):
-        inference_client, dataset = setup_inference
+        inference_client = setup_inference
         try:
-            inference_client.run_inference()
+            inference_client.run_test()
         except:
             pytest.fail("Run test doest not work")
 
     def test_on_user_input_works(self, setup_inference):
-        inference_client, dataset = setup_inference
+        inference_client = setup_inference
         try:
             inference_client.on_user_input(line="test input")
         except:
             pytest.fail("On user input fails")
 
     def test_print_metrics_works(self, setup_inference):
-        inference_client, dataset = setup_inference
+        inference_client = setup_inference
         inference_client.run_test()
         try:
             inference_client.print_metrics()
@@ -91,7 +78,7 @@ class TestClassificationInference:
             pytest.fail("Print metrics failed")
 
     def test_print_confusion_metrics_works(self, setup_inference):
-        inference_client, dataset = setup_inference
+        inference_client = setup_inference
         inference_client.run_test()
         try:
             inference_client.print_confusion_matrix()
@@ -99,7 +86,7 @@ class TestClassificationInference:
             pytest.fail("Print confusion matrix fails")
 
     def test_get_misclassified_sentences(self, setup_inference):
-        inference_client, dataset = setup_inference
+        inference_client = setup_inference
         inference_client.run_test()
         try:
             inference_client.get_misclassified_sentences(

@@ -10,6 +10,7 @@ from parsect.infer.classification.classification_inference import (
 import json
 import torch
 import torch.nn as nn
+import pathlib
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -18,12 +19,17 @@ SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 def get_elmo_bilstm_lc_infer(dirname: str):
-    hyperparam_config_filepath = os.path.join(dirname, "config.json")
+
+    exp_dirpath = pathlib.Path(dirname)
+    hyperparam_config_filepath = exp_dirpath.joinpath("config.json")
+    test_dataset_params = exp_dirpath.joinpath("test_dataset_params.json")
+
     with open(hyperparam_config_filepath, "r") as fp:
         config = json.load(fp)
 
-    EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
-    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
+    with open(test_dataset_params, "r") as fp:
+        test_dataset_args = json.load(fp)
+
     DEVICE = config["DEVICE"]
     ELMO_EMBEDDING_DIMENSION = config["ELMO_EMBEDDING_DIMENSION"]
     EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
@@ -33,11 +39,6 @@ def get_elmo_bilstm_lc_infer(dirname: str):
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
     NUM_CLASSES = config["NUM_CLASSES"]
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
-    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
-    MAX_LENGTH = config["MAX_LENGTH"]
-    vocab_store_location = config["VOCAB_STORE_LOCATION"]
-    DEBUG = config["DEBUG"]
-    DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
 
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
@@ -64,24 +65,10 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         device=torch.device(DEVICE),
     )
 
-    dataset = ParsectDataset(
-        filename=SECT_LABEL_FILE,
-        dataset_type="test",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        word_vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=EMBEDDING_TYPE,
-        word_embedding_dimension=EMBEDDING_DIM,
-    )
+    dataset = ParsectDataset(**test_dataset_args)
 
     inference = ClassificationInference(
-        model=model,
-        model_filepath=model_filepath,
-        hyperparam_config_filepath=hyperparam_config_filepath,
-        dataset=dataset,
-        dataset_class=ParsectDataset,
+        model=model, model_filepath=model_filepath, dataset=dataset
     )
     return inference
 

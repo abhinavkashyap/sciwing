@@ -50,6 +50,7 @@ class ElmoLSTMClassifier(nn.Module):
 
         tokens = iter_dict["tokens"]
         instance = iter_dict["instance"]  # List[str]
+        instance = instance if isinstance(instance, list) else [instance]
         instance = list(map(lambda instance_str: instance_str.split(), instance))
 
         encoding = self.elmo_lstm_encoder(x=tokens, instances=instance)
