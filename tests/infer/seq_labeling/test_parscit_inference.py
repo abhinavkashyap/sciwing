@@ -1,16 +1,6 @@
 import pytest
-from parsect.infer.parscit_inference import ParscitInference
-from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
-from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.modules.embedders.concat_embedders import ConcatEmbedders
-from parsect.modules.charlstm_encoder import CharLSTMEncoder
-from parsect.models.parscit_tagger import ParscitTagger
 import parsect.constants as constants
 import pathlib
-import json
-import torch.nn as nn
-import torch
 from parsect.infer.bilstm_crf_infer import get_bilstm_crf_infer
 
 PATHS = constants.PATHS
@@ -28,17 +18,20 @@ def setup_base_parscit_inference():
 class TestParscitInference:
     def test_run_inference_works(self, setup_base_parscit_inference):
         inference_client = setup_base_parscit_inference
+        inference_client.run_test()
         assert type(inference_client.output_analytics) == dict
 
     def test_print_prf_table_works(self, setup_base_parscit_inference):
         inference = setup_base_parscit_inference
+        inference.run_test()
         try:
-            inference.print_prf_table()
+            inference.print_metrics()
         except:
             pytest.fail("Parscit print prf table does not work")
 
     def test_print_confusion_metrics_works(self, setup_base_parscit_inference):
         inference = setup_base_parscit_inference
+        inference.run_test()
         try:
             inference.print_confusion_matrix()
         except:
@@ -46,6 +39,7 @@ class TestParscitInference:
 
     def test_generate_report_for_paper_works(self, setup_base_parscit_inference):
         inference = setup_base_parscit_inference
+        inference.run_test()
         try:
             inference.generate_report_for_paper()
         except:

@@ -7,7 +7,7 @@ from parsect.modules.charlstm_encoder import CharLSTMEncoder
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.embedders.concat_embedders import ConcatEmbedders
 from parsect.models.parscit_tagger import ParscitTagger
-from parsect.infer.parscit_inference import ParscitInference
+from parsect.infer.seq_label_inference.parscit_inference import ParscitInference
 import torch
 import torch.nn as nn
 
@@ -106,9 +106,6 @@ def get_bilstm_crf_infer(dirname: str):
     )
 
     inference_client = ParscitInference(
-        model=model,
-        model_filepath=str(model_filepath),
-        hyperparam_config_filepath=str(hyperparam_config_filepath),
-        dataset=test_dataset,
+        model=model, model_filepath=str(model_filepath), dataset=test_dataset
     )
     return inference_client

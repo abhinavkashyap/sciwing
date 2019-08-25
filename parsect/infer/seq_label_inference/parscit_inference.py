@@ -1,58 +1,51 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional, Union
 import torch.nn as nn
-from parsect.infer.BaseInference import BaseInference
+from parsect.infer.seq_label_inference.BaseSeqLabelInference import (
+    BaseSeqLabelInference,
+)
+from parsect.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from torch.utils.data import DataLoader
 from parsect.utils.tensor_utils import move_to_device
 import torch
 import pandas as pd
 from parsect.utils.vis_seq_tags import VisTagging
+import wasabi
 
 
-class ParscitInference(BaseInference):
+class ParscitInference(BaseSeqLabelInference):
     def __init__(
         self,
         model: nn.Module,
         model_filepath: str,
-        hyperparam_config_filepath: str,
-        dataset,
+        dataset: BaseSeqLabelingDataset,
+        device: Optional[Union[str, torch.device]] = torch.device("cpu"),
     ):
+
         super(ParscitInference, self).__init__(
-            model=model,
-            model_filepath=model_filepath,
-            hyperparam_config_filepath=hyperparam_config_filepath,
-            dataset=dataset,
+            model=model, model_filepath=model_filepath, dataset=dataset, device=device
         )
-        self.labelname2idx_mapping = self.test_dataset.get_classname2idx()
+
+        self.msg_printer = wasabi.Printer()
+        self.labelname2idx_mapping = self.dataset.get_classname2idx()
         self.idx2labelname_mapping = {
             idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
         }
         self.metrics_calculator = TokenClassificationAccuracy(
             idx2labelname_mapping=self.idx2labelname_mapping
         )
+        self.output_analytics = None
+        self.output_df = None
+        self.batch_size = 32
         self.load_model()
 
-        with self.msg_printer.loading("Running inference on test data"):
-            self.output_analytics = self.run_inference()
-        self.msg_printer.good("Finished running inference on test data")
-
-        self.output_df = pd.DataFrame(
-            {
-                "true_tag_indices": self.output_analytics["true_tag_indices"],
-                "predicted_tag_indices": self.output_analytics["predicted_tag_indices"],
-                "true_tag_names": self.output_analytics["true_tag_names"],
-                "predicted_tag_names": self.output_analytics["predicted_tag_names"],
-                "sentences": self.output_analytics["sentences"],
-            }
-        )
-
-        num_categories = self.test_dataset.get_num_classes()
+        num_categories = self.dataset.get_num_classes()
         categories = [self.idx2labelname_mapping[idx] for idx in range(num_categories)]
         self.seq_tagging_visualizer = VisTagging(tags=categories)
 
     def run_inference(self) -> Dict[str, Any]:
         loader = DataLoader(
-            dataset=self.test_dataset, batch_size=self.batch_size, shuffle=False
+            dataset=self.dataset, batch_size=self.batch_size, shuffle=False
         )
         output_analytics = {}
         sentences = []  # all the sentences that is seen till now
@@ -63,48 +56,24 @@ class ParscitInference(BaseInference):
 
         for iter_dict in loader:
             iter_dict = move_to_device(iter_dict, cuda_device=self.device)
-
-            with torch.no_grad():
-                model_output_dict = self.model(
-                    iter_dict, is_training=False, is_validation=False, is_test=True
-                )
-
-            self.metrics_calculator.calc_metric(
-                iter_dict=iter_dict, model_forward_dict=model_output_dict
+            model_output_dict = self.model_forward_on_iter_dict(iter_dict=iter_dict)
+            self.metric_calc_on_iter_dict(
+                iter_dict=iter_dict, model_output_dict=model_output_dict
             )
-            tokens = iter_dict["tokens"]
-            labels = iter_dict["label"]
-            tokens_list = tokens.tolist()
-            labels_list = labels.tolist()
+            batch_sentences = self.iter_dict_to_sentences(iter_dict=iter_dict)
 
-            batch_sentences = list(
-                map(
-                    self.test_dataset.word_vocab.get_disp_sentence_from_indices,
-                    tokens_list,
-                )
+            predicted_tags, predicted_tag_strings = self.model_output_dict_to_prediction_indices_names(
+                model_output_dict=model_output_dict
             )
+            true_tags, true_labels_strings = self.iter_dict_to_true_indices_names(
+                iter_dict=iter_dict
+            )
+
             sentences.extend(batch_sentences)
-
-            predicted_tags = model_output_dict["predicted_tags"]  # List[List[str]]
-            predicted_tag_strings = map(
-                lambda tags: " ".join(
-                    self.test_dataset.get_class_names_from_indices(tags)
-                ),
-                predicted_tags,
-            )
-            predicted_tag_strings = list(predicted_tag_strings)
-
-            true_labels_strings = map(
-                lambda tags: " ".join(
-                    self.test_dataset.get_class_names_from_indices(tags)
-                ),
-                labels_list,
-            )
-            true_labels_strings = list(true_labels_strings)
 
             predicted_tag_indices.extend(predicted_tags)
             predicted_tag_names.extend(predicted_tag_strings)
-            true_tag_indices.extend(labels_list)
+            true_tag_indices.extend(true_tags)
             true_tag_names.extend(true_labels_strings)
 
         output_analytics["true_tag_indices"] = true_tag_indices
@@ -119,10 +88,6 @@ class ParscitInference(BaseInference):
             true_tag_indices=self.output_df["true_tag_indices"].tolist(),
             predicted_tag_indices=self.output_df["predicted_tag_indices"].tolist(),
         )
-
-    def print_prf_table(self) -> None:
-        prf_table = self.metrics_calculator.report_metrics()
-        print(prf_table)
 
     def get_misclassified_sentences(
         self, first_class: int, second_class: int
@@ -172,3 +137,55 @@ class ParscitInference(BaseInference):
             report_type="paper"
         )
         return paper_report, row_names
+
+    def model_forward_on_iter_dict(self, iter_dict: Dict[str, Any]):
+        with torch.no_grad():
+            model_output_dict = self.model(
+                iter_dict, is_training=False, is_validation=False, is_test=True
+            )
+        return model_output_dict
+
+    def metric_calc_on_iter_dict(
+        self, iter_dict: Dict[str, Any], model_output_dict: Dict[str, Any]
+    ):
+        self.metrics_calculator.calc_metric(
+            iter_dict=iter_dict, model_forward_dict=model_output_dict
+        )
+
+    def model_output_dict_to_prediction_indices_names(
+        self, model_output_dict: Dict[str, Any]
+    ) -> (List[int], List[str]):
+        predicted_tags = model_output_dict["predicted_tags"]  # List[List[str]]
+        predicted_tag_strings = []
+        for predicted_tag in predicted_tags:
+            pred_tag_string = self.dataset.get_class_names_from_indices(predicted_tag)
+            pred_tag_string = " ".join(pred_tag_string)
+            predicted_tag_strings.append(pred_tag_string)
+        return predicted_tags, predicted_tag_strings
+
+    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]):
+        tokens = iter_dict["tokens"]
+        tokens_list = tokens.tolist()
+        batch_sentences = list(
+            map(self.dataset.word_vocab.get_disp_sentence_from_indices, tokens_list)
+        )
+        return batch_sentences
+
+    def iter_dict_to_true_indices_names(self, iter_dict: Dict[str, Any]):
+        labels = iter_dict["label"]
+        labels_list = labels.tolist()
+        true_labels_strings = []
+        for tags in labels_list:
+            true_tag_names = self.dataset.get_class_names_from_indices(tags)
+            true_tag_names = " ".join(true_tag_names)
+            true_labels_strings.append(true_tag_names)
+
+        true_labels_strings = list(true_labels_strings)
+        return labels_list, true_labels_strings
+
+    def print_metrics(self):
+        print(self.metrics_calculator.report_metrics())
+
+    def run_test(self):
+        self.output_analytics = self.run_inference()
+        self.output_df = pd.DataFrame(self.output_analytics)

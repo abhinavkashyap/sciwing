@@ -225,4 +225,5 @@ class ClassificationInference(BaseClassificationInference):
 
     def run_test(self):
         self.output_analytics = self.run_inference()
+        print(self.output_analytics)
         self.output_df = pd.DataFrame(self.output_analytics)
