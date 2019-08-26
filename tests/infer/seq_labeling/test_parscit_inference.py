@@ -44,3 +44,10 @@ class TestParscitInference:
             inference.generate_report_for_paper()
         except:
             pytest.fail("Parscit generate report for paper fails")
+
+    def test_infer_single_sentence_works(self, setup_base_parscit_inference):
+        inference_clinet = setup_base_parscit_inference
+        try:
+            inference_clinet.infer_single_sentence("A.B. Abalone, Future Paper")
+        except:
+            pytest.fail("Infer on single sentence does not work")

@@ -183,6 +183,18 @@ class ParscitInference(BaseSeqLabelInference):
         true_labels_strings = list(true_labels_strings)
         return labels_list, true_labels_strings
 
+    def infer_single_sentence(self, line: str):
+        iter_dict = self.dataset.get_iter_dict(line)
+        iter_dict = move_to_device(iter_dict, cuda_device=self.device)
+        iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
+        iter_dict["char_tokens"] = iter_dict["char_tokens"].unsqueeze(0)
+
+        model_output_dict = self.model_forward_on_iter_dict(iter_dict=iter_dict)
+        _, predicted_tag_names = self.model_output_dict_to_prediction_indices_names(
+            model_output_dict=model_output_dict
+        )
+        return predicted_tag_names
+
     def print_metrics(self):
         print(self.metrics_calculator.report_metrics())
 
