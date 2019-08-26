@@ -5,7 +5,6 @@ import torch.optim as optim
 from wasabi import Printer
 from typing import Iterator, Callable, Any, List, Optional, Dict
 from parsect.meters.loss_meter import LossMeter
-import os
 from tensorboardX import SummaryWriter
 from parsect.metrics.BaseMetric import BaseMetric
 import numpy as np
@@ -18,6 +17,7 @@ from copy import deepcopy
 from parsect.utils.class_nursery import ClassNursery
 import logzero
 import hashlib
+import pathlib
 
 try:
     import wandb
@@ -59,7 +59,7 @@ class Engine(ClassNursery):
         self.test_dataset = test_dataset
         self.optimizer = optimizer
         self.batch_size = batch_size
-        self.save_dir = save_dir
+        self.save_dir = pathlib.Path(save_dir)
         self.num_epochs = num_epochs
         self.msg_printer = Printer()
         self.save_every = save_every
@@ -78,6 +78,7 @@ class Engine(ClassNursery):
             self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau
         )
         self.use_wandb = wandb and use_wandb
+
         if experiment_name is None:
             hash_ = hashlib.sha1()
             hash_.update(str(time.time()).encode("utf-8"))
@@ -93,6 +94,9 @@ class Engine(ClassNursery):
                 name=self.experiment_name,
                 config=self.experiment_hyperparams,
             )
+
+        if not self.save_dir.is_dir():
+            self.save_dir.mkdir(parents=True)
 
         self.num_workers = 0
         self.model.to(self.device)
@@ -126,9 +130,9 @@ class Engine(ClassNursery):
         time.sleep(3)
 
         # get the loggers ready
-        self.train_log_filename = os.path.join(self.save_dir, "train.log")
-        self.validation_log_filename = os.path.join(self.save_dir, "validation.log")
-        self.test_log_filename = os.path.join(self.save_dir, "test.log")
+        self.train_log_filename = self.save_dir.joinpath("train.log")
+        self.validation_log_filename = self.save_dir.joinpath("validation.log")
+        self.test_log_filename = self.save_dir.joinpath("test.log")
 
         self.train_logger = logzero.setup_logger(
             name="train-logger", logfile=self.train_log_filename, level=logging.INFO
@@ -280,7 +284,7 @@ class Engine(ClassNursery):
                     "model_state": self.model.state_dict(),
                     "loss": average_loss,
                 },
-                os.path.join(self.save_dir, "model_epoch_{0}.pt".format(epoch_num + 1)),
+                self.save_dir.joinpath(f"model_epoch_{epoch_num+1}.pt"),
             )
 
         # log loss to tensor board
@@ -322,17 +326,17 @@ class Engine(ClassNursery):
 
     def validation_epoch_end(self, epoch_num: int):
 
-        self.msg_printer.divider("Validation @ Epoch {0}".format(epoch_num + 1))
+        self.msg_printer.divider(f"Validation @ Epoch {epoch_num+1}")
 
         metric_report = self.validation_metric_calc.report_metrics()
 
         average_loss = self.validation_loss_meter.get_average()
         print(metric_report)
 
-        self.msg_printer.text("Average Loss: {0}".format(average_loss))
+        self.msg_printer.text(f"Average Loss: {average_loss}")
 
         self.validation_logger.info(
-            "Validation Loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
+            f"Validation Loss @ Epoch {epoch_num+1} - {average_loss}"
         )
 
         if self.use_wandb:
@@ -373,12 +377,12 @@ class Engine(ClassNursery):
                     "model_state": self.model.state_dict(),
                     "loss": average_loss,
                 },
-                os.path.join(self.save_dir, "best_model.pt"),
+                self.save_dir.joinpath("best_model.pt"),
             )
 
     def test_epoch(self, epoch_num: int):
         self.msg_printer.divider("Running on test batch")
-        self.load_model_from_file(os.path.join(self.save_dir, "best_model.pt"))
+        self.load_model_from_file(self.save_dir.joinpath("best_model.pt"))
         self.model.eval()
         test_iter = iter(self.test_loader)
         while True:
@@ -403,9 +407,7 @@ class Engine(ClassNursery):
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
         print(metric_report)
         self.test_logger.info(
-            "Test Metrics @ Epoch {0} - {1}".format(
-                epoch_num + 1, precision_recall_fmeasure
-            )
+            f"Test Metrics @ Epoch {epoch_num+1} - {precision_recall_fmeasure}"
         )
         if self.use_wandb:
             metric = self.test_metric_calc.get_metric()
@@ -442,9 +444,7 @@ class Engine(ClassNursery):
         more details.
         """
         self.msg_printer.divider("LOADING MODEL FROM FILE")
-        with self.msg_printer.loading(
-            "Loading Pytorch Model from file {0}".format(filename)
-        ):
+        with self.msg_printer.loading(f"Loading Pytorch Model from file {filename}"):
             model_chkpoint = torch.load(filename)
 
         self.msg_printer.good("Finished Loading the Model")

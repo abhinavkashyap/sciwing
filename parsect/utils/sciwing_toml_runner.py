@@ -16,15 +16,19 @@ import wasabi
 
 
 class SciWingTOMLRunner:
-    def __init__(self, toml_filename: pathlib.Path):
+    def __init__(self, toml_filename: pathlib.Path, infer: bool = False):
         self.toml_filename = toml_filename
+        self.infer = infer
         self.msg_printer = wasabi.Printer()
         self.doc = self._parse_toml_file()
 
         self.experiment_name = None
-        self.all_datasets = (
-            None
-        )  # Dict {'train': Dataset, 'valid': Dataset, 'test': Dataset}
+        self.experiment_dir = None
+        # Dict {'train': Dataset, 'valid': Dataset, 'test': Dataset}
+        self.all_datasets = None
+        self.model_section = None
+        self.dataset_section = None
+        self.engine_section = None
         self.model = None
         self.engine = None
         self.model_dag = nx.DiGraph()
@@ -37,21 +41,27 @@ class SciWingTOMLRunner:
         except FileNotFoundError:
             print(f"File {self.toml_filename} is not found")
 
-    def _parse(self):
+    def parse(self):
 
         # experiment section
         experiment_section = self.doc.get("experiment")
         self.experiment_name = experiment_section.get("exp_name")
         self.experiment_dir = pathlib.Path(experiment_section.get("exp_dir"))
 
-        if self.experiment_dir.is_dir():
-            raise FileExistsError(f"{self.experiment_dir} already exists")
+        if not self.infer:
+            if self.experiment_dir.is_dir():
+                raise FileExistsError(f"{self.experiment_dir} already exists")
+            else:
+                self.experiment_dir.mkdir(parents=True)
         else:
-            self.experiment_dir.mkdir()
+            if not self.experiment_dir.is_dir():
+                raise FileNotFoundError(
+                    f"{self.experiment_dir} is not found for inference"
+                )
 
         # get the dataset section from toml
-        dataset_section = self.doc.get(f"dataset")
-        if dataset_section is None:
+        self.dataset_section = self.doc.get(f"dataset")
+        if self.dataset_section is None:
             raise TOMLConfigurationError(
                 f"{self.toml_filename} does not have a datasets section. Please "
                 f"Provide a dataset section in your toml file"
@@ -61,8 +71,8 @@ class SciWingTOMLRunner:
             pass
 
         # get the model section from toml
-        model_section = self.doc.get("model")
-        if model_section is None:
+        self.model_section = self.doc.get("model")
+        if self.model_section is None:
             raise TOMLConfigurationError(
                 f"{self.toml_filename} does not have model section."
                 f"Please provide a model section to construct the model"
@@ -71,8 +81,8 @@ class SciWingTOMLRunner:
             self.model = self.parse_model_section()
 
         # get the engine section from toml
-        engine_section = self.doc.get("engine")
-        if engine_section is None:
+        self.engine_section = self.doc.get("engine")
+        if self.engine_section is None:
             raise TOMLConfigurationError(
                 f"{self.toml_filename} does not have an engine section"
             )
@@ -351,7 +361,7 @@ class SciWingTOMLRunner:
         return engine
 
     def run(self):
-        self._parse()
+        self.parse()
         self.engine.run()
 
 
