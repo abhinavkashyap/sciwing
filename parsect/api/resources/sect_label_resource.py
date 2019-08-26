@@ -51,12 +51,13 @@ class SectLabelResource:
                     "-console",
                     pdf_save_location,
                 ],
-                capture_output=True,
+                stdout=subprocess.PIPE,
             )
             text = text.stdout
             text = str(text)
             lines = text.split("\\n")
 
+            print(f"first line {lines[0]}")
             labels = []
             for batch_lines in chunks(lines, 64):
                 label = self.infer_client.infer_batch(lines=batch_lines)
