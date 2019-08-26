@@ -10,9 +10,9 @@ def client():
     return testing.TestClient(api)
 
 
-class TestParscitTaggerResource:
-    def test_parscit_tagger_returns_okay(self, client):
-        response = client.simulate_get(f"/parscit_tagger?citation={'first string'}")
+class TestScienceIETaggerResource:
+    def test_science_tagger_returns_okay(self, client):
+        response = client.simulate_get(f"/science_ie_tagger?text={'single line'}")
         assert response.status == falcon.HTTP_200
 
     @pytest.mark.parametrize(

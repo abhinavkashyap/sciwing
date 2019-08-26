@@ -2,6 +2,7 @@ import falcon
 import parsect.api.conf as config
 from parsect.api.resources.sect_label_resource import SectLabelResource
 from parsect.api.resources.parscit_tagger_resource import ParscitTaggerResource
+from parsect.api.resources.science_ie_tagger_resource import ScienceIETaggerResource
 from parsect.api.pdf_store import PdfStore
 from falcon_multipart.middleware import MultipartMiddleware
 
@@ -19,6 +20,9 @@ SECT_LABEL_INFER_FUNCTION = config.SECT_LABEL_INFER_FUNCTION
 PARSCIT_TAGGER_MODEL_PATH = config.PARSCIT_TAGGER_MODEL_PATH
 PARSCIT_TAGGER_INFER_FUNCTION = config.PARSCIT_TAGGER_INFER_FUNCTION
 
+SCIENCE_IE_TAGGER_MODEL_PATH = config.SCIENCE_IE_TAGGER_MODEL_PATH
+SCIENCE_IE_TAGGER_INFER_FUNCTION = config.SCIENCE_IE_TAGGER_INFER_FUNCTION
+
 api = application = falcon.API(middleware=[multipart_middleware])
 pdf_store = PdfStore(store_path=PDF_STORE_LOCATION)
 
@@ -34,8 +38,14 @@ parscit_tagger_resource = ParscitTaggerResource(
     model_infer_func=PARSCIT_TAGGER_INFER_FUNCTION,
 )
 
+science_ie_tagger_resource = ScienceIETaggerResource(
+    model_filepath=SCIENCE_IE_TAGGER_MODEL_PATH,
+    model_infer_func=SCIENCE_IE_TAGGER_INFER_FUNCTION,
+)
+
 # All routes in the application
 
 # Sect Label specific routes
 api.add_route("/sect_label", sect_label_resource)
 api.add_route("/parscit_tagger", parscit_tagger_resource)
+api.add_route("/science_ie_tagger", science_ie_tagger_resource)

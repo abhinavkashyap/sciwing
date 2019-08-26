@@ -229,6 +229,7 @@ class ScienceIEInference(BaseSeqLabelInference):
 
     def infer_single_sentence(self, line: str) -> (List[str], List[str], List[str]):
 
+        num_words = len(line.split())
         iter_dict = self.dataset.get_iter_dict(line)
         iter_dict = move_to_device(iter_dict, cuda_device=self.device)
 
@@ -243,6 +244,15 @@ class ScienceIEInference(BaseSeqLabelInference):
         ) = self.model_output_dict_to_prediction_indices_names(
             model_output_dict=model_output_dict
         )
+        task_tag_names = task_tag_names[0].split()
+        process_tag_names = process_tag_names[0].split()
+        material_tag_names = material_tag_names[0].split()
+
+        len_tags = len(task_tag_names)
+        infer_len = num_words if num_words < len_tags else len_tags
+        task_tag_names = task_tag_names[:infer_len]
+        process_tag_names = process_tag_names[:infer_len]
+        material_tag_names = material_tag_names[:infer_len]
 
         return task_tag_names, process_tag_names, material_tag_names
 
@@ -254,7 +264,7 @@ class ScienceIEInference(BaseSeqLabelInference):
         )
         len_task_tag_names = len(task_tag_names)
 
-        infer_len = len_words if len_words > len_task_tag_names else len_task_tag_names
+        infer_len = len_words if len_words < len_task_tag_names else len_task_tag_names
         task_tag_names = task_tag_names[:infer_len]
         process_tag_names = process_tag_names[:infer_len]
         material_tag_names = material_tag_names[:infer_len]
