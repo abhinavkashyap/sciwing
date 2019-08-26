@@ -18,7 +18,7 @@ class SectLabelResource:
         self.pdfbox_jar_path = pdfbox_jar_path
         self.model_filepath = model_filepath
         self.model_infer_func = model_infer_func
-        self.infer_client = self.model_infer_func(self.model_filepath)
+        self.infer_client = None
 
     def on_post(self, req, resp) -> Dict[str, str]:
         """ Post the base64 url encoded pdf file to sect label
@@ -28,6 +28,9 @@ class SectLabelResource:
         Dict[str, str]
             Return the lines with corresponding labels to the client
         """
+        if self.infer_client is None:
+            self.infer_client = self.model_infer_func(self.model_filepath)
+
         file = req.get_param("file", None)
         if file is None:
             resp.status = falcon.HTTP_400

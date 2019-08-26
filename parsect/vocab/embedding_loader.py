@@ -133,12 +133,9 @@ class EmbeddingLoader:
 
         vocab_embeddings = {}
 
-        with self.msg_printer.loading("Loading Random word embeddings"):
-            for token in tokens:
-                emb = np.random.normal(
-                    loc=-0.1, scale=0.1, size=self.embedding_dimension
-                )
-                vocab_embeddings[token] = emb
+        for token in tokens:
+            emb = np.random.normal(loc=-0.1, scale=0.1, size=self.embedding_dimension)
+            vocab_embeddings[token] = emb
 
         self.msg_printer.good("Finished loading Random word Embedding")
         return vocab_embeddings
@@ -148,13 +145,12 @@ class EmbeddingLoader:
         tokens = self.token2idx_mapping.keys()
         vocab_embeddings = {}
 
-        with self.msg_printer.loading("Loading Parscit Embeddings"):
-            for token in tokens:
-                try:
-                    emb = pretrained[token]
-                except:
-                    emb = pretrained["<UNK>"]
-                vocab_embeddings[token] = emb
+        for token in tokens:
+            try:
+                emb = pretrained[token]
+            except:
+                emb = pretrained["<UNK>"]
+            vocab_embeddings[token] = emb
 
         self.msg_printer.good("Finished Loading Parscit Embeddings")
         return vocab_embeddings
