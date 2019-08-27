@@ -3,12 +3,9 @@ from typing import Union, Dict, List, Optional
 from parsect.tokenizers.word_tokenizer import WordTokenizer
 import wasabi
 from parsect.tokenizers.character_tokenizer import CharacterTokenizer
-from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
-from parsect.vocab.vocab import Vocab
-from torch.utils.data import Dataset
 
 
-class BaseSeqLabelingDataset(Dataset, metaclass=ABCMeta):
+class BaseSeqLabelingDataset(metaclass=ABCMeta):
     def __init__(
         self,
         filename: str,

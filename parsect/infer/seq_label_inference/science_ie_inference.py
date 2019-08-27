@@ -321,32 +321,25 @@ class ScienceIEInference(BaseSeqLabelInference):
                         line=line
                     )
 
-                    task_tag_names = task_tag_names[0].split()
-                    process_tag_names = process_tag_names[0].split()
-                    material_tag_names = material_tag_names[0].split()
-
-                    len_sent = len(sent)
-                    task_tag_names = task_tag_names[:len_sent]
-                    process_tag_names = process_tag_names[:len_sent]
-                    material_tag_names = material_tag_names[:len_sent]
-
-                    assert len(sent) == len(
+                    assert len(line.split()) == len(
                         task_tag_names
-                    ), f"len sent: {len(sent)}, len task_tag_name: {len(task_tag_names)}"
-                    assert len(sent) == len(
+                    ), f"len sent: {len(line.split())}, len task_tag_name: {len(task_tag_names)}"
+                    assert len(line.split()) == len(
                         process_tag_names
-                    ), f"len sent: {len(sent)}, len process_tag_names: {len(process_tag_names)}"
-                    assert len(sent) == len(
+                    ), f"len sent: {len(line.split())}, len process_tag_names: {len(process_tag_names)}"
+                    assert len(line.split()) == len(
                         material_tag_names
-                    ), f"len sent: {len(sent)}, len material_tag_names: {len(material_tag_names)}"
+                    ), f"len sent: {len(line.split())}, len material_tag_names: {len(material_tag_names)}"
 
                     zipped_text_tag_names = zip(
-                        sent, task_tag_names, process_tag_names, material_tag_names
+                        line.split(),
+                        task_tag_names,
+                        process_tag_names,
+                        material_tag_names,
                     )
 
                     for text_tag_name in zipped_text_tag_names:
                         token, task_tag, process_tag, material_tag = text_tag_name
-                        token = token.text
                         conll_line = " ".join(
                             [token, task_tag, process_tag, material_tag]
                         )
