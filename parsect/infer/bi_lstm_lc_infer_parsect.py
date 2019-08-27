@@ -6,7 +6,7 @@ from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.infer.classification.classification_inference import (
     ClassificationInference,
 )
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 import json
 import torch.nn as nn
 import pathlib
@@ -59,7 +59,7 @@ def get_bilstm_lc_infer_parsect(dirname: str):
         classification_layer_bias=True,
     )
 
-    dataset = ParsectDataset(**test_dataset_args)
+    dataset = SectLabelDataset(**test_dataset_args)
 
     inference = ClassificationInference(
         model=model, model_filepath=model_filepath, dataset=dataset

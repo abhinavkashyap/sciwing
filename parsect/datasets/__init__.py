@@ -1,3 +1,3 @@
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
 from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset

@@ -1,5 +1,5 @@
 import falcon
-from typing import Dict, Callable
+from typing import Dict, Callable, Any
 from parsect.api.pdf_store import PdfStore
 import subprocess
 from parsect.utils.common import chunks
@@ -14,19 +14,32 @@ class SectLabelResource:
         model_filepath: str,
         model_infer_func: Callable,
     ):
+        """
+            Parameters
+            ----------
+            model_filepath: str
+                The path to the directory where the model experiment is stored
+            model_infer_func : Callable
+                The model infer function is a function that takes in the experiment
+                directory and can return the inference client. The inference
+                client is an object of infer.seq_label_inference.parscit_inf
+        """
         self.pdf_store = pdf_store
         self.pdfbox_jar_path = pdfbox_jar_path
         self.model_filepath = model_filepath
         self.model_infer_func = model_infer_func
         self.infer_client = None
 
-    def on_post(self, req, resp) -> Dict[str, str]:
-        """ Post the base64 url encoded pdf file to sect label
+    def on_post(self, req, resp) -> Dict[str, Any]:
+        """ Post the base64 url encoded pdf file to sect label.
+        This converts the base64 encoded string to pdf. Reads the
+        pdf line by line and returns the logical section for every line
 
         Returns
         -------
-        Dict[str, str]
+        Dict[str, Any]
             Return the lines with corresponding labels to the client
+            ``{"labels": [], "lines": []}``
         """
         if self.infer_client is None:
             self.infer_client = self.model_infer_func(self.model_filepath)

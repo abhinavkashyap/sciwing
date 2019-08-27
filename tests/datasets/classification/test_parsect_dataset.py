@@ -1,6 +1,6 @@
 import parsect.constants as constants
 import pytest
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 import torch
 from torch.utils.data import DataLoader
 from parsect.utils.class_nursery import ClassNursery
@@ -17,7 +17,7 @@ def setup_parsect_train_dataset(tmpdir_factory, request):
     DEBUG = True
     tokenization_type = request.param
 
-    train_dataset = ParsectDataset(
+    train_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
@@ -136,4 +136,4 @@ class TestParsectDataset:
             pytest.fail("Test print stats works")
 
     def test_parsect_in_sciwing_class_nursery(self):
-        assert ClassNursery.class_nursery.get("ParsectDataset") is not None
+        assert ClassNursery.class_nursery.get("SectLabelDataset") is not None

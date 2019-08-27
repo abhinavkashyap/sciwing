@@ -2,7 +2,7 @@ from parsect.engine.engine import Engine
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from torch.nn import Embedding
 import torch.optim as optim
@@ -28,7 +28,7 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     NUM_TOKENS = 3
     EMB_DIM = 300
 
-    train_dataset = ParsectDataset(
+    train_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
@@ -39,7 +39,7 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
         word_embedding_dimension=EMB_DIM,
     )
 
-    validation_dataset = ParsectDataset(
+    validation_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
@@ -50,7 +50,7 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
         word_embedding_dimension=EMB_DIM,
     )
 
-    test_dataset = ParsectDataset(
+    test_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,

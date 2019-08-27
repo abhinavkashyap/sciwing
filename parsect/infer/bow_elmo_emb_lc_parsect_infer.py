@@ -7,7 +7,7 @@ from parsect.infer.classification.classification_inference import (
 from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 import pathlib
 
 PATHS = constants.PATHS
@@ -49,7 +49,7 @@ def get_elmo_emb_lc_infer_parsect(dirname: str):
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
-    dataset = ParsectDataset(**test_dataset_args)
+    dataset = SectLabelDataset(**test_dataset_args)
 
     parsect_inference = ClassificationInference(
         model=model, model_filepath=model_filepath, dataset=dataset

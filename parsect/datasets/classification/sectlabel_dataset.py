@@ -16,9 +16,50 @@ SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
 @sprinkle_dataset()
-class ParsectDataset(BaseTextClassification, ClassNursery):
-    """Parsect dataset consists of dataset for logical classification of scientific papers
+class SectLabelDataset(BaseTextClassification, ClassNursery):
+    """ SectLabel Dataset - A logical section classification dataset from WING-NUS
 
+        Parameters
+        ----------
+        filename : str
+            Name of the file where the SectLabel dataset is stored
+        dataset_type : str
+            Either of `[train, valid, test]` that this dataset represents
+        max_num_words : int
+            Maximum number of words to be included in the vocab. The top most frequent
+            ``max_num_words`` will be included in the vocab. Everything else will be mapped to
+            ``word_unk`` tag.
+        max_instance_length : int
+            The maximum length for every instance
+        word_vocab_store_location : str
+            The path where the word vocabulary will be stored
+        debug : bool
+            Is this dataset a debug dataset where a small portion will be used for testing purposes.
+        debug_dataset_proportion : float
+            The proportion of the dataset that would be used as debug dataset
+        word_embedding_type : str
+            The embedding type is any of those that are accepted in ``vocab.embedding_loader``
+        word_embedding_dimension : int
+            Word embedding size. This might depend on the ``embedding_type`` that is used.
+        word_start_token : str
+            Every instance will be prepended with a ``word_start_token``
+        word_end_token : str
+            Every instance will be appended with a ``word_end_token``
+        word_pad_token : str
+            Token used for padding instances
+        word_unk_token : str
+            If word is not found in the training vocab, then the word
+            is replaced with ``word_unk_token``
+        train_size : int
+            The portion of the dataset that will be used for training
+        test_size : int
+            The portion of the dataset that will be used for testing
+        validation_size : int
+            The portion of the dataset that will be used for validation
+        word_tokenization_type : int
+            The kind of word tokenization. ``tokenizers.word_tokenizer`` has more information
+        add_start_end_token : bool
+            Whether starting and ending token should be added to the instance
     """
 
     def __init__(
@@ -149,6 +190,18 @@ class ParsectDataset(BaseTextClassification, ClassNursery):
         return len(self.classname2idx.keys())
 
     def get_class_names_from_indices(self, indices: List) -> List[str]:
+        """ Given a list of indices maps back to classnames
+        Mostly used for inference and other higher level applications
+
+        Parameters
+        ----------
+        indices : List[int]
+            A list of indices where every index is in ``[0, num_classes)``
+
+        Returns
+        -------
+
+        """
         return [self.idx2classname[idx] for idx in indices]
 
     def print_stats(self):
@@ -182,7 +235,7 @@ class ParsectDataset(BaseTextClassification, ClassNursery):
 
         word_instances = self.word_tokenizer.tokenize_batch(lines)
         len_instances = [len(instance) for instance in word_instances]
-        classnames2idx = ParsectDataset.get_classname2idx()
+        classnames2idx = SectLabelDataset.get_classname2idx()
 
         padded_instances = []
         for word_instance in word_instances:

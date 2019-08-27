@@ -1,6 +1,6 @@
 import pytest
 import parsect.constants as constants
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
 import pathlib
 
@@ -18,7 +18,7 @@ def parsect_dataset(tmpdir_factory):
     vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
     DEBUG = True
 
-    train_dataset = ParsectDataset(
+    train_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,

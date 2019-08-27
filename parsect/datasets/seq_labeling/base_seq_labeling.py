@@ -155,6 +155,12 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
 
     @abstractmethod
     def print_stats(self):
+        """ Free form printing of useful stats about the dataset
+
+        Returns
+        -------
+        None
+        """
         pass
 
     @abstractmethod
@@ -195,4 +201,21 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         pass
 
     def get_iter_dict(self, line: str, label: Optional[List[str]] = None):
-        pass
+        """ Given a line and an optional label, this method returns
+        the ``iter_dict``. These methods are especially useful during
+        inference when the line is available, and the dataset emits
+        the corresponding ``iter_dict``
+
+        Parameters
+        ----------
+        line : str
+            A string representing the sequence
+        label : str
+            The corresponding set of labels associated with the string
+
+        Returns
+        -------
+        Dict[str, Any]
+            ``iter_dict`` of the dataset
+
+        """

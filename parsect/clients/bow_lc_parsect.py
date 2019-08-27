@@ -1,5 +1,5 @@
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
@@ -98,7 +98,7 @@ if __name__ == "__main__":
     EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
 
-    train_dataset = ParsectDataset(
+    train_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    validation_dataset = ParsectDataset(
+    validation_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    test_dataset = ParsectDataset(
+    test_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,

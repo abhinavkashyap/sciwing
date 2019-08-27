@@ -3,7 +3,7 @@ import os
 from parsect.models.elmo_lstm_classifier import ElmoLSTMClassifier
 from parsect.modules.elmo_lstm_encoder import ElmoLSTMEncoder
 from parsect.modules.embedders.elmo_embedder import ElmoEmbedder
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.infer.classification.classification_inference import (
     ClassificationInference,
 )
@@ -65,7 +65,7 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         device=torch.device(DEVICE),
     )
 
-    dataset = ParsectDataset(**test_dataset_args)
+    dataset = SectLabelDataset(**test_dataset_args)
 
     inference = ClassificationInference(
         model=model, model_filepath=model_filepath, dataset=dataset

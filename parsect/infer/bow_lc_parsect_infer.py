@@ -7,7 +7,7 @@ from parsect.infer.classification.classification_inference import (
 from parsect.models.simpleclassifier import SimpleClassifier
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 import torch.nn as nn
 import pathlib
 
@@ -52,7 +52,7 @@ def get_bow_lc_parsect_infer(dirname: str):
         classification_layer_bias=True,
     )
 
-    dataset = ParsectDataset(**test_dataset_args)
+    dataset = SectLabelDataset(**test_dataset_args)
 
     dataset.print_stats()
 

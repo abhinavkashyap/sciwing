@@ -5,9 +5,13 @@
 
 Welcome to SciWing's documentation!
 ===================================
+   SciWING is a modular and easy to extend framework, that enables easy experimentation
+   of modern techniques for Scholarly Document Processing. It enables easy addition of datasets,
+   and models and provides tools to easily experiment with them.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   package_reference
+   framework/datasets.rst
+   framework/api.rst

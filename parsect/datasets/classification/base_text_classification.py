@@ -82,12 +82,13 @@ class BaseTextClassification(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def get_classname2idx(cls) -> Dict[str, int]:
-        """ Mapping between classnames and index
+        """ Returns the mapping from classname to idx
 
         Returns
         -------
         Dict[str, int]
-            A mapping between class names and idx
+            The mapping between class name to idx.
+
         """
         pass
 
@@ -120,6 +121,13 @@ class BaseTextClassification(metaclass=ABCMeta):
 
     @abstractmethod
     def print_stats(self):
+        """ Free form method to print some stats for the dataset
+
+        Returns
+        -------
+        None
+
+        """
         pass
 
     @abstractmethod
@@ -209,7 +217,7 @@ class BaseTextClassification(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def emits_keys(cls) -> Dict[str, str]:
-        """ Specify the keys that will be emitted in the instance dict fo the dataset
+        """ Specify the keys that will be emitted in the ``instance_dict`` fo the dataset
 
         The ``instance_dict`` is a dictionary of string to tensors. The ``instance_dict`` can
         contain various keys depending on the dataset that is being used and the model that
@@ -220,7 +228,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         -------
         Dict[str, str]
             A dictionary representing different keys emitted and their corresponding human
-            readable description
+            readable descriptions
         """
         pass
 

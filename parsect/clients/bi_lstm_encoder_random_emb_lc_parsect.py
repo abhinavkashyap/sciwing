@@ -1,5 +1,5 @@
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
 from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
 import parsect.constants as constants
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
 
-    train_dataset = ParsectDataset(
+    train_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    validation_dataset = ParsectDataset(
+    validation_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         word_embedding_dimension=EMBEDDING_DIMENSION,
     )
 
-    test_dataset = ParsectDataset(
+    test_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,

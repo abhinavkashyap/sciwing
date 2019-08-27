@@ -60,3 +60,6 @@ autodoc_mock_imports = [
     "torch",
     "gensim",
 ]
+
+# Napoleon settings
+napoleon_include_init_with_doc = True

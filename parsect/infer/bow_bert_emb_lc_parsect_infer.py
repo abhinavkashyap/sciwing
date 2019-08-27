@@ -4,7 +4,7 @@ import parsect.constants as constants
 from parsect.modules.embedders.bert_embedder import BertEmbedder
 from parsect.modules.bow_encoder import BOW_Encoder
 from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.parsect_dataset import ParsectDataset
+from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
 from parsect.infer.classification.classification_inference import (
     ClassificationInference,
 )
@@ -55,7 +55,7 @@ def get_bow_bert_emb_lc_parsect_infer(dirname: str):
         classification_layer_bias=True,
     )
 
-    dataset = ParsectDataset(**test_dataset_args)
+    dataset = SectLabelDataset(**test_dataset_args)
 
     parsect_inference = ClassificationInference(
         model=model, model_filepath=model_filepath, dataset=dataset
