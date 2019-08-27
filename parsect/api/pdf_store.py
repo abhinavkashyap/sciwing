@@ -3,6 +3,14 @@ import pathlib
 
 class PdfStore:
     def __init__(self, store_path: pathlib.Path):
+        """Manages the storage, retrieval and deletion of pdf files. This is useful
+        when we have to manipulate pdf files and delete them eventually.
+
+        Parameters
+        ----------
+        store_path : pathlib.Path
+            The store path is where all the pdfs will be stored and deleted from
+        """
         self.store_path = store_path
 
     def save_pdf_binary_string(

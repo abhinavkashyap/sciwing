@@ -6,3 +6,4 @@ top of the trained models for sciwing
 
 .. toctree::
     resources.rst
+    api.pdf_store.rst
