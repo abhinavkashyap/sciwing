@@ -13,12 +13,14 @@ OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 
 
 class S3OutputMove:
-    """
-    This provides an option to move the model folders to s3
-    You can also delete the folder locally once its moved to s3
-    """
-
     def __init__(self, foldername: str):
+        """ Provides an interactive way to move some folders to s3
+
+        Parameters
+        ----------
+        foldername : str
+            The folder name which will be moved to S3 bucket
+        """
         self.foldername = foldername
         self.s3_config_json_filename = os.path.join(
             AWS_CRED_DIR, "aws_s3_credentials.json"
@@ -30,6 +32,14 @@ class S3OutputMove:
         self.interact()
 
     def get_folder_choice(self):
+        """ Goes through the folder and gets the choice on which folder should be moved
+
+        Returns
+        -------
+        str
+            The folder which is chosen to be moved
+
+        """
         choices = []
         path = pathlib.Path(self.foldername)
 
@@ -39,7 +49,7 @@ class S3OutputMove:
         choices.append(Choice("exit"))
 
         folder_chose_question = questionary.select(
-            "These experiments exist in the output folder. Chose " "one to move to s3",
+            "Folder in the directory. Chose one to move to s3",
             qmark="❓",
             choices=choices,
         )
@@ -48,6 +58,12 @@ class S3OutputMove:
         return folder_type_answer
 
     def interact(self):
+        """ Interacts with the user by providing various options
+
+        Returns
+        -------
+        None
+        """
         while True:
             answer = self.get_folder_choice()
             if answer == "exit":
@@ -67,6 +83,15 @@ class S3OutputMove:
 
     @staticmethod
     def ask_deletion() -> str:
+        """ Since this is deletion, we want confirmation, just to be sure
+        whether to keep the deleted folder locally or to remove it
+
+        Returns
+        -------
+        str
+            An yes or no answer to the question
+
+        """
         deletion_question = questionary.rawselect(
             "Do you also want to delete the file locally. Caution! File will be removed locally",
             qmark="❓",

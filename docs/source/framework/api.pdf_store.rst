@@ -1,5 +1,5 @@
 #####################
-PDF Store
+pdf_store
 #####################
 .. automodule:: parsect.api.pdf_store
     :members:

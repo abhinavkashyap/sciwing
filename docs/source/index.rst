@@ -13,5 +13,6 @@ Welcome to SciWing's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   framework/datasets.rst
    framework/api.rst
+   framework/cli.rst
+   framework/datasets.rst

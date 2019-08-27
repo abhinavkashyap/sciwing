@@ -1,5 +1,5 @@
 *****************************
-Science IE Tagger Resource
+science_ie_tagger_resource
 *****************************
 .. automodule:: parsect.api.resources.science_ie_tagger_resource
     :members:
