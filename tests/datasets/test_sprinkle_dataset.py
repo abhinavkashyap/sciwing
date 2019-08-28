@@ -1,7 +1,7 @@
 import pytest
-import parsect.constants as constants
-from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
-from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
+import sciwing.constants as constants
+from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
+from sciwing.datasets.seq_labeling.parscit_dataset import ParscitDataset
 import pathlib
 
 

@@ -1,6 +1,6 @@
 import pytest
-from parsect.numericalizer.numericalizer import Numericalizer
-from parsect.vocab.vocab import Vocab
+from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.vocab.vocab import Vocab
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
+from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 import pytest
 
 

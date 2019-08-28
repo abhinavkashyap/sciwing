@@ -1,5 +1,5 @@
 import pytest
-from parsect.meters.loss_meter import LossMeter
+from sciwing.meters.loss_meter import LossMeter
 
 
 class TestLossMeter:

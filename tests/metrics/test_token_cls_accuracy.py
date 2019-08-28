@@ -1,7 +1,7 @@
 import pytest
 import torch
-from parsect.metrics.token_cls_accuracy import TokenClassificationAccuracy
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
+from sciwing.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture

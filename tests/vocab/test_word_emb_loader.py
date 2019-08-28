@@ -1,6 +1,6 @@
 import pytest
-from parsect.vocab.embedding_loader import EmbeddingLoader
-from parsect.vocab.vocab import Vocab
+from sciwing.vocab.embedding_loader import EmbeddingLoader
+from sciwing.vocab.vocab import Vocab
 import os
 
 

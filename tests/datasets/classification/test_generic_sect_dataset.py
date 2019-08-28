@@ -1,8 +1,8 @@
-from parsect.datasets.classification.generic_sect_dataset import GenericSectDataset
+from sciwing.datasets.classification.generic_sect_dataset import GenericSectDataset
 import pytest
-import parsect.constants as constants
+import sciwing.constants as constants
 from torch.utils.data import DataLoader
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 FILES = constants.FILES
 GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]

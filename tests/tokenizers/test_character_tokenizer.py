@@ -1,5 +1,5 @@
 import pytest
-from parsect.tokenizers.character_tokenizer import CharacterTokenizer
+from sciwing.tokenizers.character_tokenizer import CharacterTokenizer
 
 
 @pytest.fixture

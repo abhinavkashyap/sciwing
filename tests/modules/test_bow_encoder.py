@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 import torch
 import torch.nn as nn
-from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.bow_encoder import BOW_Encoder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 import itertools
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 aggregation_types = ["sum", "average"]
 embedding_type = ["zeros", "ones"]

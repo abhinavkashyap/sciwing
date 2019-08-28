@@ -1,4 +1,4 @@
-from parsect.utils.sciwing_toml_runner import SciWingTOMLRunner
+from sciwing.utils.sciwing_toml_runner import SciWingTOMLRunner
 
 
 class TestSciWingTOMLParse:

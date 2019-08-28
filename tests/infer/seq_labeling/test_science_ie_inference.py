@@ -1,6 +1,6 @@
 import pytest
-from parsect.infer.science_ie_infer import get_science_ie_infer
-import parsect.constants as constants
+from sciwing.infer.science_ie_infer import get_science_ie_infer
+import sciwing.constants as constants
 import pathlib
 
 PATHS = constants.PATHS
@@ -16,6 +16,10 @@ def setup_science_ie_inference():
     return get_science_ie_infer(debug_parscit_model_folder)
 
 
+@pytest.mark.skipif(
+    not pathlib.Path(OUTPUT_DIR, "lstm_crf_science_ie_debug").exists(),
+    reason="debug moel for lstm crf parscit does not exist",
+)
 class TestScienceIEInference:
     def test_print_prf_table_works(self, setup_science_ie_inference):
         inference = setup_science_ie_inference

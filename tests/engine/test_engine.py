@@ -1,18 +1,18 @@
-from parsect.engine.engine import Engine
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
-from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from sciwing.engine.engine import Engine
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.bow_encoder import BOW_Encoder
+from sciwing.models.simpleclassifier import SimpleClassifier
+from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
+from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from torch.nn import Embedding
 import torch.optim as optim
 import torch
 import numpy as np
 import os
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 import pytest
-import parsect.constants as constants
+import sciwing.constants as constants
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]

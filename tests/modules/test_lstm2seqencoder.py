@@ -1,6 +1,6 @@
 import pytest
-from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 import torch
 import torch.nn as nn
 import numpy as np

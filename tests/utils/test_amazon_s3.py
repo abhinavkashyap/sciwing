@@ -1,6 +1,6 @@
 import pytest
-from parsect.utils.amazon_s3 import S3Util
-import parsect.constants as constants
+from sciwing.utils.amazon_s3 import S3Util
+import sciwing.constants as constants
 import os
 import json
 import pathlib

@@ -1,4 +1,4 @@
-from parsect.tokenizers.bert_tokenizer import TokenizerForBert
+from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
 import pytest
 
 

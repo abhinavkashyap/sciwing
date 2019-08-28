@@ -1,11 +1,11 @@
 import pytest
-from parsect.models.science_ie_tagger import ScienceIETagger
-from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.charlstm_encoder import CharLSTMEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.models.science_ie_tagger import ScienceIETagger
+from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
+from sciwing.modules.charlstm_encoder import CharLSTMEncoder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from allennlp.modules.conditional_random_field import allowed_transitions
-from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
+from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 import itertools
 import torch.nn as nn
 import torch

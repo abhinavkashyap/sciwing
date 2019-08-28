@@ -1,5 +1,5 @@
 import pytest
-from parsect.modules.embedders.bert_embedder import BertEmbedder
+from sciwing.modules.embedders.bert_embedder import BertEmbedder
 import itertools
 
 bert_base_types = [

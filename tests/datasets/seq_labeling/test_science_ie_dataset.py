@@ -1,10 +1,10 @@
 import pytest
-import parsect.constants as constants
+import sciwing.constants as constants
 import pathlib
-from parsect.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
+from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from torch.utils.data import DataLoader
 import torch
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 
 PATHS = constants.PATHS

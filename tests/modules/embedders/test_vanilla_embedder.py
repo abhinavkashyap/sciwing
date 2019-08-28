@@ -1,8 +1,8 @@
 import pytest
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 import torch.nn as nn
 import torch
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture

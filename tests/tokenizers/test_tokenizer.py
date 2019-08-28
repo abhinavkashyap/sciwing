@@ -1,4 +1,4 @@
-from parsect.tokenizers.word_tokenizer import WordTokenizer
+from sciwing.tokenizers.word_tokenizer import WordTokenizer
 import pytest
 
 

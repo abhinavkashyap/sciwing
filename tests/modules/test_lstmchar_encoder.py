@@ -1,6 +1,6 @@
 import pytest
-from parsect.modules.charlstm_encoder import CharLSTMEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.charlstm_encoder import CharLSTMEncoder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 import torch.nn as nn
 import torch
 

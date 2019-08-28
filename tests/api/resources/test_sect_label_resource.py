@@ -1,9 +1,9 @@
 import pytest
 import requests
-from parsect.api.pdf_store import PdfStore
-from parsect.api.resources.sect_label_resource import SectLabelResource
+from sciwing.api.pdf_store import PdfStore
+from sciwing.api.resources.sect_label_resource import SectLabelResource
 import pathlib
-import parsect.api.conf as config
+import sciwing.api.conf as config
 
 BIN_FOLDER = config.BIN_FOLDER
 jar_path = BIN_FOLDER.joinpath("pdfbox-app-2.0.16.jar")

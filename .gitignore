@@ -158,11 +158,11 @@ Pyre type checker
 
 .idea
 
-parsect/vis/*
-parsect/data/*
+sciwing/vis/*
+sciwing/data/*
 .idea
 *.egg-info
-parsect/outputs/*
+sciwing/outputs/*
 tests/utils/dummy_folder/*
 tests/utils/dummy_file.txt
 
@@ -170,7 +170,7 @@ tests/utils/dummy_file.txt
 runs
 .model_cache
 .aws
-parsect/reports/*
-parsect/scripts/*
-parsect/config/*
+sciwing/reports/*
+sciwing/scripts/*
+sciwing/config/*
 /wandb/*

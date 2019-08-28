@@ -1,8 +1,8 @@
 import pytest
 import torch
 import torch.nn as nn
-from parsect.modules.lstm2vecencoder import LSTM2VecEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 import numpy as np
 import itertools
 

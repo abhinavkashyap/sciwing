@@ -1,6 +1,6 @@
-from parsect.project_setup import project_setup
+from sciwing.project_setup import project_setup
 import pytest
-import parsect.constants as constants
+import sciwing.constants as constants
 import pathlib
 
 PATHS = constants.PATHS

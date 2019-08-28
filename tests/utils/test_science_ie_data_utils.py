@@ -1,6 +1,6 @@
-import parsect.constants as constants
+import sciwing.constants as constants
 import pytest
-from parsect.utils.science_ie_data_utils import ScienceIEDataUtils
+from sciwing.utils.science_ie_data_utils import ScienceIEDataUtils
 import pathlib
 from collections import Counter
 import spacy

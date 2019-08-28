@@ -1,5 +1,5 @@
 import pytest
-from parsect.vocab.vocab import Vocab
+from sciwing.vocab.vocab import Vocab
 import os
 
 

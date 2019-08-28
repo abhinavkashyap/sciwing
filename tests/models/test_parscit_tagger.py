@@ -1,9 +1,9 @@
 import pytest
-from parsect.models.parscit_tagger import ParscitTagger
-from parsect.modules.lstm2seqencoder import Lstm2SeqEncoder
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.modules.charlstm_encoder import CharLSTMEncoder
-from parsect.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.models.parscit_tagger import ParscitTagger
+from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.charlstm_encoder import CharLSTMEncoder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 import itertools
 import torch.nn as nn
 import torch

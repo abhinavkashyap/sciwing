@@ -1,0 +1,2 @@
+from sciwing.models.simpleclassifier import SimpleClassifier
+from sciwing.models.science_ie_tagger import ScienceIETagger

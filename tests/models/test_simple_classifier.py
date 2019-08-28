@@ -1,13 +1,13 @@
 import pytest
 
 import torch
-from parsect.modules.bow_encoder import BOW_Encoder
-from parsect.models.simpleclassifier import SimpleClassifier
-from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.bow_encoder import BOW_Encoder
+from sciwing.models.simpleclassifier import SimpleClassifier
+from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 from torch.nn import Embedding
 import numpy as np
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture

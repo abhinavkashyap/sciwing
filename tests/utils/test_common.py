@@ -1,15 +1,15 @@
-import parsect.constants as constants
-from parsect.utils.common import convert_sectlabel_to_json
-from parsect.utils.common import merge_dictionaries_with_sum
-from parsect.utils.common import pack_to_length
-from parsect.utils.common import convert_generic_sect_to_json
-from parsect.utils.common import convert_parscit_to_conll
-from parsect.utils.common import write_cora_to_conll_file
-from parsect.utils.common import write_parscit_to_conll_file
-from parsect.utils.common import create_class
+import sciwing.constants as constants
+from sciwing.utils.common import convert_sectlabel_to_json
+from sciwing.utils.common import merge_dictionaries_with_sum
+from sciwing.utils.common import pack_to_length
+from sciwing.utils.common import convert_generic_sect_to_json
+from sciwing.utils.common import convert_parscit_to_conll
+from sciwing.utils.common import write_cora_to_conll_file
+from sciwing.utils.common import write_parscit_to_conll_file
+from sciwing.utils.common import create_class
 import pytest
 import pathlib
-from parsect.engine.engine import Engine
+from sciwing.engine.engine import Engine
 
 FILES = constants.FILES
 PATHS = constants.PATHS

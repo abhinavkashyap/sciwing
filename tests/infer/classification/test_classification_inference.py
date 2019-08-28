@@ -1,19 +1,19 @@
 import pytest
-import parsect.constants as constants
+import sciwing.constants as constants
 import pathlib
-from parsect.infer.bow_lc_parsect_infer import get_bow_lc_parsect_infer
-from parsect.infer.bow_lc_gensect_infer import get_bow_lc_gensect_infer
-from parsect.infer.bow_elmo_emb_lc_parsect_infer import get_elmo_emb_lc_infer_parsect
-from parsect.infer.bow_elmo_emb_lc_gensect_infer import get_elmo_emb_lc_infer_gensect
-from parsect.infer.bow_bert_emb_lc_parsect_infer import (
+from sciwing.infer.bow_lc_parsect_infer import get_bow_lc_parsect_infer
+from sciwing.infer.bow_lc_gensect_infer import get_bow_lc_gensect_infer
+from sciwing.infer.bow_elmo_emb_lc_parsect_infer import get_elmo_emb_lc_infer_parsect
+from sciwing.infer.bow_elmo_emb_lc_gensect_infer import get_elmo_emb_lc_infer_gensect
+from sciwing.infer.bow_bert_emb_lc_parsect_infer import (
     get_bow_bert_emb_lc_parsect_infer,
 )
-from parsect.infer.bow_bert_emb_lc_gensect_infer import (
+from sciwing.infer.bow_bert_emb_lc_gensect_infer import (
     get_bow_bert_emb_lc_gensect_infer,
 )
-from parsect.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
-from parsect.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
-from parsect.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
+from sciwing.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
+from sciwing.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
+from sciwing.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
@@ -47,6 +47,15 @@ def setup_inference(tmpdir_factory, request):
     return inference_client
 
 
+@pytest.mark.skipif(
+    not all(
+        [
+            pathlib.Path(OUTPUT_DIR, dirname).exists()
+            for dirname, _ in directory_infer_client_mapping
+        ]
+    ),
+    reason="debug models do not exist in the output dir",
+)
 class TestClassificationInference:
     def test_run_inference_works(self, setup_inference):
         inference_client = setup_inference

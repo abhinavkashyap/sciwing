@@ -1,7 +1,7 @@
 import pytest
-from parsect.modules.embedders.concat_embedders import ConcatEmbedders
-from parsect.modules.embedders.vanilla_embedder import VanillaEmbedder
-from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 import torch.nn as nn
 import copy
 import torch

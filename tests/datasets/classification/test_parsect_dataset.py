@@ -1,9 +1,9 @@
-import parsect.constants as constants
+import sciwing.constants as constants
 import pytest
-from parsect.datasets.classification.sectlabel_dataset import SectLabelDataset
+from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
 import torch
 from torch.utils.data import DataLoader
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]

@@ -1,7 +1,7 @@
 import pytest
-import parsect.constants as constants
+import sciwing.constants as constants
 import pathlib
-from parsect.infer.bilstm_crf_infer import get_bilstm_crf_infer
+from sciwing.infer.bilstm_crf_infer import get_bilstm_crf_infer
 
 PATHS = constants.PATHS
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
@@ -15,6 +15,10 @@ def setup_base_parscit_inference():
     return inference_client
 
 
+@pytest.mark.skipif(
+    not pathlib.Path(OUTPUT_DIR, "lstm_crf_parscit_debug").exists(),
+    reason="debug moel for lstm crf parscit does not exist",
+)
 class TestParscitInference:
     def test_run_inference_works(self, setup_base_parscit_inference):
         inference_client = setup_base_parscit_inference

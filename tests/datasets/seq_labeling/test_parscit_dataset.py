@@ -1,9 +1,9 @@
-import parsect.constants as constants
+import sciwing.constants as constants
 import pytest
-from parsect.utils.common import write_nfold_parscit_train_test
-from parsect.datasets.seq_labeling.parscit_dataset import ParscitDataset
+from sciwing.utils.common import write_nfold_parscit_train_test
+from sciwing.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from torch.utils.data import DataLoader
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.utils.class_nursery import ClassNursery
 
 import pathlib
 

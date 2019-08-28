@@ -1,6 +1,6 @@
 import pytest
-from parsect.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
-from parsect.utils.common import pack_to_length
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from sciwing.utils.common import pack_to_length
 
 
 @pytest.fixture(params=["sum", "average", "first", "last"])

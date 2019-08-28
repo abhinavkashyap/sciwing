@@ -1,7 +1,7 @@
 import pytest
 import torch
-from parsect.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from parsect.utils.class_nursery import ClassNursery
+from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+from sciwing.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture

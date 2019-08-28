@@ -1,5 +1,5 @@
 import pytest
-from parsect.api.pdf_store import PdfStore
+from sciwing.api.pdf_store import PdfStore
 import pathlib
 
 

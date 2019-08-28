@@ -3,18 +3,18 @@ This tests the pipeline till numericalizatio
 """
 import pytest
 
-import parsect.constants as constants
-from parsect.utils.common import convert_sectlabel_to_json
-from parsect.tokenizers.word_tokenizer import WordTokenizer
-from parsect.preprocessing.instance_preprocessing import InstancePreprocessing
-from parsect.vocab.vocab import Vocab
-from parsect.numericalizer.numericalizer import Numericalizer
+import sciwing.constants as constants
+from sciwing.utils.common import convert_sectlabel_to_json
+from sciwing.tokenizers.word_tokenizer import WordTokenizer
+from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
+from sciwing.vocab.vocab import Vocab
+from sciwing.numericalizer.numericalizer import Numericalizer
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
-# 1. Convert parsect data to json
+# 1. Convert sciwing data to json
 @pytest.fixture()
 def get_parsect_data():
     parsect_json = convert_sectlabel_to_json(SECT_LABEL_FILE)

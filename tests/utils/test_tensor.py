@@ -1,7 +1,7 @@
 import pytest
 import torch
-from parsect.utils.tensor_utils import has_tensor
-from parsect.utils.tensor_utils import get_mask
+from sciwing.utils.tensor_utils import has_tensor
+from sciwing.utils.tensor_utils import get_mask
 
 
 @pytest.fixture
