@@ -14,14 +14,31 @@ DATASETS_DIR = PATHS["DATASETS_DIR"]
 
 
 class ClassificationDatasetGenerator(object):
-    def __init__(self, dataset_name: str, filename: Optional[str] = None):
+    """ This method interactive generates a classification dataset file with all the different batteries
+    required to implement a dataset. We generate the dataset for the developer, developing the dataset
+    This provides more flexibility to the developer to change different parts if necessary.
+
+    However, we also provide out-of-the-box functionality if the files are in standard format.
+    If the classification dataset is of the format ``text\\tlabel`` with one text instance per
+    line then we provide out-of-the-box functionality for the developer of the dataset. There
+    is no need to touch the file.
+    """
+
+    def __init__(self, dataset_name: str):
+        """
+
+        Parameters
+        ----------
+        dataset_name : str
+            The class name of the dataset that will be generated
+
+        """
         self.dataset_name = dataset_name
         self.template_file = pathlib.Path(
             TEMPLATES_DIR, "classification_dataset_template.txt"
         )
         self.msg_printer = wasabi.Printer()
         self.template = self._get_template()
-        self.filename = filename
         self.template_variables = self.interact()
 
     def _get_template(self):
@@ -31,6 +48,12 @@ class ClassificationDatasetGenerator(object):
         return jinja_template
 
     def generate(self):
+        """ Write the generate classification dataset into the ``dataset.classification`` folder
+
+        Returns
+        -------
+        None
+        """
         with open(
             pathlib.Path(DATASETS_DIR, "classification", f"{self.dataset_name}.py"), "w"
         ) as fp:
@@ -156,6 +179,22 @@ class ClassificationDatasetGenerator(object):
 
     @staticmethod
     def parse_file(filename: str) -> (bool, List[str], List[str]):
+        """ Takes a filename that is in standard classification format and return lines and labels if
+        the filename conforms to the standard format
+
+        Parameters
+        ----------
+        filename : str
+            Full path of the filename where the classification dataset is stored
+
+        Returns
+        -------
+        bool, List[str], List[str]
+            - Indicates whether classification dataset conforms to the standard format.
+            - Lines from the file
+            - Labels from the file
+
+        """
         lines = []
         labels = []
         with open(filename, "r") as fp:
@@ -170,20 +209,23 @@ class ClassificationDatasetGenerator(object):
                     return False, [], []
         return True, lines, labels
 
-    def _get_debug_default_value(self):
+    @staticmethod
+    def _get_debug_default_value():
         debug_default_value = questionary.confirm(
             "Do you want default value for debug to be True?: ", default=False
         ).ask()
         return debug_default_value
 
-    def _get_debug_dataset_proportion(self):
+    @staticmethod
+    def _get_debug_dataset_proportion():
         debug_dataset_proportion = questionary.text(
             message="Enter Proportion of dataset for debug: ", default="0.1"
         ).ask()
         debug_dataset_proportion = float(debug_dataset_proportion)
         return debug_dataset_proportion
 
-    def _get_word_embedding_type(self):
+    @staticmethod
+    def _get_word_embedding_type():
         embedding_type = questionary.select(
             message="Chose one of the embeddings available: ",
             choices=[
@@ -196,35 +238,40 @@ class ClassificationDatasetGenerator(object):
         ).ask()
         return embedding_type
 
-    def _get_word_start_token(self):
+    @staticmethod
+    def _get_word_start_token():
         word_start_token = questionary.text(
             message="Enter default token to be used for beginning of sentence: ",
             default="<SOS>",
         ).ask()
         return word_start_token
 
-    def _get_word_end_token(self):
+    @staticmethod
+    def _get_word_end_token():
         word_end_token = questionary.text(
             message="Enter default token to be used for end of sentence: ",
             default="<EOS>",
         ).ask()
         return word_end_token
 
-    def _get_word_pad_token(self):
+    @staticmethod
+    def _get_word_pad_token():
         word_pad_token = questionary.text(
             message="Enter default token to be used for padding sentences: ",
             default="<PAD>",
         ).ask()
         return word_pad_token
 
-    def _get_word_unk_token(self):
+    @staticmethod
+    def _get_word_unk_token():
         word_unk_token = questionary.text(
             message="Enter default token to be used in case the word is not found in the vocab: ",
             default="<UNK>",
         ).ask()
         return word_unk_token
 
-    def _get_default_train_size(self):
+    @staticmethod
+    def _get_default_train_size():
         train_size = questionary.text(
             message="Enter default size of the dataset that will be used for training: ",
             default="0.8",
@@ -232,7 +279,8 @@ class ClassificationDatasetGenerator(object):
         train_size = float(train_size)
         return train_size
 
-    def _get_default_test_size(self):
+    @staticmethod
+    def _get_default_test_size():
         test_size = questionary.text(
             message="Enter default size of the dataset that will be used for testing: ",
             default="0.2",
@@ -240,7 +288,8 @@ class ClassificationDatasetGenerator(object):
         test_size = float(test_size)
         return test_size
 
-    def _get_default_validation_size(self):
+    @staticmethod
+    def _get_default_validation_size():
         validation_size = questionary.text(
             message="Enter default size fo the dataset that will be used for validation.: "
             "This will be the proportion of the test size that will be used",
@@ -248,7 +297,8 @@ class ClassificationDatasetGenerator(object):
         ).ask()
         return validation_size
 
-    def _get_tokenizer_type(self):
+    @staticmethod
+    def _get_tokenizer_type():
         tokenizer_type = questionary.select(
             message="What is the default tokenization that you would want to use?: ",
             choices=[
@@ -262,13 +312,15 @@ class ClassificationDatasetGenerator(object):
         ).ask()
         return tokenizer_type
 
-    def _get_is_dataset_standard_fmt(self):
+    @staticmethod
+    def _get_is_dataset_standard_fmt():
         is_dataset_standard_fmt = questionary.confirm(
             message="Is dataset in standard format?", default=False
         ).ask()
         return is_dataset_standard_fmt
 
-    def _get_vocab_pipes(self):
+    @staticmethod
+    def _get_vocab_pipes():
         vocab_pipe = questionary.checkbox(
             message="What batteries do you want with the dataset?",
             choices=[
@@ -287,31 +339,36 @@ class ClassificationDatasetGenerator(object):
         vocab_pipe.append("word_vocab")
         return vocab_pipe
 
-    def _get_char_start_token(self):
+    @staticmethod
+    def _get_char_start_token():
         char_start_token = questionary.text(
             message="Enter the start token to be used for characters", default=" "
         ).ask()
         return char_start_token
 
-    def _get_char_end_token(self):
+    @staticmethod
+    def _get_char_end_token():
         char_end_token = questionary.text(
             message="Enter the end token to be used for characters", default=" "
         ).ask()
         return char_end_token
 
-    def _get_char_pad_token(self):
+    @staticmethod
+    def _get_char_pad_token():
         char_pad_token = questionary.text(
             message="Enter the pad token to be used for characters", default=" "
         ).ask()
         return char_pad_token
 
-    def _get_char_unk_token(self):
+    @staticmethod
+    def _get_char_unk_token():
         char_unk_token = questionary.text(
             message="Enter the unk token to be used for characters", default=" "
         ).ask()
         return char_unk_token
 
-    def _get_char_embedding_dimension(self):
+    @staticmethod
+    def _get_char_embedding_dimension():
         char_embedding_dimension = questionary.text(
             message="Enter char embedding dimension", default="25"
         ).ask()

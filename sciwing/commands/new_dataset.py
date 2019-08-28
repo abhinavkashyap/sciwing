@@ -4,7 +4,6 @@ from sciwing.commands.validators import is_valid_python_classname
 from sciwing.commands.file_gen_utils import ClassificationDatasetGenerator
 import sciwing.constants as constants
 import wasabi
-from typing import Dict, Optional, Any, List
 
 
 PATHS = constants.PATHS
@@ -13,6 +12,8 @@ DATASETS_DIR = PATHS["DATASETS_DIR"]
 
 
 def create_new_dataset_interactive():
+    """ Interactively creates new dataset files loaded with all the functionality.
+    """
     msg_printer = wasabi.Printer()
 
     dataset_name = questionary.text(

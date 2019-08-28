@@ -11,7 +11,8 @@ class_infer_client_mapping = {"SimpleClassifier": ClassificationInference}
 @click.command()
 @click.argument("toml_filename")
 def test(toml_filename):
-    """ Runs the test data using the toml filename and prints test dataset results
+    """ Loads the model from experiment directory declared in toml filename. Runs
+    test dataset against the model and reports the results.
 
     Parameters
     ----------
@@ -21,7 +22,7 @@ def test(toml_filename):
     Returns
     -------
     None
-        Prints resuts on the test dataset
+        Reports resuts on the test dataset
 
     """
     toml_filepath = pathlib.Path(toml_filename)

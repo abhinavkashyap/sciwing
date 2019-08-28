@@ -96,6 +96,14 @@ class ParsectCli:
             self.generate_report()
 
     def ask_model_type(self):
+        """
+        Asks to chose a model amongst different model types that are available in sciwing
+
+        Returns
+        -------
+        str
+            Model type chosen by the user
+        """
         choices = self.return_model_type_choices()
         model_type_question = questionary.rawselect(
             "We have the following trained models. Chose one",
@@ -105,6 +113,14 @@ class ParsectCli:
         return model_type_question.ask()
 
     def return_model_type_choices(self) -> List[Choice]:
+        """ Returns a list of different model types availabel to the user
+
+        Returns
+        -------
+        List[Choice]
+            A list of different model types available to the user
+
+        """
         choices = []
         for model_type in self.trained_model_types:
             choices.append(Choice(model_type))
@@ -112,6 +128,15 @@ class ParsectCli:
 
     @staticmethod
     def ask_generate_report_or_interact():
+        """ Ask the user to chose between interacting with the model or generate the report
+        for all the experiments
+
+        Returns
+        -------
+        str
+            choce of the user as a string
+
+        """
         choices = [
             Choice("Interact with model", "interact"),
             Choice("Generate report (for all experiments)", "gen-report"),
@@ -123,6 +148,20 @@ class ParsectCli:
         return generate_report_or_interact.ask()
 
     def interact(self):
+        """ Interact with the user to explore different models
+
+        This method provides various options for exploration of the different models.
+
+        - ``See-Confusion-Matrix`` shows the confusion matrix on the test dataset.
+        - ``See-Examples-of-Classification`` is to explore correct and mis-classifications. You can provide two class numbers as in, ``2 3`` and it shows examples in the test dataset where text that belong to class ``2`` is classified as class ``3``.
+        - ``See-prf-table`` shows the precision recall and fmeasure per class.
+        - ``See-text`` - Manually enter text and look at the classification results.
+
+        Returns
+        -------
+        None
+
+        """
         exp_dir = self.get_experiment_choice()
         exp_dir_path = pathlib.Path(exp_dir)
         inference_func = self.model_type2inf_func[self.model_type_answer]
@@ -191,7 +230,16 @@ class ParsectCli:
                 self.msg_printer.text("See you again!")
                 exit(0)
 
-    def get_experiment_choice(self):
+    def get_experiment_choice(self) -> str:
+        """ Given a particular, many experiments would have been run. This method gets the choice
+        of experiment that the user wants to interact with
+
+        Returns
+        -------
+        str
+            The choice of experiment chosen by the user
+
+        """
         output_dirpath = pathlib.Path(OUTPUT_DIR)
         experiment_dirnames = self.get_experiments_folder_names()
 
@@ -217,11 +265,13 @@ class ParsectCli:
         return str(output_dirpath.joinpath(exp_choice_path))
 
     def get_experiments_folder_names(self) -> List[str]:
-        """
-        Returns the experiment folder names from local output folder
-        and amazon s3 folder
+        """ Returns the experiment folder names from local output folder and amazon s3 folder
         Returns just the plain experiment folder names (not the actual path)
-        :return:
+
+        Returns
+        --------
+        List[str]
+            The list of different foldernames that are either in s3 bucket or in the current folder
         """
         output_dirpath = pathlib.Path(OUTPUT_DIR)
         experiment_dirnames = []
@@ -240,6 +290,17 @@ class ParsectCli:
         return experiment_dirnames
 
     def generate_report(self):
+        """ Generates a report for all the different experiments.
+
+        This was initially meant for classification experiments. This might get changed in future
+        versions to accomadate different kinds of models.
+
+        Returns
+        -------
+        None
+            Writes a csv with results from all the different experiments
+
+        """
         experiment_dirnames = self.get_experiments_folder_names()
 
         if len(experiment_dirnames) == 0:

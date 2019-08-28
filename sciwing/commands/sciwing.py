@@ -7,11 +7,6 @@ from sciwing.commands.test import test
 @click.group()
 def sciwing():
     """Root command for everything else in sciwing
-
-    Returns
-    -------
-    None
-
     """
     pass
 
