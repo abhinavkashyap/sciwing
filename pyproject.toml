@@ -3,11 +3,11 @@ requires = ["flit"]
 build-backend = "flit.buildapi"
 
 [tool.flit.metadata]
-module = "parsect"
+module = "sciwing"
 author = "Abhinav Ramesh Kashyap"
 author-email = "abhinav@comp.nus.edu.sg"
 home-page = "https://www.abhinavkashyap.io"
 classifiers = ["License :: OSI Approved :: MIT License"]
 
 [tool.flit.scripts]
-sciwing = "parsect.commands.sciwing:main"
+sciwing = "sciwing.commands.sciwing:main"
