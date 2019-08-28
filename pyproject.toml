@@ -9,3 +9,5 @@ author-email = "abhinav@comp.nus.edu.sg"
 home-page = "https://www.abhinavkashyap.io"
 classifiers = ["License :: OSI Approved :: MIT License"]
 
+[tool.flit.scripts]
+sciwing = "parsect.commands.sciwing:main"

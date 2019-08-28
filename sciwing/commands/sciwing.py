@@ -12,8 +12,12 @@ def sciwing():
     pass
 
 
-if __name__ == "__main__":
+def main():
     sciwing.add_command(new)
     sciwing.add_command(run)
     sciwing.add_command(test)
     sciwing()
+
+
+if __name__ == "__main__":
+    main()
