@@ -1,6 +1,3 @@
-"""
-The entry point to all the commands in the SciWING project
-"""
 import click
 from sciwing.commands.new import new
 from sciwing.commands.run import run
@@ -9,6 +6,13 @@ from sciwing.commands.test import test
 
 @click.group()
 def sciwing():
+    """Root command for everything else in sciwing
+
+    Returns
+    -------
+    None
+
+    """
     pass
 
 

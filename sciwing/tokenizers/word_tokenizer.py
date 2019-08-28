@@ -7,17 +7,7 @@ from sciwing.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer
 
 
 class WordTokenizer(BaseTokenizer):
-    """
-    The tokenizer, takes a span of text and returns
-    the tokens (it can be either word or character)
-    """
-
     def __init__(self, tokenizer: str = "spacy"):
-        """
-
-        :param tokenizer: type:str
-        We can use either of ['spacy'] tokenizer to word_tokenize text
-        """
         super(WordTokenizer, self).__init__()
         self.msg_printer = Printer()
         self.tokenizer = tokenizer
@@ -36,13 +26,6 @@ class WordTokenizer(BaseTokenizer):
             self.nlp.tokenizer = CustomSpacyWhiteSpaceTokenizer(self.nlp.vocab)
 
     def tokenize(self, text: str) -> List[str]:
-        """
-
-        :param text: type: str
-        Span of text to be word tokenized
-        :return:
-        """
-
         if self.tokenizer == "spacy" or self.tokenizer == "spacy-whitespace":
             doc = self.nlp(text)
             tokens = [

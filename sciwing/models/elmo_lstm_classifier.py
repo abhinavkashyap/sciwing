@@ -16,18 +16,6 @@ class ElmoLSTMClassifier(nn.Module):
         classification_layer_bias: bool = True,
         device: torch.device = torch.device("cpu"),
     ):
-        """
-
-        :param elmo_lstm_encoder: type: ElmoLSTMEncoder
-        ElmoLSTMEncoder combines the embedding from ElMO BI-LSTM language
-        model and a normal token level embedding.
-        :param encoding_dim: type: int
-        :param num_classes: type: int
-        :param classification_layer_bias: type: bool
-        Would you want to add bias to the classification layer? set it to true
-        This is used for debugging purposes. Use it sparingly
-        :param device: torch.device
-        """
         super(ElmoLSTMClassifier, self).__init__()
         self.elmo_lstm_encoder: ElmoLSTMEncoder = elmo_lstm_encoder
         self.encoding_dim = encoding_dim

@@ -272,20 +272,6 @@ def write_nfold_parscit_train_test(
     output_test_filepath: pathlib.Path,
     nsplits: int = 2,
 ) -> bool:
-    """
-    1) Converts 'WING-NUS Parscit' style files to conll format
-    2) writes a split to the train and test file
-    3) It returns a bool indicating that the file is written successfully
-
-    :param parscit_train_filepath: type: pathlib.Path
-    WING-NUS Parscit style file
-    :param output_train_filepath: type: pathlib.Path
-    :param output_test_filepath: type: pathlib.Path
-    :param nsplits: type: int
-    Number of kfold splits.
-    :return: bool
-    Indicates that the file has been written
-    """
     citations = convert_parscit_to_conll(parscit_train_filepath=parscit_train_filepath)
     len_citations = len(citations)
     kf = KFold(n_splits=nsplits, shuffle=True, random_state=1729)

@@ -74,14 +74,6 @@ class S3Util:
             self.msg_printer.fail(f"Failed to get the s3 resource")
 
     def upload_file(self, filename: str, obj_name: str = None):
-        """
-
-        :param filename: str
-        The local path filename
-        :param obj_name: type: str
-        The object name that will be stored in s3
-        :return: None
-        """
         if obj_name is None:
             obj_name = filename
 
@@ -144,27 +136,3 @@ class S3Util:
                 filtered_folder_names.append(foldername)
 
         return filtered_folder_names
-
-
-if __name__ == "__main__":
-    import os
-
-    OUTPUT_DIR = PATHS["OUTPUT_DIR"]
-    bow_random_experiment_folder = os.path.join(
-        OUTPUT_DIR, "bow_random_emb_lc_4kw_15ml_75d_50e_1e-4lr"
-    )
-
-    util = S3Util(
-        aws_cred_config_json_filename=os.path.join(
-            AWS_CRED_DIR, "aws_s3_credentials.json"
-        )
-    )
-
-    # msg_printer = wasabi.Printer()
-    # with msg_printer.loading(f"Uploading folder {bow_random_experiment_folder}"):
-    #     util.upload_folder(
-    #         folder_name=bow_random_experiment_folder,
-    #         base_folder_name=os.path.basename(bow_random_experiment_folder),
-    #     )
-    # msg_printer.good(f"Finished uploading folder {bow_random_experiment_folder}")
-    print(util.search_folders_with("elmo_bi_lstm_lc.*"))
