@@ -1,6 +1,6 @@
 from typing import Dict, List, Any, Iterable, Iterator, Tuple
 
-from tqdm import tqdm
+import math
 import requests
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.vocab.vocab import Vocab
@@ -15,6 +15,8 @@ import numpy as np
 import sciwing.constants as constants
 from itertools import tee
 import importlib
+from tqdm import tqdm
+import tarfile
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -173,13 +175,19 @@ def pack_to_length(
 def download_file(url: str, dest_filename: str) -> None:
     # NOTE the stream=True parameter below
     msg_printer = Printer()
-    with msg_printer.loading(f"Downloading file {url} to {dest_filename}"):
-        with requests.get(url, stream=True) as r:
-            r.raise_for_status()
-            with open(dest_filename, "wb") as f:
-                for chunk in r.iter_content(chunk_size=32768):
-                    if chunk:  # filter out keep-alive new chunks
-                        f.write(chunk)
+    block_size = 65536
+    r = requests.get(url, stream=True)
+    total_size = int(r.headers.get("content-length", 0))
+    written = 0
+    with open(dest_filename, "wb") as f:
+        for chunk in tqdm(
+            r.iter_content(chunk_size=block_size),
+            total=math.ceil(total_size // block_size),
+            desc=f"Downloading from {url}",
+        ):
+            if chunk:  # filter out keep-alive new chunks
+                written = written + len(chunk)
+                f.write(chunk)
     msg_printer.good(f"Finished downloading {url} to {dest_filename}")
 
 
@@ -193,6 +201,19 @@ def extract_zip(filename: str, destination_dir: str):
 
         msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
     except zipfile.BadZipFile:
+        msg_printer.fail("Couldnot extract {filename} to {destination}")
+
+
+def extract_tar(filename: str, destination_dir: str, mode="r"):
+    msg_printer = Printer()
+    try:
+        with msg_printer.loading(f"Unzipping file {filename} to {destination_dir}"):
+            stdout.flush()
+            with tarfile.open(filename, mode) as t:
+                t.extractall(destination_dir)
+
+        msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
+    except tarfile.ExtractError:
         msg_printer.fail("Couldnot extract {filename} to {destination}")
 
 
@@ -241,7 +262,7 @@ def convert_parscit_to_conll(
     word_tags = []
     output_list = []
     with printer.loading(f"Converting {parscit_train_filepath.name} to conll format"):
-        with open(str(parscit_train_filepath), "r", encoding="utf-8") as fp:
+        with open(str(parscit_train_filepath), "r", encoding="latin-1") as fp:
             for line in fp:
                 if bool(line.strip()):
                     fields = line.strip().split()

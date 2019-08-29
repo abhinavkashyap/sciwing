@@ -8,7 +8,7 @@ import gensim
 
 
 PATHS = constants.PATHS
-DATA_DIR = PATHS["DATA_DIR"]
+EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
 
 
 class EmbeddingLoader:
@@ -66,26 +66,18 @@ class EmbeddingLoader:
         filename = None
 
         if self.embedding_type == "glove_6B_50":
-            filename = os.path.join(DATA_DIR, "embeddings", "glove", "glove.6B.50d.txt")
+            filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.50d.txt")
 
         elif self.embedding_type == "glove_6B_100":
-            filename = os.path.join(
-                DATA_DIR, "embeddings", "glove", "glove.6B.100d.txt"
-            )
+            filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.100d.txt")
 
         elif self.embedding_type == "glove_6B_200":
-            filename = os.path.join(
-                DATA_DIR, "embeddings", "glove", "glove.6B.200d.txt"
-            )
+            filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.200d.txt")
 
         elif self.embedding_type == "glove_6B_300":
-            filename = os.path.join(
-                DATA_DIR, "embeddings", "glove", "glove.6B.300d.txt"
-            )
+            filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.300d.txt")
         elif self.embedding_type == "parscit":
-            filename = os.path.join(
-                DATA_DIR, "embeddings", "parscit", "vectors_with_unk.kv"
-            )
+            filename = os.path.join(EMBEDDING_CACHE_DIR, "vectors_with_unk.kv")
 
         return filename
 

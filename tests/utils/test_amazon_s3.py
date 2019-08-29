@@ -11,12 +11,12 @@ PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
 TESTS_DIR = PATHS["TESTS_DIR"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
+WING_NUS_AWS_CREDENTIALS = os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json")
 
 
 @pytest.fixture
 def setup_s3_util():
-    aws_config_filename = os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json")
-    util = S3Util(aws_cred_config_json_filename=aws_config_filename)
+    util = S3Util(aws_cred_config_json_filename=WING_NUS_AWS_CREDENTIALS)
     return util
 
 
@@ -40,6 +40,10 @@ def create_dummy_file_in_test_folder():
     return dummy_file_path
 
 
+@pytest.mark.skipif(
+    not pathlib.Path(WING_NUS_AWS_CREDENTIALS).is_file(),
+    reason="No aws credentials file",
+)
 class TestS3Util:
     def test_credentials_file_not_empty(self, setup_s3_util):
         aws_util = setup_s3_util

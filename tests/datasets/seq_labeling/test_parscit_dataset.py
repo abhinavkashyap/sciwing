@@ -39,7 +39,7 @@ def setup_parscit_train_dataset(tmpdir):
     if is_write_success:
         train_dataset = ParscitDataset(
             filename=str(train_file),
-            dataset_type="train",
+            dataset_type=" train",
             max_num_words=MAX_NUM_WORDS,
             max_instance_length=MAX_LENGTH,
             max_char_length=MAX_CHAR_LENGTH,

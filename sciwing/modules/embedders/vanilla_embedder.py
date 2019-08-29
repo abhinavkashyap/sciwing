@@ -3,7 +3,7 @@ from typing import Dict, Any
 from sciwing.utils.class_nursery import ClassNursery
 
 
-class VanillaEmbedder(nn.Module):
+class VanillaEmbedder(nn.Module, ClassNursery):
     def __init__(self, embedding: nn.Embedding, embedding_dim: int):
         super(VanillaEmbedder, self).__init__()
         self.embedding = embedding

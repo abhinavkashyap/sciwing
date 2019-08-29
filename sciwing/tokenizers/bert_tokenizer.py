@@ -7,7 +7,7 @@ from tqdm import tqdm
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 
 PATHS = constants.PATHS
-MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
+EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
 
 
 class TokenizerForBert(BaseTokenizer):
@@ -39,7 +39,7 @@ class TokenizerForBert(BaseTokenizer):
         if "scibert" in self.bert_type:
             foldername = self.scibert_foldername_mapping[self.bert_type]
             self.vocab_type_or_filename = os.path.join(
-                MODELS_CACHE_DIR, foldername, "vocab.txt"
+                EMBEDDING_CACHE_DIR, foldername, "vocab.txt"
             )
         else:
             self.vocab_type_or_filename = self.bert_type

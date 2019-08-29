@@ -8,12 +8,13 @@ wasabi==0.2.2
 boto3==1.9.211
 tqdm==4.32.1
 wrapt==1.11.2
-googledrivedownloader==0.4
 stop_words
 allennlp==0.8.3
 botocore
 gensim==3.8.0
 pytest==4.5.0
+pytest-sugar
+pytest-xdist
 pytorch_pretrained_bert
 spacy==2.1.4
 questionary==1.1.1
@@ -27,10 +28,10 @@ falcon==2.0.0
 numpy==1.16.3
 click==7.0
 toml==0.10.0
-setuptools==41.0.1
 requests==2.22.0
 scikit_learn==0.21.3
 tensorboardX==1.8
+sphinx
 sphinx-rtd-theme
 sphinx-autobuild
 

@@ -5,23 +5,45 @@ from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from torch.utils.data import DataLoader
 import torch
 from sciwing.utils.class_nursery import ClassNursery
-
+from sciwing.utils.science_ie_data_utils import ScienceIEDataUtils
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
 FILES = constants.FILES
 SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
-SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 
 
-@pytest.fixture(params=["train", "dev"], scope="session")
-def setup_science_ie_dataset(request, tmpdir_factory):
-    train_tag = request.param
-    task_filename = pathlib.Path(DATA_DIR, f"{train_tag}_task_conll.txt")
-    process_filename = pathlib.Path(DATA_DIR, f"{train_tag}_process_conll.txt")
-    material_filename = pathlib.Path(DATA_DIR, f"{train_tag}_material_conll.txt")
-    out_filename = pathlib.Path(DATA_DIR, f"{train_tag}_science_ie_conll.txt")
+@pytest.fixture(scope="session")
+def write_train_science_ie_conll():
+    utils = ScienceIEDataUtils(
+        folderpath=pathlib.Path(SCIENCE_IE_TRAIN_FOLDER), ignore_warnings=True
+    )
+    output_filename = pathlib.Path(DATA_DIR, "train.txt")
+    utils.write_bilou_lines(out_filename=output_filename, is_sentence_wise=True)
+    train_task_conll_filename = pathlib.Path(DATA_DIR, "train_task_conll.txt")
+    train_process_conll_filename = pathlib.Path(DATA_DIR, "train_process_conll.txt")
+    train_material_conll_filename = pathlib.Path(DATA_DIR, "train_material_conll.txt")
+    train_science_ie_conll_filename = pathlib.Path(
+        DATA_DIR, "train_science_ie_conll.txt"
+    )
 
+    utils.merge_files(
+        train_task_conll_filename,
+        train_process_conll_filename,
+        train_material_conll_filename,
+        train_science_ie_conll_filename,
+    )
+    yield train_science_ie_conll_filename
+
+    train_task_conll_filename.unlink()
+    train_process_conll_filename.unlink()
+    train_material_conll_filename.unlink()
+    train_science_ie_conll_filename.unlink()
+
+
+@pytest.fixture(scope="session")
+def setup_science_ie_dataset(tmpdir_factory, write_train_science_ie_conll):
+    out_filename = write_train_science_ie_conll
     vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
     char_vocab_store_location = tmpdir_factory.mktemp("tempdir_char").join(
         "char_vocab.json"
