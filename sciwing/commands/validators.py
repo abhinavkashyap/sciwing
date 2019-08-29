@@ -1,11 +1,11 @@
 """
-Common utility validators required for the commands
+Utility functions for validation.
 """
 import pathlib
 
 
 def is_valid_python_classname(name: str):
-    """ Returns boolean indicating whether name is a valid Python identifier
+    """ Indicates whether name is a valid Python identifier
 
     Parameters
     ----------
@@ -21,7 +21,7 @@ def is_valid_python_classname(name: str):
 
 
 def is_file_exist(name: str):
-    """ Returns boolean indicating whether a file exists at path indicated by name
+    """ Indicates whether file name exists or not
 
     Parameters
     ----------

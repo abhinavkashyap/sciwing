@@ -21,22 +21,6 @@ class BertEmbedder(nn.Module, ClassNursery):
         bert_type: str = "bert-base-uncased",
         device: Union[torch.device, str] = torch.device("cpu"),
     ):
-        """
-
-        :param emb_dim: type: int
-        Embedding dimension for bert
-        :param dropout_value: type: float
-        Dropout value that can be used for embedding
-        :param aggregation_type: type: str
-        sum - sums the embeddings of tokens in an instance
-        average - averages the embedding of tokens in an instance
-        In the case of bert, we also take sum or average of all the different layers
-        :param bert_type: type: str
-        There are different bert models
-        bert-base-uncased - 12 layer 768 hidden dimensional
-        bert-large-uncased 24 layer 1024 hidden dimensional
-        :param device: torch.device
-        """
         super(BertEmbedder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value

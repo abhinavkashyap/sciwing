@@ -7,14 +7,6 @@ from sciwing.utils.class_nursery import ClassNursery
 
 
 class BowElmoEmbedder(nn.Module, ClassNursery):
-    """
-    This trains a non trainable bi-LSTM Elmo Model
-    Takes only the last layer of inputs from Elmo
-    The representations of all the words are either summed or averaged
-    Note that this is not a nn.Module and it has no trainable parameters
-    However, the interface is maintained for ease of usability
-    """
-
     def __init__(
         self,
         emb_dim: int = 1024,
@@ -22,21 +14,6 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         layer_aggregation: str = "sum",
         cuda_device_id: int = -1,
     ):
-        """
-
-        :param emb_dim: type: int
-        The embedding dimension that is used
-        This is fixed in the case of Elmo
-        :param dropout_value: type: float
-        You can add dropout to the embedding layer
-        :param layer_aggregation: type: str
-        sum - sums all the layers of elmo embeddings
-        average - average all layers of elmo embedding
-        first - gets the first layer of embeddings only
-        last - gets only last layer of embeddings
-        :param cuda_device_id: type: int
-        Cuda device that is used to run the model
-        """
         super(BowElmoEmbedder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value

@@ -31,3 +31,6 @@ setuptools==41.0.1
 requests==2.22.0
 scikit_learn==0.21.3
 tensorboardX==1.8
+sphinx-rtd-theme
+sphinx-autobuild
+

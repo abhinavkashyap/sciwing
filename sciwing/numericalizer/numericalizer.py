@@ -3,31 +3,14 @@ from sciwing.vocab.vocab import Vocab
 
 
 class Numericalizer:
-    """
-    This class is for numericalization of instances
-    An instance is a List[List[str]] that is tokenized and
-    pre-processed. This converts the instances into numerical values that can
-    be used in modeling
-    """
-
     def __init__(self, vocabulary: Vocab):
-        """
-        :param vocabulary: type: Vocab
-        Vocab object that is used to build vocab from instances
-        """
         self.vocabulary = vocabulary
 
         if not self.vocabulary.vocab:
             self.vocabulary.build_vocab()
 
     def numericalize_instance(self, instance: List[str]) -> List[int]:
-        """
-        Takes an instance List[str] and returns the numericalized version of it
-        The `self.max_length` constraint is obeyed.
-        If the strings of shorter length, then they are padded
-        Else they are truncated to max length
-        :param instance:
-        :return:
+        """ Numericalizes instances
         """
         numerical_tokens = []
         len_tokens = len(instance)

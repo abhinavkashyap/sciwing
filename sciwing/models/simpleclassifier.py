@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
@@ -15,18 +14,6 @@ class SimpleClassifier(nn.Module, ClassNursery):
         num_classes: int,
         classification_layer_bias: bool,
     ):
-        """
-
-        :param encoder: type: nn.Module
-        Any encoder that encodes the input to a single vector
-        :param encoding_dim type: int
-        The encoding dimension i
-        :param num_classes: type: int
-        The number of classes in the output
-        :param classification_layer_bias: type: bool
-        Would you want to add bias to the classification layer
-        This can be useful for testing the classifier
-        """
         super(SimpleClassifier, self).__init__()
         self.encoder = encoder
         self.encoding_dim = encoding_dim
@@ -46,20 +33,6 @@ class SimpleClassifier(nn.Module, ClassNursery):
         is_validation: bool,
         is_test: bool,
     ) -> Dict[str, Any]:
-        """
-        :param iter_dict: type: Dict[str, Any]
-        iter dict is the dict that is returned by a dataset
-        :param is_training: type: bool
-        indicates whether the forward method is being called for training
-        inn which case we have to calculate a loss or during inference time
-        when just the probabilities are returned
-        :param is_test: type: bool
-        Is this model being run in the inference mode
-        :param is_validation: type: bool
-        Is this model beign run in the validation model
-        :return: type: Dict[str, Any]
-        """
-
         encoding = self.encoder(iter_dict=iter_dict)
 
         # N * C

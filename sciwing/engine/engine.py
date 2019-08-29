@@ -258,10 +258,15 @@ class Engine(ClassNursery):
     def train_epoch_end(self, epoch_num: int):
         """
 
-        :param epoch_num: type: int
-        The epoch number that just ended
-        """
+        Parameters
+        ----------
+        epoch_num : int
+            The current epoch number (0 based)
 
+        Returns
+        -------
+        None
+        """
         self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num + 1))
         average_loss = self.train_loss_meter.get_average()
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
@@ -295,10 +300,6 @@ class Engine(ClassNursery):
         )
 
     def validation_epoch(self, epoch_num: int):
-        """
-        Run the validation
-        """
-
         self.model.eval()
         valid_iter = iter(self.validation_loader)
         self.validation_loss_meter.reset()
@@ -426,23 +427,10 @@ class Engine(ClassNursery):
 
     @staticmethod
     def get_iter(loader: DataLoader) -> Iterator:
-        """
-        The iterators return the next batch of instances
-        when they are called. This will be useful
-        for going over the dataset in a batch wise manner
-        :return:
-        """
         iterator = iter(loader)
         return iterator
 
     def load_model_from_file(self, filename: str):
-        """
-        This loads the pretrained model from file
-        :param filename: type: str
-        The filename where the model state is stored
-        The model is saved during training. Look at the method `train_epoch_end` for
-        more details.
-        """
         self.msg_printer.divider("LOADING MODEL FROM FILE")
         with self.msg_printer.loading(f"Loading Pytorch Model from file {filename}"):
             model_chkpoint = torch.load(filename)

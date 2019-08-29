@@ -10,9 +10,7 @@ Welcome to SciWing's documentation!
    and models and provides tools to easily experiment with them.
 
 .. toctree::
-   :maxdepth: 2
    :caption: Contents:
 
-   framework/api.rst
-   framework/cli.rst
-   framework/datasets.rst
+   framework/modules
+

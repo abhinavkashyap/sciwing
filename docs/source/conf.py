@@ -51,15 +51,5 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-autodoc_mock_imports = [
-    "numpy",
-    "spacy",
-    "tqdm",
-    "wasabi",
-    "sklearn",
-    "torch",
-    "gensim",
-]
-
 # Napoleon settings
 napoleon_include_init_with_doc = True

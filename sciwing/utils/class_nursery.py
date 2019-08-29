@@ -2,7 +2,7 @@ from sciwing.utils.exceptions import ClassInNurseryError
 import torch
 
 
-class ClassNursery:
+class ClassNursery(object):
     class_nursery = {"Adam": torch.optim.__name__, "SGD": torch.optim.__name__}
 
     def __init_subclass__(cls, **kwargs):
