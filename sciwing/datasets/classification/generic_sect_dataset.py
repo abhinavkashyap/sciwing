@@ -15,10 +15,32 @@ from sciwing.utils.class_nursery import ClassNursery
 
 @sprinkle_dataset()
 class GenericSectDataset(BaseTextClassification, ClassNursery):
-    """ SectLabel Dataset - A logical section classification dataset from WING-NUS
+    def __init__(
+        self,
+        filename: str,
+        dataset_type: str,
+        max_num_words: int,
+        max_instance_length: int,
+        word_vocab_store_location: str,
+        debug: bool = False,
+        debug_dataset_proportion: float = 0.1,
+        word_embedding_type: Union[str, None] = None,
+        word_embedding_dimension: Union[int, None] = None,
+        word_start_token: str = "<SOS>",
+        word_end_token: str = "<EOS>",
+        word_pad_token: str = "<PAD>",
+        word_unk_token: str = "<UNK>",
+        train_size: float = 0.8,
+        test_size: float = 0.2,
+        validation_size: float = 0.5,
+        word_tokenization_type="vanilla",
+        add_start_end_token: bool = True,
+    ):
+        """ SectLabel Dataset - A logical section classification dataset from WING-NUS
 
             Parameters
             ----------
+            add_start_end_token
             filename : str
                 Name of the file where the SectLabel dataset is stored
             dataset_type : str
@@ -57,28 +79,6 @@ class GenericSectDataset(BaseTextClassification, ClassNursery):
             word_tokenization_type : int
                 The kind of word tokenization. ``tokenizers.word_tokenizer`` has more information
         """
-
-    def __init__(
-        self,
-        filename: str,
-        dataset_type: str,
-        max_num_words: int,
-        max_instance_length: int,
-        word_vocab_store_location: str,
-        debug: bool = False,
-        debug_dataset_proportion: float = 0.1,
-        word_embedding_type: Union[str, None] = None,
-        word_embedding_dimension: Union[int, None] = None,
-        word_start_token: str = "<SOS>",
-        word_end_token: str = "<EOS>",
-        word_pad_token: str = "<PAD>",
-        word_unk_token: str = "<UNK>",
-        train_size: float = 0.8,
-        test_size: float = 0.2,
-        validation_size: float = 0.5,
-        word_tokenization_type="vanilla",
-        add_start_end_token: bool = True,
-    ):
         self.classname2idx = self.get_classname2idx()
         self.idx2classname = {
             idx: classname for classname, idx in self.classname2idx.items()

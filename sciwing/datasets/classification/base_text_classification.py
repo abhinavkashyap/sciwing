@@ -6,7 +6,6 @@ import numpy as np
 
 
 class BaseTextClassification(metaclass=ABCMeta):
-    @abstractmethod
     def __init__(
         self,
         filename: str,
@@ -78,6 +77,7 @@ class BaseTextClassification(metaclass=ABCMeta):
         word_tokenization_type : str
             The type of word tokenization that the word tokenizer represents
         """
+        pass
 
     @classmethod
     @abstractmethod
@@ -115,18 +115,13 @@ class BaseTextClassification(metaclass=ABCMeta):
         Returns
         -------
         List[str]
-            List of class names for indices
+            List of class names for ``indices``
         """
         pass
 
     @abstractmethod
     def print_stats(self):
         """ Free form method to print some stats for the dataset
-
-        Returns
-        -------
-        None
-
         """
         pass
 
@@ -233,4 +228,20 @@ class BaseTextClassification(metaclass=ABCMeta):
         pass
 
     def get_iter_dict(self, lines: List[str], labels: Optional[List[str]]):
+        """ Given the lines and labels returns the ``iter_dict`` for the dataset
+
+        Parameters
+        ----------
+        lines : List[str]
+         List of lines to process
+
+        labels : List[str]
+        The corresponding set of labels
+
+        Returns
+        -------
+        dict[str, Any]
+            Returns the ``iter_dict`` of the dataset
+
+        """
         pass
