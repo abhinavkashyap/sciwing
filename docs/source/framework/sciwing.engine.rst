@@ -1,20 +1,12 @@
-sciwing.engine package
+sciwing.engine
 ======================
 
-Submodules
-----------
 
 
+-----------------------
+engine
+-----------------------
 .. automodule:: sciwing.engine.engine
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: sciwing.engine
    :members:
    :undoc-members:
    :show-inheritance:

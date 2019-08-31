@@ -49,6 +49,78 @@ class Engine(ClassNursery):
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
         use_wandb: bool = False,
     ):
+        """ Engine runs the models end to end. It iterates through the train dataset and passes
+        it through the model. During training it helps in tracking a lot of parameters for the run
+        and saving the parameters. It also reports validation and test parameters from time to time.
+        Many utilities required for end-end running of the model is here.
+
+        Parameters
+        ----------
+        model : nn.Module
+            A pytorch module defining a model to be run
+        train_dataset : Dataset
+            This represents the training dataset.
+            Anything that confirms to the Dataset protocol. This can be any class that implements
+            the ``__get_item__`` and ``__len__`` as required by pytorch dataset
+        validation_dataset : Dataset
+            This represents the validation dataset.
+            Anything that confirms to the Dataset protocol. This can be any class that implements
+            the ``__get_item__`` and ``__len__`` as required by pytorch dataset
+        test_dataset : Dataset
+            This represents the test dataset
+            Anything that confirms to the Dataset protocol. This can be any class that implements
+            the ``__get_item__`` and ``__len__`` as required by pytorch dataset
+        optimizer : torch.optim
+            Any Optimizer object instantiated using  ``torch.optim``
+        batch_size : int
+            Batch size for the dataset. The same batch size is used for ``train``, ``valid``
+            and ``test`` dataset
+        save_dir : int
+            The experiments are saved in ``save_dir``. We save checkpoints, the best model,
+            logs and other information into the save dir
+        num_epochs : int
+            The number of epochs to run the training
+        save_every : int
+            The model will be checkpointed every ``save_every`` number of iterations
+        log_train_metrics_every : int
+            The train metrics will be reported every ``log_train_metrics_every`` iterations
+            during training
+        metric : BaseMetric
+            Anything that is an instance of ``BaseMetric``
+        experiment_name : str
+            The experiment should be given a name for ease of tracking. Instead experiment
+            name is not given, we generate a unique 10 digit sha for the experiment.
+        experiment_hyperparams : Dict[str, Any]
+            This is mostly used for tracking the different hyper-params of the experiment
+            being run. This may be used by ``wandb`` to save the hyper-params
+        tensorboard_logdir : str
+            The directory where all the tensorboard runs are stored. If ``None`` is passed
+            then it defaults to the tensorboard default of storing the log in the current directory.
+        track_for_best : str
+            Which metric should be tracked for deciding the best model?. Anything that
+            the metric emits and is a single value can be used for tracking. The defauly value
+            is ``loss``. If its loss, then the best value will be the lowest one. For some
+            other metrics like ``macro_fscore``, the best metric might be the one that has the highest
+            value
+        collate_fn : Callable[[List[Any]], List[Any]]
+            Collates the different examples into a single batch of examples.
+            This is the same terminology adopted from ``pytorch``. There is no different
+        device : torch.device
+            The device on which the model will be placed. If this is "cpu", then the model
+            and the tensors will all be on cpu. If this is "cuda:0", then the model and
+            the tensors will be placed on cuda device 0. You can mention any other cuda
+            device that is suitable for your environment
+        gradient_norm_clip_value : float
+            To avoid gradient explosion, the gradients of the norm will be clipped
+            if the gradient norm exceeds this value
+        lr_scheduler : torch.optim.lr_scheduler
+            Any pytorch ``lr_scheduler`` can be used for reducing the learning rate
+            if the performance on the validation set reduces.
+        use_wandb : bool
+            wandb or weights and biases is a tool that is used to track experiments
+            online. Sciwing comes with inbuilt functionality to track experiments
+            on weights and biases
+        """
 
         if isinstance(device, str):
             device = torch.device(device)
@@ -167,6 +239,18 @@ class Engine(ClassNursery):
                 )
 
     def get_loader(self, dataset: Dataset) -> DataLoader:
+        """ Returns the DataLoader for the Dataset
+
+        Parameters
+        ----------
+        dataset : Dataset
+
+        Returns
+        -------
+        DataLoader
+            A pytorch DataLoader
+
+        """
         loader = DataLoader(
             dataset=dataset,
             batch_size=self.batch_size,
@@ -177,12 +261,49 @@ class Engine(ClassNursery):
         return loader
 
     def is_best_lower(self, current_best=None):
+        """ Returns True if the current value of the metric is lower than the best metric.
+        This is useful for tracking metrics like loss where, lower the value, the better it is
+
+        Parameters
+        ----------
+        current_best : float
+            The current value for the metric that is being tracked
+
+        Returns
+        -------
+        bool
+
+
+        """
         return True if current_best < self.best_track_value else False
 
     def is_best_higher(self, current_best=None):
+        """ Returns ``True`` if the current value of the metric is HIGHER than the best metric.
+        This is useful for tracking metrics like FSCORE where, higher the value, the better it is
+
+        Parameters
+        ----------
+        current_best : float
+            The current value for the metric that is being tracked
+
+        Returns
+        -------
+        bool
+        """
         return True if current_best >= self.best_track_value else False
 
     def set_best_track_value(self, current_best=None):
+        """ Set the best value of the value being tracked
+
+        Parameters
+        ----------
+        current_best : float
+            The current value that is best
+
+        Returns
+        -------
+
+        """
         if self.track_for_best == "loss":
             self.best_track_value = np.inf if current_best is None else current_best
         elif self.track_for_best == "macro_fscore":
@@ -256,16 +377,16 @@ class Engine(ClassNursery):
                 break
 
     def train_epoch_end(self, epoch_num: int):
-        """
+        """ Performs house-keeping at the end of a training epoch
+
+        At the end of the training epoch, it does some house-keeping. It reports the average loss, the
+        average metric and other information.
 
         Parameters
         ----------
         epoch_num : int
             The current epoch number (0 based)
 
-        Returns
-        -------
-        None
         """
         self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num + 1))
         average_loss = self.train_loss_meter.get_average()
@@ -275,10 +396,10 @@ class Engine(ClassNursery):
         )
         metric = self.train_metric_calc.get_metric()
 
-        # if wandb is not None:
-        #     wandb.log({"train_loss": average_loss})
-        #     if self.track_for_best != "loss":
-        #         wandb.log({f"train_{self.track_for_best}": metric[self.track_for_best]})
+        if self.use_wandb is not None:
+            wandb.log({"train_loss": average_loss})
+            if self.track_for_best != "loss":
+                wandb.log({f"train_{self.track_for_best}": metric[self.track_for_best]})
 
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
@@ -300,6 +421,14 @@ class Engine(ClassNursery):
         )
 
     def validation_epoch(self, epoch_num: int):
+        """ Runs one validation epoch on the validation dataset
+
+        Parameters
+        ----------
+        epoch_num : int
+        0-based epoch number
+
+        """
         self.model.eval()
         valid_iter = iter(self.validation_loader)
         self.validation_loss_meter.reset()
@@ -326,6 +455,13 @@ class Engine(ClassNursery):
                 break
 
     def validation_epoch_end(self, epoch_num: int):
+        """Performs house-keeping at the end of validation epoch
+
+        Parameters
+        ----------
+        epoch_num : int
+            The current epoch number
+        """
 
         self.msg_printer.divider(f"Validation @ Epoch {epoch_num+1}")
 
@@ -382,6 +518,18 @@ class Engine(ClassNursery):
             )
 
     def test_epoch(self, epoch_num: int):
+        """Runs the test epoch for ``epoch_num``
+
+        Loads the best model that is saved during the training
+        and runs the test dataset.
+
+        Parameters
+        ----------
+        epoch_num : int
+            zero based epoch number for which the test dataset is run
+            This is after the last training epoch.
+
+        """
         self.msg_printer.divider("Running on test batch")
         self.load_model_from_file(self.save_dir.joinpath("best_model.pt"))
         self.model.eval()
@@ -403,6 +551,17 @@ class Engine(ClassNursery):
                 break
 
     def test_epoch_end(self, epoch_num: int):
+        """ Performs house-keeping at the end of the test epoch
+
+        It reports the metric that is being traced at the end
+        of the test epoch
+
+        Parameters
+        ----------
+        epoch_num : int
+            Epoch num after which the test dataset is run
+
+        """
         metric_report = self.test_metric_calc.report_metrics()
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
@@ -417,16 +576,59 @@ class Engine(ClassNursery):
             ]
 
     def get_train_dataset(self):
+        """ Returns the train dataset of the experiment
+
+        Returns
+        -------
+        Dataset
+            Anything that conforms to the pytorch style dataset.
+
+        """
         return self.train_dataset
 
     def get_validation_dataset(self):
+        """ Returns the validation dataset of the experiment
+
+        Returns
+        -------
+        Dataset
+            Anything that conforms to the pytorch style dataset.
+
+        """
         return self.validation_dataset
 
     def get_test_dataset(self):
+        """ Returns the test dataset of the experiment
+
+        Returns
+        -------
+        Dataset
+            Anything that conforms to the pytorch style dataset.
+
+        """
         return self.test_dataset
 
     @staticmethod
     def get_iter(loader: DataLoader) -> Iterator:
+        """ Returns the iterator for a pytorch data loader.
+
+        The ``loader`` is a pytorch DataLoader that iterates
+        over the dataset in batches and employs many strategies to do
+        so. We want an iterator that returns the dataset in batches.
+        The end of the iterator would signify the end of an epoch
+        and then we can use that information to perform house-keeping.
+
+
+        Parameters
+        ----------
+        loader : DataLoader
+            a pytorch data loader
+
+        Returns
+        -------
+        Iterator
+            An iterator over the data loader
+        """
         iterator = iter(loader)
         return iterator
 
