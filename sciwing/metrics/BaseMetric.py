@@ -10,16 +10,58 @@ class BaseMetric(metaclass=ABCMeta):
     def calc_metric(
         self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
     ) -> None:
+        """ Calculates the metric using ``iter_dict`` returned by any dataset
+        and ``model_forward_dict`` of a model. This is usually called
+        for a batch of inputs and a forward pass. The state of the different
+        metrics should be retained by the metric across an epoch before
+        ``reset`` method can be called and all the metric related data
+        can be reset for a new epoch
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+        model_forward_dict : Dict[str, Any]
+        """
         pass
 
     @abstractmethod
-    def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
+    def get_metric(self) -> Dict[str, Any]:
+        """Returns the value of different metrics being tracked
+
+        Return anything that is being tracked by the metric.
+        Return it as a dictionary that can be used by outside method
+        for reporting purposes or repurposing it for the sake of reporting
+
+        Returns
+        -------
+        Dict[str, Any]
+            Metric/values being tracked by the metric
+        """
         pass
 
     @abstractmethod
-    def report_metrics(self, report_type="wasabi") -> Any:
-        pass
+    def report_metrics(self, report_type: str = None) -> Any:
+        """ A method to report the tracked metrics in a suitable form
+
+        Parameters
+        ----------
+        report_type : str
+            The type of report that will be returned by the method
+
+        Returns
+        -------
+        Any
+            This method can return any suitable format for reporting.
+            If it is ought to be printed, return a suitable string.
+            If the report needs to be saved to a file, go ahead.
+
+
+        """
 
     @abstractmethod
     def reset(self):
+        """ Should reset all the metrics/value being tracked by this metric
+        This method is generally used at the end of a training/validation epoch
+        to reset the values before starting another epoch
+        """
         pass

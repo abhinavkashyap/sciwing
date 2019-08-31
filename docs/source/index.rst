@@ -10,7 +10,7 @@ Welcome to SciWing's documentation!
    and models and provides tools to easily experiment with them.
 
 .. toctree::
-   :caption: Contents:
+   :caption: API reference:
 
    framework/modules
 

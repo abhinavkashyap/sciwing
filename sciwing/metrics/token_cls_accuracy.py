@@ -27,18 +27,20 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
     ) -> None:
         """
-        The iter_dict should have label key
-        The label are gold labels for the batch
-        They should have the shape batch_size, time_steps
-        where time_steps are the size of the sequence
 
-        The model_forward_dict should have predicted tags key
-        The predicted tags are the best possible predicted tags for the batch
-        They are List[List[int]] where the size is batch_size, time_steps
+        Parameters
+        ----------------
+        iter_dict: Dict[str, Any]
+            The ``iter_dict`` should have label key
+            The ``label`` are gold labels for the batch
+            They should have the shape ``[batch_size, time_steps]``
+            where time_steps are the size of the sequence
 
-        :param iter_dict: Dict[str, Any]
-        :param model_forward_dict: Dict[str, Any]
-        :return: None
+        model_forward_dict: Dict[str, Any]
+            The model_forward_dict should have ``predicted_tags`` key
+            The ``predicted_tags`` are the best possible predicted tags for the batch
+            They are List[List[int]] where the size is ``[batch_size, time_steps]``
+
         """
         labels = iter_dict.get("label", None)
         labels = labels.cpu()
@@ -92,6 +94,37 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         )
 
     def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
+        """ Returns different values being tracked to calculate Precision Recall FMeasure
+
+        Returns
+        -------
+        Dict[str, Any]
+            Returns a dictionary with following key value pairs
+            precision: Dict[str, float]
+                The precision for different classes
+            recall: Dict[str, float]
+                The recall values for different classes
+            "fscore": Dict[str, float]
+                The fscore values for different classes,
+            num_tp: Dict[str, int]
+                The number of true positives for different classes,
+            num_fp: Dict[str, int]
+                The number of false positives for different classes,
+            num_fn: Dict[str, int]
+                The number of false negatives for different classes
+            "macro_precision": float
+                The macro precision value considering all different classes,
+            macro_recall: float
+                The macro recall value considering all different classes
+            macro_fscore: float
+                The macro fscore value considering all different classes
+            micro_precision: float
+                The micro precision value considering all different classes,
+            micro_recall: float
+                The micro recall value considering all different classes.
+            micro_fscore: float
+                The micro fscore value considering all different classes
+        """
 
         precision_dict, recall_dict, fscore_dict = self.classification_metrics_utils.get_prf_from_counters(
             tp_counter=self.tp_counter,
@@ -133,6 +166,16 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         }
 
     def report_metrics(self, report_type="wasabi") -> Any:
+        """ Reports metrics in a printable format
+
+       Parameters
+       ----------
+       report_type : type
+           Select one of ``[wasabi, paper]``
+           If wasabi, then we return a printable table that represents the
+           precision recall and fmeasures for different classes
+
+       """
         accuracy_metrics = self.get_metric()
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
@@ -180,14 +223,14 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         Parameters
         ----------
-        predicted_tag_indices
-        true_tag_indices
+        predicted_tag_indices : List[List[int]]
+            Predicted tag indices for a batch of sentences
+        true_tag_indices : List[List[int]]
+            True tag indices for a batch of sentences
         labels_mask : Optional[torch.ByteTensor]
-            The labels mask is made optional because we can see how
-            the different masked labels are getting classified as well
-
-        Returns
-        -------
+            The labels mask which has the same as ``true_tag_indices``.
+            0 in a position indicates that there is no masking
+            1 indicates that there is a masking
 
         """
 

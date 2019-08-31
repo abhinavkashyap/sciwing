@@ -24,16 +24,23 @@ class ClassificationMetricsUtils:
         fp_counter: Dict[int, int],
         fn_counter: Dict[int, int],
     ):
-        """
-        Pass the dictionary that captures the class -> number of tps mapping
-        and similarly other dictionaries that capture the class -> fp and fn mapping
-        From This we calculate the
-        :param tp_counter: type: Dict[int, int]
-        :param fp_counter: type: Dict[int, int]
-        :param fn_counter: type: Dict[int, int]
-        :return: Dict[int, int], Dict[int, int], Dict[int, int]
-        Three dictionaries representing the Precision Recall and Fmeasure
-        for all the different classes
+        """ This calculates the precision recall f-measure from different counters.
+        The counters contain a mapping from a class index to the particular number
+
+        Parameters
+        ----------
+        tp_counter: Dict[int, int]
+            Mapping from class index to true positive count
+        fp_counter: Dict[int, int]
+            Mapping from class index to false posiive count
+        fn_counter: Dict[int, int]
+            Mapping from class index to false negative count
+
+        Returns
+        ---------
+        Dict[int, int], Dict[int, int], Dict[int, int]
+            Three dictionaries representing the Precision Recall and Fmeasure
+            for all the different classes
         """
         tp_classes = tp_counter.keys()
         fp_classes = fp_counter.keys()
@@ -80,6 +87,24 @@ class ClassificationMetricsUtils:
         fp_counter: Dict[int, int],
         fn_counter: Dict[int, int],
     ) -> (int, int, int):
+        """ This calculates the micro precision recall and fmeasure from different counters.
+        The counters contain a mapping from a class index to the particular number
+
+        Parameters
+        ----------
+        tp_counter: Dict[int, int]
+            Mapping from class index to true positive count
+        fp_counter: Dict[int, int]
+            Mapping from class index to false posiive count
+        fn_counter: Dict[int, int]
+            Mapping from class index to false negative count
+
+        Returns
+        -------
+        int, int, int
+            Micro precision, Micro Recall and Micro fmeasure
+
+        """
         # micro scores
         all_num_tps = [num_tp for num_tp in tp_counter.values()]
         all_num_fps = [num_fp for num_fp in fp_counter.values()]
@@ -116,6 +141,23 @@ class ClassificationMetricsUtils:
         recall_dict: Dict[int, int],
         fscore_dict: Dict[int, int],
     ) -> (int, int, int):
+        """ Calculates Macro Precision, Recall and FMeasure
+
+        Parameters
+        ----------
+        precision_dict : Dict[int, int]
+            Dictionary mapping betwen the class index and precision values
+        recall_dict : Dict[int, int]
+            Dictionary mapping between the class index and recall values
+        fscore_dict : Dict[int, int]
+            Dictionary mapping between the class index and fscore values
+
+        Returns
+        -------
+        int, int, int
+            The macro precision, macro recall and macro fscore measures
+        """
+
         all_precisions = [
             precision_value for precision_value in precision_dict.values()
         ]
@@ -138,11 +180,16 @@ class ClassificationMetricsUtils:
         true_tag_indices: List[List[int]],
         masked_label_indices: List[List[int]],
     ) -> (np.array, List[int]):
-        """
+        """ Gets the confusion matrix and the list of classes for which the confusion matrix
+        is generated
+
+
         Parameters
         ----------
-        predicted_tag_indices
-        true_tag_indices
+        predicted_tag_indices : List[List[int]]
+            Predicted tag indices for a batch
+        true_tag_indices : List[List[int]]
+            True tag indices for a batch
         masked_label_indices : List[List[int]]
             Every integer is either a 0 or 1, where 1 will indicate that the
             label in `true_tag_indices` will be ignored
@@ -174,7 +221,25 @@ class ClassificationMetricsUtils:
         tp_counter: Dict[int, int],
         fp_counter: Dict[int, int],
         fn_counter: Dict[int, int],
-    ):
+    ) -> str:
+        """ Returns a table representation for Precision Recall and FMeasure
+
+        Parameters
+        ----------
+        tp_counter : Dict[int, int]
+            The mapping between class index and true positive count
+        fp_counter : Dict[int, int]
+            The mapping between class index and false positive count
+        fn_counter : Dict[int, int]
+            The mapping between class index and false negative count
+
+        Returns
+        -------
+        str
+            Returns a string representing the table of precision recall and fmeasure
+            for every class in the dataset
+
+        """
         precision_dict, recall_dict, fscore_dict = self.get_prf_from_counters(
             tp_counter=tp_counter, fp_counter=fp_counter, fn_counter=fn_counter
         )

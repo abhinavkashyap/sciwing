@@ -1,7 +1,3 @@
-##########
-sciwing
-##########
-
 .. toctree::
    sciwing.api
    sciwing.cli

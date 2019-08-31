@@ -29,6 +29,10 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
 
         # setup counters to calculate true positives, false positives,
         # false negatives and true negatives
+        # The keys are the different class indices in the dataset and the
+        # values are the number of true positives, false positives, false negative
+        # true negatvies for the dataset
+
         self.tp_counter = {}
         self.fp_counter = {}
         self.fn_counter = {}
@@ -40,6 +44,22 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         labels: torch.LongTensor,
         labels_mask: Optional[torch.ByteTensor] = None,
     ) -> None:
+        """ Prints confusion matrix
+
+        Parameters
+        ----------
+        predicted_probs : torch.FloatTensor
+            Predicted Probabilities ``[batch_size, num_classes]``
+        labels : torch.FloatTensor
+            True labels of the size ``[batch_size, 1]``
+        labels_mask : Optional[torch.ByteTensor]
+            Labels mask indicating 1 in thos places where the true label is ignored
+            Otherwise 0. It should be of same size as labels
+
+        Returns
+        -------
+
+        """
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
             "have 2 dimensions. The probs "
@@ -96,6 +116,28 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
     def calc_metric(
         self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
     ) -> None:
+        """ Updates the values being tracked for calculating the metric
+
+        For Precision Recall FMeasure we update the true positive,
+        false positive and false negative of the different classes
+        being tracked
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            The ``iter_dict`` from the dataset is expected to have
+            ``label`` which are labels for instances. They are usually
+            of the size ``[batch_size]``
+            Optionally there can be a ``label_mask`` of the size ``[batch_size]``
+            The ``label_mask`` is 1 where the label should be masked otherwise
+            if the label is not masked then it is 0
+
+        model_forward_dict : Dict[str, Any]
+            The dictionary obtained after a forward pass
+            The model_forward_pass is expected to have ``normalized_probs``
+            that usually is of the size ``[batch_size, num_classes]``
+
+        """
 
         normalized_probs = model_forward_dict["normalized_probs"]
         labels = iter_dict["label"]
@@ -167,7 +209,38 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             self.fn_counter, class_fns_mapping
         )
 
-    def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
+    def get_metric(self) -> Dict[str, Any]:
+        """ Returns different values being tracked to calculate Precision Recall FMeasure
+
+        Returns
+        -------
+        Dict[str, Any]
+            Returns a dictionary with following key value pairs
+            precision: Dict[str, float]
+                The precision for different classes
+            recall: Dict[str, float]
+                The recall values for different classes
+            "fscore": Dict[str, float]
+                The fscore values for different classes,
+            num_tp: Dict[str, int]
+                The number of true positives for different classes,
+            num_fp: Dict[str, int]
+                The number of false positives for different classes,
+            num_fn: Dict[str, int]
+                The number of false negatives for different classes
+            "macro_precision": float
+                The macro precision value considering all different classes,
+            macro_recall: float
+                The macro recall value considering all different classes
+            macro_fscore: float
+                The macro fscore value considering all different classes
+            micro_precision: float
+                The micro precision value considering all different classes,
+            micro_recall: float
+                The micro recall value considering all different classes.
+            micro_fscore: float
+                The micro fscore value considering all different classes
+        """
         precision_dict, recall_dict, fscore_dict = self.classification_metrics_utils.get_prf_from_counters(
             tp_counter=self.tp_counter,
             fp_counter=self.fp_counter,
@@ -208,12 +281,30 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         }
 
     def reset(self) -> None:
+        """ Resets all the counters
+
+        Resets the ``tp_counter`` which is the true positive counter
+        Resets the ``fp_counter`` which is the false positive counter
+        Resets the ``fn_counter`` - which is the false negative counter
+        Resets the ``tn_counter`` - which is the true nagative counter
+
+        """
         self.tp_counter = {}
         self.fp_counter = {}
         self.fn_counter = {}
         self.tn_counter = {}
 
     def report_metrics(self, report_type="wasabi"):
+        """ Reports metrics in a printable format
+
+        Parameters
+        ----------
+        report_type : type
+            Select one of ``[wasabi, paper]``
+            If wasabi, then we return a printable table that represents the
+            precision recall and fmeasures for different classes
+
+        """
 
         accuracy_metrics = self.get_metric()
         precision = accuracy_metrics["precision"]
