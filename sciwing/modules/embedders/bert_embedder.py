@@ -21,6 +21,53 @@ class BertEmbedder(nn.Module, ClassNursery):
         bert_type: str = "bert-base-uncased",
         device: Union[torch.device, str] = torch.device("cpu"),
     ):
+        """ Bert Embedder that embeds the given instance to BERT embeddings
+
+        Parameters
+        ----------
+        emb_dim : int
+            Embedding dimension
+        dropout_value : float
+            The amount of dropout to be added after the embedding
+        aggregation_type : str
+            The kind of aggregation of different layers. BERT produces representations from
+            different layers. This specifies the strategy to aggregating them
+            One of
+
+            sum
+                Sum the representations from all the layers
+            average
+                Average the representations from all the layers
+
+        bert_type : type
+            The kind of BERT embedding to be used
+
+            bert-base-uncased
+                12 layer transformer trained on lowercased vocab
+
+            bert-large-uncased:
+                24 layer transformer trained on lowercased vocab
+
+            bert-base-cased:
+                12 layer transformer trained on cased vocab
+
+            bert-large-cased:
+                24 layer transformer train on cased vocab
+
+            scibert-base-cased
+                12 layer transformer trained on scientific document on cased normal vocab
+            scibert-sci-cased
+                12 layer transformer trained on scientific documents on cased scientifc vocab
+
+            scibert-base-uncased
+                12 layer transformer trained on scientific docments on uncased normal vocab
+
+            scibert-sci-uncased
+                12 layer transformer train on scientific documents on ncased scientific vocab
+
+        device :  Union[torch.device, str]
+            The device on which the model is run.
+        """
         super(BertEmbedder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
@@ -76,6 +123,21 @@ class BertEmbedder(nn.Module, ClassNursery):
         self.msg_printer.good(f"Finished Loading {self.bert_type} model and tokenizer")
 
     def forward(self, iter_dict: Dict[str, Any]) -> torch.Tensor:
+        """
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            It expects "raw_intance" to be present in the iter dict.
+            "raw_instance" is the instance that is not padded
+
+        Returns
+        -------
+        torch.Tensor
+            The bert embeddings for all the words in the instances
+            The size of the returned embedding is ``[batch_size, num_time_steps, emb_dim]``
+
+        """
 
         # word_tokenize all the text string in the batch
         x = iter_dict["raw_instance"]

@@ -12,5 +12,18 @@ Welcome to SciWing's documentation!
 .. toctree::
    :caption: API reference:
 
-   framework/modules
+   framework/sciwing.api
+   framework/sciwing.cli
+   framework/sciwing.commands
+   framework/sciwing.datasets
+   framework/sciwing.engine
+   framework/sciwing.infer
+   framework/sciwing.meters
+   framework/sciwing.metrics
+   framework/sciwing.models
+   framework/sciwing.modules
+   framework/sciwing.numericalizer
+   framework/sciwing.preprocessing
+   framework/sciwing.tokenizers
+   framework/sciwing.utils
 

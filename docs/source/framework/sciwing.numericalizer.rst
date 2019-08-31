@@ -1,20 +1,10 @@
-sciwing.numericalizer package
+sciwing.numericalizer
 =============================
 
-Submodules
-----------
-
-
+-----------------------
+numericalizer
+-----------------------
 .. automodule:: sciwing.numericalizer.numericalizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: sciwing.numericalizer
    :members:
    :undoc-members:
    :show-inheritance:

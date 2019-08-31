@@ -13,6 +13,23 @@ class BOW_Encoder(nn.Module, ClassNursery):
         dropout_value: float = 0,
         aggregation_type="sum",
     ):
+        """Bag of Words Encoder
+
+        Parameters
+        ----------
+        emb_dim : int
+            Embedding dimension of the words
+        embedder : nn.Module
+            Any embedder that you would want to use
+        dropout_value : float
+            The input dropout value that you would want to use
+        aggregation_type : str
+            The strategy for aggregating words
+                sum
+                    Aggregate word embedding by summing them
+                average
+                    Aggregate word embedding by averaging them
+        """
         super(BOW_Encoder, self).__init__()
         self.emb_dim = emb_dim
         self.embedder = embedder
@@ -26,6 +43,19 @@ class BOW_Encoder(nn.Module, ClassNursery):
         self.dropout = nn.Dropout(p=self.dropout_value)
 
     def forward(self, iter_dict: Dict[str, Any]) -> torch.FloatTensor:
+        """
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            The iter_dict returned by a dataset
+
+        Returns
+        -------
+        torch.FloatTensor
+            The bag of words encoded embedding
+
+        """
 
         # N * T * D
         embeddings = self.embedder(iter_dict)

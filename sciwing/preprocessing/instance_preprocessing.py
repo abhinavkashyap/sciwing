@@ -12,7 +12,8 @@ class InstancePreprocessing:
     def __init__(self):
         self.stop_words = get_stop_words("en")
 
-    def lowercase(self, instance: List[str]) -> List[str]:
+    @staticmethod
+    def lowercase(instance: List[str]) -> List[str]:
         lowercased_instance = []
         for token in instance:
             lowercased_instance.append(token.lower())
@@ -24,14 +25,24 @@ class InstancePreprocessing:
         Remove stop words if they are present
         We will use stop-words package from pip
         https://github.com/Alir3z4/python-stop-words
-        :param instance:
-        :return:
+
+        Parameters
+        --------------
+        instance : List[str]
+            The list of tokens
+
+        Returns
+        ---------
+        List[str]
+            The instance with stop words removed
+
         """
         clean_instance = filter(lambda token: token not in self.stop_words, instance)
         clean_instance = list(clean_instance)
         return clean_instance
 
-    def indicate_capitalization(self, instance: List[str]) -> List[str]:
+    @staticmethod
+    def indicate_capitalization(instance: List[str]) -> List[str]:
         """ Indicates whether every word is all small, all caps or captialized
 
         Parameters

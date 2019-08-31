@@ -1,15 +1,9 @@
-sciwing.modules package
+sciwing.modules
 =======================
-
-Subpackages
------------
 
 .. toctree::
 
    sciwing.modules.embedders
-
-Submodules
-----------
 
 
 .. automodule:: sciwing.modules.bow_encoder
@@ -41,11 +35,3 @@ Submodules
    :undoc-members:
    :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: sciwing.modules
-   :members:
-   :undoc-members:
-   :show-inheritance:

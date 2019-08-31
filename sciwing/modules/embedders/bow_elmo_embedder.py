@@ -14,6 +14,32 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         layer_aggregation: str = "sum",
         cuda_device_id: int = -1,
     ):
+        """ Bag of words Elmo Embedder which aggregates elmo embedding for every token
+
+        Parameters
+        ----------
+        emb_dim : int
+            Embedding dimension
+        dropout_value : float
+            Any input dropout to be applied to the embeddings
+        layer_aggregation : str
+            You can chose one of ``[sum, average, last, first]``
+            which decides how to aggregate different layers of ELMO. ELMO produces three
+            layers of representations
+
+            sum
+                Representations from different layers are summed
+            average
+                Representations from different layers are average
+            last
+                Representations from last layer is considered
+            first
+                Representations from first layer is considered
+
+        cuda_device_id : int
+            Cuda device id on which representations will be transferred
+            -1 indicates cpu
+        """
         super(BowElmoEmbedder, self).__init__()
         self.emb_dim = emb_dim
         self.dropout_value = dropout_value
@@ -35,13 +61,28 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         self.msg_printer.good("Finished Loading Elmo object")
 
     def forward(self, iter_dict: Dict[str, Any]) -> torch.Tensor:
+        """
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            ``iter_dict`` from any dataset. Expects ``instance`` to be present in the
+            ``iter_dict`` where instance is a list of sentences and the tokens are separated by
+            space
+
+        Returns
+        -------
+        torch.Tensor
+            Returns the representation for every token in the instance
+            ``[batch_size, max_len, emb_dim]``. In case of Elmo the ``emb_dim`` is 1024
+
+
+        """
         # [np.array] - A generator of embeddings
         # each array in the list is of the shape (3, #words_in_sentence, 1024)
         x = iter_dict["instance"]
         x = x if isinstance(x, list) else [x]
         x = [instance.split() for instance in x]
-
-        print(f"x {x}")
 
         embedded = list(self.elmo.embed_sentences(x))
 
