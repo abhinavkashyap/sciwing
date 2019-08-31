@@ -1,26 +1,19 @@
-sciwing.infer.classification package
+sciwing.infer.classification
 ====================================
 
-Submodules
-----------
 
-
+---------------------------
+BaseClassificationInference
+---------------------------
 .. automodule:: sciwing.infer.classification.BaseClassificationInference
    :members:
    :undoc-members:
    :show-inheritance:
 
-
+--------------------------------
+Classification Inference
+--------------------------------
 .. automodule:: sciwing.infer.classification.classification_inference
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: sciwing.infer.classification
    :members:
    :undoc-members:
    :show-inheritance:

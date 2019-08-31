@@ -11,6 +11,7 @@ import torch
 import pandas as pd
 from sciwing.utils.vis_seq_tags import VisTagging
 import wasabi
+from deprecated import deprecated
 
 
 class ParscitInference(BaseSeqLabelInference):
@@ -84,6 +85,8 @@ class ParscitInference(BaseSeqLabelInference):
         return output_analytics
 
     def print_confusion_matrix(self) -> None:
+        """ Print confusion matrix for the test datasets
+        """
         self.metrics_calculator.print_confusion_metrics(
             true_tag_indices=self.output_df["true_tag_indices"].tolist(),
             predicted_tag_indices=self.output_df["predicted_tag_indices"].tolist(),
@@ -92,6 +95,23 @@ class ParscitInference(BaseSeqLabelInference):
     def get_misclassified_sentences(
         self, first_class: int, second_class: int
     ) -> List[str]:
+        """This returns the true label misclassified as
+        pred label idx
+
+        Parameters
+        ----------
+        first_class : int
+            The label index of the true class name
+        second_class : int
+            The label index of the predicted class name
+
+
+        Returns
+        -------
+        List[str]
+            A list of strings where the true class is classified as pred class.
+
+        """
 
         # get rows where true tag has first_class
         true_tag_indices = self.output_df.true_tag_indices.tolist()
@@ -132,7 +152,10 @@ class ParscitInference(BaseSeqLabelInference):
 
         return sentences
 
+    @deprecated(reason="Generate report for paper will be removed in version 0.2")
     def generate_report_for_paper(self):
+        """ Generates just the fmeasures to be reported on paper
+        """
         paper_report, row_names = self.metrics_calculator.report_metrics(
             report_type="paper"
         )
@@ -183,7 +206,20 @@ class ParscitInference(BaseSeqLabelInference):
         true_labels_strings = list(true_labels_strings)
         return labels_list, true_labels_strings
 
-    def infer_single_sentence(self, line: str):
+    def infer_single_sentence(self, line: str) -> str:
+        """ Return the tagged string for a single sentence
+
+        Parameters
+        ----------
+        line : str
+            A single sentence to be inferred
+
+        Returns
+        -------
+        str
+            Returns the tagged string for the line
+
+        """
         len_words = len(line.split())
         iter_dict = self.dataset.get_iter_dict(line)
         iter_dict = move_to_device(iter_dict, cuda_device=self.device)
@@ -201,7 +237,7 @@ class ParscitInference(BaseSeqLabelInference):
         predicted_tag_names = " ".join(predicted_tag_names)
         return predicted_tag_names
 
-    def print_metrics(self):
+    def report_metrics(self):
         print(self.metrics_calculator.report_metrics())
 
     def run_test(self):

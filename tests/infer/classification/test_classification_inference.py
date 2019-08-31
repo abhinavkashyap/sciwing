@@ -82,7 +82,7 @@ class TestClassificationInference:
         inference_client = setup_inference
         inference_client.run_test()
         try:
-            inference_client.print_metrics()
+            inference_client.report_metrics()
         except:
             pytest.fail("Print metrics failed")
 

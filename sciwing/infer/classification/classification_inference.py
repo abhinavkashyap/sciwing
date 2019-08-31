@@ -6,6 +6,7 @@ from sciwing.infer.classification.BaseClassificationInference import (
 from sciwing.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
+from deprecated import deprecated
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
@@ -72,6 +73,7 @@ class ClassificationInference(BaseClassificationInference):
         true_labels_indices = []
         predicted_labels_indices = []
         all_pred_probs = []
+        self.metrics_calculator.reset()
 
         for iter_dict in loader:
             iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
@@ -120,12 +122,24 @@ class ClassificationInference(BaseClassificationInference):
     def get_misclassified_sentences(
         self, true_label_idx: int, pred_label_idx: int
     ) -> List[str]:
-        """
-        This returns the true label misclassified as
+        """This returns the true label misclassified as
         pred label idx
-        :param true_label_idx: type: int
-        :param pred_label_idx: type: int
+
+        Parameters
+        ----------
+        true_label_idx : int
+            The label index of the true class name
+        pred_label_idx : int
+            The label index of the predicted class name
+
+
+        Returns
+        -------
+        List[str]
+            A list of strings where the true class is classified as pred class.
+
         """
+
         instances_idx = self.output_df[
             self.output_df["true_labels_indices"].isin([true_label_idx])
             & self.output_df["predicted_labels_indices"].isin([pred_label_idx])
@@ -155,16 +169,22 @@ class ClassificationInference(BaseClassificationInference):
         return sentences
 
     def print_confusion_matrix(self) -> None:
+        """ Prints the confusion matrix for the test dataset
+        """
         self.metrics_calculator.print_confusion_metrics(
             predicted_probs=self.output_analytics["all_pred_probs"],
             labels=self.output_analytics["true_labels_indices"].unsqueeze(1),
         )
 
-    def print_metrics(self):
+    def report_metrics(self):
         prf_table = self.metrics_calculator.report_metrics()
         print(prf_table)
 
+    @deprecated(reason="This method is deprecated. It will be removed in version 0.2")
     def generate_report_for_paper(self):
+        """ Generates just the fscore to be used in reporting on print
+
+        """
         paper_report = self.metrics_calculator.report_metrics(report_type="paper")
         class_numbers = sorted(self.idx2labelname_mapping.keys(), reverse=False)
         row_names = [
@@ -192,7 +212,24 @@ class ClassificationInference(BaseClassificationInference):
         ]
         return pred_indices, pred_classnames
 
-    def infer_batch(self, lines: List[str]):
+    def infer_batch(self, lines: List[str]) -> List[str]:
+        """ Runs inference on a batch of lines
+        This method can be used for applications. When APIS are being developed
+        to serve over the web or when terminal applications are being written
+        to read from files and infer, this method comes in handy
+
+
+        Parameters
+        ----------
+        lines : List[str]
+            List of text spans to be infered
+
+        Returns
+        -------
+        List[str]
+            Reutrns the class names for all the sentences in the input
+
+        """
         iter_dict = self.dataset.get_iter_dict(lines=lines)
 
         if len(lines) == 1:
@@ -205,9 +242,23 @@ class ClassificationInference(BaseClassificationInference):
         return pred_classnames
 
     def on_user_input(self, line: str) -> str:
+        """ Runs the inference when the user inputs a single sentence either on the terminal
+        or some other application
+
+        Parameters
+        ----------
+        line : str
+            The line entered by the user
+
+        Returns
+        -------
+        str
+            The class label that is infered for the user input
+
+        """
         return self.infer_batch(lines=[line])[0]
 
-    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]):
+    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]) -> List[str]:
         tokens = iter_dict["tokens"]  # N * max_length
         tokens_list = tokens.tolist()
         batch_sentences = list(
@@ -224,5 +275,7 @@ class ClassificationInference(BaseClassificationInference):
         return labels_list, true_label_names
 
     def run_test(self):
+        """ Runs inference and reports test metrics
+        """
         self.output_analytics = self.run_inference()
         self.output_df = pd.DataFrame(self.output_analytics)

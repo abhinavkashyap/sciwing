@@ -29,7 +29,7 @@ class TestParscitInference:
         inference = setup_base_parscit_inference
         inference.run_test()
         try:
-            inference.print_metrics()
+            inference.report_metrics()
         except:
             pytest.fail("Parscit print prf table does not work")
 

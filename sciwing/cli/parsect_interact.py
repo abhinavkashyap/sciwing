@@ -204,7 +204,7 @@ class ParsectCli:
 
                 self.msg_printer.divider("")
             elif interaction_choice == "See-prf-table":
-                inference_client.print_metrics()
+                inference_client.report_metrics()
 
             elif interaction_choice == "enter_text":
                 text = questionary.text("Enter Text: ").ask()

@@ -396,7 +396,7 @@ class Engine(ClassNursery):
         )
         metric = self.train_metric_calc.get_metric()
 
-        if self.use_wandb is not None:
+        if self.use_wandb:
             wandb.log({"train_loss": average_loss})
             if self.track_for_best != "loss":
                 wandb.log({f"train_{self.track_for_best}": metric[self.track_for_best]})

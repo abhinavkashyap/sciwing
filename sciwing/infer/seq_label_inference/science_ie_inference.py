@@ -13,6 +13,7 @@ from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from sciwing.utils.science_ie_data_utils import ScienceIEDataUtils
 from sciwing.utils.tensor_utils import move_to_device
 import pandas as pd
+from deprecated import deprecated
 
 
 class ScienceIEInference(BaseSeqLabelInference):
@@ -130,10 +131,13 @@ class ScienceIEInference(BaseSeqLabelInference):
         return output_analytics
 
     def print_prf_table(self) -> None:
+        """ Prints the prf table for the test dataset"""
         prf_table = self.metrics_calculator.report_metrics()
         print(prf_table)
 
     def print_confusion_matrix(self) -> None:
+        """ Prints confusion matrix for the test dataset
+        """
         self.metrics_calculator.print_confusion_metrics(
             true_tag_indices=self.output_df["true_task_tag_indices"].tolist(),
             predicted_tag_indices=self.output_df["predicted_task_tag_indices"].tolist(),
@@ -156,6 +160,23 @@ class ScienceIEInference(BaseSeqLabelInference):
     def get_misclassified_sentences(
         self, first_class: int, second_class: int
     ) -> List[str]:
+        """This returns the true label misclassified as
+        pred label idx
+
+        Parameters
+        ----------
+        first_class : int
+            The label index of the true class name
+        second_class : int
+            The label index of the predicted class name
+
+
+        Returns
+        -------
+        List[str]
+            A list of strings where the true class is classified as pred class.
+
+        """
 
         # get rows where true tag has first_class
         true_tag_indices: List
@@ -221,14 +242,29 @@ class ScienceIEInference(BaseSeqLabelInference):
 
         return sentences
 
+    @deprecated(reason="Generate report paper will be removed in version 0.2")
     def generate_report_for_paper(self):
+        """ Generates just the fmeasures to be reported on paper
+        """
         paper_report, row_names = self.metrics_calculator.report_metrics(
             report_type="paper"
         )
         return paper_report, row_names
 
     def infer_single_sentence(self, line: str) -> (List[str], List[str], List[str]):
+        """ Infers a single sentence and returns the labels
 
+        Parameters
+        ----------
+        line : str
+            A single piece of text for inference
+
+        Returns
+        -------
+        (List[str], List[str], List[str])
+            Tagged sentences for task, process and material
+
+        """
         num_words = len(line.split())
         iter_dict = self.dataset.get_iter_dict(line)
         iter_dict = move_to_device(iter_dict, cuda_device=self.device)
@@ -257,6 +293,20 @@ class ScienceIEInference(BaseSeqLabelInference):
         return task_tag_names, process_tag_names, material_tag_names
 
     def on_user_input(self, line: str):
+        """ Runs the inference when the user inputs a single sentence either on the terminal
+            or some other application
+
+        Parameters
+        ----------
+        line : str
+            The line entered by the user
+
+        Returns
+        -------
+        str, str, str
+            The ``task, process and material`` tagged sentences
+
+        """
         words = line.split()
         len_words = len(words)
         task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
@@ -289,6 +339,24 @@ class ScienceIEInference(BaseSeqLabelInference):
     def generate_predict_folder(
         self, dev_folder: pathlib.Path, pred_folder: pathlib.Path
     ):
+        """ Generates the predicted folder for the dataset in the test folder
+
+        ScienceIE is a SemEval Task that needs the files to be written into a
+        folder and it reports metrics by reading files from that folder. This
+        method generates the predicted folder given the dev folder
+
+
+        Parameters
+        ----------
+        dev_folder : pathlib.Path
+            The path where the dev files are present
+        pred_folder : pathlib.Path
+            The path where the predicted files will be written
+
+        Returns
+        -------
+
+        """
         science_ie_data_utils = ScienceIEDataUtils(
             folderpath=dev_folder, ignore_warnings=True
         )
@@ -429,7 +497,7 @@ class ScienceIEInference(BaseSeqLabelInference):
             (true_material_labels_list, true_material_label_strings),
         )
 
-    def print_metrics(self):
+    def report_metrics(self):
         print(self.metrics_calculator.report_metrics())
 
     def run_test(self):

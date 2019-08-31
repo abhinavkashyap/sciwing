@@ -45,4 +45,4 @@ def test(toml_filename):
         model=model, model_filepath=model_filepath, dataset=dataset
     )
     inference_client.run_test()
-    inference_client.print_metrics()
+    inference_client.report_metrics()
