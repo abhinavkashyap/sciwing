@@ -1,20 +1,11 @@
-sciwing.meters package
-======================
-
-Submodules
-----------
+sciwing.meters
+==============
 
 
-.. automodule:: sciwing.meters.loss_meter
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
-Module contents
 ---------------
-
-.. automodule:: sciwing.meters
+loss_meter
+---------------
+.. automodule:: sciwing.meters.loss_meter
    :members:
    :undoc-members:
    :show-inheritance:
