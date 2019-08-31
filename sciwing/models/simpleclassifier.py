@@ -14,6 +14,20 @@ class SimpleClassifier(nn.Module, ClassNursery):
         num_classes: int,
         classification_layer_bias: bool,
     ):
+        """ SimpleClassifier is a linear classifier head on top of any encoder
+
+        Parameters
+        ----------
+        encoder : nn.Module
+            Any encoder that takes in instances
+        encoding_dim : int
+            The encoding dimension
+        num_classes : int
+            The number of classes
+        classification_layer_bias : bool
+            Whether to add classification layer bias or no
+            This is set to false only for debugging purposes ff
+        """
         super(SimpleClassifier, self).__init__()
         self.encoder = encoder
         self.encoding_dim = encoding_dim
@@ -33,6 +47,36 @@ class SimpleClassifier(nn.Module, ClassNursery):
         is_validation: bool,
         is_test: bool,
     ) -> Dict[str, Any]:
+        """
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            ``iter_dict`` from any dataset that will be passed on to the encoder
+        is_training : bool
+            running forward on training dataset?
+        is_validation : bool
+            running forward on training dataset ?
+        is_test : bool
+            running forward on test dataset?
+
+
+        Returns
+        -------
+        Dict[str, Any]
+            logits: torch.FloatTensor
+                Un-normalized probabilities over all the classes
+                of the shape ``[batch_size, num_classes]``
+            normalized_probs: torch.FloatTensor
+                Normalized probabilities over all the classes
+                of the shape ``[batch_size, num_classes]``
+            loss: float
+                Loss value if this is a training forward pass
+                or validation loss. There will be no loss
+                if this is the test dataset
+
+        """
+
         encoding = self.encoder(iter_dict=iter_dict)
 
         # N * C

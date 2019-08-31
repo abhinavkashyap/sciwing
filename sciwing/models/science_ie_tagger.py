@@ -22,6 +22,32 @@ class ScienceIETagger(nn.Module, ClassNursery):
         character_encoder: Optional[LSTM2VecEncoder] = None,
         include_start_end_transitions: Optional[bool] = False,
     ):
+        """
+
+        Parameters
+        ----------
+        rnn2seqencoder : Lstm2SeqEncoder
+            rnn2seq enncoder that encodes instances to a sequence of hidden states
+        hid_dim : int
+            Hidden dimension of the lstm2seq encoder
+        num_classes : int
+            The number of classes for every token n
+        device : torch.device
+            The device on which the model should be run
+        task_constraints : List[Tuple[int, int]]
+            A set of constraints  that indicates
+            valid transitions between states
+        process_constraints : List[Tuple[int, int]]
+            A set of constraints that indicates
+            valid transitions between states
+        material_constraints : List[Tuple[int, int]]
+            A set of constraints that indicates
+            valid transitions between states
+        character_encoder : LSTM2VecEncoder that encodes
+        the characters into a vector
+        include_start_end_transitions : bool
+            whether to include start and end transitions
+        """
         super(ScienceIETagger, self).__init__()
         self.rnn2seqencoder = rnn2seqencoder
         self.hid_dim = hid_dim
