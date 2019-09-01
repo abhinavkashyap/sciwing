@@ -1,5 +1,8 @@
 #!/usr/bin/python
-# by Mattew Peters, who spotted that sklearn does macro averaging not micro averaging correctly and changed it
+# This file does not belong to SciWING
+# This is directly from the ScienceIE 2017 website
+# https://scienceie.github.io/resources.html
+
 
 import os
 from sklearn.metrics import precision_recall_fscore_support

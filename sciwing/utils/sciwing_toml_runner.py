@@ -34,6 +34,14 @@ class SciWingTOMLRunner:
         self.model_dag = nx.DiGraph()
 
     def _parse_toml_file(self):
+        """ Parses the toml file and returns the document
+
+        Returns
+        -------
+        Dict[str, Any]
+            The dictionary by parsing the toml file
+
+        """
         try:
             with open(self.toml_filename) as fp:
                 doc = toml.load(fp)
@@ -42,6 +50,8 @@ class SciWingTOMLRunner:
             print(f"File {self.toml_filename} is not found")
 
     def parse(self):
+        """ Parases the dataset, model and engine section of a toml file
+        """
 
         # experiment section
         experiment_section = self.doc.get("experiment")
@@ -90,6 +100,14 @@ class SciWingTOMLRunner:
             self.engine = self.parse_engine_section()
 
     def parse_dataset_section(self):
+        """ Parse the dataset section of the toml file and instantiate the dataset
+
+        Returns
+        -------
+        Dict[str, Any]
+            The keys are ``[train, valid, test]`` with values being the
+            instantiations of the dataset mentioned in the toml filename
+        """
         dataset_section = self.doc.get("dataset")
         all_datasets = {}
 
@@ -122,7 +140,7 @@ class SciWingTOMLRunner:
 
         The model can be a complex structure with various other sub-components that can be used
         One depends on the other and the order of execution has to be decided
-        DAG is a good abstract model to define the dependence between different modules
+        DAG is a good abstract model to define the dependence  between different modules
         This method instantiates a DAG given the section name, the TOML section that is being
         parsed with a directed edge between the parent and the child
 
@@ -167,12 +185,31 @@ class SciWingTOMLRunner:
             )
 
     def _instantiate_model_using_dag(self):
+        """ This is a key method that instantiates the DAG using topological order
+
+        THE DAG from the TOML model section should be instantiated with the submodules
+        of a module instantiated before the parent module can be instantiated
+        This method does it using topological sort. Topoloogical sort is the sorting of
+        nodes of a DAG where if there is an edge between two nodes from u ->v , then
+        u appears before v in the ordering.
+
+        We do exactly this for SciWING. We instantiate the children nodes that are
+        used by parent nodes before we can instantiate the root node of the DAG
+        that will represent the entire module.
+
+        Returns
+        -------
+        nn.Module
+            The instantiation of the root node
+
+        """
         topo_order = nx.algorithms.topological_sort(self.model_dag)
         topo_order = reversed(list(topo_order))
         topo_order = list(topo_order)
         root_nodename = topo_order[-1]
 
         for node_id in topo_order:
+
             node_data = self.model_dag.nodes[node_id]
             tag = node_data.get("tag", None)
             classname = node_data.pop("class", None)
@@ -301,6 +338,14 @@ class SciWingTOMLRunner:
         return model
 
     def parse_engine_section(self):
+        """ Parses the engine section of the TOML file
+
+        Returns
+        -------
+        Engine
+            Object of the Engine class
+
+        """
         engine_section = self.doc.get("engine")
         engine_args = {}
         for key, value in engine_section.items():
