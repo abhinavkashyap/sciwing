@@ -17,6 +17,27 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
         rnn_bias: bool = True,
         device: torch.device = torch.device("cpu"),
     ):
+        """LSTM2Vec encoder that encodes a series of tokens to a single vector representation
+
+        Parameters
+        ----------
+        emb_dim : int
+            Embedding dimension of the embedder
+        embedder : nn.Module
+            Any embedder can be passed
+        dropout_value : float
+            The dropout value for input embeddings
+        hidden_dim : int
+            The hidden dimension for the LSTM
+        bidirectional : bool
+            Whether the LSTM is bidirectional or no
+        combine_strategy : str
+            Strategy to combine the vectors from two different directions
+        rnn_bias : str
+            Whether to use the bias layer in RNN. Should be set to false only for debugging purposes
+        device : torch.device
+            The device on which the model is run
+        """
         super(LSTM2VecEncoder, self).__init__()
         self.emb_dim = emb_dim
         self.embedder = embedder
@@ -54,6 +75,26 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.FloatTensor:
+        """
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            Any ``iter_dict`` that is passed from the dataset
+        c0 : torch.FloatTensor
+            The initial state vector for the LSTM
+        h0 : torch.FloatTensor
+            The initial hidden state for the LSTM
+
+        Returns
+        -------
+        torch.Tensor
+            Returns the vector encoding of the set of instances
+            [batch_size, hidden_dim] if single direction
+            [batch_size, 2*hidden_dim] if bidirectional
+        """
+
+        # TODO: the batch size should be present in the iter_dict
 
         batch_size = iter_dict["tokens"].size(0)
         embedded_tokens = self.embedder(iter_dict)
@@ -85,6 +126,17 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
         return encoding
 
     def get_initial_hidden(self, batch_size: int):
+        """ Gets the initial hidden states of the LSTM2Vec encoder
+
+        Parameters
+        ----------
+        batch_size : int
+            The batch size of the current forward pass
+
+        Returns
+        -------
+        torch.Tensor, torch.Tensor
+        """
         h0 = torch.zeros(
             self.num_layers * self.num_directions, batch_size, self.hidden_dimension
         )

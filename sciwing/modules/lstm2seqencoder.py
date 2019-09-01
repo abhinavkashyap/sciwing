@@ -18,6 +18,33 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         rnn_bias: bool = False,
         device: torch.device = torch.device("cpu"),
     ):
+        """Encodes a set of tokens to a set of hidden states.
+
+        Parameters
+        ----------
+        emb_dim : int
+            Embedding dimension of the tokens
+        embedder : nn.Module
+            Any embedder can be used for this purpose
+        dropout_value : float
+            The dropout value for the embedding
+        hidden_dim : int
+            The hidden dimensions for the LSTM
+        bidirectional : bool
+            Whether the LSTM is bidirectional
+        num_layers : int
+            The number of layers of the LSTM
+        combine_strategy : str
+            The strategy to combine the different layers of the LSTM
+            This can be one of
+                sum
+                    Sum the different layers of the embedding
+                concat
+                    Concat the layers of the embedding
+        rnn_bias : bool
+            Set this to false only for debugging purposes
+        device : torch.device
+        """
         super(Lstm2SeqEncoder, self).__init__()
         self.emb_dim = emb_dim
         self.embedder = embedder
@@ -57,6 +84,26 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.Tensor:
+        """
+
+            Parameters
+            ----------
+            iter_dict : Dict[str, Any]
+                Any ``iter_dict`` that is passed from the dataset
+            c0 : torch.FloatTensor
+                The initial state vector for the LSTM
+            h0 : torch.FloatTensor
+                The initial hidden state for the LSTM
+
+            Returns
+            -------
+            torch.Tensor
+                Returns the vector encoding of the set of instances
+                [batch_size, hidden_dim] if single direction
+                [batch_size, 2*hidden_dim] if bidirectional
+        """
+
+        # TODO: the batch size should be present in the iter_dict
         batch_size, seq_length = iter_dict["tokens"].size()
 
         embeddings = self.embedder(iter_dict=iter_dict)

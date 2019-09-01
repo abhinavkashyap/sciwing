@@ -22,13 +22,6 @@ charlstm_encoder
    :undoc-members:
    :show-inheritance:
 
----------------------
-elmo_lstm_encoder
----------------------
-.. automodule:: sciwing.modules.elmo_lstm_encoder
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 -----------------------------
 lstm2seqencoder
