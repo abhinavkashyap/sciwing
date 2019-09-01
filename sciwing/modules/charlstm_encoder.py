@@ -15,6 +15,23 @@ class CharLSTMEncoder(nn.Module, ClassNursery):
         combine_strategy: str = "concat",
         device: torch.device = torch.device("cpu"),
     ):
+        """ Encodes character tokens using lstms
+
+        Parameters
+        ----------
+        char_embedder : nn.Module
+            An embedder that embeds character tokens
+        char_emb_dim : int
+            The embedding of characters
+        hidden_dim : int
+            Hidden dimension of the LSTM
+        bidirectional : bool
+            Should the LSTM be bi-directional
+        combine_strategy : str
+            Combine strategy for the lstm hidden dimensions
+        device : torch.device("cpu)
+            The device on which the lstm will run
+        """
         super(CharLSTMEncoder, self).__init__()
         self.char_embedder = char_embedder
         self.char_emb_dim = char_emb_dim
@@ -33,6 +50,22 @@ class CharLSTMEncoder(nn.Module, ClassNursery):
         )
 
     def forward(self, iter_dict: Dict[str, Any]):
+        """
+
+        Parameters
+        ----------
+        iter_dict : Dict[str, Any]
+            expects char_tokens to be present in the ``iter_dict``
+            from any dataset
+        Returns
+        -------
+        torch.Tensor:
+            ``[batch_size, num_time_steps, hidden_dim]``
+            The hidden dimension is the hidden dimension of the LSTM
+            if it is bidirectional and concat then ``hidden_dim``
+            will be `2 * self.hidden_dim`
+
+        """
         char_tokens = iter_dict["char_tokens"]
         assert (
             char_tokens.dim() == 3

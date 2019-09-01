@@ -10,4 +10,3 @@ instance_preprocessing
    :members:
    :undoc-members:
    :show-inheritance:
-w
