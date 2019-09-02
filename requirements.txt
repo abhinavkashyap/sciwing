@@ -34,4 +34,4 @@ tensorboardX==1.8
 sphinx
 sphinx-rtd-theme
 sphinx-autobuild
-
+Deprecated
