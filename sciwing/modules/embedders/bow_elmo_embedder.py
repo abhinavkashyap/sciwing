@@ -89,6 +89,8 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         # bs, 3, #words_in_sentence, 1024
         embedded = torch.FloatTensor(embedded)
 
+        embedded = embedded.to(self.cuda_device_id)
+
         embedding_ = None
         # aggregate of word embeddings
         if self.layer_aggregation_type == "sum":
@@ -108,6 +110,3 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
             embedding_ = embedded[:, 0, :, :]
 
         return embedding_
-
-    def __call__(self, iter_dict: Dict[str, Any]):
-        return self.forward(iter_dict)
