@@ -11,32 +11,18 @@ class VisTagging:
         colors_palette: str = None,
         tags: List[str] = None,
     ):
-        """
-        colors: List[str]
-        The set of colors used for tagging
-        color_palette: str
-        You can specify a color palette.
-        We recommend using solarized or monokai and appropriate colors
-        For more options, refer to the documentation of the python package `colorful`
-        json_annotation: str
-        You can send a json that has the following format
-        {'text': str,
-        'tags': [{'start':int, 'end':str, 'tag': str}]
-        }
+        """ Visualize Sequence Tagging
 
         Parameters
         ----------
         colors: List[str]
-        The set of colors that will be used for tagging
+            The set of colors that will be used for tagging
         colors_palette: str
-        The color palette that should be used. We recommend
-        keeping it as None. For more information on color palettes
-        you can refer to the documentation of the python package `colorful`
-        colors_palette: str
-        The colors palette. We recommend using soloarized or monokai
+            The color palette that should be used. We recommend
+            For more information on color palettes  you can refer to the documentation of the python package `colorful`
         tags: List[str]
-        The set of all labels that can be labelled
-        If this is not given, then the tags will be infered using the labels during tagging
+            The set of all labels that can be labelled
+            If this is not given, then the tags will be infered using the labels during tagging
 
         """
         if colors is None:
@@ -60,24 +46,29 @@ class VisTagging:
         colorful.use_style(self.colors_palette)
 
     def _get_next_color(self):
+        """ Returns the next colors in the palette. Recycle the colors
+
+        Returns
+        -------
+
+        """
         return next(self.colors_iter)
 
     def visualize_tags_from_json(
         self, json_annotation: Dict[str, Any], show_only_entities: List[str] = None
     ):
-        """
+        """ Visualize the tags from json.
+
         Parameters
         ----------
         json_annotation: str
-        You can send a json that has the following format
-        {'text': str,
-        'tags': [{'start':int, 'end':str, 'tag': str}]
-        }
+            You can send a json that has the following format
+            {'text': str,
+            'tags': [{'start':int, 'end':str, 'tag': str}]
+            }
         show_only_entities: List[str]
+            You can filter to show only these entities.
 
-        Returns
-        -------
-        None
         """
         text = json_annotation.get("text", None)
         tags = json_annotation.get("tags", None)
@@ -119,9 +110,8 @@ class VisTagging:
         for start, end in pairwise(start_ends):
             if valid_tags.get((start, end), None) is not None:
                 tag = valid_tags[(start, end)]
-                if show_only_entities:
-                    if tag not in show_only_entities:
-                        continue
+                if show_only_entities and tag not in show_only_entities:
+                    continue
                 tag_color = tag_colors[tag]
                 formatted_string = f"{tag_color} {text[start:end]} {{c.bold}}{tag} {colorful.close_bg_color}"
                 formatted_string = colorful.format(formatted_string)
@@ -133,8 +123,7 @@ class VisTagging:
         print(tagged_string)
 
     def visualize_tokens(self, text: List[str], labels: List[str]) -> str:
-        """
-        Visualizes sequential tagged data where the string is represented as a set of words
+        """ Visualizes sequential tagged data where the string is represented as a set of words
         and every word has a corresponding label. This can be extended to having different
         tagging schemes at a later point in time
 
