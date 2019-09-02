@@ -5,7 +5,7 @@ def has_tensor(obj) -> bool:
     """
     Given a possibly complex data structure,
     check if it has any torch.Tensors in it.
-    From allennlp nn util
+    From ``allennlp.nn.util``
     """
     if isinstance(obj, torch.Tensor):
         return True
@@ -21,7 +21,7 @@ def move_to_device(obj, cuda_device: torch.device):
     """
     Given a structure (possibly) containing Tensors on the CPU,
     move all the Tensors to the specified GPU (or do nothing, if they should be on the CPU).
-    From allenlp nn utils
+    From ``allenlp.nn.util``
     """
     # pylint: disable=too-many-return-statements
     # pargma: no cover
@@ -47,6 +47,9 @@ def get_mask(batch_size: int, max_size: int, lengths: torch.LongTensor):
     """ Returns mask given the lengths tensor. A convenience method
 
     Given a lengths tensor as in
+
+    .. code-block:: python
+
         >> torch.LongTensor([3, 1, 2])
 
     which often indicates the original length of the tensor
