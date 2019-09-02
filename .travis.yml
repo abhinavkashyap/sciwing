@@ -6,6 +6,7 @@ install:
   - pip install -e .
 
 before_script:
+  - python -m spacy download en
   - sciwing develop makedirs
   - sciwing develop download
 
