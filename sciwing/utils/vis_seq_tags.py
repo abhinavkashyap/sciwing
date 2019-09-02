@@ -11,6 +11,7 @@ class VisTagging:
         colors_palette: str = None,
         tags: List[str] = None,
     ):
+
         """ Visualize Sequence Tagging
 
         Parameters
