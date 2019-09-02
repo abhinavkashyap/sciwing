@@ -17,6 +17,7 @@ from itertools import tee
 import importlib
 from tqdm import tqdm
 import tarfile
+from deprecated import deprecated
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -26,9 +27,25 @@ PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
 
 
 def convert_sectlabel_to_json(filename: str) -> Dict:
-    """
-    Converts the secthead file into json format
-    :return:
+    """ Converts the secthead file into more readable json format
+
+    Parameters
+    ----------
+    filename : str
+        The sectlabel file name available at WING-NUS website
+
+    Returns
+    -------
+    Dict[str, Any]
+        text
+            The text of the line
+        label
+            The label of the file
+        file_no
+            A unique file number
+        line_count
+            A line count within the file
+
     """
     file_count = 1
     line_count = 1
@@ -65,81 +82,6 @@ def convert_sectlabel_to_json(filename: str) -> Dict:
     return output_json
 
 
-def write_tokenization_vis_json(filename: str) -> Dict:
-    """
-    takes the parse sect data file and converts and
-    numericalization is done. The data is converted to json
-    for visualization
-    :param filename: str
-    json file name where List[Dict[text, label]] are stored
-    """
-    parsect_json = convert_sectlabel_to_json(filename)
-    parsect_lines = parsect_json["parse_sect"]
-
-    print("*" * 80)
-    print("TOKENIZATION")
-    print("*" * 80)
-    tokenizer = WordTokenizer()
-
-    lines = []
-    labels = []
-
-    for line_json in tqdm(
-        parsect_lines, desc="READING SECT LABEL LINES", total=len(parsect_lines)
-    ):
-        text = line_json["text"]
-        label = line_json["label"]
-        lines.append(text)
-        labels.append(label)
-
-    instances = tokenizer.tokenize_batch(lines)
-    num_instances = len(instances)
-
-    MAX_NUM_WORDS = 3000
-    MAX_LENGTH = 15
-
-    print("*" * 80)
-    print("VOCAB")
-    print("*" * 80)
-
-    vocab = Vocab(instances, max_num_tokens=MAX_NUM_WORDS)
-
-    print("*" * 80)
-    print("NUMERICALIZATION")
-    print("*" * 80)
-
-    numericalizer = Numericalizer(max_length=MAX_LENGTH, vocabulary=vocab)
-
-    lengths, numericalized_instances = numericalizer.numericalize_batch_instances(
-        instances
-    )
-
-    output_json = {"parse_sect": []}
-
-    for idx in tqdm(
-        range(num_instances), desc="Forming output json", total=num_instances
-    ):
-        line_json = parsect_lines[idx]
-        text = line_json["text"]
-        label = line_json["label"]
-        file_no = line_json["file_no"]
-        line_count = line_json["line_count"]
-        length = lengths[idx]
-        numericalized_token = numericalized_instances[idx]
-        output_json["parse_sect"].append(
-            {
-                "text": text,
-                "label": label,
-                "length": length,
-                "tokenized_text": numericalized_token,
-                "file_no": file_no,
-                "line_count": line_count,
-            }
-        )
-
-    return output_json
-
-
 def merge_dictionaries_with_sum(a: Dict, b: Dict) -> Dict:
     # refer to https://stackoverflow.com/questions/11011756/is-there-any-pythonic-way-to-combine-two-dicts-adding-values-for-keys-that-appe?rq=1
     return dict(
@@ -155,6 +97,27 @@ def pack_to_length(
     start_token: str = "<SOS>",
     end_token: str = "<EOS>",
 ) -> List[str]:
+    """ Packs tokenized text to maximum length
+
+    Parameters
+    ----------
+    tokenized_text : List[str]
+        A list of toekns
+    max_length : int
+        The max length to pack to
+    pad_token : int
+        The pad token to be used for the padding
+    add_start_end_token : bool
+        Whether to add the start and end token to every sentence while packing
+    start_token : str
+        The start token to be used if ``add_start_token`` is True.
+    end_token : str
+        The end token to be used if ``add_end_token`` is True
+
+    Returns
+    -------
+
+    """
     if not add_start_end_token:
         tokenized_text = tokenized_text[:max_length]
     else:
@@ -173,6 +136,16 @@ def pack_to_length(
 
 
 def download_file(url: str, dest_filename: str) -> None:
+    """ Download a file from the given url
+
+    Parameters
+    ----------
+    url : str
+        The url from which the file will be downloaded
+    dest_filename : str
+        The destination filename
+
+    """
     # NOTE the stream=True parameter below
     msg_printer = Printer()
     block_size = 65536
@@ -192,6 +165,16 @@ def download_file(url: str, dest_filename: str) -> None:
 
 
 def extract_zip(filename: str, destination_dir: str):
+    """ Extracts a zipped file
+
+    Parameters
+    ----------
+    filename : str
+        The zipped filename
+    destination_dir : str
+        The directory where the zipped will be placed
+
+    """
     msg_printer = Printer()
     try:
         with msg_printer.loading(f"Unzipping file {filename} to {destination_dir}"):
@@ -205,6 +188,22 @@ def extract_zip(filename: str, destination_dir: str):
 
 
 def extract_tar(filename: str, destination_dir: str, mode="r"):
+    """ Extracts tar, targz and other files
+
+    Parameters
+    ----------
+    filename : str
+        The tar zipped file
+    destination_dir : str
+        The destination directory in which the files should be placed
+    mode : str
+        A valid tar mode. You can refer to https://docs.python.org/3/library/tarfile.html
+        for the different modes.
+
+    Returns
+    -------
+
+    """
     msg_printer = Printer()
     try:
         with msg_printer.loading(f"Unzipping file {filename} to {destination_dir}"):
@@ -218,6 +217,26 @@ def extract_tar(filename: str, destination_dir: str, mode="r"):
 
 
 def convert_generic_sect_to_json(filename: str) -> Dict[str, Any]:
+    """ Converts the Generic sect data file into more readable json format
+
+        Parameters
+        ----------
+        filename : str
+            The sectlabel file name available at WING-NUS website
+
+        Returns
+        -------
+        Dict[str, Any]
+            text
+                The text of the line
+            label
+                The label of the file
+            file_no
+                A unique file number
+            line_count
+                A line count within the file
+
+    """
     file_no = 1
     line_no = 1
     json_dict = {"generic_sect": []}
@@ -247,15 +266,17 @@ def convert_generic_sect_to_json(filename: str) -> Dict[str, Any]:
 def convert_parscit_to_conll(
     parscit_train_filepath: pathlib.Path
 ) -> List[Dict[str, Any]]:
-    """
-    Convert the parscit data available at
+    """ Convert the parscit data available at
     "https://github.com/knmnyn/ParsCit/blob/master/crfpp/traindata/parsCit.train.data"
     to a CONLL dummy version
     This is done so that we can use it with AllenNLPs built in data reader called
     conll2013 dataset reader
-    :param parscit_train_filepath: type: pathlib.Path
-    The path where the train file path is stored
-    :return: None
+
+    Parameters
+    ----------------
+    parscit_train_filepath: pathlib.Path
+        The path where the train file path is stored
+
     """
     printer = Printer()
     citation_string = []
@@ -293,6 +314,29 @@ def write_nfold_parscit_train_test(
     output_test_filepath: pathlib.Path,
     nsplits: int = 2,
 ) -> bool:
+    """ Convert the parscit train folder into different folds. This is useful for
+    n-fold cross validation on the dataset. This method can be iterated over to get
+    all the different folds of the data contained in the ``parscit_train_filepath``
+
+    Parameters
+    ----------
+    parscit_train_filepath : pathlib.Path
+        The path where the Parscit file is stored
+        The file is available at https://github.com/knmnyn/ParsCit/blob/master/crfpp/traindata/cora.train
+    output_train_filepath : pathlib.Path
+        The path where the train fold of the dataset will be stored
+    output_test_filepath : pathlib.Path
+        The path where the teset fold of the dataset will be stored
+    nsplits : int
+        The number of splits in the dataset.
+
+    Returns
+    -------
+    bool
+        Indicates whether the particular fold has been written
+
+
+    """
     citations = convert_parscit_to_conll(parscit_train_filepath=parscit_train_filepath)
     len_citations = len(citations)
     kf = KFold(n_splits=nsplits, shuffle=True, random_state=1729)
@@ -322,6 +366,14 @@ def write_nfold_parscit_train_test(
 
 
 def write_cora_to_conll_file(cora_conll_filepath: pathlib.Path) -> None:
+    """ Writes cora file that is availabel at https://github.com/knmnyn/ParsCit/blob/master/crfpp/traindata/cora.train
+    to CONLL format
+
+    Parameters
+    ----------
+    cora_conll_filepath : The destination filepath where the CORA is converted to CONLL format
+
+    """
     citations = convert_parscit_to_conll(pathlib.Path(CORA_FILE))
     with open(cora_conll_filepath, "w") as fp:
         for citation in citations:
@@ -331,6 +383,15 @@ def write_cora_to_conll_file(cora_conll_filepath: pathlib.Path) -> None:
 
 
 def write_parscit_to_conll_file(parscit_conll_filepath: pathlib.Path) -> None:
+    """ Write Parscit file to CONLL file format
+
+    Parameters
+    ----------
+    parscit_conll_filepath : pathlib.Path
+        The destination file where the parscit data is written to
+
+
+    """
     citations = convert_parscit_to_conll(pathlib.Path(PARSCIT_TRAIN_FILE))
     with open(parscit_conll_filepath, "w") as fp:
         for citation in citations:
@@ -340,6 +401,19 @@ def write_parscit_to_conll_file(parscit_conll_filepath: pathlib.Path) -> None:
 
 
 def pairwise(iterable: Iterable) -> Iterator:
+    """ Return the overlapping pairwise elements of the iterable
+
+    Parameters
+    ----------
+    iterable : Iterable
+        Anything that can be iterated
+
+    Returns
+    -------
+    Iterator
+        Iterator over the paired sequence
+
+    """
     a, b = tee(iterable)
     next(b, None)
     return zip(a, b)
