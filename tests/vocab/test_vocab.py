@@ -1,12 +1,16 @@
 import pytest
 from sciwing.vocab.vocab import Vocab
 import os
+from sciwing.utils.common import get_system_mem_in_gb
 
 
 @pytest.fixture
 def instances():
     single_instance = [["i", "like", "nlp", "i", "i", "like"]]
     return {"single_instance": single_instance}
+
+
+system_mem = int(get_system_mem_in_gb())
 
 
 class TestVocab:
@@ -283,6 +287,9 @@ class TestVocab:
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 
+    @pytest.mark.skipif(
+        system_mem < 16, reason="Cannot loading embeddings because memory is low"
+    )
     @pytest.mark.parametrize(
         "embedding_type",
         ["glove_6B_50", "glove_6B_100", "glove_6B_200", "glove_6B_300", "random"],

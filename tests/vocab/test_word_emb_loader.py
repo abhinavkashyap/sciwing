@@ -2,6 +2,7 @@ import pytest
 from sciwing.vocab.embedding_loader import EmbeddingLoader
 from sciwing.vocab.vocab import Vocab
 import os
+from sciwing.utils.common import get_system_mem_in_gb
 
 
 @pytest.fixture()
@@ -12,6 +13,12 @@ def setup_word_emb_loader():
     return vocab
 
 
+memory_available = int(get_system_mem_in_gb())
+
+
+@pytest.mark.skipif(
+    memory_available < 16, reason="Memory is too low to run the word emb loader tests"
+)
 class TestWordEmbLoader:
     def test_invalid_embedding_type(self, setup_word_emb_loader):
         vocab = setup_word_emb_loader

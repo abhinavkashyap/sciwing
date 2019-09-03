@@ -1,5 +1,6 @@
 from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
 import pytest
+from sciwing.utils.common import get_system_mem_in_gb
 
 
 @pytest.fixture()
@@ -26,7 +27,12 @@ bert_types = [
     "scibert-sci-uncased",
 ]
 
+mem_in_gb = get_system_mem_in_gb()
 
+
+@pytest.mark.skipif(
+    int(mem_in_gb) < 16, reason="Memory is too low to run bert tokenizers"
+)
 class TestTokenizerForBert:
     @pytest.mark.parametrize("bert_type", bert_types)
     def test_tokenizer_initializations(self, bert_type, setup_bert_tokenizer):

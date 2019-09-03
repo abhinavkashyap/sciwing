@@ -3,11 +3,13 @@ import sciwing.constants as constants
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
 from sciwing.datasets.seq_labeling.parscit_dataset import ParscitDataset
 import pathlib
+from sciwing.utils.common import write_nfold_parscit_train_test
 
 
 FILES = constants.FILES
 PATHS = constants.PATHS
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
+PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
 DATA_DIR = PATHS["DATA_DIR"]
 
 
@@ -42,7 +44,16 @@ def parsect_dataset(tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def parscit_dataset(tmpdir_factory):
-    train_data_filepath = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+    parscit_train_filepath = pathlib.Path(PARSCIT_TRAIN_FILE)
+    train_file = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+    test_file = pathlib.Path(DATA_DIR, "parscit_test_conll.txt")
+    is_write_success = next(
+        write_nfold_parscit_train_test(
+            parscit_train_filepath,
+            output_train_filepath=train_file,
+            output_test_filepath=test_file,
+        )
+    )
     MAX_NUM_WORDS = 1000
     MAX_CHAR_LENGTH = 10
     MAX_INSTANCE_LENGTH = 10
@@ -59,7 +70,7 @@ def parscit_dataset(tmpdir_factory):
     CHAR_EMBEDDING_DIMENSION = 10
 
     dataset = ParscitDataset(
-        filename=str(train_data_filepath),
+        filename=str(train_file),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_instance_length=MAX_INSTANCE_LENGTH,
@@ -98,7 +109,7 @@ def parscit_dataset(tmpdir_factory):
     return dataset, options
 
 
-class TestSprinkleOnParsectDataset:
+class TestSprinkleOnSectLabelDataset:
     @pytest.mark.parametrize(
         "attribute",
         [

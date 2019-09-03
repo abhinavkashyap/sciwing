@@ -11,4 +11,4 @@ before_script:
   - sciwing develop download
 
 script:
-  - pytest tests
+  - pytest -v -p no:warnings tests -n 4 --dist=loadfile

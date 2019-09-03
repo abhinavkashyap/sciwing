@@ -2,9 +2,6 @@ from typing import Dict, List, Any, Iterable, Iterator, Tuple
 
 import math
 import requests
-from sciwing.tokenizers.word_tokenizer import WordTokenizer
-from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.numericalizer import Numericalizer
 from wasabi import Printer
 import zipfile
 from sys import stdout
@@ -17,7 +14,7 @@ from itertools import tee
 import importlib
 from tqdm import tqdm
 import tarfile
-from deprecated import deprecated
+import psutil
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -452,3 +449,17 @@ def create_class(classname: str, module_name: str) -> type:
             )
     except ModuleNotFoundError:
         raise ModuleNotFoundError(f"Module {module_name} is not found")
+
+
+def get_system_mem_in_gb():
+    """ Returns the total system memory in GB
+
+    Returns
+    -------
+    float
+        Memory size in GB
+
+    """
+    memory_size = psutil.virtual_memory().total
+    memory_size = memory_size * 1e-9
+    return memory_size

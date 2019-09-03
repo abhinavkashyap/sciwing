@@ -1,8 +1,13 @@
 import pytest
 from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from sciwing.utils.common import pack_to_length
+from sciwing.utils.common import get_system_mem_in_gb
+
+mem_gb = get_system_mem_in_gb()
+mem_gb = int(mem_gb)
 
 
+@pytest.mark.skipif(mem_gb < 16, reason="system memory is too low to run elmo embedder")
 @pytest.fixture(params=["sum", "average", "first", "last"])
 def setup_bow_elmo_encoder(request):
     layer_aggregation = request.param

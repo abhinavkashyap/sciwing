@@ -257,18 +257,23 @@ class TestCommon:
         assert len(citations) == 500
 
     def test_cora_write_file_works(self):
-        cora_path = pathlib.Path(DATA_DIR, "cora_conll.txt")
+        cora_path = pathlib.Path(DATA_DIR, "test_cora_conll_write.txt")
         try:
             write_cora_to_conll_file(cora_path)
         except:
             pytest.fail("Failed to write cora file to conll format")
+        else:
+            cora_path.unlink()
 
     def test_parscit_train_write_file_works(self):
-        parscit_train_path = pathlib.Path(DATA_DIR, "parscit_train_conll.txt")
+        parscit_train_path = pathlib.Path(DATA_DIR, "test_parscit_conll_write.txt")
+
         try:
             write_parscit_to_conll_file(parscit_train_path)
         except:
             pytest.fail("Failed to write parscit train conll format file")
+        else:
+            parscit_train_path.unlink()
 
     @pytest.mark.parametrize(
         "classname, modulename", [(Engine.__name__, Engine.__module__)]
