@@ -18,6 +18,8 @@ PATHS = dict(
     DATASETS_DIR=os.path.join(ROOT_DIR, "datasets"),
     EMBEDDING_CACHE_DIR=os.path.join(HOME_DIR, ".sciwing.embedding_cache"),
 )
+
+
 FILES = dict(
     SECT_LABEL_FILE=os.path.join(PATHS["DATA_DIR"], "sectLabel.train.data"),
     GENERIC_SECTION_TRAIN_FILE=os.path.join(
@@ -35,6 +37,7 @@ FILES = dict(
     ),
 )
 
+
 DATA_FILE_URLS = dict(
     SECT_LABEL_FILE="https://sciwing.s3.amazonaws.com/sectLabel.train.data",
     GENERIC_SECTION_TRAIN_FILE="https://sciwing.s3.amazonaws.com/genericSect.train.data",
@@ -44,7 +47,9 @@ DATA_FILE_URLS = dict(
     CORA_FILE="https://sciwing.s3.amazonaws.com/cora.data",
 )
 
+
 EMBEDDING_FILE_URLS = dict(
+    PARSCIT_EMBEDDINGS="https://sciwing.s3.amazonaws.com/vectors_with_unk.tar.gz",
     ELMO_OPTIONS_FILE="https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/"
     "2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_options.json",
     ELMO_WEIGHTS_FILE="https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/"
@@ -54,5 +59,4 @@ EMBEDDING_FILE_URLS = dict(
     SCIBERT_SCIVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_scivocab_cased.tar",
     SCIBERT_BASEVOCAB_UNCASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_uncased.tar",
     SCIBERT_BASEVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_cased.tar",
-    PARSCIT_EMBEDDINGS="https://wing.comp.nus.edu.sg/~wing.nus/resources/NParsCit/vectors_with_unk.tar.gz",
 )
