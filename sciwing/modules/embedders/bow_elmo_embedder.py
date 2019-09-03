@@ -46,6 +46,11 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         self.layer_aggregation_type = layer_aggregation
         self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
         self.cuda_device_id = cuda_device_id
+        self.device = (
+            torch.device("cpu")
+            if cuda_device_id < 0
+            else torch.device(f"cuda:{cuda_device_id}")
+        )
         self.msg_printer = wasabi.Printer()
 
         assert (
@@ -89,8 +94,6 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         # bs, 3, #words_in_sentence, 1024
         embedded = torch.FloatTensor(embedded)
 
-        embedded = embedded.to(self.cuda_device_id)
-
         embedding_ = None
         # aggregate of word embeddings
         if self.layer_aggregation_type == "sum":
@@ -108,5 +111,7 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         elif self.layer_aggregation_type == "first":
             # bs, max_len, 1024
             embedding_ = embedded[:, 0, :, :]
+
+        embedding_ = embedding_.to(self.device)
 
         return embedding_

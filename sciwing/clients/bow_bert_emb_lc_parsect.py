@@ -170,6 +170,17 @@ if __name__ == "__main__":
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
 
+    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
+    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
+    config["VOCAB_SIZE"] = VOCAB_SIZE
+    config["NUM_CLASSES"] = NUM_CLASSES
+
+    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
+        json.dump(config, fp)
+
+    with open(os.path.join(EXP_DIR_PATH, "test_dataset_params.json"), "w") as fp:
+        json.dump(test_dataset_params, fp)
+
     embedder = BertEmbedder(
         emb_dim=EMBEDDING_DIMENSION,
         dropout_value=0.0,
@@ -206,17 +217,10 @@ if __name__ == "__main__":
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
         metric=metric,
+        use_wandb=True,
+        experiment_name=EXP_NAME,
+        experiment_hyperparams=config,
+        track_for_best="macro_fscore",
     )
 
     engine.run()
-
-    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
-    config["VOCAB_SIZE"] = VOCAB_SIZE
-    config["NUM_CLASSES"] = NUM_CLASSES
-
-    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
-        json.dump(config, fp)
-
-    with open(os.path.join(EXP_DIR_PATH, "test_dataset_params.json"), "w") as fp:
-        json.dump(test_dataset_params, fp)
