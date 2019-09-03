@@ -1,6 +1,7 @@
 import pytest
 from sciwing.modules.embedders.bert_embedder import BertEmbedder
 import itertools
+from sciwing.utils.common import get_system_mem_in_gb
 
 bert_base_types = [
     "bert-base-uncased",
@@ -17,6 +18,9 @@ aggregation_types = ["sum", "average"]
 
 bert_base_type_agg_type = list(itertools.product(bert_base_types, aggregation_types))
 bert_large_type_agg_type = list(itertools.product(bert_large_types, aggregation_types))
+
+system_memory = get_system_mem_in_gb()
+system_memory = int(system_memory)
 
 
 @pytest.fixture(scope="module", params=bert_base_type_agg_type)
@@ -58,6 +62,9 @@ def setup_bert_embedder_large(request):
     return bow_bert_encoder, iter_dict
 
 
+@pytest.mark.skipif(
+    system_memory < 16, reason="System memory too small to run BERT Embedder"
+)
 class TestBertEmbedder:
     def test_bert_embedder_base_type(self, setup_bert_embedder):
         """
