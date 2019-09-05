@@ -4,6 +4,7 @@ import torch.nn as nn
 from typing import List
 import wasabi
 import torch
+from deprecated import deprecated
 
 FILES = constants.FILES
 
@@ -11,6 +12,10 @@ ELMO_OPTIONS_FILE = FILES["ELMO_OPTIONS_FILE"]
 ELMO_WEIGHTS_FILE = FILES["ELMO_WEIGHTS_FILE"]
 
 
+@deprecated(
+    reason="ElmoEmbedder is deprecated in version 0.1 and will be removed "
+    "in version 0.2"
+)
 class ElmoEmbedder(nn.Module):
     def __init__(
         self, dropout_value: float = 0.0, device: torch.device = torch.device("cpu")

@@ -1,7 +1,10 @@
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
-from sciwing.models.elmo_lstm_classifier import ElmoLSTMClassifier
-from sciwing.modules.embedders.elmo_embedder import ElmoEmbedder
-from sciwing.modules.elmo_lstm_encoder import ElmoLSTMEncoder
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
+from sciwing.models.simpleclassifier import SimpleClassifier
+
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import sciwing.constants as constants
 import os
@@ -189,29 +192,50 @@ if __name__ == "__main__":
 
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
+
+    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
+    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
+    config["VOCAB_SIZE"] = VOCAB_SIZE
+    config["NUM_CLASSES"] = NUM_CLASSES
+
+    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
+        json.dump(config, fp)
+
+    with open(os.path.join(EXP_DIR_PATH, "test_dataset_params.json"), "w") as fp:
+        json.dump(test_dataset_params, fp)
+
     embeddings = train_dataset.word_vocab.load_embedding()
     embeddings = nn.Embedding.from_pretrained(embeddings, freeze=False)
 
-    elmo_embedder = ElmoEmbedder(device=torch.device(DEVICE))
-    elmo_lstm_encoder = ElmoLSTMEncoder(
-        elmo_emb_dim=ELMO_EMBEDDING_DIMENSION,
-        elmo_embedder=elmo_embedder,
-        emb_dim=EMBEDDING_DIMENSION,
-        embedding=embeddings,
-        dropout_value=0.0,
+    elmo_embedder = BowElmoEmbedder(
+        layer_aggregation="sum",
+        cuda_device_id=-1 if DEVICE == "cpu" else int(DEVICE.split("cuda:")[1]),
+    )
+    vanilla_embedder = VanillaEmbedder(
+        embedding=embeddings, embedding_dim=EMBEDDING_DIMENSION
+    )
+    embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])
+
+    encoder = LSTM2VecEncoder(
+        emb_dim=EMBEDDING_DIMENSION + 1024,
+        embedder=embedder,
         hidden_dim=HIDDEN_DIMENSION,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
         device=torch.device(DEVICE),
     )
 
-    encoding_dim = 2 * HIDDEN_DIMENSION if BIDIRECTIONAL else HIDDEN_DIMENSION
+    encoding_dim = (
+        2 * HIDDEN_DIMENSION
+        if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
+        else HIDDEN_DIMENSION
+    )
 
-    model = ElmoLSTMClassifier(
-        elmo_lstm_encoder=elmo_lstm_encoder,
+    model = SimpleClassifier(
+        encoder=encoder,
         encoding_dim=encoding_dim,
         num_classes=NUM_CLASSES,
-        device=torch.device(DEVICE),
+        classification_layer_bias=True,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=LEARNING_RATE)
@@ -231,17 +255,10 @@ if __name__ == "__main__":
         tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
         metric=metric,
+        use_wandb=True,
+        experiment_name=EXP_NAME,
+        experiment_hyperparams=config,
+        track_for_best="macro_fscore",
     )
 
     engine.run()
-
-    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
-    config["VOCAB_SIZE"] = VOCAB_SIZE
-    config["NUM_CLASSES"] = NUM_CLASSES
-
-    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
-        json.dump(config, fp)
-
-    with open(os.path.join(EXP_DIR_PATH, "test_dataset_params.json"), "w") as fp:
-        json.dump(test_dataset_params, fp)
