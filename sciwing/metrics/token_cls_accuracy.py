@@ -68,7 +68,7 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             true_tag_indices=labels.numpy().tolist(),
             predicted_tag_indices=predicted_tags,
-            masked_label_indices=labels_mask,
+            masked_label_indices=labels_mask.cpu().numpy().tolist(),
         )
 
         tps = np.around(np.diag(confusion_mtrx), decimals=4)
