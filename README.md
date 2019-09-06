@@ -1,4 +1,4 @@
-# ![50%](../../Desktop/sciwing.png)
+# ![sciwing logo]( https://sciwing.s3.amazonaws.com/sciwing.png)
 A Modern Toolkit for Scientific Document Processing from WING-NUS
 
 [![Build Status](https://travis-ci.com/abhinavkashyap/sciwing.svg?token=AShdNBksk5K9Pxg45w3H&branch=master)](https://travis-ci.com/abhinavkashyap/sciwing) ![Open Issues](https://img.shields.io/github/issues/abhinavkashyap/sciwing) ![Last Commit](https://img.shields.io/github/last-commit/abhinavkashyap/sciwing) [![Updates](https://pyup.io/repos/github/abhinavkashyap/sciwing/shield.svg)](https://pyup.io/repos/github/abhinavkashyap/sciwing/) ![](https://img.shields.io/badge/contributions-welcome-success)
