@@ -248,6 +248,15 @@ if __name__ == "__main__":
     char_embedding = train_dataset.char_vocab.load_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
 
+    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
+    config["CHAR_VOCAB_STORE_LOCATION"] = CHAR_VOCAB_STORE_LOCATION
+    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
+    config["VOCAB_SIZE"] = VOCAB_SIZE
+    config["NUM_CLASSES"] = NUM_CLASSES
+
+    with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
+        json.dump(config, fp)
+
     classnames2idx = train_dataset.classnames2idx
     idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
 
@@ -339,18 +348,12 @@ if __name__ == "__main__":
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
         tensorboard_logdir=TENSORBOARD_LOGDIR,
+        track_for_best="macro_fscore",
         device=torch.device(DEVICE),
         metric=metric,
-        track_for_best="macro_fscore",
+        use_wandb=True,
+        experiment_name=EXP_NAME,
+        experiment_hyperparams=config,
     )
 
     engine.run()
-
-    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-    config["CHAR_VOCAB_STORE_LOCATION"] = CHAR_VOCAB_STORE_LOCATION
-    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
-    config["VOCAB_SIZE"] = VOCAB_SIZE
-    config["NUM_CLASSES"] = NUM_CLASSES
-
-    with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
-        json.dump(config, fp)
