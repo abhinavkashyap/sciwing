@@ -5,7 +5,7 @@ A Modern Toolkit for Scientific Document Processing from [WING-NUS](https://wing
 
 
 
-SciWING is a modern framework from WING-NUS to facilitate Scientific Document Processing . SciWING believes in modularity and easy to use interfaces for fast prototype development and experimentation in research. It is also packed with many pre-trained models for fundamental tasks in Scientific Document Processing for practitioners. It has the following advantages
+SciWING is a modern framework from WING-NUS to facilitate Scientific Document Processing.  It is built on PyTorch and believes in modularity from ground up and easy to use interface. SciWING includes many pre-trained models for fundamental tasks in Scientific Document Processing for practitioners. It has the following advantages
 
 - **Modularity**  - The framework embraces modularity from ground-up. **SciWING** helps in creating new models by combining multiple re-usable modules. You can combine different modules and experiment with new approaches in an easy manner 
 
@@ -65,8 +65,8 @@ encoder = LSTM2VecEncoder(
 
 # Instantiate a linear classification layer that takes in an encoder and the dimension of the encoding and the number of classes
 model = SimpleClassifier(
-	encoder=encoder, 
-  encoding_dim=HIDDEN_DIM, 
+  encoder=encoder,
+  encoding_dim=HIDDEN_DIM,
   num_classes=NUM_CLASSES
 )
 
