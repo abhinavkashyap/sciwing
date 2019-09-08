@@ -56,9 +56,6 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             Labels mask indicating 1 in thos places where the true label is ignored
             Otherwise 0. It should be of same size as labels
 
-        Returns
-        -------
-
         """
         assert predicted_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -136,7 +133,6 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             The dictionary obtained after a forward pass
             The model_forward_pass is expected to have ``normalized_probs``
             that usually is of the size ``[batch_size, num_classes]``
-
         """
 
         normalized_probs = model_forward_dict["normalized_probs"]
@@ -215,12 +211,13 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         Returns
         -------
         Dict[str, Any]
-            Returns a dictionary with following key value pairs
+            Returns a dictionary with the following key value pairs
+
             precision: Dict[str, float]
                 The precision for different classes
             recall: Dict[str, float]
                 The recall values for different classes
-            "fscore": Dict[str, float]
+            fscore: Dict[str, float]
                 The fscore values for different classes,
             num_tp: Dict[str, int]
                 The number of true positives for different classes,
@@ -240,6 +237,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
                 The micro recall value considering all different classes.
             micro_fscore: float
                 The micro fscore value considering all different classes
+
         """
         precision_dict, recall_dict, fscore_dict = self.classification_metrics_utils.get_prf_from_counters(
             tp_counter=self.tp_counter,

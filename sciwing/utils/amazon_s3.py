@@ -18,19 +18,19 @@ class S3Util:
     def __init__(self, aws_cred_config_json_filename: str):
         """ Some utilities that would be useful to upload folders/models to s3
 
-
         Parameters
         ----------
         aws_cred_config_json_filename : str
             You need to instantiate this file with a aws configuration json file
+
             The following will be the keys and values
-                aws_access_key_id
+                aws_access_key_id : str
                     The access key id for the AWS account that you have
-                aws_access_secret
+                aws_access_secret : str
                     The access secret
-                region
+                region : str
                     The region in which your bucket is present
-                parsect_bucket_name
+                parsect_bucket_name : str
                     The name of the bucket where all the models/experiments will be sotred
         """
         self.aws_cred_config_json_filename = aws_cred_config_json_filename
