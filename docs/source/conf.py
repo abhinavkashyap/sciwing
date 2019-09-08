@@ -12,16 +12,15 @@
 #
 import os
 import sys
+import mock
 
 sys.path.insert(0, os.path.abspath("../.."))
-
 
 # -- Project information -----------------------------------------------------
 
 project = "SciWing (Swing)"
 copyright = "2019, Abhinav Ramesh Kashyap"
 author = "Abhinav Ramesh Kashyap"
-
 
 # -- General configuration ---------------------------------------------------
 
@@ -37,7 +36,6 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -57,3 +55,15 @@ html_favicon = "_static/img/favicon.png"
 
 # Napoleon settings
 napoleon_include_init_with_doc = True
+
+
+MOCK_MODULES = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "matplotlib.pyplot",
+    "scipy.interpolate",
+    "torch",
+]
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock()
