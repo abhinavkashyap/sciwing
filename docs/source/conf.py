@@ -12,7 +12,6 @@
 #
 import os
 import sys
-import mock
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -55,15 +54,3 @@ html_favicon = "_static/img/favicon.png"
 
 # Napoleon settings
 napoleon_include_init_with_doc = True
-
-
-MOCK_MODULES = [
-    "numpy",
-    "scipy",
-    "matplotlib",
-    "matplotlib.pyplot",
-    "scipy.interpolate",
-    "torch",
-]
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
