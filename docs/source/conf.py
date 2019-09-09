@@ -74,3 +74,5 @@ autodoc_mock_imports = [
     "tensorboardX",
     "torchcrf",
 ]
+
+html_theme_options = {"collapse_navigation": False}
