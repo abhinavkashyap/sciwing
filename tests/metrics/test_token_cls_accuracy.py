@@ -56,7 +56,7 @@ def setup_masked_indices():
     predicted_tags = [[1, 0, 1]]
     labels = torch.LongTensor([[1, 0, 2]])
     idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "ignore_class"}
-    label_mask = [0, 0, 1]
+    label_mask = torch.ByteTensor([0, 0, 1])
 
     expected_precision = {0: 1.0, 1: 1.0}
     expected_recall = {0: 1.0, 1: 1.0}
