@@ -32,3 +32,14 @@ at `sectlabel_bow_random.toml` file.
 #### To check results after running training using best model 
 
 ``sciwing test sectlabel_bow_random.toml``
+
+### Running with Glove embeddings 
+Sciwing comes with glove embeddings. It is easy to change the 
+embeddings to glove 
+
+We illustrate this using the file ``sectlabel_bow_glove.toml``
+You can see the embedding type has been changed to GloVe 
+
+As before to run training, testing and validation run 
+``sciwing run sectlabel_bow_glove.toml`` 
+
