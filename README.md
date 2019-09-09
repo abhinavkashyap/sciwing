@@ -126,5 +126,3 @@ Instructions to install pyenv are available  [here](https://github.com/pyenv/pye
 
    The test suite is huge and again, it will take some time to run. We will put efforts to reduce the test time in the next iterations.
 
-
-
