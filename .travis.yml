@@ -12,3 +12,7 @@ before_script:
 
 script:
   - pytest -v -p no:warnings tests -n 4 --dist=loadfile
+
+branches:
+  only:
+  - master
