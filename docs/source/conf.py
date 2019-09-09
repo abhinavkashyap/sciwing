@@ -68,6 +68,7 @@ autodoc_mock_imports = [
     "gensim",
     "pandas",
     "falcon",
-    "scikit_learn",
+    "scikit-learn",
     "tensorboardX",
+    "pytorch-crf",
 ]
