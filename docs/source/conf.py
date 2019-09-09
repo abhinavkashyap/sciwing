@@ -55,4 +55,19 @@ html_favicon = "_static/img/favicon.png"
 # Napoleon settings
 napoleon_include_init_with_doc = True
 
-autodoc_mock_imports = ["torch", "allennlp", "numpy", "matplotlib", "ntlk", "spacy"]
+autodoc_mock_imports = [
+    "torch",
+    "allennlp",
+    "numpy",
+    "matplotlib",
+    "ntlk",
+    "spacy",
+    "pytorch_pretrained_bert",
+    "pytorch_crf",
+    "boto3",
+    "gensim",
+    "pandas",
+    "falcon",
+    "scikit_learn",
+    "tensorboardX",
+]
