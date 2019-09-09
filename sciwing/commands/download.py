@@ -15,12 +15,18 @@ def download():
 
 
 @download.command()
-@click.option("--task", type=click.Choice(["sectlabel"]))
+@click.option("--task", type=click.Choice(["sectlabel", "genericsect"]))
 @click.option("--path", default=".")
 def data(task, path):
     path = pathlib.Path(path)
     if task == "sectlabel":
         url = DATA_FILE_URLS["SECT_LABEL_FILE"]
         dest_filename = path.joinpath("sectLabel.train.data")
+        if not dest_filename.is_file():
+            download_file(url=url, dest_filename=dest_filename)
+
+    if task == "genericsect":
+        url = DATA_FILE_URLS["GENERIC_SECTION_TRAIN_FILE"]
+        dest_filename = path.joinpath("genericSect.train.data")
         if not dest_filename.is_file():
             download_file(url=url, dest_filename=dest_filename)
