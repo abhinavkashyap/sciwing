@@ -397,9 +397,12 @@ class Engine(ClassNursery):
         metric = self.train_metric_calc.get_metric()
 
         if self.use_wandb:
-            wandb.log({"train_loss": average_loss})
+            wandb.log({"train_loss": average_loss}, step=epoch_num + 1)
             if self.track_for_best != "loss":
-                wandb.log({f"train_{self.track_for_best}": metric[self.track_for_best]})
+                wandb.log(
+                    {f"train_{self.track_for_best}": metric[self.track_for_best]},
+                    step=epoch_num + 1,
+                )
 
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
@@ -477,11 +480,12 @@ class Engine(ClassNursery):
         )
 
         if self.use_wandb:
-            wandb.log({"validation_loss": average_loss})
+            wandb.log({"validation_loss": average_loss}, step=epoch_num + 1)
             metric = self.validation_metric_calc.get_metric()
             if self.track_for_best != "loss":
                 wandb.log(
-                    {f"validation_{self.track_for_best}": metric[self.track_for_best]}
+                    {f"validation_{self.track_for_best}": metric[self.track_for_best]},
+                    step=epoch_num + 1,
                 )
 
         self.summaryWriter.add_scalars(
@@ -570,10 +574,7 @@ class Engine(ClassNursery):
             f"Test Metrics @ Epoch {epoch_num+1} - {precision_recall_fmeasure}"
         )
         if self.use_wandb:
-            metric = self.test_metric_calc.get_metric()
-            wandb.run.summary[f"{self.track_for_best}"] = metric[
-                f"{self.track_for_best}"
-            ]
+            wandb.log({"test_metrics": str(precision_recall_fmeasure)})
 
     def get_train_dataset(self):
         """ Returns the train dataset of the experiment

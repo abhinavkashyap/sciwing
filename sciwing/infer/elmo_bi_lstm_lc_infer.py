@@ -1,8 +1,10 @@
 import sciwing.constants as constants
 import os
-from sciwing.models.elmo_lstm_classifier import ElmoLSTMClassifier
-from sciwing.modules.elmo_lstm_encoder import ElmoLSTMEncoder
-from sciwing.modules.embedders.elmo_embedder import ElmoEmbedder
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.models.simpleclassifier import SimpleClassifier
+from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
 from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
@@ -31,7 +33,6 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         test_dataset_args = json.load(fp)
 
     DEVICE = config["DEVICE"]
-    ELMO_EMBEDDING_DIMENSION = config["ELMO_EMBEDDING_DIMENSION"]
     EMBEDDING_DIM = config["EMBEDDING_DIMENSION"]
     VOCAB_SIZE = config["VOCAB_SIZE"]
     HIDDEN_DIM = config["HIDDEN_DIMENSION"]
@@ -44,25 +45,33 @@ def get_elmo_bilstm_lc_infer(dirname: str):
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIM)
 
-    elmo_embedder = ElmoEmbedder(device=torch.device(DEVICE))
-    elmo_lstm_encoder = ElmoLSTMEncoder(
-        elmo_emb_dim=ELMO_EMBEDDING_DIMENSION,
-        elmo_embedder=elmo_embedder,
-        emb_dim=EMBEDDING_DIM,
-        embedding=embedding,
-        dropout_value=0.0,
+    elmo_embedder = BowElmoEmbedder(
+        layer_aggregation="sum",
+        cuda_device_id=-1 if DEVICE == "cpu" else int(DEVICE.split("cuda:")[1]),
+    )
+
+    vanilla_embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
+
+    embedders = ConcatEmbedders([vanilla_embedder, elmo_embedder])
+
+    encoder = LSTM2VecEncoder(
+        emb_dim=EMBEDDING_DIM + 1024,
+        embedder=embedders,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
         device=torch.device(DEVICE),
     )
-    encoding_dim = 2 * HIDDEN_DIM if BIDIRECTIONAL else HIDDEN_DIM
 
-    model = ElmoLSTMClassifier(
-        elmo_lstm_encoder=elmo_lstm_encoder,
+    encoding_dim = (
+        2 * HIDDEN_DIM if BIDIRECTIONAL and COMBINE_STRATEGY == "concat" else HIDDEN_DIM
+    )
+
+    model = SimpleClassifier(
+        encoder=encoder,
         encoding_dim=encoding_dim,
         num_classes=NUM_CLASSES,
-        device=torch.device(DEVICE),
+        classification_layer_bias=True,
     )
 
     dataset = SectLabelDataset(**test_dataset_args)
@@ -74,5 +83,5 @@ def get_elmo_bilstm_lc_infer(dirname: str):
 
 
 if __name__ == "__main__":
-    experiment_dirname = os.path.join(OUTPUT_DIR, "debug_elmo_bi_lstm_lc")
+    experiment_dirname = os.path.join(OUTPUT_DIR, "debug_parsect_elmo_bi_lstm_lc")
     inference_client = get_elmo_bilstm_lc_infer(experiment_dirname)

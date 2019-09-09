@@ -46,6 +46,11 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         self.layer_aggregation_type = layer_aggregation
         self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
         self.cuda_device_id = cuda_device_id
+        self.device = (
+            torch.device("cpu")
+            if cuda_device_id < 0
+            else torch.device(f"cuda:{cuda_device_id}")
+        )
         self.msg_printer = wasabi.Printer()
 
         assert (
@@ -107,7 +112,6 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
             # bs, max_len, 1024
             embedding_ = embedded[:, 0, :, :]
 
-        return embedding_
+        embedding_ = embedding_.to(self.device)
 
-    def __call__(self, iter_dict: Dict[str, Any]):
-        return self.forward(iter_dict)
+        return embedding_
