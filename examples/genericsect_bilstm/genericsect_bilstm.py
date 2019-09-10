@@ -6,6 +6,7 @@ import sciwing.constants as constants
 import os
 import torch.nn as nn
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
+import pathlib
 
 import torch.optim as optim
 from sciwing.engine.engine import Engine
@@ -16,7 +17,6 @@ import torch
 FILES = constants.FILES
 PATHS = constants.PATHS
 
-GENERIC_SECTION_TRAIN_FILE = FILES["GENERIC_SECTION_TRAIN_FILE"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 
@@ -81,6 +81,18 @@ if __name__ == "__main__":
         help="How do you want to combine the hidden dimensions of the two "
         "combinations",
     )
+
+    parser.add_argument(
+        "--exp_dir_path", help="Directory to store all experiment related information"
+    )
+    parser.add_argument(
+        "--model_save_dir",
+        help="Directory where the checkpoints during model training are stored.",
+    )
+    parser.add_argument(
+        "--vocab_store_location", help="File in which the vocab is stored"
+    )
+
     args = parser.parse_args()
     config = {
         "EXP_NAME": args.exp_name,
@@ -99,19 +111,16 @@ if __name__ == "__main__":
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
         "BIDIRECTIONAL": bool(args.bidirectional),
         "COMBINE_STRATEGY": args.combine_strategy,
+        "EXP_DIR_PATH": args.exp_dir_path,
+        "MODEL_SAVE_DIR": args.model_save_dir,
+        "VOCAB_STORE_LOCATION": args.vocab_store_location,
     }
 
-    EXP_NAME = config["EXP_NAME"]
     DEVICE = config["DEVICE"]
-    EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
-    MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
-    if not os.path.isdir(EXP_DIR_PATH):
-        os.mkdir(EXP_DIR_PATH)
-
-    if not os.path.isdir(MODEL_SAVE_DIR):
-        os.mkdir(MODEL_SAVE_DIR)
-
-    VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "vocab.json")
+    EXP_NAME = config["EXP_NAME"]
+    EXP_DIR_PATH = config["EXP_DIR_PATH"]
+    EXP_DIR_PATH = pathlib.Path(EXP_DIR_PATH)
+    VOCAB_STORE_LOCATION = config["VOCAB_STORE_LOCATION"]
     MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
     MAX_LENGTH = config["MAX_LENGTH"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
@@ -124,10 +133,11 @@ if __name__ == "__main__":
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
+    MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
 
+    GENERIC_SECTION_TRAIN_FILE = "genericSEct.train.data"
     train_dataset = GenericSectDataset(
         filename=GENERIC_SECTION_TRAIN_FILE,
         dataset_type="train",
@@ -176,11 +186,17 @@ if __name__ == "__main__":
         "word_embedding_dimension": EMBEDDING_DIMENSION,
     }
 
+    # saving the test dataset params
+    # lets save the test dataset params for the experiment
+    if not EXP_DIR_PATH.is_dir():
+        EXP_DIR_PATH.mkdir()
+
+    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
+        json.dump(config, fp)
+
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
 
-    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
     config["VOCAB_SIZE"] = VOCAB_SIZE
     config["NUM_CLASSES"] = NUM_CLASSES
 
@@ -228,7 +244,6 @@ if __name__ == "__main__":
         num_epochs=NUM_EPOCHS,
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
-        tensorboard_logdir=TENSORBOARD_LOGDIR,
         device=torch.device(DEVICE),
         metric=metric,
         use_wandb=True,
