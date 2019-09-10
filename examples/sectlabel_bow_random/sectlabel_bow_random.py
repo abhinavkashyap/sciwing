@@ -103,7 +103,6 @@ if __name__ == "__main__":
     EXP_DIR_PATH = config["EXP_DIR_PATH"]
     EXP_DIR_PATH = pathlib.Path(EXP_DIR_PATH)
     EXP_NAME = config["EXP_NAME"]
-
     MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
 
     # get the path to the sectLabel.train.data in the folder
