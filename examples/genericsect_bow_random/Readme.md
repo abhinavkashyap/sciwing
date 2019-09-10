@@ -12,7 +12,7 @@ to any of the glove embeddings available as part of SciWING.
 
 ### Download the data 
 
-``sciwing download data genericsect``
+``sciwing download data --task genericsect``
 
 Downloads the sectlabel data
 

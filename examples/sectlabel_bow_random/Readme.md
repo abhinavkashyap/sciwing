@@ -11,7 +11,7 @@ to any of the glove embeddings available as part of SciWING.
 
 ### Download the data 
 
-``sciwing download data sectlabel``
+``sciwing download data --task sectlabel``
 
 Downloads the sectlabel data
 
