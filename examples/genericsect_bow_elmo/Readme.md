@@ -1,4 +1,4 @@
-## Generic Section Classifier with Bag of words encoder and random initial word embeddings  
+## Generic Section Classifier with Bag of words encoder and ELMO representations  
 
 Generic Section Classifier helps in normalizing the different section headers 
 to common names. For example "previous work" and "state of the art" can 
