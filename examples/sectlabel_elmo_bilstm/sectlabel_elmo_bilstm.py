@@ -4,9 +4,8 @@ from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
 from sciwing.models.simpleclassifier import SimpleClassifier
-
+import pathlib
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-import sciwing.constants as constants
 import os
 import torch.nn as nn
 
@@ -16,13 +15,6 @@ import json
 import argparse
 import torch
 
-
-FILES = constants.FILES
-PATHS = constants.PATHS
-
-SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
-OUTPUT_DIR = PATHS["OUTPUT_DIR"]
-CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 
 if __name__ == "__main__":
     # read the hyperparams from config file
@@ -76,11 +68,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max_length", help="Maximum length of the inputs to the encoder", type=int
     )
-    parser.add_argument(
-        "--return_instances",
-        help="Return instances or tokens from sciwing dataset",
-        action="store_true",
-    )
+
     parser.add_argument(
         "--bidirectional",
         help="Specify Whether the lstm is bidirectional or uni-directional",
@@ -91,6 +79,18 @@ if __name__ == "__main__":
         help="How do you want to combine the hidden dimensions of the two "
         "combinations",
     )
+
+    parser.add_argument(
+        "--exp_dir_path", help="Directory to store all experiment related information"
+    )
+    parser.add_argument(
+        "--model_save_dir",
+        help="Directory where the checkpoints during model training are stored.",
+    )
+    parser.add_argument(
+        "--vocab_store_location", help="File in which the vocab is stored"
+    )
+
     args = parser.parse_args()
     config = {
         "EXP_NAME": args.exp_name,
@@ -107,23 +107,17 @@ if __name__ == "__main__":
         "NUM_EPOCHS": args.epochs,
         "SAVE_EVERY": args.save_every,
         "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
-        "RETURN_INSTANCES": args.return_instances,
         "BIDIRECTIONAL": bool(args.bidirectional),
         "COMBINE_STRATEGY": args.combine_strategy,
         "ELMO_EMBEDDING_DIMENSION": 1024,
+        "EXP_DIR_PATH": args.exp_dir_path,
+        "MODEL_SAVE_DIR": args.model_save_dir,
+        "VOCAB_STORE_LOCATION": args.vocab_store_location,
     }
 
     EXP_NAME = config["EXP_NAME"]
     DEVICE = config["DEVICE"]
-    EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
-    MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
-    if not os.path.isdir(EXP_DIR_PATH):
-        os.mkdir(EXP_DIR_PATH)
-
-    if not os.path.isdir(MODEL_SAVE_DIR):
-        os.mkdir(MODEL_SAVE_DIR)
-
-    VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "vocab.json")
+    VOCAB_STORE_LOCATION = config["VOCAB_STORE_LOCATION"]
     MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
     MAX_LENGTH = config["MAX_LENGTH"]
     EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
@@ -136,12 +130,16 @@ if __name__ == "__main__":
     NUM_EPOCHS = config["NUM_EPOCHS"]
     SAVE_EVERY = config["SAVE_EVERY"]
     LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    RETURN_INSTANCES = config["RETURN_INSTANCES"]
     TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
     BIDIRECTIONAL = config["BIDIRECTIONAL"]
     COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
     ELMO_EMBEDDING_DIMENSION = config["ELMO_EMBEDDING_DIMENSION"]
+    EXP_DIR_PATH = config["EXP_DIR_PATH"]
+    EXP_DIR_PATH = pathlib.Path(EXP_DIR_PATH)
+    EXP_NAME = config["EXP_NAME"]
+    MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
 
+    SECT_LABEL_FILE = "sectLabel.train.data"
     train_dataset = SectLabelDataset(
         filename=SECT_LABEL_FILE,
         dataset_type="train",
@@ -190,30 +188,39 @@ if __name__ == "__main__":
         "word_embedding_dimension": EMBEDDING_DIMENSION,
     }
 
-    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
-    NUM_CLASSES = train_dataset.get_num_classes()
-
-    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
-    config["VOCAB_SIZE"] = VOCAB_SIZE
-    config["NUM_CLASSES"] = NUM_CLASSES
-
-    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
-        json.dump(config, fp)
+    # saving the test dataset params
+    # lets save the test dataset params for the experiment
+    if not EXP_DIR_PATH.is_dir():
+        EXP_DIR_PATH.mkdir()
 
     with open(os.path.join(EXP_DIR_PATH, "test_dataset_params.json"), "w") as fp:
         json.dump(test_dataset_params, fp)
 
+    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
+    NUM_CLASSES = train_dataset.get_num_classes()
+
+    # store anything that helps later in instantiation
+    config["VOCAB_SIZE"] = VOCAB_SIZE
+    config["NUM_CLASSES"] = NUM_CLASSES
+    with open(os.path.join(EXP_DIR_PATH, "config.json"), "w") as fp:
+        json.dump(config, fp)
+
+    # load the word embeddings
     embeddings = train_dataset.word_vocab.load_embedding()
     embeddings = nn.Embedding.from_pretrained(embeddings, freeze=False)
 
+    # instantiate the elmo embedder
     elmo_embedder = BowElmoEmbedder(
         layer_aggregation="sum",
         cuda_device_id=-1 if DEVICE == "cpu" else int(DEVICE.split("cuda:")[1]),
     )
+
+    # instantiate the vanilla embedder
     vanilla_embedder = VanillaEmbedder(
         embedding=embeddings, embedding_dim=EMBEDDING_DIMENSION
     )
+
+    # concat the embeddings
     embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])
 
     encoder = LSTM2VecEncoder(
