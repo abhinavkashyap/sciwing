@@ -45,6 +45,8 @@ DATA_FILE_URLS = dict(
     SCIENCE_IE_TRAIN_FOLDER="https://sciwing.s3.amazonaws.com/scienceie_dev.zip",
     SCIENCE_IE_DEV_FOLDER="https://sciwing.s3.amazonaws.com/scienceie_train.zip",
     CORA_FILE="https://sciwing.s3.amazonaws.com/cora.data",
+    TRAIN_SCIENCE_IE_CONLL_FILE="https://sciwing.s3.amazonaws.com/train_science_ie_conll.txt",
+    DEV_SCIENCE_IE_CONLL_FILE="https://sciwing.s3.amazonaws.com/dev_science_ie_conll.txt",
 )
 
 

@@ -1,0 +1,63 @@
+[experiment]
+    exp_name = "science_ie_tagger"
+    exp_dir = "science_ie_tagger_toml"
+
+[dataset]
+	class = "ScienceIEDataset"
+	train_filename="train_science_ie_conll.txt"
+	valid_filename="dev_science_ie_conll.txt"
+	test_filename="dev_science_ie_conll.txt"
+	[dataset.args]
+	max_num_words = 1000
+	max_instance_length = 100
+	max_char_length=25
+	word_vocab_store_location = "science_ie_tagger_toml/vocab.json"
+	char_vocab_store_location = "science_ie_tagger_toml/char_vocab.json"
+	debug = true
+	debug_dataset_proportion = 0.1
+	word_embedding_type = "random"
+	word_embedding_dimension = 300
+	char_embedding_dimension=25
+
+
+
+[model]
+    class="ScienceIETagger"
+    num_classes=8
+    hid_dim=128
+    [model.rnn2seqencoder]
+        emb_dim = 350
+        class="Lstm2SeqEncoder"
+        dropout_value = 0.5
+        hidden_dim=128
+        bidirectional=false
+        num_layers=1
+        combine_strategy="concat"
+        rnn_bias=true
+        [[model.rnn2seqencoder.embedder]]
+        class="VanillaEmbedder"
+        embed="word_vocab"
+        freeze=false
+        [[model.rnn2seqencoder.embedder]]
+        class="CharLSTMEncoder"
+        char_emb_dim=25
+        hidden_dim=25
+        bidirectional=true
+        [model.rnn2seqencoder.embedder.char_embedder]
+        class="VanillaEmbedder"
+        embed="char_vocab"
+        freeze=false
+
+[engine]
+    batch_size=32
+    save_dir="science_ie_tagger_toml/checkpoints"
+    num_epochs=1
+    save_every=10
+    log_train_metrics_every=10
+    device="cpu"
+    gradient_norm_clip_value=5.0
+    [engine.metric]
+        class="TokenClassificationAccuracy"
+    [engine.optimizer]
+        class="Adam"
+        lr=1e-3

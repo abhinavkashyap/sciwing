@@ -3,9 +3,13 @@ from sciwing.utils.sciwing_toml_runner import SciWingTOMLRunner
 from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
 )
+from sciwing.infer.seq_label_inference.science_ie_inference import ScienceIEInference
 import pathlib
 
-class_infer_client_mapping = {"SimpleClassifier": ClassificationInference}
+class_infer_client_mapping = {
+    "SimpleClassifier": ClassificationInference,
+    "ScienceIETagger": ScienceIEInference,
+}
 
 
 @click.command()

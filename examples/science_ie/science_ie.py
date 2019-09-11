@@ -5,7 +5,6 @@ from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
-from sciwing.utils.science_ie_data_utils import ScienceIEDataUtils
 import sciwing.constants as constants
 from allennlp.modules.conditional_random_field import allowed_transitions
 import os
@@ -18,15 +17,7 @@ import pathlib
 import torch.nn as nn
 import wasabi
 
-
-FILES = constants.FILES
-PATHS = constants.PATHS
-
-SCIENCE_IE_TRAIN_FOLDER = FILES["SCIENCE_IE_TRAIN_FOLDER"]
-SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
-OUTPUT_DIR = PATHS["OUTPUT_DIR"]
-CONFIGS_DIR = PATHS["CONFIGS_DIR"]
-DATA_DIR = PATHS["DATA_DIR"]
+DATA_DIR = constants.PATHS["DATA_DIR"]
 
 if __name__ == "__main__":
     # read the hyperparams from config file
@@ -108,8 +99,23 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dropout", help="Dropout added to multiple layer lstm", type=float
     )
+
     parser.add_argument(
         "--seq_num_layers", help="Number of layers in the Seq2Seq encoder", type=int
+    )
+    parser.add_argument(
+        "--exp_dir_path", help="Directory to store all experiment related information"
+    )
+    parser.add_argument(
+        "--model_save_dir",
+        help="Directory where the checkpoints during model training are stored.",
+    )
+    parser.add_argument(
+        "--vocab_store_location", help="File in which the vocab is stored"
+    )
+    parser.add_argument(
+        "--char_vocab_store_location",
+        help="File in which the character vocab  is stored",
     )
 
     args = parser.parse_args()
@@ -139,8 +145,14 @@ if __name__ == "__main__":
         "REGULARIZATION_STRENGTH": args.reg,
         "DROPOUT": args.dropout,
         "NUM_LAYERS": args.seq_num_layers,
+        "EXP_DIR_PATH": args.exp_dir_path,
+        "MODEL_SAVE_DIR": args.model_save_dir,
+        "VOCAB_STORE_LOCATION": args.vocab_store_location,
+        "CHAR_VOCAB_STORE_LOCATION": args.char_vocab_store_location,
     }
 
+    EXP_NAME = config["EXP_NAME"]
+    VOCAB_STORE_LOCATION = config["VOCAB_STORE_LOCATION"]
     DEBUG = config["DEBUG"]
     DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
     BATCH_SIZE = config["BATCH_SIZE"]
@@ -162,23 +174,14 @@ if __name__ == "__main__":
     CHAR_ENCODER_HIDDEN_DIM = config["CHAR_ENCODER_HIDDEN_DIM"]
     REGULARIZATION_STRENGTH = config["REGULARIZATION_STRENGTH"]
     DROPOUT = config["DROPOUT"]
-    EXP_NAME = config["EXP_NAME"]
     NUM_LAYERS = config["NUM_LAYERS"]
-    EXP_DIR_PATH = os.path.join(OUTPUT_DIR, EXP_NAME)
-    MODEL_SAVE_DIR = os.path.join(EXP_DIR_PATH, "checkpoints")
-
-    if not os.path.isdir(EXP_DIR_PATH):
-        os.mkdir(EXP_DIR_PATH)
-
-    if not os.path.isdir(MODEL_SAVE_DIR):
-        os.mkdir(MODEL_SAVE_DIR)
-
-    VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "vocab.json")
-    CHAR_VOCAB_STORE_LOCATION = os.path.join(EXP_DIR_PATH, "char_vocab.json")
-    TENSORBOARD_LOGDIR = os.path.join(".", "runs", EXP_NAME)
+    EXP_DIR_PATH = config["EXP_DIR_PATH"]
+    EXP_DIR_PATH = pathlib.Path(EXP_DIR_PATH)
+    MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
+    CHAR_VOCAB_STORE_LOCATION = config["CHAR_VOCAB_STORE_LOCATION"]
 
     train_dataset = ScienceIEDataset(
-        filename=pathlib.Path(DATA_DIR, "train_science_ie_conll.txt"),
+        filename=pathlib.Path(".", "train_science_ie_conll.txt"),
         dataset_type="train",
         max_num_words=MAX_NUM_WORDS,
         max_instance_length=MAX_LENGTH,
@@ -198,7 +201,7 @@ if __name__ == "__main__":
     )
 
     validation_dataset = ScienceIEDataset(
-        filename=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
+        filename=pathlib.Path(".", "dev_science_ie_conll.txt"),
         dataset_type="valid",
         max_num_words=MAX_NUM_WORDS,
         max_instance_length=MAX_LENGTH,
@@ -218,7 +221,7 @@ if __name__ == "__main__":
     )
 
     test_dataset = ScienceIEDataset(
-        filename=pathlib.Path(DATA_DIR, "dev_science_ie_conll.txt"),
+        filename=pathlib.Path(".", "dev_science_ie_conll.txt"),
         dataset_type="test",
         max_num_words=MAX_NUM_WORDS,
         max_instance_length=MAX_LENGTH,
@@ -241,21 +244,21 @@ if __name__ == "__main__":
     validation_dataset.print_stats()
     test_dataset.print_stats()
 
+    if not EXP_DIR_PATH.is_dir():
+        EXP_DIR_PATH.mkdir()
+
     VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
     NUM_CLASSES = train_dataset.get_num_classes()
-    embedding = train_dataset.word_vocab.load_embedding()
-    embedding = nn.Embedding.from_pretrained(embedding, freeze=False)
-    char_embedding = train_dataset.char_vocab.load_embedding()
-    char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
-
-    config["VOCAB_STORE_LOCATION"] = VOCAB_STORE_LOCATION
-    config["CHAR_VOCAB_STORE_LOCATION"] = CHAR_VOCAB_STORE_LOCATION
-    config["MODEL_SAVE_DIR"] = MODEL_SAVE_DIR
     config["VOCAB_SIZE"] = VOCAB_SIZE
     config["NUM_CLASSES"] = NUM_CLASSES
 
     with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
         json.dump(config, fp)
+
+    embedding = train_dataset.word_vocab.load_embedding()
+    embedding = nn.Embedding.from_pretrained(embedding, freeze=False)
+    char_embedding = train_dataset.char_vocab.load_embedding()
+    char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
 
     classnames2idx = train_dataset.classnames2idx
     idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
@@ -347,7 +350,6 @@ if __name__ == "__main__":
         num_epochs=NUM_EPOCHS,
         save_every=SAVE_EVERY,
         log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
-        tensorboard_logdir=TENSORBOARD_LOGDIR,
         track_for_best="macro_fscore",
         device=torch.device(DEVICE),
         metric=metric,
