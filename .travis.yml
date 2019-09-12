@@ -1,14 +1,20 @@
 language: python
 python:
-  - "3.7"
+- '3.7'
 install:
-  - pip install -r requirements.txt
-  - pip install -e .
-
+- pip install -r requirements.txt
+- pip install -e .
 before_script:
-  - python -m spacy download en
-  - sciwing develop makedirs
-  - sciwing develop download
-
+- python -m spacy download en
+- sciwing develop makedirs
+- sciwing develop download
 script:
-  - pytest -v -p no:warnings tests -n 4 --dist=loadfile
+- pytest -v -p no:warnings tests -n 4 --dist=loadfile
+deploy:
+  provider: pypi
+  user: abhinavkashyap92
+  password:
+    secure: ANW9l7h1g3Rys3joNC94Le/yxJhhIDRu5RG/s+Je648ohyqgJO4upE3TiaP5bXMX3JSbpFwksC/ia/QuTi2xOOzuRAfCS2yrar+ShZj5Iz2aXVDf3OaSZmvChxIUEAWEFaIwlaPpCYTr6gnTmuyJNw0Gi7aacD5jEwWZGOSCTHkpPtkVS0NhXq7W3Ar2oO2d6PmXOIEuXoygzVZJcTdCGfkdp13EUjqEyOcRTYWMIMc3lSY3HZS6OkUjVBvXaTFXqXZhct5vHxRYyVDbrmuJMGNKK4ePbQybXwwdMWKaflwF/nna7QYDPk7oqM2fdsp09OS3fjgmUer+19Eua+SOeoLfg8mtkUD79cTfHQvtkID91hjXYaXOha6KcDSrpSIzryll7ehhT0q7JJom18ZPfL0zltLhw5WW2cp7y4DcMQr6CVX4SoyG/7PEIkPde5+jA6vn5YsqtTKutlwPPHHeTLg0Lml2doP2EyYaG7TC2MvEkBY8nRkKSd4MijFQR3DQk8teaB9b8GFLSYO/ikH+aeA/xDXu2oy2lXHHMYYt8csETVJ2AOrf4WdVXJ5NJLQAvqVasASFiZKwAL35id7o0oxyBxHLnxwWe2L6PwSibYeflsogMTMLYaSm0awGK6DYEBgMGI36kYJIrgsVnPEzMd7Yy0Ke9QehTJY8jk1A7pQ=
+  on:
+    tags: true
+    branch: master
