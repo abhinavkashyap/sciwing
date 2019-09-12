@@ -22,7 +22,7 @@ setup(
     install_requires=[
         "networkx",
         "wandb",
-        "logzero,",
+        "logzero",
         "falcon_multipart",
         "typing==3.6.6",
         "torch==1.1.0",
