@@ -1,9 +1,9 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="sciwing",
-    version="0.0",
-    packages=["sciwing"],
+    version="0.1.0b",
+    packages=find_packages(exclude=("tests",)),
     url="",
     license="",
     author="abhinav",
