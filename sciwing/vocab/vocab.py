@@ -26,38 +26,48 @@ class Vocab:
         store_location: str = None,
         embedding_type: Union[str, None] = None,
         embedding_dimension: Union[int, None] = None,
+        max_instance_length: int = 100,
     ):
         """
 
-        :param instances: type: List[List[str]]
-         Pass in the list of tokenized instances from which vocab is built
-        :param max_num_tokens: type: int
-        The top `max_num_words` frequent words will be considered for
-        vocabulary and the rest of them will be mapped to `unk_token`
-        :param min_count: type: int
-        All words that do not have min count will be mapped to `unk_token`
-        :param unk_token: str
-        This token will be used for unknown words
-        :param pad_token: type: str
-        This token will be used for <PAD> words
-        :param start_token: type: str
-        This token will be used for start of sentence indicator
-        :param end_token: type: str
-        This token will be used for end of sentence indicator
-        :param special_token_freq: type: float
-        special tokens should have high frequency.
-        The higher the frequency, the more common they are
-        :param store_location: type: str
-        The users can provide a store location optionally.
-        The vocab will be stored in the location
-        If the file exists then, the vocab will be restored from the file, rather than building it.
-        :param embedding_type: type: str
-        The embedding type is the type of pre-trained embedding that will be loaded
-        for all the words in the vocab optionally. You can refer to `WordEmbLoder`
-        for all the available embedding types
-        :param embedding_dimension: type: int
-        Embedding dimension of the embedding type
+        Parameters
+        ----------
+        instances : Optional[List[List[str]]]
+            A list of tokenized instances
+        max_num_tokens : int
+            The maximum number of tokens to be used in the vocab
+            All the other tokens above this number will be replaced
+            by UNK.
+            If this is not passed then the maximum possible number
+            will be used
+        min_count : int
+            All words that do not have min count will be mapped to `unk_token`
+        unk_token : str
+            This token will be used for unknown words
+        pad_token : str
+            This token will be used for <PAD> words
+        start_token : str
+            This token will be used for start of line indicator
+        end_token : str
+            This token will be used for end of sentence indicator
+        special_token_freq : float
+            special tokens should have high frequency.
+        store_location : str
+            The users can provide a store location optionally.
+            The vocab will be stored in the location
+            If the file exists then, the vocab will be restored from the file, rather than building it.
+        embedding_type : str
+            The embedding type is the type of pre-trained embedding that will be loaded
+            for all the words in the vocab optionally. You can refer to `WordEmbLoder`
+            for all the available embedding types
+        embedding_dimension : int
+            Embedding dimension of the embedding type
+        max_instance_length : int
+            Every vocab is related to a namespace. Every instance
+            in that namespace will be clipped or padded to this
+            length
         """
+
         self.instances = instances
         self.max_num_tokens = max_num_tokens
         self.min_count = min_count
@@ -73,6 +83,7 @@ class Vocab:
         self.store_location = store_location
         self.embedding_type = embedding_type
         self.embedding_dimension = embedding_dimension
+        self.max_instance_length = max_instance_length
 
         self.msg_printer = Printer()
 
@@ -142,9 +153,15 @@ class Vocab:
         Clip the vocab based on the maximum number of words
         We return `max_num_words + len(self.special_vocab)` words effectively
         The rest of them will be mapped to `self.unk_token`
-        :param vocab: type: Dict[str, Tuple[int, int]]
-        :return: vocab: type: Dict[str, Tuple[int, int]]
-        The new vocab
+        Parameters
+        ----------
+        vocab : Dict[str, Tuple[int, int]]
+            The mapping from token to idx and frequency
+        Returns
+        -------
+        Dict[str, Tuple[int, int]]
+            The new vocab
+
         """
         for key, (freq, idx) in vocab.items():
             if idx >= len(self.special_vocab) + self.max_num_tokens:
@@ -202,9 +219,14 @@ class Vocab:
         else:
             self.msg_printer.info("BUILDING VOCAB")
             vocab = self.map_tokens_to_freq_idx()
-            self.orig_vocab = deepcopy(
-                vocab
-            )  # dictionary are passed by reference. Be careful
+
+            # dictionary are passed by reference. Be careful
+            self.orig_vocab = deepcopy(vocab)
+
+            # set max num of tokens to maximum possible if it is not set
+            if self.max_num_tokens is None:
+                self.max_num_tokens = len(self.orig_vocab.keys())
+
             vocab = self.clip_on_mincount(vocab)
             vocab = self.clip_on_max_num(vocab)
             self.vocab = vocab

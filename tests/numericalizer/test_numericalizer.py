@@ -34,10 +34,26 @@ class TestNumericalizer:
 
     def test_tokens_are_integers(self, single_instance_setup):
         """
-        Just to test that something untoward is happening
+        Just to test that nothing untoward is  happening
         """
         single_instance, numericalizer, vocabulary = single_instance_setup
         numerical_tokens = numericalizer.numericalize_instance(single_instance[0])
 
         for each_token in numerical_tokens:
             assert type(each_token) == int
+
+    def test_pad_instances(self, single_instance_setup):
+        single_instance, numericalizer, vocab = single_instance_setup
+        numerical_tokens = numericalizer.numericalize_instance(single_instance[0])
+        padded_numerical_tokens = numericalizer.pad_instance(
+            numerical_tokens, max_length=10
+        )
+        assert [isinstance(token, int) for token in padded_numerical_tokens]
+        assert padded_numerical_tokens[0] == vocab.get_idx_from_token(vocab.start_token)
+        assert padded_numerical_tokens[-1] == vocab.get_idx_from_token(vocab.pad_token)
+
+    def test_pad_batch_instances(self, single_instance_setup):
+        single_instance, numericalizer, vocab = single_instance_setup
+        numerical_tokens = numericalizer.numericalize_batch_instances(single_instance)
+        for instance in numerical_tokens:
+            assert isinstance(instance, list)

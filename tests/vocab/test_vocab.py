@@ -378,3 +378,15 @@ class TestVocab:
         vocab.build_vocab()
         sent = vocab.get_disp_sentence_from_indices([0, 1, 2, 3])
         assert type(sent) is str
+
+    def test_max_num_tokens_unset(self, instances):
+        single_instance = instances["single_instance"]
+        MAX_NUM_WORDS = None
+        vocab = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
+        vocab.build_vocab()
+        assert vocab.max_num_tokens == 3 + len(vocab.special_vocab.keys())
+
+    def test_max_instance_length(self, instances):
+        single_instance = instances["single_instance"]
+        vocab_builder = Vocab(instances=single_instance, max_num_tokens=1000)
+        assert vocab_builder.max_instance_length == 100
