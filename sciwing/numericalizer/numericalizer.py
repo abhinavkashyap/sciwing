@@ -1,9 +1,10 @@
-from typing import Dict, List, Tuple
+from typing import List
 from sciwing.vocab.vocab import Vocab
+from sciwing.numericalizer.base_numericalizer import BaseNumericalizer
 
 
-class Numericalizer:
-    def __init__(self, vocabulary: Vocab):
+class Numericalizer(BaseNumericalizer):
+    def __init__(self, vocabulary: Vocab = None):
         """ Numericalizer converts tokens that are strings to numbers
 
         Parameters
@@ -12,9 +13,10 @@ class Numericalizer:
             A vocabulary object that is built using a set of tokenized strings
 
         """
+        super().__init__(vocabulary)
         self.vocabulary = vocabulary
 
-        if not self.vocabulary.vocab:
+        if vocabulary and not self.vocabulary.vocab:
             self.vocabulary.build_vocab()
 
     def numericalize_instance(self, instance: List[str]) -> List[int]:
@@ -111,17 +113,38 @@ class Numericalizer:
 
         return numericalized_text
 
-    def pad_batch_instances(self, instances: List[List[int]]) -> List[List[int]]:
+    def pad_batch_instances(
+        self,
+        instances: List[List[int]],
+        max_length: int,
+        add_start_end_token: bool = True,
+    ) -> List[List[int]]:
         """ Pads a batch of instances according to the vocab object
 
         Parameters
         ----------
         instances : List[List[int]]
+        max_length : int
+        add_start_end_token : int
 
         Returns
         -------
         List[List[int]]
         """
-        padded_instances = map(self.pad_instance, instances)
-        padded_instances = list(padded_instances)
+        padded_instances = []
+        for instance in instances:
+            padded_instance = self.pad_instance(
+                numericalized_text=instance,
+                max_length=max_length,
+                add_start_end_token=add_start_end_token,
+            )
+            padded_instances.append(padded_instance)
         return padded_instances
+
+    @property
+    def vocabulary(self):
+        return self._vocabulary
+
+    @vocabulary.setter
+    def vocabulary(self, value):
+        self._vocabulary = value

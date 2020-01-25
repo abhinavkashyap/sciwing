@@ -1,11 +1,52 @@
+from sciwing.data.token import Token
+from typing import Union, List, Dict
+from collections import defaultdict
+
+
 class Label:
-    def __init__(self, label_str: str):
-        self.label_str = label_str
+    def __init__(self, text: str, namespace: str = "label"):
+        """ Defines a single label for an examples
+
+        Parameters
+        ----------
+        text : str
+        namespace : str
+        """
+        self.text = text
+        self.namespace = namespace
+        self.tokens: Dict[str, List[Token]] = defaultdict(list)
+        self.add_token(token=self.text, namespace=namespace)
 
     @property
-    def label_str(self):
-        return self._label_str
+    def text(self):
+        return self._text
 
-    @label_str.setter
-    def label_str(self, value):
-        self._label_str = value
+    @text.setter
+    def text(self, value):
+        self._text = value
+
+    @property
+    def namespace(self):
+        return self._namespace
+
+    @namespace.setter
+    def namespace(self, value):
+        self._namespace = value
+
+    @property
+    def tokens(self):
+        return self._tokens
+
+    @tokens.setter
+    def tokens(self, value):
+        self._tokens = value
+
+    def add_token(self, token: Union[Token, str], namespace: str):
+        if isinstance(token, str):
+            token = Token(token)
+
+        self.tokens[namespace].append(token)
+
+    def add_tokens(self, tokens: Union[List[str], List[Token]], namespace: str):
+        for token in tokens:
+            self.add_token(token, namespace=namespace)

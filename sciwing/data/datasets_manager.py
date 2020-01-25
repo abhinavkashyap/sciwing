@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from sciwing.vocab.vocab import Vocab
 from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizer.base_numericalizer import BaseNumericalizer
 from typing import Dict, List, Any, Optional
 from collections import defaultdict
 
@@ -17,6 +18,7 @@ class DatasetsManager:
         dev_dataset: Dataset = None,
         test_dataset: Dataset = None,
         namespace_vocab_options: Dict[str, Dict[str, Any]] = None,
+        namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size: int = 32,
     ):
         """
@@ -32,6 +34,9 @@ class DatasetsManager:
         namespace_vocab_options : Dict[str, Dict[str, Any]]
             For every namespace you can give a set of options that will
             be passed down to Vocab.
+        namespace_numericalizer_map: Dict[str, Dict[str, Any]]
+            For every namespace, you can give a set of options here that will
+            be passed down to the Numericalizer Instances
         batch_size: int
             Batch size for loading the datasets
         """
@@ -45,6 +50,10 @@ class DatasetsManager:
             self.namespace_vocab_options = namespace_vocab_options
 
         self.batch_size = batch_size
+
+        self.namespace_to_numericalizer: Dict[
+            str, BaseNumericalizer
+        ] = namespace_numericalizer_map
 
         # Build vocab using the datasets passed
         self.namespace_to_vocab = self.build_vocab()
@@ -113,8 +122,15 @@ class DatasetsManager:
             for namespace, tokens in namespace_tokens.items():
                 tokens = [tok.text for tok in tokens]
                 namespace_to_instances[namespace].append(tokens)
+        for label in labels:
+            namespace_tokens = label.tokens
+            for namespace, tokens in namespace_tokens.items():
+                tokens = [tok.text for tok in tokens]
+                namespace_to_instances[namespace].append(tokens)
 
         namespace_to_vocab: Dict[str, Vocab] = {}
+
+        # This always builds a vocab from instances
         for namespace, instances in namespace_to_instances.items():
             namespace_to_vocab[namespace] = Vocab(
                 instances=instances, **self.namespace_vocab_options.get(namespace, {})

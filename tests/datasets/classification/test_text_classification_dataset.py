@@ -84,5 +84,14 @@ class TestTextClassificationDatasetManager:
     @pytest.mark.parametrize("dataset_type", ["train", "dev", "test"])
     def test_iter_dict_namespaces(self, clf_dataset_manager, dataset_type):
         iter_dict = clf_dataset_manager._get_iter_dict(for_dataset=dataset_type)
-        assert list(iter_dict.keys()) == ["tokens"]
+        assert set(list(iter_dict.keys())) == {
+            "tokens",
+            "label",
+            "char_tokens",
+            "bert_base_uncased_tokens",
+            "bert_base_cased_tokens",
+            "scibert_base_uncased_tokens",
+            "scibert_base_cased_tokens",
+        }
         assert len(iter_dict["tokens"]) == 2
+        assert len(iter_dict["label"]) == 2

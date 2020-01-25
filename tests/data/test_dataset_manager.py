@@ -32,6 +32,7 @@ class TestDatasetManager:
     def test_namespace_to_vocab(self, clf_dataset_manager):
         namespace_to_vocab = clf_dataset_manager.namespace_to_vocab
         assert namespace_to_vocab["tokens"].get_vocab_len() == 2 + 4
+        assert namespace_to_vocab["label"].get_vocab_len() == 2 + 4
 
     def test_namespace_to_numericalizers(self, clf_dataset_manager):
         namespace_to_numericalizer = clf_dataset_manager.namespace_to_numericalizer
