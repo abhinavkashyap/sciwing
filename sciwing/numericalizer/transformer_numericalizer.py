@@ -11,7 +11,7 @@ class NumericalizerForTransformer(BaseNumericalizer):
         self.tokenizer = tokenizer
 
     def numericalize_instance(self, instance: List[str]) -> List[int]:
-        tokens = self.tokenizer.convert_tokens_to_ids(instance)
+        tokens = self.tokenizer.tokenizer.convert_tokens_to_ids(instance)
         return tokens
 
     def numericalize_batch_instances(self, instances: List[List[str]]) -> List[int]:

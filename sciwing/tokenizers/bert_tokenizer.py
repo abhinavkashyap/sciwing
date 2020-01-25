@@ -57,6 +57,3 @@ class TokenizerForBert(BaseTokenizer):
 
         self.msg_printer.good(f"Finished tokenizing text")
         return tokenized
-
-    def convert_tokens_to_ids(self, tokens: List[str]):
-        return self.tokenizer.convert_tokens_to_ids(tokens)

@@ -130,6 +130,7 @@ class TextClassificationDatasetManager(DatasetsManager):
         self.scibert_base_cased_numericalizer = NumericalizerForTransformer(
             tokenizer=self.scibert_base_cased_tokenizer
         )
+        self.label_numericalizer = Numericalizer()
 
         self.tokenizers = {
             "tokens": self.word_tokenizer,
@@ -158,6 +159,7 @@ class TextClassificationDatasetManager(DatasetsManager):
             "bert_base_cased_tokens": self.bert_base_cased_numericalizer,
             "scibert_base_cased_tokens": self.scibert_base_uncased_numericalizer,
             "scibert_base_uncased_tokens": self.scibert_base_cased_numericalizer,
+            "label": self.label_numericalizer,
         }
 
         self.train_dataset = TextClassificationDataset(
@@ -175,6 +177,7 @@ class TextClassificationDatasetManager(DatasetsManager):
             dev_dataset=self.dev_dataset,
             test_dataset=self.test_dataset,
             namespace_vocab_options=self.namespace_vocab_options,
+            namespace_numericalizer_map=self.namespace_numericalizer_map,
             batch_size=batch_size,
         )
 

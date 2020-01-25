@@ -58,7 +58,7 @@ class DatasetsManager:
         # Build vocab using the datasets passed
         self.namespace_to_vocab = self.build_vocab()
 
-        # get numericalizers for every namespace
+        # sets the vocab for the appropriate numericalizers
         self.namespace_to_numericalizer = self.build_numericalizers()
 
         self.train_loader = DataLoader(
@@ -149,11 +149,12 @@ class DatasetsManager:
         pass
 
     def build_numericalizers(self):
-        namepace_to_numericalizer: Dict[str, Numericalizer] = {}
-        for namespace, vocab in self.namespace_to_vocab.items():
-            namepace_to_numericalizer[namespace] = Numericalizer(vocabulary=vocab)
+        namespace_numericalizer_map: Dict[str, BaseNumericalizer] = {}
+        for namespace, numericalizer in self.namespace_to_numericalizer.items():
+            numericalizer.vocabulary = self.namespace_to_vocab[namespace]
+            namespace_numericalizer_map[namespace] = numericalizer
 
-        return namepace_to_numericalizer
+        return namespace_numericalizer_map
 
     def get_iter_dict(self, lines: List[str], labels: Optional[List[str]]):
         """ Given the lines and labels returns the ``iter_dict`` for the dataset

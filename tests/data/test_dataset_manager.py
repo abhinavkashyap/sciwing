@@ -27,7 +27,15 @@ def clf_dataset_manager(tmpdir_factory):
 class TestDatasetManager:
     def test_namespaces(self, clf_dataset_manager):
         namespaces = clf_dataset_manager.namespaces
-        assert namespaces == ["tokens"]
+        assert set(namespaces) == {
+            "tokens",
+            "label",
+            "char_tokens",
+            "bert_base_uncased_tokens",
+            "bert_base_cased_tokens",
+            "scibert_base_uncased_tokens",
+            "scibert_base_cased_tokens",
+        }
 
     def test_namespace_to_vocab(self, clf_dataset_manager):
         namespace_to_vocab = clf_dataset_manager.namespace_to_vocab
@@ -36,6 +44,12 @@ class TestDatasetManager:
 
     def test_namespace_to_numericalizers(self, clf_dataset_manager):
         namespace_to_numericalizer = clf_dataset_manager.namespace_to_numericalizer
-        for namespace, numericalizer in namespace_to_numericalizer.items():
-            numericalized = numericalizer.numericalize_instance(["train_line1"])
-            assert all([isinstance(token, int) for token in numericalized])
+        assert set(namespace_to_numericalizer.keys()) == {
+            "tokens",
+            "label",
+            "char_tokens",
+            "bert_base_uncased_tokens",
+            "bert_base_cased_tokens",
+            "scibert_base_uncased_tokens",
+            "scibert_base_cased_tokens",
+        }
