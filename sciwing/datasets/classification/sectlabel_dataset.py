@@ -117,9 +117,10 @@ class SectLabelDataset(BaseTextClassification, ClassNursery):
             texts.append(text)
             labels.append(label)
 
-        (train_lines, train_labels), (validation_lines, validation_labels), (
-            test_lines,
-            test_labels,
+        (
+            (train_lines, train_labels),
+            (validation_lines, validation_labels),
+            (test_lines, test_labels),
         ) = self.get_train_valid_test_stratified_split(
             texts, labels, self.classname2idx
         )

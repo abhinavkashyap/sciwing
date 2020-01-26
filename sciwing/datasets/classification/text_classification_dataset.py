@@ -212,9 +212,9 @@ class TextClassificationDatasetManager(DatasetsManager):
         for line in lines:
             for namespace in line_namespaces:
                 numericalizer = namespace_to_numericalizer[namespace]
-                numericalized = numericalizer.numericalize_instance(
-                    line.tokens[namespace]
-                )
+                line_tokens = line.tokens[namespace]
+                line_tokens = [tok.text for tok in line_tokens]
+                numericalized = numericalizer.numericalize_instance(line_tokens)
                 numericalized = numericalizer.pad_instance(
                     numericalized,
                     max_length=namespace_to_vocab[namespace].max_instance_length,
