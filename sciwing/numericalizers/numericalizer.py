@@ -1,6 +1,6 @@
 from typing import List
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.base_numericalizer import BaseNumericalizer
+from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
 
 
 class Numericalizer(BaseNumericalizer):

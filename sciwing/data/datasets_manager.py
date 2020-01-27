@@ -5,8 +5,8 @@ It is a container for the train dev and test datasets
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.numericalizer import Numericalizer
-from sciwing.numericalizer.base_numericalizer import BaseNumericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
+from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
 from typing import Dict, List, Any, Optional
 from collections import defaultdict
 
@@ -155,25 +155,6 @@ class DatasetsManager:
             namespace_numericalizer_map[namespace] = numericalizer
 
         return namespace_numericalizer_map
-
-    def get_iter_dict(self, lines: List[str], labels: Optional[List[str]]):
-        """ Given the lines and labels returns the ``iter_dict`` for the dataset
-
-        Parameters
-        ----------
-        lines : List[str]
-         List of lines to process
-
-        labels : List[str]
-        The corresponding set of labels
-
-        Returns
-        -------
-        dict[str, Any]
-            Returns the ``iter_dict`` of the dataset
-
-        """
-        pass
 
     @property
     def namespace_to_vocab(self):

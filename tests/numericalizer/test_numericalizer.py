@@ -1,5 +1,5 @@
 import pytest
-from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.vocab.vocab import Vocab
 
 

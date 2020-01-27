@@ -5,7 +5,7 @@ from sciwing.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDatas
 from sciwing.utils.vis_seq_tags import VisTagging
 import wasabi
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.utils.common import pack_to_length
 import numpy as np
 import torch

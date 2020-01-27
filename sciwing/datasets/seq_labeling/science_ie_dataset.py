@@ -4,7 +4,7 @@ from sciwing.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDatas
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.tokenizers.character_tokenizer import CharacterTokenizer
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.utils.vis_seq_tags import VisTagging
 from sciwing.utils.common import pack_to_length
 from typing import Union

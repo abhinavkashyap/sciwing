@@ -4,7 +4,7 @@ import inspect
 from sciwing.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
-from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.vocab.vocab import Vocab
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.tokenizers.character_tokenizer import CharacterTokenizer

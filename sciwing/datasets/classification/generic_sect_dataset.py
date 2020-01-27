@@ -3,7 +3,7 @@ from sciwing.utils.common import convert_generic_sect_to_json
 import wasabi
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.utils.common import pack_to_length
 import torch
 from sciwing.datasets.classification.base_text_classification import (
@@ -118,9 +118,10 @@ class GenericSectDataset(BaseTextClassification, ClassNursery):
             headers.append(header)
             labels.append(label)
 
-        (train_headers, train_labels), (valid_headers, valid_labels), (
-            test_headers,
-            test_labels,
+        (
+            (train_headers, train_labels),
+            (valid_headers, valid_labels),
+            (test_headers, test_labels),
         ) = self.get_train_valid_test_stratified_split(
             headers, labels, self.classname2idx
         )

@@ -1,6 +1,6 @@
 import pytest
 from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
-from sciwing.numericalizer.transformer_numericalizer import NumericalizerForTransformer
+from sciwing.numericalizers.transformer_numericalizer import NumericalizerForTransformer
 
 
 @pytest.fixture

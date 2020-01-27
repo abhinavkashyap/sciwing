@@ -8,7 +8,7 @@ from sciwing.utils.common import convert_sectlabel_to_json
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizer.numericalizer import Numericalizer
+from sciwing.numericalizers.numericalizer import Numericalizer
 
 FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
