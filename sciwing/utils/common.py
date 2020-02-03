@@ -428,6 +428,63 @@ def convert_parscit_to_conll(
     return output_list
 
 
+def convert_parscit_to_sciwing_seqlabel_format(
+    parscit_train_filepath: pathlib.Path, output_dir: str
+):
+    """ Convert the parscit data availabel at
+    "https://github.com/knmnyn/ParsCit/blob/master/crfpp/traindata/parsCit.train.data"
+    to the format required for sciwing seqential labelling
+
+    Parameters
+    ----------
+    parscit_train_filepath : pathlib.Path
+        The local path where the files are stored
+
+    output_dir: str
+        The output dir where the train dev and test file will be written
+
+    Returns
+    -------
+
+    """
+    conll_lines = convert_parscit_to_conll(pathlib.Path(parscit_train_filepath))
+    instances = []
+    for line in conll_lines:
+        word_tags = line["word_tags"]
+        line_ = []
+        for word_tag in word_tags:
+            word_tag_ = word_tag.split(" ")
+            word = word_tag_[0]
+            tag = word_tag_[-1]
+            word_tag_ = "###".join([word, tag])
+            line_.append(word_tag_)
+        instances.append(" ".join(line_))
+
+    # shuffle and split train dev and test
+    kf = KFold(n_splits=2, shuffle=True, random_state=1729)
+    len_citations = len(instances)
+    splits = kf.split(np.arange(len_citations))
+    splits = list(splits)
+    train_indices, test_indices = splits[0]
+
+    train_instances = [instances[train_idx] for train_idx in train_indices]
+    test_instances = [instances[test_idx] for test_idx in test_indices]
+
+    output_dir = pathlib.Path(output_dir)
+    train_filepath = output_dir.joinpath("parscit.train")
+    dev_filepath = output_dir.joinpath("parscit.dev")
+    test_filepath = output_dir.joinpath("parscit.test")
+
+    with open(train_filepath, "w") as fp:
+        fp.write("\n".join(train_instances))
+
+    with open(dev_filepath, "w") as fp:
+        fp.write("\n".join(test_instances))
+
+    with open(test_filepath, "w") as fp:
+        fp.write("\n".join(test_instances))
+
+
 def write_nfold_parscit_train_test(
     parscit_train_filepath: pathlib.Path,
     output_train_filepath: pathlib.Path,

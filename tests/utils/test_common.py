@@ -330,6 +330,26 @@ class TestCommon:
         else:
             parscit_train_path.unlink()
 
+    def test_parscit_sciwing_seqlabel_format_works(self, tmp_path):
+        tmp_dir = tmp_path / "temp"
+        tmp_dir.mkdir()
+
+        try:
+            convert_parscit_to_sciwing_seqlabel_format(
+                parscit_train_filepath=PARSCIT_TRAIN_FILE, output_dir=tmp_dir
+            )
+            with open(tmp_dir / "parscit.train") as fp:
+                for line in fp:
+                    word_tags = line.split()
+                    for word_tag in word_tags:
+                        word, tag = word_tag.split("###")
+                        assert bool(word.strip())
+                        assert bool(tag.split())
+        except:
+            pytest.fail(
+                f"SciWING parscit sequential labelling formatting does not work"
+            )
+
     @pytest.mark.parametrize(
         "classname, modulename", [(Engine.__name__, Engine.__module__)]
     )
