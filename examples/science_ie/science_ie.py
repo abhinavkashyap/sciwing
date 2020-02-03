@@ -1,7 +1,7 @@
 from sciwing.models.science_ie_tagger import ScienceIETagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
@@ -289,10 +289,10 @@ if __name__ == "__main__":
         constraint_type="BIOUL", labels=material_idx2classnames
     )
 
-    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
+    embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
     if USE_CHAR_ENCODER:
-        char_embedder = VanillaEmbedder(
+        char_embedder = WordEmbedder(
             embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
         )
         char_encoder = CharLSTMEncoder(

@@ -1,6 +1,6 @@
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
 from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
 from sciwing.models.simpleclassifier import SimpleClassifier
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     )
 
     # instantiate the vanilla embedder
-    vanilla_embedder = VanillaEmbedder(
+    vanilla_embedder = WordEmbedder(
         embedding=embeddings, embedding_dim=EMBEDDING_DIMENSION
     )
 

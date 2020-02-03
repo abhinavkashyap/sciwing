@@ -1,5 +1,4 @@
 from typing import List
-
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 
 

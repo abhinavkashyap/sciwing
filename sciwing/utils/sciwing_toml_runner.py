@@ -231,7 +231,7 @@ class SciWingTOMLRunner:
                     ].word_vocab.embedding_dimension
                     freeze = node_data.get("freeze", False)
                     embedding = nn.Embedding.from_pretrained(embedding, freeze=freeze)
-                    embedder = VanillaEmbedder(
+                    embedder = WordEmbedder(
                         embedding_dim=embedding_dim, embedding=embedding
                     )
                     self.model_dag.nodes[node_id]["instantiated_class"] = {
@@ -245,7 +245,7 @@ class SciWingTOMLRunner:
                     ].char_vocab.embedding_dimension
                     freeze = node_data.get("freeze", False)
                     embedding = nn.Embedding.from_pretrained(embedding, freeze=freeze)
-                    embedder = VanillaEmbedder(
+                    embedder = WordEmbedder(
                         embedding_dim=embedding_dim, embedding=embedding
                     )
                     self.model_dag.nodes[node_id]["instantiated_class"] = {

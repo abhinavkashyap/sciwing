@@ -1,5 +1,5 @@
 from sciwing.engine.engine import Engine
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
@@ -67,7 +67,7 @@ def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
     labels = torch.LongTensor([1])
     metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
-    embedder = VanillaEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMB_DIM, embedder=embedder, dropout_value=0, aggregation_type="sum"
     )

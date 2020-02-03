@@ -50,7 +50,7 @@ ELMO_EMBEDDING_DIMENSION = 1024
 embedding = dataset.word_vocab.load_embedding()
 # initialize a normal embedder with the word embedding 
 # EMBEDDING_DIM is the embedding dimension for the word vectors
-vanilla_embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
+vanilla_embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
 
 # concatenate the vanilla embedding and the elmo embedding to get a new embedding
 final_embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])

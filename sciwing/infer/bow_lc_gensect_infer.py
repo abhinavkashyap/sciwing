@@ -5,7 +5,7 @@ from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
 )
 from sciwing.models.simpleclassifier import SimpleClassifier
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.datasets.classification.generic_sect_dataset import GenericSectDataset
 import torch.nn as nn
@@ -37,7 +37,7 @@ def get_bow_lc_gensect_infer(dirname: str):
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
-    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedder=embedder,

@@ -1,7 +1,7 @@
 from sciwing.models.parscit_tagger import ParscitTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
@@ -262,12 +262,10 @@ if __name__ == "__main__":
         char_embedding = train_dataset.char_vocab.load_embedding()
         char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
 
-        embedder = VanillaEmbedder(
-            embedding=embedding, embedding_dim=EMBEDDING_DIMENSION
-        )
+        embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
         if USE_CHAR_ENCODER:
-            char_embedder = VanillaEmbedder(
+            char_embedder = WordEmbedder(
                 embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
             )
             char_encoder = CharLSTMEncoder(

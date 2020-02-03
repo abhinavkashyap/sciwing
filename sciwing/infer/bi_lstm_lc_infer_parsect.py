@@ -1,7 +1,7 @@
 import os
 import sciwing.constants as constants
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
-from sciwing.modules.embedders import VanillaEmbedder
+from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
@@ -42,7 +42,7 @@ def get_bilstm_lc_infer_parsect(dirname: str):
     classifier_encoding_dim = 2 * HIDDEN_DIM if BIDIRECTIONAL else HIDDEN_DIM
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIM)
-    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIM, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMBEDDING_DIM, embedding=embedding)
 
     encoder = LSTM2VecEncoder(
         emb_dim=EMBEDDING_DIM,

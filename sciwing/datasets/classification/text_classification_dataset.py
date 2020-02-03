@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Tuple, Optional
+from typing import Dict, List, Any
 from sciwing.data.line import Line
 from sciwing.data.label import Label
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
@@ -73,7 +73,14 @@ class TextClassificationDatasetManager(DatasetsManager):
             "tokens": WordTokenizer(),
             "char_tokens": CharacterTokenizer(),
         }
-        self.namespace_vocab_options = namespace_vocab_options or {}
+        self.namespace_vocab_options = namespace_vocab_options or {
+            "char_tokens": {
+                "start_token": " ",
+                "end_token": " ",
+                "pad_token": " ",
+                "unk_token": " ",
+            }
+        }
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),
             "char_tokens": Numericalizer(),

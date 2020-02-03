@@ -1,12 +1,14 @@
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert import BertTokenizer, BertModel
-from sciwing.utils.common import pack_to_length
-from typing import Dict, Any, Union
+from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
+from sciwing.numericalizers.transformer_numericalizer import NumericalizerForTransformer
+from typing import List, Union
 import wasabi
 import sciwing.constants as constants
-import os
+from pytorch_pretrained_bert import BertModel
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.line import Line
+import os
 
 PATHS = constants.PATHS
 EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
@@ -15,18 +17,16 @@ EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
 class BertEmbedder(nn.Module, ClassNursery):
     def __init__(
         self,
-        emb_dim: int = 768,
         dropout_value: float = 0.0,
         aggregation_type: str = "sum",
         bert_type: str = "bert-base-uncased",
+        word_tokens_namespace="tokens",
         device: Union[torch.device, str] = torch.device("cpu"),
     ):
         """ Bert Embedder that embeds the given instance to BERT embeddings
 
         Parameters
         ----------
-        emb_dim : int
-            Embedding dimension
         dropout_value : float
             The amount of dropout to be added after the embedding
         aggregation_type : str
@@ -65,11 +65,14 @@ class BertEmbedder(nn.Module, ClassNursery):
             scibert-sci-uncased
                 12 layer transformer train on scientific documents on ncased scientific vocab
 
+        word_tokens_namespace : str
+            The namespace in the liens where the tokens are stored
+
         device :  Union[torch.device, str]
             The device on which the model is run.
         """
         super(BertEmbedder, self).__init__()
-        self.emb_dim = emb_dim
+
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
         self.bert_type = bert_type
@@ -77,97 +80,99 @@ class BertEmbedder(nn.Module, ClassNursery):
             self.device = torch.device(device)
         else:
             self.device = device
+        self.word_tokens_namespace = word_tokens_namespace
         self.msg_printer = wasabi.Printer()
-        self.allowed_bert_types = [
-            "bert-base-uncased",
-            "bert-large-uncased",
-            "bert-base-cased",
-            "bert-large-cased",
-            "scibert-base-cased",
-            "scibert-sci-cased",
-            "scibert-base-uncased",
-            "scibert-sci-uncased",
-        ]
+        self.embedder_name = bert_type
+
         self.scibert_foldername_mapping = {
             "scibert-base-cased": "scibert_basevocab_cased",
             "scibert-sci-cased": "scibert_scivocab_cased",
             "scibert-base-uncased": "scibert_basevocab_uncased",
             "scibert-sci-uncased": "scibert_scivocab_uncased",
         }
-        self.model_type_or_folder_url = None
-        self.vocab_type_or_filename = None
-
-        assert self.bert_type in self.allowed_bert_types
 
         if "scibert" in self.bert_type:
             foldername = self.scibert_foldername_mapping[self.bert_type]
             self.model_type_or_folder_url = os.path.join(
                 EMBEDDING_CACHE_DIR, foldername, "weights.tar.gz"
             )
-            self.vocab_type_or_filename = os.path.join(
-                EMBEDDING_CACHE_DIR, foldername, "vocab.txt"
-            )
+
         else:
             self.model_type_or_folder_url = self.bert_type
-            self.vocab_type_or_filename = self.bert_type
 
         # load the bert model
         with self.msg_printer.loading(" Loading Bert tokenizer and model. "):
-            self.bert_tokenizer = BertTokenizer.from_pretrained(
-                self.vocab_type_or_filename
+            self.bert_tokenizer = TokenizerForBert(
+                bert_type=self.bert_type, do_basic_tokenize=False
+            )
+            self.bert_numericalizer = NumericalizerForTransformer(
+                tokenizer=self.bert_tokenizer
             )
             self.model = BertModel.from_pretrained(self.model_type_or_folder_url)
             self.model.eval()
             self.model.to(self.device)
 
         self.msg_printer.good(f"Finished Loading {self.bert_type} model and tokenizer")
+        self.embedding_dimension = self.get_embedding_dimension()
 
-    def forward(self, iter_dict: Dict[str, Any]) -> torch.Tensor:
+    def forward(self, lines: List[Line]) -> torch.Tensor:
         """
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            It expects "raw_intance" to be present in the iter dict.
-            "raw_instance" is the instance that is not padded
+        lines : List[Line]
+            A list of lines
 
         Returns
         -------
         torch.Tensor
             The bert embeddings for all the words in the instances
-            The size of the returned embedding is ``[batch_size, num_time_steps, emb_dim]``
+            The size of the returned embedding is ``[batch_size, max_len_word_tokens, emb_dim]``
 
         """
 
         # word_tokenize all the text string in the batch
-        x = iter_dict["raw_instance"]
-        tokenized_text = list(map(self.bert_tokenizer.tokenize, x))
-        lengths = list(map(lambda tokenized: len(tokenized), tokenized_text))
-        max_len = sorted(lengths, reverse=True)[0]
+        bert_tokens_lengths = []
+        word_tokens_lengths = []
+        for line in lines:
+            text = line.text
+            word_tokens = line.tokens[self.word_tokens_namespace]
+            word_tokens_lengths.append(len(word_tokens))
+            for word_token in word_tokens:
+                word_piece_tokens = self.bert_tokenizer.tokenize(word_token.text)
+                word_token.sub_tokens = word_piece_tokens
+
+            bert_tokenized_text = self.bert_tokenizer.tokenize(text)
+            line.tokenizers[self.embedder_name] = self.bert_tokenizer
+            line.add_tokens(tokens=bert_tokenized_text, namespace=self.embedder_name)
+            bert_tokens_lengths.append(len(bert_tokenized_text))
+
+        max_len_bert = max(bert_tokens_lengths)
+        max_len_words = max(word_tokens_lengths)
 
         # pad the tokenized text to a maximum length
-        padded_tokenized_text = []
-        for tokens in tokenized_text:
-            padded_tokens = pack_to_length(
-                tokenized_text=tokens,
-                max_length=max_len,
-                pad_token="[PAD]",
-                add_start_end_token=True,
-                start_token="[CLS]",
-                end_token="[SEP]",
+        indexed_tokens = []
+        segment_ids = []
+        for line in lines:
+            bert_tokens = line.tokens[self.embedder_name]
+            tokens_numericalized = self.bert_numericalizer.numericalize_instance(
+                instance=bert_tokens
             )
-            padded_tokenized_text.append(padded_tokens)
+            tokens_numericalized = self.bert_numericalizer.pad_instance(
+                numericalized_text=tokens_numericalized,
+                max_length=max_len_bert + 2,
+                add_start_end_token=True,
+            )
+            segment_numbers = [0] * len(tokens_numericalized)
 
-        # convert them to ids based on bert vocab
-        indexed_tokens = list(
-            map(self.bert_tokenizer.convert_tokens_to_ids, padded_tokenized_text)
-        )
-        segment_ids = list(
-            map(lambda tokens_list: [0] * len(tokens_list), indexed_tokens)
-        )
+            tokens_numericalized = torch.LongTensor(tokens_numericalized)
+            segment_numbers = torch.LongTensor(segment_numbers)
 
-        tokens_tensor = torch.tensor(indexed_tokens)
-        segment_tensor = torch.tensor(segment_ids)
+            indexed_tokens.append(tokens_numericalized)
+            segment_ids.append(segment_numbers)
+
+        tokens_tensor = torch.stack(indexed_tokens)
+        segment_tensor = torch.stack(segment_ids)
 
         tokens_tensor = tokens_tensor.to(self.device)
         segment_tensor = segment_tensor.to(self.device)
@@ -184,12 +189,57 @@ class BertEmbedder(nn.Module, ClassNursery):
         all_layers = torch.stack(encoded_layers, dim=0)
 
         if self.aggregation_type == "sum":
-            sum_layers = torch.sum(all_layers, dim=0)
-            return sum_layers
+            encoding = torch.sum(all_layers, dim=0)
 
         elif self.aggregation_type == "average":
-            average_layers = torch.mean(all_layers, dim=0)
-            return average_layers
+            encoding = torch.mean(all_layers, dim=0)
+        else:
+            raise ValueError(f"The aggregation type {self.aggregation_type}")
 
-    def __call__(self, iter_dict: Dict[str, Any]) -> torch.Tensor:
-        return self.forward(iter_dict)
+        # fill up the appropriate embeddings in the tokens of the lines
+        batch_embeddings = []
+        for idx, line in enumerate(lines):
+            word_tokens = line.tokens[self.word_tokens_namespace]  # word tokens
+            bert_tokens = line.tokens[self.embedder_name]
+            token_embeddings = encoding[idx]  # max_len + 2, embedding
+
+            len_word_tokens = len(word_tokens)
+            len_bert_tokens = len(bert_tokens)
+            padding_length_bert = max_len_bert - len_bert_tokens
+            padding_length_words = max_len_words - len_word_tokens
+
+            # do not want embeddings for padding
+            if padding_length_bert > 0:
+                token_embeddings = token_embeddings[:-padding_length_bert]
+
+            # do not want embeddings for start and end tokens
+            token_embeddings = token_embeddings[1:-1]
+
+            assert token_embeddings.size(0) == len_bert_tokens
+
+            line_embeddings = []
+            for token, token_embedding in zip(word_tokens, token_embeddings):
+                idx = 0
+                sub_tokens = token.sub_tokens
+                len_sub_tokens = len(sub_tokens)
+
+                # taking the embedding of only the first token
+                # TODO: Have different strategies for this
+                emb = token_embeddings[idx]
+                line_embeddings.append(token_embedding)
+                token.set_embedding(name=self.embedder_name, value=emb)
+                idx += len_sub_tokens
+
+            for i in range(padding_length_words):
+                zeros = torch.zeros(self.embedding_dimension)
+                zeros = zeros.to(self.device)
+                line_embeddings.append(zeros)
+
+            line_embeddings = torch.stack(line_embeddings)
+            batch_embeddings.append(line_embeddings)
+
+        batch_embeddings = torch.stack(batch_embeddings)
+        return batch_embeddings
+
+    def get_embedding_dimension(self) -> int:
+        return self.model.config.hidden_size

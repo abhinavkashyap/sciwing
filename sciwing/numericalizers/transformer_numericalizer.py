@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Union
 from sciwing.vocab.vocab import Vocab
 from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
+from sciwing.data.token import Token
 
 
 class NumericalizerForTransformer(BaseNumericalizer):
@@ -10,7 +11,11 @@ class NumericalizerForTransformer(BaseNumericalizer):
         self.vocab = vocab
         self.tokenizer = tokenizer
 
-    def numericalize_instance(self, instance: List[str]) -> List[int]:
+    def numericalize_instance(
+        self, instance: Union[List[str], List[Token]]
+    ) -> List[int]:
+        if isinstance(instance[0], Token):
+            instance = [tok.text for tok in instance]
         tokens = self.tokenizer.tokenizer.convert_tokens_to_ids(instance)
         return tokens
 

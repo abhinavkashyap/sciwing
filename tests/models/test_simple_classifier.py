@@ -4,7 +4,7 @@ import torch
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from torch.nn import Embedding
 import numpy as np
 from sciwing.utils.class_nursery import ClassNursery
@@ -18,7 +18,7 @@ def setup_simple_classifier():
     VOCAB_SIZE = 10
     NUM_CLASSES = 3
     embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
-    embedder = VanillaEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
     labels = torch.LongTensor([[1]])
     encoder = BOW_Encoder(
         emb_dim=EMB_DIM, embedder=embedder, dropout_value=0, aggregation_type="sum"

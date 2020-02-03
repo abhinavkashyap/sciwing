@@ -192,6 +192,63 @@ def convert_sectlabel_to_sciwing_clf_format(filename: str, out_dir: str):
             fp.write("\n")
 
 
+def convert_generic_sect_to_sciwing_clf_format(filename: str, out_dir: str):
+    """ Converts the generic sect original file to the sciwing classification format
+
+    Parameters
+    ----------
+    filename : str
+        The path of the file where the original generic section classification file is stored
+    out_dir : str
+        The output path where the train, dev and test files are written
+
+    Returns
+    -------
+    None
+
+    """
+    lines = []
+    labels = []
+    with open(filename) as fp:
+        for line in fp:
+            if bool(line.strip()):
+                match_obj = re.search("currHeader=(.*)", line.strip())
+                header_label = match_obj.groups()[0]
+                header, label = header_label.split(" ")
+                header = " ".join(header.split("-"))
+                lines.append(header)
+                labels.append(label)
+
+    out_dir = pathlib.Path(out_dir)
+    train_filename = out_dir.joinpath("genericSect.train")
+    dev_filename = out_dir.joinpath("genericSect.dev")
+    test_filename = out_dir.joinpath("genericSect.test")
+
+    (
+        (train_lines, train_labels),
+        (dev_lines, dev_labels),
+        (test_lines, test_labels),
+    ) = get_train_dev_test_stratified_split(lines=lines, labels=labels)
+
+    with open(train_filename, "w") as fp:
+        for text, label in zip(train_lines, train_labels):
+            line = text + "###" + label
+            fp.write(line)
+            fp.write("\n")
+
+    with open(dev_filename, "w") as fp:
+        for text, label in zip(dev_lines, dev_labels):
+            line = text + "###" + label
+            fp.write(line)
+            fp.write("\n")
+
+    with open(test_filename, "w") as fp:
+        for text, label in zip(test_lines, test_labels):
+            line = text + "###" + label
+            fp.write(line)
+            fp.write("\n")
+
+
 def merge_dictionaries_with_sum(a: Dict, b: Dict) -> Dict:
     # refer to https://stackoverflow.com/questions/11011756/is-there-any-pythonic-way-to-combine-two-dicts-adding-values-for-keys-that-appe?rq=1
     return dict(

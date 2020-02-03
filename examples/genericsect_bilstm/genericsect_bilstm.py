@@ -1,7 +1,7 @@
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.datasets.classification.generic_sect_dataset import GenericSectDataset
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 import sciwing.constants as constants
 import os
 import torch.nn as nn
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     random_embeddings = train_dataset.word_vocab.load_embedding()
     random_embeddings = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
-    embedder = VanillaEmbedder(
+    embedder = WordEmbedder(
         embedding_dim=EMBEDDING_DIMENSION, embedding=random_embeddings
     )
     encoder = LSTM2VecEncoder(

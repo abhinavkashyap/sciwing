@@ -29,7 +29,7 @@
         combine_strategy="concat"
         bidirectional=true
         [[model.encoder.embedder]]
-        class="VanillaEmbedder"
+        class="WordEmbedder"
         embed="word_vocab"
         freeze=false
         [[model.encoder.embedder]]

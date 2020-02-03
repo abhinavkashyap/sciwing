@@ -1,11 +1,12 @@
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
+from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.data.token import Token
 from typing import Union, List, Dict
 from collections import defaultdict
 
 
 class Line:
-    def __init__(self, text: str, tokenizers=None):
+    def __init__(self, text: str, tokenizers: Dict[str, BaseTokenizer] = None):
         if tokenizers is None:
             tokenizers = {"tokens": WordTokenizer()}
         self.text = text

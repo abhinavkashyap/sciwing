@@ -1,27 +1,23 @@
 import torch
 from allennlp.commands.elmo import ElmoEmbedder
 import wasabi
-from typing import List, Iterable, Dict, Any
+from typing import List, Any
 import torch.nn as nn
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.line import Line
 
 
 class BowElmoEmbedder(nn.Module, ClassNursery):
     def __init__(
         self,
-        emb_dim: int = 1024,
-        dropout_value: float = 0.0,
         layer_aggregation: str = "sum",
         cuda_device_id: int = -1,
+        word_tokens_namespace="tokens",
     ):
         """ Bag of words Elmo Embedder which aggregates elmo embedding for every token
 
         Parameters
         ----------
-        emb_dim : int
-            Embedding dimension
-        dropout_value : float
-            Any input dropout to be applied to the embeddings
         layer_aggregation : str
             You can chose one of ``[sum, average, last, first]``
             which decides how to aggregate different layers of ELMO. ELMO produces three
@@ -39,10 +35,14 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
         cuda_device_id : int
             Cuda device id on which representations will be transferred
             -1 indicates cpu
+
+        word_tokens_namespace: int
+            Namespace where all the word tokens are stored
         """
         super(BowElmoEmbedder, self).__init__()
-        self.emb_dim = emb_dim
-        self.dropout_value = dropout_value
+        self.embedding_dimension = self.get_embedding_dimension()
+        self.embedder_name = "elmo"
+        self.word_tokens_namespace = word_tokens_namespace
         self.layer_aggregation_type = layer_aggregation
         self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
         self.cuda_device_id = cuda_device_id
@@ -65,53 +65,82 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
             self.elmo = ElmoEmbedder(cuda_device=self.cuda_device_id)
         self.msg_printer.good("Finished Loading Elmo object")
 
-    def forward(self, iter_dict: Dict[str, Any]) -> torch.Tensor:
+    def forward(self, lines: List[Line]) -> torch.Tensor:
         """
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            ``iter_dict`` from any dataset. Expects ``instance`` to be present in the
-            ``iter_dict`` where instance is a list of sentences and the tokens are separated by
-            space
+        lines : List[Line]
+            Just a list of lines
 
         Returns
         -------
         torch.Tensor
             Returns the representation for every token in the instance
-            ``[batch_size, max_len, emb_dim]``. In case of Elmo the ``emb_dim`` is 1024
+            ``[batch_size, max_num_words, emb_dim]``. In case of Elmo the ``emb_dim`` is 1024
 
 
         """
         # [np.array] - A generator of embeddings
         # each array in the list is of the shape (3, #words_in_sentence, 1024)
-        x = iter_dict["instance"]
-        x = x if isinstance(x, list) else [x]
-        x = [instance.split() for instance in x]
 
-        embedded = list(self.elmo.embed_sentences(x))
+        batch_tokens = []
+        token_lengths = []
+        for line in lines:
+            line_tokens = line.tokens[self.word_tokens_namespace]
+            line_tokens = [tok.text for tok in line_tokens]
+            batch_tokens.append(line_tokens)
+            token_lengths.append(len(line_tokens))
 
-        # bs, 3, #words_in_sentence, 1024
-        embedded = torch.FloatTensor(embedded)
+        max_len = max(token_lengths)
+        embedded = list(self.elmo.embed_sentences(batch_tokens))
 
-        embedding_ = None
-        # aggregate of word embeddings
-        if self.layer_aggregation_type == "sum":
-            # bs, #words_in_sentence, 1024
-            embedding_ = torch.sum(embedded, dim=1)
+        batch_embeddings = []
 
-        elif self.layer_aggregation_type == "average":
-            # mean across all layers
-            embedding_ = torch.mean(embedded, dim=1)
+        for idx, (line, embedding) in enumerate(zip(lines, embedded)):
+            tokens = line.tokens[self.word_tokens_namespace]
+            line_embeddings = []
+            padding_length = max_len - len(tokens)
+            embedding = torch.FloatTensor(embedding)
+            embedding = embedding.to(self.device)
 
-        elif self.layer_aggregation_type == "last":
-            # bs, max_len, 1024
-            embedding_ = embedded[:, -1, :, :]
+            # 3, #words_in_sentence, 1024
 
-        elif self.layer_aggregation_type == "first":
-            # bs, max_len, 1024
-            embedding_ = embedded[:, 0, :, :]
+            # aggregate of word embeddings
+            if self.layer_aggregation_type == "sum":
+                # words_in_sentence, 1024
+                embedding = torch.sum(embedding, dim=0)
 
-        embedding_ = embedding_.to(self.device)
+            elif self.layer_aggregation_type == "average":
+                # mean across all layers
+                embedding = torch.mean(embedding, dim=0)
 
-        return embedding_
+            elif self.layer_aggregation_type == "last":
+                # words_in_sentence, 1024
+                embedding = embedding[-1, :, :]
+
+            elif self.layer_aggregation_type == "first":
+                # words_in_sentence, 1024
+                embedding = embedding[0, :, :]
+            else:
+                raise ValueError(
+                    f"Layer aggregation can be one of sum, average, last and first"
+                )
+
+            for token, token_emb in zip(tokens, embedding):
+                token.set_embedding(self.embedder_name, token_emb)
+                line_embeddings.append(token_emb)
+
+            # for batching
+            for i in range(padding_length):
+                zeros = torch.zeros(self.embedding_dimension, device=self.device)
+                line_embeddings.append(zeros)
+
+            line_embeddings = torch.stack(line_embeddings)
+            batch_embeddings.append(line_embeddings)
+
+        batch_embeddings = torch.stack(batch_embeddings)
+        return batch_embeddings
+
+    def get_embedding_dimension(self) -> int:
+        return 1024

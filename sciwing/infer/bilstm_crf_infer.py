@@ -4,7 +4,7 @@ import json
 from sciwing.datasets.seq_labeling.parscit_dataset import ParscitDataset
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.models.parscit_tagger import ParscitTagger
 from sciwing.infer.seq_label_inference.parscit_inference import ParscitInference
@@ -67,13 +67,13 @@ def get_bilstm_crf_infer(dirname: str):
 
     embedding = test_dataset.word_vocab.load_embedding()
     embedding = nn.Embedding.from_pretrained(embedding)
-    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
+    embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
     char_embedding = test_dataset.char_vocab.load_embedding()
     char_embedding = nn.Embedding.from_pretrained(char_embedding)
 
     if USE_CHAR_ENCODER:
-        char_embedder = VanillaEmbedder(
+        char_embedder = WordEmbedder(
             embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
         )
         char_encoder = CharLSTMEncoder(

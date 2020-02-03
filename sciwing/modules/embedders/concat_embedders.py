@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
-from typing import Dict, Any, List
+from typing import Any, List
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.line import Line
 
 
 class ConcatEmbedders(nn.Module, ClassNursery):
@@ -17,16 +18,15 @@ class ConcatEmbedders(nn.Module, ClassNursery):
         self.embedders = embedders
 
         for idx, embedder in enumerate(self.embedders):
-            self.add_module(f"embedder {idx}", embedder)
+            self.add_module(f"embedder_{embedder.embedder_name}", embedder)
 
-    def forward(self, iter_dict: Dict[str, Any]):
+    def forward(self, lines: List[Line]):
         """
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            The ``iter_dict`` from any dataset. All the ``keys`` that are expected
-            by different embedders are expected to be present in the iterdict
+        lines : List[Line]
+           A list of Lines.
 
         Returns
         -------
@@ -38,7 +38,7 @@ class ConcatEmbedders(nn.Module, ClassNursery):
         """
         embeddings = []
         for embedder in self.embedders:
-            embedding = embedder(iter_dict)
+            embedding = embedder(lines)
             embeddings.append(embedding)
 
         concat_embedding = torch.cat(embeddings, dim=2)

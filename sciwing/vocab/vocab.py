@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Any, Optional
+from typing import List, Dict, Tuple, Optional
 from collections import Counter
 from operator import itemgetter
 import json
@@ -6,10 +6,6 @@ import os
 from wasabi import Printer
 import wasabi
 from copy import deepcopy
-from sciwing.vocab.embedding_loader import EmbeddingLoader
-from sciwing.vocab.char_emb_loader import CharEmbLoader
-import torch
-from typing import Union
 
 
 class Vocab:
@@ -24,8 +20,6 @@ class Vocab:
         end_token: str = "<EOS>",
         special_token_freq: float = 1e10,
         store_location: str = None,
-        embedding_type: Union[str, None] = None,
-        embedding_dimension: Union[int, None] = None,
         max_instance_length: int = 100,
     ):
         """
@@ -56,12 +50,6 @@ class Vocab:
             The users can provide a store location optionally.
             The vocab will be stored in the location
             If the file exists then, the vocab will be restored from the file, rather than building it.
-        embedding_type : str
-            The embedding type is the type of pre-trained embedding that will be loaded
-            for all the words in the vocab optionally. You can refer to `WordEmbLoder`
-            for all the available embedding types
-        embedding_dimension : int
-            Embedding dimension of the embedding type
         max_instance_length : int
             Every vocab is related to a namespace. Every instance
             in that namespace will be clipped or padded to this
@@ -81,8 +69,6 @@ class Vocab:
         self.idx2token = None
         self.token2idx = None
         self.store_location = store_location
-        self.embedding_type = embedding_type
-        self.embedding_dimension = embedding_dimension
         self.max_instance_length = max_instance_length
 
         self.msg_printer = Printer()
@@ -294,8 +280,6 @@ class Vocab:
             "start_token": self.start_token,
             "end_token": self.end_token,
             "special_token_freq": self.special_token_freq,
-            "embedding_type": self.embedding_type,
-            "embedding_dimension": self.embedding_dimension,
             "special_vocab": self.special_vocab,
         }
         vocab_state["vocab"] = self.vocab
@@ -330,8 +314,6 @@ class Vocab:
                 end_token = vocab_options["end_token"]
                 special_token_freq = vocab_options["special_token_freq"]
                 store_location = filename
-                embedding_type = vocab_options["embedding_type"]
-                embedding_dimension = vocab_options["embedding_dimension"]
                 vocab = cls(
                     max_num_tokens=max_num_tokens,
                     min_count=min_count,
@@ -342,8 +324,6 @@ class Vocab:
                     instances=None,
                     special_token_freq=special_token_freq,
                     store_location=store_location,
-                    embedding_type=embedding_type,
-                    embedding_dimension=embedding_dimension,
                 )
 
                 # instead of building the vocab, set the vocab from vocab_dict
@@ -422,29 +402,6 @@ class Vocab:
         table_string = wasabi.table(data=data, header=header, divider=True)
         self.msg_printer.divider("VOCAB STATS")
         print(table_string)
-
-    def load_embedding(self) -> torch.FloatTensor:
-        if not self.vocab:
-            raise ValueError("Please build the vocab first")
-
-        embedding_loader = EmbeddingLoader(
-            token2idx=self.token2idx,
-            embedding_type=self.embedding_type,
-            embedding_dimension=self.embedding_dimension,
-        )
-
-        indices = [key for key in self.idx2token.keys()]
-        indices = sorted(indices)
-
-        embeddings = []
-        for idx in indices:
-            token = self.idx2token[idx]
-            # numpy array appends to the embeddings array
-            embedding = embedding_loader.vocab_embedding[token]
-            embeddings.append(embedding)
-
-        embeddings = torch.FloatTensor(embeddings)
-        return embeddings
 
     def set_vocab(self, vocab: Dict[str, Tuple[int, int]]):
         self.vocab = vocab

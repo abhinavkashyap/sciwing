@@ -1,24 +1,17 @@
 import torch
 import torch.nn as nn
 from wasabi import Printer
-from typing import Dict, Any
+from typing import List, Any
+from sciwing.data.line import Line
 from sciwing.utils.class_nursery import ClassNursery
 
 
 class BOW_Encoder(nn.Module, ClassNursery):
-    def __init__(
-        self,
-        emb_dim: int = 100,
-        embedder=None,
-        dropout_value: float = 0,
-        aggregation_type="sum",
-    ):
+    def __init__(self, embedder=None, dropout_value: float = 0, aggregation_type="sum"):
         """Bag of Words Encoder
 
         Parameters
         ----------
-        emb_dim : int
-            Embedding dimension of the words
         embedder : nn.Module
             Any embedder that you would want to use
         dropout_value : float
@@ -31,7 +24,7 @@ class BOW_Encoder(nn.Module, ClassNursery):
                     Aggregate word embedding by averaging them
         """
         super(BOW_Encoder, self).__init__()
-        self.emb_dim = emb_dim
+        self.emb_dim = embedder.get_embedding_dimension()
         self.embedder = embedder
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
@@ -42,12 +35,12 @@ class BOW_Encoder(nn.Module, ClassNursery):
 
         self.dropout = nn.Dropout(p=self.dropout_value)
 
-    def forward(self, iter_dict: Dict[str, Any]) -> torch.FloatTensor:
+    def forward(self, lines: List[Line]) -> torch.FloatTensor:
         """
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
+        lines : Dict[str, Any]
             The iter_dict returned by a dataset
 
         Returns
@@ -58,7 +51,7 @@ class BOW_Encoder(nn.Module, ClassNursery):
         """
 
         # N * T * D
-        embeddings = self.embedder(iter_dict)
+        embeddings = self.embedder(lines)
 
         # N * T * D
         embeddings = self.dropout(embeddings)

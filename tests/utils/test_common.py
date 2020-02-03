@@ -69,6 +69,36 @@ class TestCommon:
                 "Failed to write SectLabel file in Sciwing classification format"
             )
 
+    def test_genericsect_sciwing_clf_format_lines_labels_not_empty(self, tmp_path):
+        tmp_dir = tmp_path / "temp"
+        tmp_dir.mkdir()
+
+        try:
+            convert_generic_sect_to_sciwing_clf_format(
+                GENERIC_SECTION_TRAIN_FILE, tmp_dir
+            )
+            with open(tmp_dir / "genericSect.train", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert bool(text.strip())
+                    assert bool(label.strip())
+
+            with open(tmp_dir / "genericSect.dev", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert bool(text.strip())
+                    assert bool(label.strip())
+
+            with open(tmp_dir / "genericSect.test", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert bool(text.strip())
+                    assert bool(label.strip())
+        except:
+            pytest.fail(
+                f"Failed to write GenericSect file in SciWING classification format"
+            )
+
     @pytest.mark.parametrize("random_state", [1729, None])
     def test_stratified_split_returns_right_split(self, random_state):
         lines = ["a"] * 100

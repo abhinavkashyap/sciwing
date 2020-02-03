@@ -27,7 +27,7 @@
         dropout_value = 0.5
         aggregation_type="sum"
         [[model.encoder.embedder]]
-        class="VanillaEmbedder"
+        class="WordEmbedder"
         embed="word_vocab"
         freeze=false
 

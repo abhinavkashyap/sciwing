@@ -2,7 +2,7 @@ import pytest
 from sciwing.models.science_ie_tagger import ScienceIETagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from allennlp.modules.conditional_random_field import allowed_transitions
 from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
@@ -83,10 +83,10 @@ def setup_science_ie_tagger(request):
         constraint_type="BIOUL", labels=material_idx2classnames
     )
 
-    embedder = VanillaEmbedder(embedding=EMBEDDING, embedding_dim=EMBEDDING_DIM)
+    embedder = WordEmbedder(embedding=EMBEDDING, embedding_dim=EMBEDDING_DIM)
 
     if HAVE_CHARACTER_ENCODER:
-        char_embedder = VanillaEmbedder(
+        char_embedder = WordEmbedder(
             embedding=CHARACTER_EMBEDDING, embedding_dim=CHARACTER_EMBEDDING_DIM
         )
         char_encoder = CharLSTMEncoder(

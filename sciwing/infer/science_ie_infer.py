@@ -3,7 +3,7 @@ import sciwing.constants as constants
 from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from sciwing.models.science_ie_tagger import ScienceIETagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
 from allennlp.modules.conditional_random_field import allowed_transitions
@@ -106,10 +106,10 @@ def get_science_ie_infer(dirname: str):
         constraint_type="BIOUL", labels=material_idx2classnames
     )
 
-    embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
+    embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
 
     if USE_CHAR_ENCODER:
-        char_embedder = VanillaEmbedder(
+        char_embedder = WordEmbedder(
             embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
         )
         char_encoder = CharLSTMEncoder(

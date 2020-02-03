@@ -1,7 +1,7 @@
 import sciwing.constants as constants
 import os
 from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
@@ -50,7 +50,7 @@ def get_elmo_bilstm_lc_infer(dirname: str):
         cuda_device_id=-1 if DEVICE == "cpu" else int(DEVICE.split("cuda:")[1]),
     )
 
-    vanilla_embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
+    vanilla_embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
 
     embedders = ConcatEmbedders([vanilla_embedder, elmo_embedder])
 

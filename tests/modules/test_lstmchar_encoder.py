@@ -1,6 +1,6 @@
 import pytest
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 import torch.nn as nn
 import torch
 
@@ -14,7 +14,7 @@ def char_lstm_encoder():
     MAX_CHAR_SIZE = 5
     HIDDEN_DIM = 100
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIM)
-    vanilla_embedder = VanillaEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
+    vanilla_embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
     tokens = torch.randint(
         0, VOCAB_SIZE, size=(BATCH_SIZE, NUM_TIME_STEPS, MAX_CHAR_SIZE)
     )

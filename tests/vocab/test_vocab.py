@@ -287,38 +287,6 @@ class TestVocab:
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 
-    @pytest.mark.skipif(
-        system_mem < 16, reason="Cannot loading embeddings because memory is low"
-    )
-    @pytest.mark.parametrize(
-        "embedding_type",
-        ["glove_6B_50", "glove_6B_100", "glove_6B_200", "glove_6B_300", "random"],
-    )
-    def test_load_embedding_has_all_words(self, instances, embedding_type):
-        single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 100
-        vocab = Vocab(
-            instances=single_instance,
-            max_num_tokens=MAX_NUM_WORDS,
-            embedding_type=embedding_type,
-        )
-        vocab.build_vocab()
-        embedding = vocab.load_embedding()
-        assert embedding.size(0) == vocab.get_vocab_len()
-
-    def test_random_embeddinng_has_2dimensions(self, instances):
-        single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 100
-        vocab = Vocab(
-            instances=single_instance,
-            max_num_tokens=MAX_NUM_WORDS,
-            embedding_type=None,
-            embedding_dimension=300,
-        )
-        vocab.build_vocab()
-        embeddings = vocab.load_embedding()
-        assert embeddings.ndimension() == 2
-
     @pytest.mark.parametrize("save_vocab", [True, False])
     def test_add_token(self, instances, tmpdir, save_vocab):
         instance_dict = instances
@@ -328,8 +296,6 @@ class TestVocab:
         vocab = Vocab(
             instances=single_instance,
             max_num_tokens=MAX_NUM_WORDS,
-            embedding_type=None,
-            embedding_dimension=300,
             store_location=vocab_file,
         )
         vocab.build_vocab()
@@ -348,8 +314,6 @@ class TestVocab:
         vocab = Vocab(
             instances=single_instance,
             max_num_tokens=MAX_NUM_WORDS,
-            embedding_type=None,
-            embedding_dimension=300,
             store_location=vocab_file,
         )
         vocab.build_vocab()
@@ -371,8 +335,6 @@ class TestVocab:
         vocab = Vocab(
             instances=single_instance,
             max_num_tokens=MAX_NUM_WORDS,
-            embedding_type=None,
-            embedding_dimension=300,
             store_location=vocab_file,
         )
         vocab.build_vocab()

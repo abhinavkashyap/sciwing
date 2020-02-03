@@ -2,7 +2,7 @@ from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 import sciwing.constants as constants
 import os
 import torch.optim as optim
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     embedding = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
     # A vanilla embedder that maps indices to embeddings
-    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
 
     # initialize a bag of word emcoder
     encoder = BOW_Encoder(emb_dim=EMBEDDING_DIMENSION, embedder=embedder)

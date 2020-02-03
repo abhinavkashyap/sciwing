@@ -6,7 +6,7 @@ from sciwing.infer.classification.classification_inference import (
 )
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.modules.bow_encoder import BOW_Encoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
 import torch.nn as nn
 import pathlib
@@ -37,7 +37,7 @@ def get_bow_lc_parsect_infer(dirname: str):
     model_filepath = os.path.join(MODEL_SAVE_DIR, "best_model.pt")
 
     embedding = nn.Embedding(VOCAB_SIZE, EMBEDDING_DIMENSION)
-    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedder=embedder,

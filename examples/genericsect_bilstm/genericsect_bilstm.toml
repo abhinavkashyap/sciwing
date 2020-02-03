@@ -30,7 +30,7 @@
         device="cpu"
         hidden_dim=100
         [[model.encoder.embedder]]
-        class="VanillaEmbedder"
+        class="WordEmbedder"
         embed="word_vocab"
         freeze=false
 

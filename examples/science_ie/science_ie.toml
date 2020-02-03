@@ -35,7 +35,7 @@
         combine_strategy="concat"
         rnn_bias=true
         [[model.rnn2seqencoder.embedder]]
-        class="VanillaEmbedder"
+        class="WordEmbedder"
         embed="word_vocab"
         freeze=false
         [[model.rnn2seqencoder.embedder]]
@@ -44,7 +44,7 @@
         hidden_dim=25
         bidirectional=true
         [model.rnn2seqencoder.embedder.char_embedder]
-        class="VanillaEmbedder"
+        class="WordEmbedder"
         embed="char_vocab"
         freeze=false
 

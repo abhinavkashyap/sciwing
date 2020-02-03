@@ -1,7 +1,7 @@
 import pytest
 from sciwing.models.parscit_tagger import ParscitTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.charlstm_encoder import CharLSTMEncoder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 import itertools
@@ -43,9 +43,9 @@ def setup_parscit_tagger(request):
     labels = torch.LongTensor(labels)
     char_tokens = torch.LongTensor(char_tokens)
 
-    embedder = VanillaEmbedder(embedding=EMBEDDING, embedding_dim=EMBEDDING_DIM)
+    embedder = WordEmbedder(embedding=EMBEDDING, embedding_dim=EMBEDDING_DIM)
     if HAVE_CHARACTER_ENCODER:
-        char_embedder = VanillaEmbedder(
+        char_embedder = WordEmbedder(
             embedding=CHARACTER_EMBEDDING, embedding_dim=CHARACTER_EMBEDDING_DIM
         )
         char_encoder = CharLSTMEncoder(

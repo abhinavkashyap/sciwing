@@ -1,6 +1,6 @@
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.datasets.classification.generic_sect_dataset import GenericSectDataset
-from sciwing.modules.embedders.vanilla_embedder import VanillaEmbedder
+from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import sciwing.constants as constants
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     random_embeddings = train_dataset.word_vocab.load_embedding()
     embedding = nn.Embedding.from_pretrained(random_embeddings, freeze=False)
 
-    embedder = VanillaEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
+    embedder = WordEmbedder(embedding_dim=EMBEDDING_DIMENSION, embedding=embedding)
     encoder = BOW_Encoder(
         emb_dim=EMBEDDING_DIMENSION,
         embedder=embedder,
