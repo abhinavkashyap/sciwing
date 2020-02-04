@@ -3,8 +3,15 @@ from sciwing.modules.embedders.elmo_embedder import ElmoEmbedder
 import torch
 from typing import List
 import wasabi
+from deprecated import deprecated
 
 
+@deprecated(
+    reason="ElmoEmbedder will be deprecated "
+    "Please use concat embedder and lstm 2 vec module to achieve the same thing. "
+    "This will be removed in version 1",
+    version=0.1,
+)
 class ElmoLSTMEncoder(nn.Module):
     def __init__(
         self,
