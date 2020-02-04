@@ -46,7 +46,8 @@ class BOW_Encoder(nn.Module, ClassNursery):
         Returns
         -------
         torch.FloatTensor
-            The bag of words encoded embedding
+            The bag of words encoded embedding either average or summed
+            The size is [batch_size, embedding_dimension]
 
         """
 
