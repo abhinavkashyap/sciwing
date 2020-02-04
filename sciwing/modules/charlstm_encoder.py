@@ -3,8 +3,10 @@ import torch.nn as nn
 from typing import Dict, Any
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
 from sciwing.utils.class_nursery import ClassNursery
+from deprecated import deprecated
 
 
+@deprecated(reason="We have a new char encoder that is easier to use", version=0.1)
 class CharLSTMEncoder(nn.Module, ClassNursery):
     def __init__(
         self,

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import wasabi
-from typing import List, Any
+from typing import List
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
 
