@@ -119,6 +119,7 @@ class SimpleClassifier(nn.Module, ClassNursery):
             label_indices = []
             for label in labels:
                 label_ = label.tokens[self.label_namespace]
+                label_ = [tok.text for tok in label_]
                 label_ = self.label_numericalizer.numericalize_instance(instance=label_)
                 label_indices.append(label_[0])  # taking only the first label here
 

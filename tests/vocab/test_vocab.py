@@ -14,19 +14,32 @@ system_mem = int(get_system_mem_in_gb())
 
 
 class TestVocab:
-    def test_build_vocab_single_instance_has_words(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_build_vocab_single_instance_has_words(
+        self, instances, include_special_vocab
+    ):
         single_instance = instances["single_instance"]
-        vocab_builder = Vocab(instances=single_instance, max_num_tokens=1000)
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=1000,
+            include_special_vocab=include_special_vocab,
+        )
         vocab = vocab_builder.map_tokens_to_freq_idx()
 
         assert "i" in vocab.keys()
         assert "like" in vocab.keys()
         assert "nlp" in vocab.keys()
 
-    def test_build_vocab_single_instance_descending_order(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_build_vocab_single_instance_descending_order(
+        self, instances, include_special_vocab
+    ):
         single_instance = instances["single_instance"]
         vocab_builder = Vocab(
-            instances=single_instance, max_num_tokens=1000, min_count=1
+            instances=single_instance,
+            max_num_tokens=1000,
+            min_count=1,
+            include_special_vocab=include_special_vocab,
         )
         vocab = vocab_builder.map_tokens_to_freq_idx()
 
@@ -78,12 +91,16 @@ class TestVocab:
 
         assert vocab_len == MAX_NUM_WORDS + len(vocab_builder.special_vocab)
 
-    def test_single_instance_build_vocab(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_single_instance_build_vocab(self, instances, include_special_vocab):
         single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 100
+        MAX_NUM_WORDS = None
         MIN_FREQ = 1
         vocab_builder = Vocab(
-            instances=single_instance, max_num_tokens=MAX_NUM_WORDS, min_count=MIN_FREQ
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            min_count=MIN_FREQ,
+            include_special_vocab=include_special_vocab,
         )
 
         vocab = vocab_builder.build_vocab()
@@ -159,10 +176,15 @@ class TestVocab:
         len_vocab = vocab_builder.get_vocab_len()
         assert len_vocab == 1 + len(vocab_builder.special_vocab)
 
-    def test_save_vocab(self, instances, tmpdir):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_save_vocab(self, instances, tmpdir, include_special_vocab):
         single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
+        MAX_NUM_WORDS = None
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            include_special_vocab=include_special_vocab,
+        )
 
         vocab_builder.build_vocab()
         vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
@@ -262,28 +284,43 @@ class TestVocab:
         indices = sorted(indices)
         assert indices == list(range(len_indices))
 
-    def test_orig_vocab_len(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_orig_vocab_len(self, instances, include_special_vocab):
         single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 0
-        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
+        MAX_NUM_WORDS = None
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            include_special_vocab=include_special_vocab,
+        )
         vocab_builder.build_vocab()
         vocab_len = vocab_builder.get_orig_vocab_len()
         assert vocab_len == 3 + len(vocab_builder.special_vocab)
 
-    def test_get_topn(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_get_topn(self, instances, include_special_vocab):
         single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
+        MAX_NUM_WORDS = None
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            include_special_vocab=include_special_vocab,
+        )
         vocab_builder.build_vocab()
         words_freqs = vocab_builder.get_topn_frequent_words(n=1)
 
         assert words_freqs[0][0] == "i"
         assert words_freqs[0][1] == 3
 
-    def test_print_stats_works(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_print_stats_works(self, instances, include_special_vocab):
         single_instance = instances["single_instance"]
-        MAX_NUM_WORDS = 100
-        vocab_builder = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
+        MAX_NUM_WORDS = None
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            include_special_vocab=include_special_vocab,
+        )
         vocab_builder.build_vocab()
         vocab_builder.print_stats()
 
@@ -327,24 +364,31 @@ class TestVocab:
         assert vocab.get_idx_from_token("very") == 7
         assert vocab.get_idx_from_token("much") == 8
 
-    def test_disp_sentences_from_indices(self, instances, tmpdir):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_disp_sentences_from_indices(
+        self, instances, tmpdir, include_special_vocab
+    ):
         instance_dict = instances
         single_instance = instance_dict["single_instance"]
-        MAX_NUM_WORDS = 100
-        vocab_file = tmpdir.mkdir("tempdir").join("vocab.json")
+        MAX_NUM_WORDS = None
         vocab = Vocab(
             instances=single_instance,
             max_num_tokens=MAX_NUM_WORDS,
-            store_location=vocab_file,
+            include_special_vocab=include_special_vocab,
         )
         vocab.build_vocab()
-        sent = vocab.get_disp_sentence_from_indices([0, 1, 2, 3])
+        sent = vocab.get_disp_sentence_from_indices([0, 1, 2])
         assert type(sent) is str
 
-    def test_max_num_tokens_unset(self, instances):
+    @pytest.mark.parametrize("include_special_vocab", [True, False])
+    def test_max_num_tokens_unset(self, instances, include_special_vocab):
         single_instance = instances["single_instance"]
         MAX_NUM_WORDS = None
-        vocab = Vocab(instances=single_instance, max_num_tokens=MAX_NUM_WORDS)
+        vocab = Vocab(
+            instances=single_instance,
+            max_num_tokens=MAX_NUM_WORDS,
+            include_special_vocab=include_special_vocab,
+        )
         vocab.build_vocab()
         assert vocab.max_num_tokens == 3 + len(vocab.special_vocab.keys())
 

@@ -5,7 +5,11 @@ from collections import defaultdict
 
 class Label:
     def __init__(self, text: str, namespace: str = "label"):
-        """ Defines a single label for an examples
+        """ Defines a single label for an example
+        We will only consider one namespace for this class
+        Also we will only consider a single token name for ever label
+
+        label = Label(text="title")
 
         Parameters
         ----------

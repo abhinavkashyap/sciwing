@@ -2,30 +2,36 @@ import torch
 from typing import Dict, Union, Any, Optional, List
 from wasabi import Printer
 from sciwing.utils.common import merge_dictionaries_with_sum
+from sciwing.data.line import Line
+from sciwing.data.label import Label
 import numpy as np
 import pandas as pd
 from sciwing.metrics.BaseMetric import BaseMetric
-from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.datasets_manager import DatasetsManager
 from sciwing.metrics.classification_metrics_utils import ClassificationMetricsUtils
 from sciwing.utils.class_nursery import ClassNursery
 
 
 class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
-    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
+    def __init__(self, datasets_manager: DatasetsManager):
         """
 
         Parameters
         ----------
-        idx2labelname_mapping : Dict[int, str]
-            Mapping from index to label. If this is not provided
-            then we are going to use the class indices in all the reports
+        datasets_manager : DatasetsManager
+            The dataset manager managing the labels and other information
         """
         super(PrecisionRecallFMeasure, self).__init__()
-        self.idx2labelname_mapping = idx2labelname_mapping
+        self.datasets_manager = datasets_manager
+        self.idx2labelname_mapping = None
         self.msg_printer = Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
-            idx2labelname_mapping=idx2labelname_mapping
+            idx2labelname_mapping=self.idx2labelname_mapping
         )
+        self.label_namespace = "label"
+        self.label_numericalizer = self.datasets_manager.namespace_to_numericalizer[
+            self.label_namespace
+        ]
 
         # setup counters to calculate true positives, false positives,
         # false negatives and true negatives
@@ -82,7 +88,10 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         # convert labels to 1 dimension
         true_labels_numpy = labels.cpu().numpy().tolist()
 
-        confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
+        (
+            confusion_mtrx,
+            classes,
+        ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             predicted_tag_indices=top_indices_numpy,
             true_tag_indices=true_labels_numpy,
             masked_label_indices=labels_mask,
@@ -111,7 +120,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         )
 
     def calc_metric(
-        self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
+        self, lines: List[Line], labels: List[Label], model_forward_dict: Dict[str, Any]
     ) -> None:
         """ Updates the values being tracked for calculating the metric
 
@@ -121,13 +130,11 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            The ``iter_dict`` from the dataset is expected to have
-            ``label`` which are labels for instances. They are usually
-            of the size ``[batch_size]``
-            Optionally there can be a ``label_mask`` of the size ``[batch_size]``
-            The ``label_mask`` is 1 where the label should be masked otherwise
-            if the label is not masked then it is 0
+        lines : List[Line]
+           A list of lines
+        labels: List[Label]
+            A list of labels. This has to be the label used for classification
+            Refer to the documentation of Label for more information
 
         model_forward_dict : Dict[str, Any]
             The dictionary obtained after a forward pass
@@ -136,13 +143,23 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         """
 
         normalized_probs = model_forward_dict["normalized_probs"]
-        labels = iter_dict["label"]
-        labels_mask = iter_dict.get("label_mask")
-        if labels_mask is None:
-            labels_mask = torch.zeros_like(labels).type(torch.ByteTensor)
+
+        labels_tensor = []
+        for label in labels:
+            tokens = label.tokens[self.label_namespace]
+            tokens = [tok.text for tok in tokens]
+            numericalized_instance = self.label_numericalizer.numericalize_instance(
+                instance=tokens
+            )
+
+            labels_tensor.extend(numericalized_instance)
+
+        print(f"labels tensor {labels_tensor}")
+        labels_tensor = torch.LongTensor(labels_tensor)
+        labels_tensor = labels_tensor.view(-1, 1)
+        labels_mask = torch.zeros_like(labels_tensor).type(torch.ByteTensor)
 
         normalized_probs = normalized_probs.cpu()
-        labels = labels.cpu()
 
         assert normalized_probs.ndimension() == 2, self.msg_printer.fail(
             "The predicted probs should "
@@ -151,10 +168,10 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             "{0}".format(normalized_probs.size())
         )
 
-        assert labels.ndimension() == 2, self.msg_printer.fail(
+        assert labels_tensor.ndimension() == 2, self.msg_printer.fail(
             "The labels should have 2 dimension."
             "The labels that you passed have shape "
-            "{0}".format(labels.size())
+            "{0}".format(labels_tensor.size())
         )
 
         # TODO: for now k=1, change it to different number of ks
@@ -164,11 +181,14 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         top_indices_numpy = top_indices.cpu().numpy().tolist()
 
         # convert labels to 1 dimension
-        true_labels_numpy = labels.cpu().numpy().tolist()
+        true_labels_numpy = labels_tensor.cpu().numpy().tolist()
 
         labels_mask = labels_mask.tolist()
 
-        confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
+        (
+            confusion_mtrx,
+            classes,
+        ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             true_tag_indices=true_labels_numpy,
             predicted_tag_indices=top_indices_numpy,
             masked_label_indices=labels_mask,
@@ -239,7 +259,11 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
                 The micro fscore value considering all different classes
 
         """
-        precision_dict, recall_dict, fscore_dict = self.classification_metrics_utils.get_prf_from_counters(
+        (
+            precision_dict,
+            recall_dict,
+            fscore_dict,
+        ) = self.classification_metrics_utils.get_prf_from_counters(
             tp_counter=self.tp_counter,
             fp_counter=self.fp_counter,
             fn_counter=self.fn_counter,
@@ -250,14 +274,22 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         # https://datascience.stackexchange.com/questions/15989/micro-average-vs-macro-average-performance-in-a-multiclass-classification-settin
 
         # micro scores
-        micro_precision, micro_recall, micro_fscore = self.classification_metrics_utils.get_micro_prf_from_counters(
+        (
+            micro_precision,
+            micro_recall,
+            micro_fscore,
+        ) = self.classification_metrics_utils.get_micro_prf_from_counters(
             tp_counter=self.tp_counter,
             fp_counter=self.fp_counter,
             fn_counter=self.fn_counter,
         )
 
         # macro scores
-        macro_precision, macro_recall, macro_fscore = self.classification_metrics_utils.get_macro_prf_from_prf_dicts(
+        (
+            macro_precision,
+            macro_recall,
+            macro_fscore,
+        ) = self.classification_metrics_utils.get_macro_prf_from_prf_dicts(
             precision_dict=precision_dict,
             recall_dict=recall_dict,
             fscore_dict=fscore_dict,

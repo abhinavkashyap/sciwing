@@ -79,7 +79,8 @@ class TextClassificationDatasetManager(DatasetsManager):
                 "end_token": " ",
                 "pad_token": " ",
                 "unk_token": " ",
-            }
+            },
+            "label": {"include_special_vocab": False},
         }
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),

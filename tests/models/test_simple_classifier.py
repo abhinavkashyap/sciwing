@@ -1,15 +1,10 @@
 import pytest
-
-import torch
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.datasets.classification.text_classification_dataset import (
     TextClassificationDatasetManager,
 )
-from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from sciwing.modules.embedders.word_embedder import WordEmbedder
-from torch.nn import Embedding
-import numpy as np
 from sciwing.utils.class_nursery import ClassNursery
 
 

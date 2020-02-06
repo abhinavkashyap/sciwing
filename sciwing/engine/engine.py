@@ -3,14 +3,14 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
-from typing import Iterator, Callable, Any, List, Optional, Dict
+from typing import Iterator, Any, Optional, Dict
 from sciwing.meters.loss_meter import LossMeter
+from sciwing.data.datasets_manager import DatasetsManager
 from tensorboardX import SummaryWriter
 from sciwing.metrics.BaseMetric import BaseMetric
 import numpy as np
 import time
 import logging
-from torch.utils.data._utils.collate import default_collate
 import torch
 from sciwing.utils.tensor_utils import move_to_device
 from copy import deepcopy
@@ -29,21 +29,21 @@ class Engine(ClassNursery):
     def __init__(
         self,
         model: nn.Module,
-        train_dataset: Dataset,
-        validation_dataset: Dataset,
-        test_dataset: Dataset,
+        datasets_manager: DatasetsManager,
         optimizer: optim,
         batch_size: int,
         save_dir: str,
         num_epochs: int,
         save_every: int,
         log_train_metrics_every: int,
-        metric: BaseMetric,
+        train_metric: BaseMetric,
+        validation_metric: BaseMetric,
+        test_metric: BaseMetric,
         experiment_name: Optional[str] = None,
         experiment_hyperparams: Optional[Dict[str, Any]] = None,
         tensorboard_logdir: str = None,
         track_for_best: str = "loss",
-        collate_fn: Callable[[List[Any]], List[Any]] = default_collate,
+        collate_fn=list,
         device=torch.device("cpu"),
         gradient_norm_clip_value: Optional[float] = 5.0,
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
@@ -58,18 +58,8 @@ class Engine(ClassNursery):
         ----------
         model : nn.Module
             A pytorch module defining a model to be run
-        train_dataset : Dataset
-            This represents the training dataset.
-            Anything that confirms to the Dataset protocol. This can be any class that implements
-            the ``__get_item__`` and ``__len__`` as required by pytorch dataset
-        validation_dataset : Dataset
-            This represents the validation dataset.
-            Anything that confirms to the Dataset protocol. This can be any class that implements
-            the ``__get_item__`` and ``__len__`` as required by pytorch dataset
-        test_dataset : Dataset
-            This represents the test dataset
-            Anything that confirms to the Dataset protocol. This can be any class that implements
-            the ``__get_item__`` and ``__len__`` as required by pytorch dataset
+        datasets_manager : DatasetsManager
+            A datasets manager that handles all the different datasets
         optimizer : torch.optim
             Any Optimizer object instantiated using  ``torch.optim``
         batch_size : int
@@ -85,8 +75,12 @@ class Engine(ClassNursery):
         log_train_metrics_every : int
             The train metrics will be reported every ``log_train_metrics_every`` iterations
             during training
-        metric : BaseMetric
-            Anything that is an instance of ``BaseMetric``
+        train_metric : BaseMetric
+            Anything that is an instance of ``BaseMetric`` for calculating training metrics
+        validation_metric : BaseMetric
+            Anything that is an instance of ``BaseMetric`` for calculating validation metrics
+        test_metric : BaseMetric
+            Anything that is an instance of ``BaseMetric`` for calculating test metrics
         experiment_name : str
             The experiment should be given a name for ease of tracking. Instead experiment
             name is not given, we generate a unique 10 digit sha for the experiment.
@@ -126,9 +120,10 @@ class Engine(ClassNursery):
             device = torch.device(device)
 
         self.model = model
-        self.train_dataset = train_dataset
-        self.validation_dataset = validation_dataset
-        self.test_dataset = test_dataset
+        self.datasets_manager = datasets_manager
+        self.train_dataset = self.datasets_manager.train_dataset
+        self.validation_dataset = self.datasets_manager.dev_dataset
+        self.test_dataset = self.datasets_manager.test_dataset
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.save_dir = pathlib.Path(save_dir)
@@ -137,7 +132,9 @@ class Engine(ClassNursery):
         self.save_every = save_every
         self.log_train_metrics_every = log_train_metrics_every
         self.tensorboard_logdir = tensorboard_logdir
-        self.metric = metric
+        self.train_metric_calc = train_metric
+        self.validation_metric_calc = validation_metric
+        self.test_metric_calc = test_metric
         self.summaryWriter = SummaryWriter(log_dir=tensorboard_logdir)
         self.track_for_best = track_for_best
         self.collate_fn = collate_fn
@@ -170,7 +167,7 @@ class Engine(ClassNursery):
         if not self.save_dir.is_dir():
             self.save_dir.mkdir(parents=True)
 
-        self.num_workers = 0
+        self.num_workers = 1
         self.model.to(self.device)
 
         self.train_loader = self.get_loader(self.train_dataset)
@@ -185,11 +182,6 @@ class Engine(ClassNursery):
         # initializing loss meters
         self.train_loss_meter = LossMeter()
         self.validation_loss_meter = LossMeter()
-
-        # get metric calculators
-        self.train_metric_calc = deepcopy(metric)
-        self.validation_metric_calc = deepcopy(metric)
-        self.test_metric_calc = deepcopy(metric)
 
         self.msg_printer.divider("ENGINE STARTING")
         self.msg_printer.info(f"Number of training examples {len(self.train_dataset)}")
@@ -340,16 +332,21 @@ class Engine(ClassNursery):
         while True:
             try:
                 # N*T, N * 1, N * 1
-                iter_dict = next(train_iter)
-                iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
-                labels = iter_dict["label"]
-                batch_size = labels.size()[0]
+                lines_labels = next(train_iter)
+                lines_labels = list(zip(*lines_labels))
+                lines = lines_labels[0]
+                labels = lines_labels[1]
+                batch_size = len(lines)
 
                 model_forward_out = self.model(
-                    iter_dict, is_training=True, is_validation=False, is_test=False
+                    lines=lines,
+                    labels=labels,
+                    is_training=True,
+                    is_validation=False,
+                    is_test=False,
                 )
                 self.train_metric_calc.calc_metric(
-                    iter_dict=iter_dict, model_forward_dict=model_forward_out
+                    lines=lines, labels=labels, model_forward_dict=model_forward_out
                 )
 
                 try:
@@ -439,19 +436,24 @@ class Engine(ClassNursery):
 
         while True:
             try:
-                iter_dict = next(valid_iter)
-                iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
-                labels = iter_dict["label"]
-                batch_size = labels.size(0)
+                lines_labels = next(valid_iter)
+                lines_labels = list(zip(*lines_labels))
+                lines = lines_labels[0]
+                labels = lines_labels[1]
+                batch_size = len(lines)
 
                 with torch.no_grad():
                     model_forward_out = self.model(
-                        iter_dict, is_training=False, is_validation=True, is_test=False
+                        lines=lines,
+                        labels=labels,
+                        is_training=False,
+                        is_validation=True,
+                        is_test=False,
                     )
                 loss = model_forward_out["loss"]
                 self.validation_loss_meter.add_loss(loss, batch_size)
                 self.validation_metric_calc.calc_metric(
-                    iter_dict=iter_dict, model_forward_dict=model_forward_out
+                    lines=lines, labels=labels, model_forward_dict=model_forward_out
                 )
             except StopIteration:
                 self.validation_epoch_end(epoch_num)
@@ -540,15 +542,21 @@ class Engine(ClassNursery):
         test_iter = iter(self.test_loader)
         while True:
             try:
-                iter_dict = next(test_iter)
-                iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
+                lines_labels = next(test_iter)
+                lines_labels = list(zip(*lines_labels))
+                lines = lines_labels[0]
+                labels = lines_labels[1]
 
                 with torch.no_grad():
                     model_forward_out = self.model(
-                        iter_dict, is_training=False, is_validation=False, is_test=True
+                        lines=lines,
+                        labels=labels,
+                        is_training=False,
+                        is_validation=False,
+                        is_test=True,
                     )
                 self.test_metric_calc.calc_metric(
-                    iter_dict=iter_dict, model_forward_dict=model_forward_out
+                    lines=lines, labels=labels, model_forward_dict=model_forward_out
                 )
             except StopIteration:
                 self.test_epoch_end(epoch_num)

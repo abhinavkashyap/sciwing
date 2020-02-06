@@ -2,13 +2,41 @@ import pytest
 import torch
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.bow_encoder import BOW_Encoder
+from sciwing.models.simpleclassifier import SimpleClassifier
+from sciwing.datasets.classification.text_classification_dataset import (
+    TextClassificationDatasetManager,
+)
+
+
+@pytest.fixture(scope="session")
+def clf_dataset_manager(tmpdir_factory):
+    train_file = tmpdir_factory.mktemp("train_data").join("train_file.txt")
+    train_file.write("train_line1###label1\ntrain_line2###label2")
+
+    dev_file = tmpdir_factory.mktemp("dev_data").join("dev_file.txt")
+    dev_file.write("dev_line1###label1\ndev_line2###label2")
+
+    test_file = tmpdir_factory.mktemp("test_data").join("test_file.txt")
+    test_file.write("test_line1###label1\ntest_line2###label2")
+
+    clf_dataset_manager = TextClassificationDatasetManager(
+        train_filename=str(train_file),
+        dev_filename=str(dev_file),
+        test_filename=str(test_file),
+        batch_size=1,
+    )
+
+    return clf_dataset_manager
 
 
 @pytest.fixture
-def setup_data_basecase():
+def setup_data_basecase(clf_dataset_manager):
+    dataset_manager = clf_dataset_manager
+    prf_metric = PrecisionRecallFMeasure(dataset_manager)
     predicted_probs = torch.FloatTensor([[0.1, 0.9], [0.7, 0.3]])
     labels = torch.LongTensor([1, 0]).view(-1, 1)
-    idx2labelname_mapping = {0: "good class", 1: "bad class"}
 
     expected_precision = {0: 1.0, 1: 1.0}
     expected_recall = {0: 1.0, 1: 1.0}
@@ -23,11 +51,11 @@ def setup_data_basecase():
     expected_micro_recall = 1.0
     expected_micro_fscore = 1.0
 
-    accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
     return (
         predicted_probs,
         labels,
-        accuracy,
+        prf_metric,
+        dataset_manager,
         {
             "expected_precision": expected_precision,
             "expected_recall": expected_recall,
@@ -46,53 +74,10 @@ def setup_data_basecase():
 
 
 @pytest.fixture
-def setup_data_one_true_class_missing():
-    """
-    The batch of instances during training might not have all
-    true classes. What happens in that case??
-    The test case here captures the situation
-    :return:
-    """
-    predicted_probs = torch.FloatTensor([[0.8, 0.1, 0.2], [0.2, 0.5, 0.3]])
-    idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
-    labels = torch.LongTensor([0, 2]).view(-1, 1)
-
-    expected_precision = {0: 1.0, 1: 0.0, 2: 0.0}
-    expected_recall = {0: 1.0, 1: 0.0, 2: 0.0}
-    expected_fscore = {0: 1.0, 1: 0.0, 2: 0.0}
-
-    accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
-
-    return (
-        predicted_probs,
-        labels,
-        accuracy,
-        {
-            "expected_precision": expected_precision,
-            "expected_recall": expected_recall,
-            "expected_fscore": expected_fscore,
-        },
-    )
-
-
-@pytest.fixture
-def setup_data_to_test_length():
-    predicted_probs = torch.FloatTensor([[0.1, 0.8, 0.2], [0.2, 0.3, 0.5]])
-    labels = torch.LongTensor([0, 2]).view(-1, 1)
-    idx2labelname_mapping = {0: "good class", 1: "bad class", 2: "average_class"}
-
-    accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
-
-    expected_length = 3
-
-    return predicted_probs, labels, accuracy, expected_length
-
-
-@pytest.fixture
-def setup_data_for_all_zeros():
+def setup_data_for_all_zeros(clf_dataset_manager):
     predicted_probs = torch.FloatTensor([[0.9, 0.1], [0.3, 0.7]])
+    datasets_manager = clf_dataset_manager
     labels = torch.LongTensor([1, 0]).view(-1, 1)
-    idx2labelname_mapping = {0: "good class", 1: "bad class"}
 
     expected_precision = {0: 0.0, 1: 0.0}
     expected_recall = {0: 0.0, 1: 0.0}
@@ -107,11 +92,12 @@ def setup_data_for_all_zeros():
     expected_micro_recall = 0.0
     expected_micro_fscore = 0.0
 
-    accuracy = PrecisionRecallFMeasure(idx2labelname_mapping=idx2labelname_mapping)
+    prf_metric = PrecisionRecallFMeasure(datasets_manager=datasets_manager)
     return (
         predicted_probs,
         labels,
-        accuracy,
+        prf_metric,
+        datasets_manager,
         {
             "expected_precision": expected_precision,
             "expected_recall": expected_recall,
@@ -131,23 +117,25 @@ def setup_data_for_all_zeros():
 
 class TestAccuracy:
     def test_print_confusion_matrix_works(self, setup_data_basecase):
-        predicted_probs, labels, accuracy, expected = setup_data_basecase
+        predicted_probs, labels, metric, dataset_manager, expected = setup_data_basecase
         labels_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
-        accuracy.print_confusion_metrics(
-            predicted_probs=predicted_probs, labels=labels, labels_mask=labels_mask
-        )
+        try:
+            metric.print_confusion_metrics(
+                predicted_probs=predicted_probs, labels=labels, labels_mask=labels_mask
+            )
+        except:
+            pytest.fail("Precision Recall and FMeasure print_confusion_metrics fails")
 
     def test_accuracy_basecase(self, setup_data_basecase):
-        predicted_probs, labels, accuracy, expected = setup_data_basecase
+        predicted_probs, _, metric, dataset_manager, expected = setup_data_basecase
         expected_precision = expected["expected_precision"]
         expected_recall = expected["expected_recall"]
         expected_fmeasure = expected["expected_fscore"]
 
-        label_mask = torch.zeros_like(labels).type(torch.ByteTensor)
-        iter_dict = {"label": labels, "label_mask": label_mask}
+        lines, labels = dataset_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
-        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
-        accuracy_metrics = accuracy.get_metric()
+        metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
+        accuracy_metrics = metric.get_metric()
 
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
@@ -162,33 +150,8 @@ class TestAccuracy:
         for class_label, fscore_value in fscore.items():
             assert fscore_value == expected_fmeasure[class_label]
 
-    def test_accuracy_one_true_class_missing(self, setup_data_one_true_class_missing):
-        predicted_probs, labels, accuracy, expected = setup_data_one_true_class_missing
-        expected_precision = expected["expected_precision"]
-        expected_recall = expected["expected_recall"]
-        expected_fscore = expected["expected_fscore"]
-
-        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
-        iter_dict = {"label": labels, "label_mask": label_mask}
-        forward_dict = {"normalized_probs": predicted_probs}
-        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
-        accuracy_metrics = accuracy.get_metric()
-
-        precision = accuracy_metrics["precision"]
-        recall = accuracy_metrics["recall"]
-        fscore = accuracy_metrics["fscore"]
-
-        for class_label, precision_value in precision.items():
-            assert precision_value == expected_precision[class_label]
-
-        for class_label, recall_value in recall.items():
-            assert recall_value == expected_recall[class_label]
-
-        for class_label, fscore_value in fscore.items():
-            assert fscore_value == expected_fscore[class_label]
-
     def test_macro_scores_basecase(self, setup_data_basecase):
-        predicted_probs, labels, accuracy, expected = setup_data_basecase
+        predicted_probs, _, metric, dataset_manager, expected = setup_data_basecase
         expected_macro_precision = expected["expected_macro_precision"]
         expected_macro_recall = expected["expected_macro_recall"]
         expected_macro_fscore = expected["expected_macro_fscore"]
@@ -199,11 +162,10 @@ class TestAccuracy:
         expected_micro_recall = expected["expected_micro_recall"]
         expected_micro_fscore = expected["expected_micro_fscore"]
 
-        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
-        iter_dict = {"label": labels, "label_mask": label_mask}
+        lines, labels = dataset_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
-        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
-        metrics = accuracy.get_metric()
+        metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
+        metrics = metric.get_metric()
 
         macro_precision = metrics["macro_precision"]
         macro_recall = metrics["macro_recall"]
@@ -226,16 +188,21 @@ class TestAccuracy:
         assert micro_fscore == expected_micro_fscore
 
     def test_accuracy_all_zeros(self, setup_data_for_all_zeros):
-        predicted_probs, labels, accuracy, expected = setup_data_for_all_zeros
+        (
+            predicted_probs,
+            labels,
+            metric,
+            dataset_manager,
+            expected,
+        ) = setup_data_for_all_zeros
         expected_precision = expected["expected_precision"]
         expected_recall = expected["expected_recall"]
         expected_fmeasure = expected["expected_fscore"]
 
-        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
-        iter_dict = {"label": labels, "label_mask": label_mask}
+        lines, labels = dataset_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
-        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
-        accuracy_metrics = accuracy.get_metric()
+        metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
+        accuracy_metrics = metric.get_metric()
 
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
@@ -251,7 +218,13 @@ class TestAccuracy:
             assert fscore_value == expected_fmeasure[class_]
 
     def test_macro_scores_all_zeros(self, setup_data_for_all_zeros):
-        predicted_probs, labels, accuracy, expected = setup_data_for_all_zeros
+        (
+            predicted_probs,
+            labels,
+            metric,
+            datasets_manager,
+            expected,
+        ) = setup_data_for_all_zeros
         expected_macro_precision = expected["expected_macro_precision"]
         expected_macro_recall = expected["expected_macro_recall"]
         expected_macro_fscore = expected["expected_macro_fscore"]
@@ -262,11 +235,10 @@ class TestAccuracy:
         expected_num_fps = expected["expected_num_fps"]
         expected_num_fns = expected["expected_num_fns"]
 
-        label_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
-        iter_dict = {"label": labels, "label_mask": label_mask}
+        lines, labels = datasets_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
-        accuracy.calc_metric(iter_dict=iter_dict, model_forward_dict=forward_dict)
-        accuracy_metrics = accuracy.get_metric()
+        metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
+        accuracy_metrics = metric.get_metric()
 
         macro_precision = accuracy_metrics["macro_precision"]
         macro_recall = accuracy_metrics["macro_recall"]

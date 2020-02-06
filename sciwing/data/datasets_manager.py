@@ -171,3 +171,6 @@ class DatasetsManager:
     @namespaces.setter
     def namespaces(self, value):
         self._namespaces = value
+
+    def get_idx_label_mapping(self):
+        pass

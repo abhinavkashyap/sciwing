@@ -1,13 +1,14 @@
 from sciwing.engine.engine import Engine
-from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
+from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.bow_encoder import BOW_Encoder
 from sciwing.models.simpleclassifier import SimpleClassifier
-from sciwing.datasets.classification.sectlabel_dataset import SectLabelDataset
+from sciwing.datasets.classification.text_classification_dataset import (
+    TextClassificationDatasetManager,
+)
+from sciwing.data.line import Line
+from sciwing.data.label import Label
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
-from torch.nn import Embedding
-import torch.optim as optim
 import torch
-import numpy as np
 import os
 from sciwing.utils.class_nursery import ClassNursery
 
@@ -18,151 +19,89 @@ FILES = constants.FILES
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
+@pytest.fixture(scope="session")
+def clf_datasets_manager(tmpdir_factory):
+    train_file = tmpdir_factory.mktemp("train_data").join("train_file.txt")
+    train_file.write("train_line1###label1\ntrain_line2###label2")
+
+    dev_file = tmpdir_factory.mktemp("dev_data").join("dev_file.txt")
+    dev_file.write("dev_line1###label1\ndev_line2###label2")
+
+    test_file = tmpdir_factory.mktemp("test_data").join("test_file.txt")
+    test_file.write("test_line1###label1\ntest_line2###label2")
+
+    clf_dataset_manager = TextClassificationDatasetManager(
+        train_filename=str(train_file),
+        dev_filename=str(dev_file),
+        test_filename=str(test_file),
+        batch_size=1,
+    )
+
+    return clf_dataset_manager
+
+
 @pytest.fixture(scope="session", params=["loss", "micro_fscore", "macro_fscore"])
-def setup_engine_test_with_simple_classifier(request, tmpdir_factory):
-    MAX_NUM_WORDS = 1000
-    MAX_LENGTH = 50
-    vocab_store_location = tmpdir_factory.mktemp("tempdir").join("vocab.json")
-    DEBUG = True
-    BATCH_SIZE = 1
-    NUM_TOKENS = 3
-    EMB_DIM = 300
-
-    train_dataset = SectLabelDataset(
-        filename=SECT_LABEL_FILE,
-        dataset_type="train",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        word_vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-        word_embedding_type="random",
-        word_embedding_dimension=EMB_DIM,
+def setup_engine_test_with_simple_classifier(
+    request, clf_datasets_manager, tmpdir_factory
+):
+    track_for_best = request.param
+    datasets_manager = clf_datasets_manager
+    word_embedder = WordEmbedder(embedding_type="glove_6B_50")
+    bow_encoder = BOW_Encoder(embedder=word_embedder)
+    classifier = SimpleClassifier(
+        encoder=bow_encoder,
+        encoding_dim=word_embedder.get_embedding_dimension(),
+        num_classes=2,
+        classification_layer_bias=True,
+        datasets_manager=datasets_manager,
     )
+    train_metric = PrecisionRecallFMeasure(datasets_manager=datasets_manager)
+    validation_metric = PrecisionRecallFMeasure(datasets_manager=datasets_manager)
+    test_metric = PrecisionRecallFMeasure(datasets_manager=datasets_manager)
 
-    validation_dataset = SectLabelDataset(
-        filename=SECT_LABEL_FILE,
-        dataset_type="valid",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        word_vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-        word_embedding_type="random",
-        word_embedding_dimension=EMB_DIM,
-    )
+    optimizer = torch.optim.Adam(params=classifier.parameters())
+    batch_size = 1
+    save_dir = tmpdir_factory.mktemp("experiment_1")
+    num_epochs = 1
+    save_every = 1
+    log_train_metrics_every = 10
 
-    test_dataset = SectLabelDataset(
-        filename=SECT_LABEL_FILE,
-        dataset_type="test",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        word_vocab_store_location=vocab_store_location,
-        debug=DEBUG,
-        word_embedding_type="random",
-        word_embedding_dimension=EMB_DIM,
-    )
-
-    VOCAB_SIZE = MAX_NUM_WORDS + len(train_dataset.word_vocab.special_vocab)
-    NUM_CLASSES = train_dataset.get_num_classes()
-    NUM_EPOCHS = 1
-    embedding = Embedding.from_pretrained(torch.zeros([VOCAB_SIZE, EMB_DIM]))
-    labels = torch.LongTensor([1])
-    metric = PrecisionRecallFMeasure(idx2labelname_mapping=train_dataset.idx2classname)
-    embedder = WordEmbedder(embedding_dim=EMB_DIM, embedding=embedding)
-    encoder = BOW_Encoder(
-        emb_dim=EMB_DIM, embedder=embedder, dropout_value=0, aggregation_type="sum"
-    )
-    tokens = np.random.randint(0, VOCAB_SIZE - 1, size=(BATCH_SIZE, NUM_TOKENS))
-    tokens = torch.LongTensor(tokens)
-    model = SimpleClassifier(
-        encoder=encoder,
-        encoding_dim=EMB_DIM,
-        num_classes=NUM_CLASSES,
-        classification_layer_bias=False,
-    )
-
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
     engine = Engine(
-        model,
-        train_dataset,
-        validation_dataset,
-        test_dataset,
+        model=classifier,
+        datasets_manager=datasets_manager,
         optimizer=optimizer,
-        batch_size=BATCH_SIZE,
-        save_dir=tmpdir_factory.mktemp("model_save"),
-        num_epochs=NUM_EPOCHS,
-        save_every=1,
-        log_train_metrics_every=10,
-        metric=metric,
-        track_for_best=request.param,
+        batch_size=batch_size,
+        save_dir=save_dir,
+        num_epochs=num_epochs,
+        save_every=save_every,
+        log_train_metrics_every=log_train_metrics_every,
+        train_metric=train_metric,
+        validation_metric=validation_metric,
+        test_metric=test_metric,
+        track_for_best=track_for_best,
     )
 
-    options = {
-        "MAX_NUM_WORDS": MAX_NUM_WORDS,
-        "MAX_LENGTH": MAX_LENGTH,
-        "BATCH_SIZE": BATCH_SIZE,
-        "NUM_TOKENS": NUM_TOKENS,
-        "EMB_DIM": EMB_DIM,
-        "VOCAB_SIZE": VOCAB_SIZE,
-        "NUM_CLASSES": NUM_CLASSES,
-        "NUM_EPOCHS": NUM_EPOCHS,
-    }
-
-    return engine, tokens, labels, options
+    return engine
 
 
 class TestEngine:
-    def test_train_loader_gets_equal_length_tokens(
-        self, setup_engine_test_with_simple_classifier
-    ):
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+    def test_train_loader(self, setup_engine_test_with_simple_classifier):
+        engine = setup_engine_test_with_simple_classifier
         train_dataset = engine.get_train_dataset()
         train_loader = engine.get_loader(train_dataset)
 
-        len_tokens = []
-        for iter_dict in train_loader:
-            tokens = iter_dict["tokens"]
-            len_tokens.append(tokens.size()[1])
-
-        # check all lengths are same
-        assert len(set(len_tokens)) == 1
-
-    def test_validation_loader_gets_equal_length_tokens(
-        self, setup_engine_test_with_simple_classifier
-    ):
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
-        validation_dataset = engine.get_validation_dataset()
-        validation_loader = engine.get_loader(validation_dataset)
-
-        len_tokens = []
-
-        for iter_dict in validation_loader:
-            tokens = iter_dict["tokens"]
-            len_tokens.append(tokens.size()[1])
-
-        assert len(set(len_tokens)) == 1
-
-    def test_loader_gets_equal_length_tokens(
-        self, setup_engine_test_with_simple_classifier
-    ):
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
-        test_dataset = engine.get_test_dataset()
-        test_loader = engine.get_loader(test_dataset)
-
-        len_tokens = []
-
-        for iter_dict in test_loader:
-            tokens = iter_dict["tokens"]
-            len_tokens.append(tokens.size()[1])
-
-        assert len(set(len_tokens)) == 1
+        for lines_labels in train_loader:
+            for line, label in lines_labels:
+                assert isinstance(line, Line)
+                assert isinstance(label, Label)
 
     def test_one_train_epoch(self, setup_engine_test_with_simple_classifier):
         # check whether you can run train_epoch without throwing an error
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine = setup_engine_test_with_simple_classifier
         engine.train_epoch(0)
 
     def test_save_model(self, setup_engine_test_with_simple_classifier):
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine = setup_engine_test_with_simple_classifier
         engine.train_epoch_end(0)
 
         # test for the file model_epoch_1.pt
@@ -173,7 +112,7 @@ class TestEngine:
         """
         Just tests runs without any errors
         """
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine = setup_engine_test_with_simple_classifier
         try:
             engine.run()
         except:
@@ -183,7 +122,7 @@ class TestEngine:
         """
         Test whether engine loads the model without any error.
         """
-        engine, tokens, labels, options = setup_engine_test_with_simple_classifier
+        engine = setup_engine_test_with_simple_classifier
         try:
             engine.train_epoch_end(0)
             engine.load_model_from_file(

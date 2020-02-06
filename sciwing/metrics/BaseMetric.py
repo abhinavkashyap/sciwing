@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from typing import Dict, Any, Union
+from typing import Dict, Any, List
+from sciwing.data.line import Line
+from sciwing.data.label import Label
 
 
 class BaseMetric(metaclass=ABCMeta):
@@ -8,9 +10,9 @@ class BaseMetric(metaclass=ABCMeta):
 
     @abstractmethod
     def calc_metric(
-        self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
+        self, lines: List[Line], labels: List[Label], model_forward_dict: Dict[str, Any]
     ) -> None:
-        """ Calculates the metric using ``iter_dict`` returned by any dataset
+        """ Calculates the metric using the lines and labels returned by any dataset
         and ``model_forward_dict`` of a model. This is usually called
         for a batch of inputs and a forward pass. The state of the different
         metrics should be retained by the metric across an epoch before
@@ -19,7 +21,8 @@ class BaseMetric(metaclass=ABCMeta):
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
+        lines : List[Line]
+        labels: List[Label]
         model_forward_dict : Dict[str, Any]
         """
         pass

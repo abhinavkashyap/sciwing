@@ -21,6 +21,7 @@ class Vocab:
         special_token_freq: float = 1e10,
         store_location: str = None,
         max_instance_length: int = 100,
+        include_special_vocab: bool = True,
     ):
         """
 
@@ -54,6 +55,14 @@ class Vocab:
             Every vocab is related to a namespace. Every instance
             in that namespace will be clipped or padded to this
             length
+        include_special_vocab : bool
+            Boolean value to indicate whether special vocab should be included or no
+            If this is false, you will have to set add_start_end_token to False
+            and you cannot pad your instances. This is mostly set for labels -
+            such as for classification that require no padding. For such
+            cases please make sure that min_count is always 1 and max_num_tokens
+            is always None. Otherwise some of the labels will be missed and it
+            might result in error
         """
 
         self.instances = instances
@@ -70,16 +79,30 @@ class Vocab:
         self.token2idx = None
         self.store_location = store_location
         self.max_instance_length = max_instance_length
+        self.include_special_vocab = include_special_vocab
 
         self.msg_printer = Printer()
 
         # store the special tokens
-        self.special_vocab = {
-            self.unk_token: (self.special_token_freq + 3, 0),
-            self.pad_token: (self.special_token_freq + 2, 1),
-            self.start_token: (self.special_token_freq + 1, 2),
-            self.end_token: (self.special_token_freq, 3),
-        }
+        if self.include_special_vocab:
+            self.special_vocab = {
+                self.unk_token: (self.special_token_freq + 3, 0),
+                self.pad_token: (self.special_token_freq + 2, 1),
+                self.start_token: (self.special_token_freq + 1, 2),
+                self.end_token: (self.special_token_freq, 3),
+            }
+        else:
+            if self.min_count != 1:
+                self.msg_printer.warn(
+                    "Warning: You are building vocab without special vocab. "
+                    "Please make sure that min_count is 1"
+                )
+            if self.max_num_tokens is not None:
+                self.msg_printer.warn(
+                    "You are building vocab without special vocab. Please make "
+                    "sure that max_num_tokens is None"
+                )
+            self.special_vocab = {}
 
     def map_tokens_to_freq_idx(self) -> Dict[str, Tuple[int, int]]:
         """
@@ -349,20 +372,17 @@ class Vocab:
         if not self.idx2token:
             self.idx2token = self.get_idx2token_mapping()
 
-        try:
-            if idx == self.special_vocab[self.unk_token][1]:
-                return self.unk_token
-            else:
-                token = self.idx2token[idx]
-                return token
-        except KeyError:
-            vocab_len = self.get_vocab_len()
+        vocab_len = self.get_vocab_len()
+
+        if idx > vocab_len - 1:
             message = (
-                "You tried to access idx {0} of the vocab "
-                "The length of the vocab is {1}. Please Provide "
-                "Number between {2}".format(idx, vocab_len, vocab_len - 1)
+                f"You tried to access idx {idx} of the vocab The length of the vocab is "
+                f"{vocab_len}. Please Provide Number between 0 and {vocab_len - 1}"
             )
             raise ValueError(message)
+
+        token = self.idx2token.get(idx)
+        return token
 
     def get_idx_from_token(self, token: str) -> int:
         if not self.vocab:
@@ -374,7 +394,7 @@ class Vocab:
         try:
             return self.token2idx[token]
         except KeyError:
-            return self.token2idx[self.unk_token]
+            return self.token2idx.get(self.unk_token, None)
 
     def get_topn_frequent_words(self, n: int = 5) -> List[Tuple[str, int]]:
         idx2token = self.idx2token
@@ -428,10 +448,13 @@ class Vocab:
         str
             A string representing the index
         """
-        pad_token_index = self.get_idx_from_token(self.pad_token)
-        start_token_index = self.get_idx_from_token(self.start_token)
-        end_token_index = self.get_idx_from_token(self.end_token)
-        special_indices = [pad_token_index, start_token_index, end_token_index]
+        if self.special_vocab:
+            pad_token_index = self.get_idx_from_token(self.pad_token)
+            start_token_index = self.get_idx_from_token(self.start_token)
+            end_token_index = self.get_idx_from_token(self.end_token)
+            special_indices = [pad_token_index, start_token_index, end_token_index]
+        else:
+            special_indices = []
 
         token = [
             self.get_token_from_idx(idx)
