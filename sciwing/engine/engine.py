@@ -184,13 +184,6 @@ class Engine(ClassNursery):
         self.validation_loss_meter = LossMeter()
 
         self.msg_printer.divider("ENGINE STARTING")
-        self.msg_printer.info(f"Number of training examples {len(self.train_dataset)}")
-        self.msg_printer.info(
-            f"Number of validation examples {len(self.validation_dataset)}"
-        )
-        self.msg_printer.info(
-            f"Number of test examples {0}".format(len(self.test_dataset))
-        )
         time.sleep(3)
 
         # get the loggers ready

@@ -8,6 +8,7 @@ from sciwing.vocab.vocab import Vocab
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
 from typing import Dict, List, Any
 from collections import defaultdict
+import wasabi
 
 
 class DatasetsManager:
@@ -43,6 +44,7 @@ class DatasetsManager:
         self.dev_dataset = dev_dataset
         self.test_dataset = test_dataset
         self.label_namespaces: List[str] = None  # Holds the label namespaces
+        self.msg_printer = wasabi.Printer()
 
         if namespace_vocab_options is None:
             self.namespace_vocab_options = {}
@@ -153,7 +155,19 @@ class DatasetsManager:
         None
 
         """
-        pass
+        len_train_dataset = len(self.train_dataset)
+        len_dev_dataset = len(self.dev_dataset)
+        len_test_dataset = len(self.test_dataset)
+
+        self.msg_printer.info(f"Num of training examples: {len_train_dataset}")
+        self.msg_printer.info(f"Num of dev examples {len_dev_dataset}")
+        self.msg_printer.info(f"Num of test examples {len_test_dataset}")
+
+        # print namespace to vocab stats
+        for namespace in self.namespaces:
+            vocab = self.namespace_to_vocab[namespace]
+            self.msg_printer.divider(text=f"Namespace {namespace}")
+            vocab.print_stats()
 
     def build_numericalizers(self):
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = {}

@@ -50,3 +50,9 @@ class TestDatasetManager:
     def test_num_tokens(self, clf_dataset_manager):
         num_labels = clf_dataset_manager.num_labels["label"]
         assert num_labels == 2
+
+    def test_print_stats(self, clf_dataset_manager):
+        try:
+            clf_dataset_manager.print_stats()
+        except:
+            pytest.fail(f"Print Stats fail to work in datasets manager")
