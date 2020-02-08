@@ -16,7 +16,7 @@ class SimpleClassifier(nn.Module, ClassNursery):
         encoder: nn.Module,
         encoding_dim: int,
         num_classes: int,
-        classification_layer_bias: bool,
+        classification_layer_bias: bool = True,
         label_namespace: str = "label",
         datasets_manager: DatasetsManager = None,
         device: torch.device = torch.device("cpu"),

@@ -5,9 +5,8 @@ It is a container for the train dev and test datasets
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from sciwing.vocab.vocab import Vocab
-from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from collections import defaultdict
 
 
@@ -43,6 +42,7 @@ class DatasetsManager:
         self.train_dataset = train_dataset
         self.dev_dataset = dev_dataset
         self.test_dataset = test_dataset
+        self.label_namespaces: List[str] = None  # Holds the label namespaces
 
         if namespace_vocab_options is None:
             self.namespace_vocab_options = {}
@@ -77,6 +77,11 @@ class DatasetsManager:
         self.dev_loader = iter(self.dev_loader)
         self.test_loader = iter(self.test_loader)
         self.namespaces = list(self.namespace_to_vocab.keys())
+        self.num_labels = {}
+        for namespace in self.label_namespaces:
+            self.num_labels[namespace] = self.namespace_to_vocab[
+                namespace
+            ].get_vocab_len()
 
     @property
     def train_dataset(self):
@@ -128,6 +133,8 @@ class DatasetsManager:
                 tokens = [tok.text for tok in tokens]
                 namespace_to_instances[namespace].append(tokens)
 
+        self.label_namespaces = list(labels[0].tokens.keys())
+
         namespace_to_vocab: Dict[str, Vocab] = {}
 
         # This always builds a vocab from instances
@@ -157,6 +164,14 @@ class DatasetsManager:
         return namespace_numericalizer_map
 
     @property
+    def num_labels(self):
+        return self._num_labels
+
+    @num_labels.setter
+    def num_labels(self, value):
+        self._num_labels = value
+
+    @property
     def namespace_to_vocab(self):
         return self._namespace_to_vocab
 
@@ -174,3 +189,11 @@ class DatasetsManager:
 
     def get_idx_label_mapping(self):
         pass
+
+    @property
+    def label_namespaces(self):
+        return self._label_namespaces
+
+    @label_namespaces.setter
+    def label_namespaces(self, value):
+        self._label_namespaces = value

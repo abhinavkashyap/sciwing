@@ -42,3 +42,11 @@ class TestDatasetManager:
             "char_tokens",
             "label",
         }
+
+    def test_label_namespace(self, clf_dataset_manager):
+        label_namespaces = clf_dataset_manager.label_namespaces
+        assert label_namespaces == ["label"]
+
+    def test_num_tokens(self, clf_dataset_manager):
+        num_labels = clf_dataset_manager.num_labels["label"]
+        assert num_labels == 2

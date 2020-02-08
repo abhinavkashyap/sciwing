@@ -7,13 +7,8 @@ python ${SCRIPT_FILE} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
 --vocab_store_location "./output/vocab.json" \
---max_num_words 3000 \
---max_length 15 \
---debug \
---debug_dataset_proportion 0.01 \
 --bs 32 \
---emb_type random \
---emb_dim 50 \
+--emb_type glove_6B_50 \
 --lr 1e-4 \
 --epochs 15 \
 --save_every 1 \

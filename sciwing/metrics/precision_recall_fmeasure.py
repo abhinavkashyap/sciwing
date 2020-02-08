@@ -154,7 +154,6 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
 
             labels_tensor.extend(numericalized_instance)
 
-        print(f"labels tensor {labels_tensor}")
         labels_tensor = torch.LongTensor(labels_tensor)
         labels_tensor = labels_tensor.view(-1, 1)
         labels_mask = torch.zeros_like(labels_tensor).type(torch.ByteTensor)
