@@ -45,6 +45,7 @@ def setup_engine_test_with_simple_classifier(
     request, clf_datasets_manager, tmpdir_factory
 ):
     track_for_best = request.param
+    sample_proportion = 0.5
     datasets_manager = clf_datasets_manager
     word_embedder = WordEmbedder(embedding_type="glove_6B_50")
     bow_encoder = BOW_Encoder(embedder=word_embedder)
@@ -79,6 +80,7 @@ def setup_engine_test_with_simple_classifier(
         validation_metric=validation_metric,
         test_metric=test_metric,
         track_for_best=track_for_best,
+        sample_proportion=sample_proportion,
     )
 
     return engine

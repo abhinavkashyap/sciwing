@@ -12,8 +12,7 @@ import numpy as np
 import time
 import logging
 import torch
-from sciwing.utils.tensor_utils import move_to_device
-from copy import deepcopy
+from torch.utils.data.sampler import SubsetRandomSampler
 from sciwing.utils.class_nursery import ClassNursery
 import logzero
 import hashlib
@@ -48,6 +47,7 @@ class Engine(ClassNursery):
         gradient_norm_clip_value: Optional[float] = 5.0,
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
         use_wandb: bool = False,
+        sample_proportion: float = 1.0,
     ):
         """ Engine runs the models end to end. It iterates through the train dataset and passes
         it through the model. During training it helps in tracking a lot of parameters for the run
@@ -147,6 +147,7 @@ class Engine(ClassNursery):
             self.lr_scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau
         )
         self.use_wandb = wandb and use_wandb
+        self.sample_proportion = sample_proportion
 
         if experiment_name is None:
             hash_ = hashlib.sha1()
@@ -236,12 +237,17 @@ class Engine(ClassNursery):
             A pytorch DataLoader
 
         """
+        dataset_size = len(dataset)
+        sample_size = int(np.floor(dataset_size * self.sample_proportion))
+        indices = np.random.randint(low=0, high=dataset_size, size=sample_size)
+        sampler = SubsetRandomSampler(indices=indices)
         loader = DataLoader(
             dataset=dataset,
             batch_size=self.batch_size,
             num_workers=self.num_workers,
             collate_fn=self.collate_fn,
             pin_memory=True,
+            sampler=sampler,
         )
         return loader
 

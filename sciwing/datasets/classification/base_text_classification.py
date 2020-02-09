@@ -37,4 +37,5 @@ class BaseTextClassification(metaclass=ABCMeta):
             Returns a list of text examples and corresponding labels
 
         """
-        pass
+
+    pass

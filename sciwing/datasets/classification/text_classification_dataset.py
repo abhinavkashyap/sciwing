@@ -54,6 +54,22 @@ class TextClassificationDataset(BaseTextClassification, Dataset):
         line, label = self.lines[idx], self.labels[idx]
         return line, label
 
+    @property
+    def lines(self):
+        return self._lines
+
+    @lines.setter
+    def lines(self, value):
+        self._lines = value
+
+    @property
+    def labels(self):
+        return self._labels
+
+    @labels.setter
+    def labels(self, value):
+        self._labels = value
+
 
 class TextClassificationDatasetManager(DatasetsManager):
     def __init__(
@@ -65,7 +81,6 @@ class TextClassificationDatasetManager(DatasetsManager):
         namespace_vocab_options: Dict[str, Dict[str, Any]] = None,
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size: int = 10,
-        sample_proportion: float = 1.0,
     ):
         self.train_filename = train_filename
         self.dev_filename = dev_filename
@@ -89,7 +104,6 @@ class TextClassificationDatasetManager(DatasetsManager):
         }
         self.namespace_numericalizer_map["label"] = Numericalizer()
         self.batch_size = batch_size
-        self.sample_proportion = sample_proportion
 
         self.train_dataset = TextClassificationDataset(
             filename=self.train_filename, tokenizers=self.tokenizers
@@ -108,5 +122,4 @@ class TextClassificationDatasetManager(DatasetsManager):
             namespace_vocab_options=self.namespace_vocab_options,
             namespace_numericalizer_map=self.namespace_numericalizer_map,
             batch_size=batch_size,
-            sample_proportion=self.sample_proportion,
         )
