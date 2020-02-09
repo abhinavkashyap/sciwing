@@ -97,6 +97,7 @@ if __name__ == "__main__":
         experiment_name=args.exp_name,
         experiment_hyperparams=vars(args),
         track_for_best="macro_fscore",
+        sample_proportion=0.01,
     )
 
     # Run the engine

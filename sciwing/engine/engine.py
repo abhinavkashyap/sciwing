@@ -148,6 +148,7 @@ class Engine(ClassNursery):
         )
         self.use_wandb = wandb and use_wandb
         self.sample_proportion = sample_proportion
+        self.datasets_manager.print_stats()
 
         if experiment_name is None:
             hash_ = hashlib.sha1()

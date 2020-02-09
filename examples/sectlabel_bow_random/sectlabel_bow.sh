@@ -10,6 +10,6 @@ python ${SCRIPT_FILE} \
 --bs 32 \
 --emb_type glove_6B_50 \
 --lr 1e-4 \
---epochs 15 \
+--epochs 2 \
 --save_every 1 \
 --log_train_metrics_every 50
