@@ -56,7 +56,6 @@ if __name__ == "__main__":
         train_filename=str(train_file),
         dev_filename=str(dev_file),
         test_filename=str(test_file),
-        sample_proportion=0.01,
     )
 
     embedder = WordEmbedder(embedding_type=args.emb_type)
