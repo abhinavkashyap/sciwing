@@ -5,10 +5,13 @@ It is a container for the train dev and test datasets
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from sciwing.vocab.vocab import Vocab
+from sciwing.data.line import Line
+from sciwing.data.label import Label
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
 from typing import Dict, List, Any
 from collections import defaultdict
 import wasabi
+import numpy as np
 
 
 class DatasetsManager:
@@ -20,6 +23,7 @@ class DatasetsManager:
         namespace_vocab_options: Dict[str, Dict[str, Any]] = None,
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size: int = 32,
+        sample_proportion: float = 1.0,
     ):
         """
 
@@ -39,12 +43,20 @@ class DatasetsManager:
             be passed down to the Numericalizer Instances
         batch_size: int
             Batch size for loading the datasets
+        sample_proportion: int
+            The sample proportion is used to provide a smaller datasets
+            from the original dataset. This helps you debug your models easily.
+            This has to be between 0 and 1. If it is 1 we use all the training
+            data for training
         """
         self.train_dataset = train_dataset
         self.dev_dataset = dev_dataset
         self.test_dataset = test_dataset
+        self.sample_proportion = sample_proportion
         self.label_namespaces: List[str] = None  # Holds the label namespaces
         self.msg_printer = wasabi.Printer()
+
+        assert 0.0 < self.sample_proportion <= 1.0
 
         if namespace_vocab_options is None:
             self.namespace_vocab_options = {}
@@ -56,6 +68,9 @@ class DatasetsManager:
         self.namespace_to_numericalizer: Dict[
             str, BaseNumericalizer
         ] = namespace_numericalizer_map
+
+        # get train lines and labels
+        self.train_lines, self.train_labels = self.get_train_lines_labels()
 
         # Build vocab using the datasets passed
         self.namespace_to_vocab = self.build_vocab()
@@ -85,30 +100,6 @@ class DatasetsManager:
                 namespace
             ].get_vocab_len()
 
-    @property
-    def train_dataset(self):
-        return self._train_dataset
-
-    @train_dataset.setter
-    def train_dataset(self, value):
-        self._train_dataset = value
-
-    @property
-    def dev_dataset(self):
-        return self._dev_dataset
-
-    @dev_dataset.setter
-    def dev_dataset(self, value):
-        self._dev_dataset = value
-
-    @property
-    def test_dataset(self):
-        return self._test_dataset
-
-    @test_dataset.setter
-    def test_dataset(self, value):
-        self._test_dataset = value
-
     def build_vocab(self) -> Dict[str, Vocab]:
         """ Returns a vocab for each of the namespace
         The namespace identifies the kind of tokens
@@ -122,7 +113,8 @@ class DatasetsManager:
             A vocab corresponding to each of the
 
         """
-        lines, labels = self.train_dataset.get_lines_labels()
+        lines = self.train_lines
+        labels = self.train_labels
         namespace_to_instances: Dict[str, List[List[str]]] = defaultdict(list)
         for line in lines:
             namespace_tokens = line.tokens
@@ -146,6 +138,33 @@ class DatasetsManager:
             )
             namespace_to_vocab[namespace].build_vocab()
         return namespace_to_vocab
+
+    def get_train_lines_labels(self) -> (List[Line], List[Label]):
+        """ Returns training lines and labels. Samples the training lines
+        and labels according to sample proportion and returns it
+
+        Returns
+        -------
+        (List[Line], List[Label])
+
+        """
+        lines, labels = self.train_dataset.get_lines_labels()
+        if self.sample_proportion != 1.0:
+            len_lines = len(lines)
+            lines_ = []
+            labels_ = []
+            np.random.seed(1729)
+            sample_size = np.ceil(self.sample_proportion * len_lines)
+            sample_size = int(sample_size)
+            random_indices = np.random.randint(low=0, high=len_lines, size=sample_size)
+            for random_idx in random_indices:
+                line = lines[random_idx]
+                label = labels[random_idx]
+                lines_.append(line)
+                labels_.append(label)
+            return lines_, labels_
+        else:
+            return lines, labels
 
     def print_stats(self):
         """ Print different stats with respect to the train, dev and test datasets
@@ -176,6 +195,30 @@ class DatasetsManager:
             namespace_numericalizer_map[namespace] = numericalizer
 
         return namespace_numericalizer_map
+
+    @property
+    def train_dataset(self):
+        return self._train_dataset
+
+    @train_dataset.setter
+    def train_dataset(self, value):
+        self._train_dataset = value
+
+    @property
+    def dev_dataset(self):
+        return self._dev_dataset
+
+    @dev_dataset.setter
+    def dev_dataset(self, value):
+        self._dev_dataset = value
+
+    @property
+    def test_dataset(self):
+        return self._test_dataset
+
+    @test_dataset.setter
+    def test_dataset(self, value):
+        self._test_dataset = value
 
     @property
     def num_labels(self):

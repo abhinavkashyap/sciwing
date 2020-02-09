@@ -65,6 +65,7 @@ class TextClassificationDatasetManager(DatasetsManager):
         namespace_vocab_options: Dict[str, Dict[str, Any]] = None,
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size: int = 10,
+        sample_proportion: float = 1.0,
     ):
         self.train_filename = train_filename
         self.dev_filename = dev_filename
@@ -87,8 +88,8 @@ class TextClassificationDatasetManager(DatasetsManager):
             "char_tokens": Numericalizer(),
         }
         self.namespace_numericalizer_map["label"] = Numericalizer()
-
         self.batch_size = batch_size
+        self.sample_proportion = sample_proportion
 
         self.train_dataset = TextClassificationDataset(
             filename=self.train_filename, tokenizers=self.tokenizers
@@ -107,4 +108,5 @@ class TextClassificationDatasetManager(DatasetsManager):
             namespace_vocab_options=self.namespace_vocab_options,
             namespace_numericalizer_map=self.namespace_numericalizer_map,
             batch_size=batch_size,
+            sample_proportion=self.sample_proportion,
         )

@@ -4,8 +4,9 @@ from sciwing.datasets.classification.text_classification_dataset import (
 )
 
 
-@pytest.fixture(scope="session")
-def clf_dataset_manager(tmpdir_factory):
+@pytest.fixture(scope="session", params=[1.0, 0.5])
+def clf_dataset_manager(tmpdir_factory, request):
+    sample_proportion = request.param
     train_file = tmpdir_factory.mktemp("train_data").join("train_file.txt")
     train_file.write("train_line1###label1\ntrain_line2###label2")
 
@@ -19,6 +20,7 @@ def clf_dataset_manager(tmpdir_factory):
         train_filename=str(train_file),
         dev_filename=str(dev_file),
         test_filename=str(test_file),
+        sample_proportion=sample_proportion,
     )
 
     return clf_dataset_manager
@@ -30,6 +32,9 @@ class TestDatasetManager:
         assert set(namespaces) == {"tokens", "char_tokens", "label"}
 
     def test_namespace_to_vocab(self, clf_dataset_manager):
+        if clf_dataset_manager.sample_proportion != 1.0:
+            pytest.skip("skipping for randomly sampled datasets.")
+
         namespace_to_vocab = clf_dataset_manager.namespace_to_vocab
         assert namespace_to_vocab["tokens"].get_vocab_len() == 2 + 4
         # there is no special vocab here
@@ -47,7 +52,9 @@ class TestDatasetManager:
         label_namespaces = clf_dataset_manager.label_namespaces
         assert label_namespaces == ["label"]
 
-    def test_num_tokens(self, clf_dataset_manager):
+    def test_num_labels(self, clf_dataset_manager):
+        if clf_dataset_manager.sample_proportion != 1.0:
+            pytest.skip("skipping checking number of labels for debug datasets")
         num_labels = clf_dataset_manager.num_labels["label"]
         assert num_labels == 2
 
