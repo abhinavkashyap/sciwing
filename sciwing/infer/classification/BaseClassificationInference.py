@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 import torch.nn as nn
-import json
+from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.data.line import Line
+from sciwing.data.label import Label
 import torch
 import wasabi
 from typing import Dict, Any, Optional, Union, List
@@ -16,7 +18,7 @@ class BaseClassificationInference(metaclass=ABCMeta):
         self,
         model: nn.Module,
         model_filepath: str,
-        dataset,
+        datasets_manager: DatasetsManager,
         device: Optional[Union[str, torch.device]] = torch.device("cpu"),
     ):
         """
@@ -28,14 +30,14 @@ class BaseClassificationInference(metaclass=ABCMeta):
         model_filepath : str
             The path where the parameters for the best models are stored. This is usually
             the ``best_model.pt`` while in an experiment directory
-        dataset : Dataset
+        datasets_manager : DatasetsManager
             Any dataset that conforms to the pytorch Dataset specification
         device : Optional[Union[str, torch.device]]
             This is either a string like ``cpu``, ``cuda:0`` or a torch.device object
         """
         self.model = model
         self.model_filepath = model_filepath
-        self.dataset = dataset
+        self.datasets_manager = datasets_manager
 
         self.device = torch.device(device) if isinstance(device, str) else device
         self.msg_printer = wasabi.Printer()
@@ -70,34 +72,14 @@ class BaseClassificationInference(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def model_forward_on_iter_dict(self, iter_dict: Dict[str, Any]):
+    def model_forward_on_lines(self, lines: List[Line]):
         """ Perform the model forward pass  given an ``iter_dict``
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            ``iter_dict`` returned by a dataset
-
+        lines : List[Line]
         """
         pass
-
-    @abstractmethod
-    def metric_calc_on_iter_dict(
-        self, iter_dict: Dict[str, Any], model_output_dict: Dict[str, Any]
-    ):
-        """ Calculate the metric given an ``iter_dict`` and an ``model_output_dict``
-        that is obtained by a forward pass of the model
-
-        Parameters
-        ----------
-        iter_dict : Dict[str, Any]
-            ``iter_dict`` returned by a dataset
-
-        model_output_dict : Dict[str, Any]
-            ``model_output_dict`` : output dict that is returned by
-            forwarding the ``iter_dict`` through the model
-
-        """
 
     @abstractmethod
     def model_output_dict_to_prediction_indices_names(
@@ -119,31 +101,14 @@ class BaseClassificationInference(metaclass=ABCMeta):
        """
 
     @abstractmethod
-    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]) -> List[str]:
-        """ Returns human readable sentences given an ``iter_dict``
-
-        Parameters
-        ----------
-        iter_dict : Dict[str, Any]
-            ``iter_dict`` returned by a dataset
-
-        Returns
-        -------
-        List[str]
-            A list of human readable sentences
-
-        """
-
-    @abstractmethod
-    def iter_dict_to_true_indices_names(
-        self, iter_dict: Dict[str, Any]
+    def get_true_label_indices_names(
+        self, labels: List[Label]
     ) -> (List[int], List[str]):
-        """ Given an ``iter_dict``, it returns the indices of the true classes
-        and the corresponding classnames
+        """ Given an list of labels, it returns the indices and the names of the label
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
+        labels : Dict[str, Any]
             ``iter_dict`` returned by a dataset
 
         Returns

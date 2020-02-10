@@ -63,10 +63,10 @@ class SimpleClassifier(nn.Module, ClassNursery):
     def forward(
         self,
         lines: List[Line],
-        labels: List[Label],
-        is_training: bool,
-        is_validation: bool,
-        is_test: bool,
+        labels: List[Label] = None,
+        is_training: bool = False,
+        is_validation: bool = False,
+        is_test: bool = False,
     ) -> Dict[str, Any]:
         """
 

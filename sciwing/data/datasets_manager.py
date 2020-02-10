@@ -5,6 +5,7 @@ It is a container for the train dev and test datasets
 from torch.utils.data import Dataset
 from sciwing.vocab.vocab import Vocab
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
+from sciwing.data.line import Line
 from typing import Dict, List, Any
 from collections import defaultdict
 import wasabi
@@ -38,11 +39,6 @@ class DatasetsManager:
             be passed down to the Numericalizer Instances
         batch_size: int
             Batch size for loading the datasets
-        sample_proportion: int
-            The sample proportion is used to provide a smaller datasets
-            from the original dataset. This helps you debug your models easily.
-            This has to be between 0 and 1. If it is 1 we use all the training
-            data for training
         """
         self.train_dataset = train_dataset
         self.dev_dataset = dev_dataset
@@ -62,7 +58,7 @@ class DatasetsManager:
         ] = namespace_numericalizer_map
 
         # Build vocab using the datasets passed
-        self.namespace_to_vocab = self.build_vocab()
+        self.namespace_to_vocab: Dict[str, Vocab] = self.build_vocab()
 
         # sets the vocab for the appropriate numericalizers
         self.namespace_to_numericalizer = self.build_numericalizers()
@@ -143,8 +139,29 @@ class DatasetsManager:
 
         return namespace_numericalizer_map
 
-    def get_idx_label_mapping(self):
-        pass
+    def get_idx_label_mapping(self, label_namespace: str):
+        label_vocab = self.namespace_to_vocab[label_namespace]
+        return label_vocab.idx2token
+
+    def get_label_idx_mapping(self, label_namespace: str):
+        label_vocab = self.namespace_to_vocab[label_namespace]
+        return label_vocab.token2idx
+
+    def make_line(self, line: str):
+        """ Makes a line object from string, having some characteristics as the lines used
+        by the datasets
+
+        Parameters
+        ----------
+        line : str
+
+        Returns
+        -------
+        Line
+
+        """
+        line_ = Line(text=line, tokenizers=self.train_dataset.tokenizers)
+        return line_
 
     @property
     def train_dataset(self):

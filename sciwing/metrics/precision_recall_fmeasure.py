@@ -13,7 +13,12 @@ from sciwing.utils.class_nursery import ClassNursery
 
 
 class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
-    def __init__(self, datasets_manager: DatasetsManager):
+    def __init__(
+        self,
+        datasets_manager: DatasetsManager,
+        label_namespace="label",
+        normalized_probs_namespace="normalized_probs",
+    ):
         """
 
         Parameters
@@ -28,7 +33,8 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         self.classification_metrics_utils = ClassificationMetricsUtils(
             idx2labelname_mapping=self.idx2labelname_mapping
         )
-        self.label_namespace = "label"
+        self.label_namespace = label_namespace
+        self.normalized_probs_namespace = normalized_probs_namespace
         self.label_numericalizer = self.datasets_manager.namespace_to_numericalizer[
             self.label_namespace
         ]
@@ -142,7 +148,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             that usually is of the size ``[batch_size, num_classes]``
         """
 
-        normalized_probs = model_forward_dict["normalized_probs"]
+        normalized_probs = model_forward_dict[self.normalized_probs_namespace]
 
         labels_tensor = []
         for label in labels:

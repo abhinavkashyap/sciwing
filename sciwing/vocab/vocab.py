@@ -463,3 +463,19 @@ class Vocab:
         ]
         sentence = " ".join(token)
         return sentence
+
+    @property
+    def token2idx(self):
+        return self._token2idx
+
+    @token2idx.setter
+    def token2idx(self, value):
+        self._token2idx = value
+
+    @property
+    def idx2token(self):
+        return self._idx2token
+
+    @idx2token.setter
+    def idx2token(self, value):
+        self._idx2token = value
