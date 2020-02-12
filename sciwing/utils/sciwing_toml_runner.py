@@ -98,6 +98,7 @@ class SciWingTOMLRunner:
                 f"Provide a dataset section in your toml file"
             )
 
+        self.dataset_section = dataset_section
         dataset_classname = dataset_section.get("class")
         if dataset_classname is None:
             raise TOMLConfigurationError(
@@ -321,6 +322,7 @@ class SciWingTOMLRunner:
                 f"{self.toml_filename} does not have model section."
                 f"Please provide a model section to construct the model"
             )
+        self.model_section = model_section
         with self.msg_printer.loading("Loading Model from file"):
             self._form_dag(section_name="model", section=model_section, parent=None)
             # it has to be a DAG (no cycles please!)
@@ -345,6 +347,7 @@ class SciWingTOMLRunner:
             raise TOMLConfigurationError(
                 f"{self.toml_filename} does not have an engine section"
             )
+        self.engine_section = engine_section
         engine_args = {}
         for key, value in engine_section.items():
             if not isinstance(value, dict):
@@ -397,6 +400,7 @@ class SciWingTOMLRunner:
         engine_args["experiment_name"] = self.experiment_name
         engine_args["experiment_hyperparams"] = self.doc
 
+        print(f"engine_args: {engine_args}")
         engine_module = ClassNursery.class_nursery["Engine"]
         engine_classname = "Engine"
         engine_cls = create_class(classname=engine_classname, module_name=engine_module)
