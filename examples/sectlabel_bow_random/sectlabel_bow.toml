@@ -3,33 +3,23 @@
     exp_dir = "sectlabel_bow_random_toml"
 
 [dataset]
-	class = "SectLabelDataset"
-	train_filename="sectLabel.train.data"
-	valid_filename="sectLabel.train.data"
-	test_filename="sectLabel.train.data"
-	[dataset.args]
-	max_num_words = 1000
-	max_instance_length = 100
-	word_vocab_store_location = "sectlabel_bow_random_toml/vocab.json"
-	debug = true
-	debug_dataset_proportion = 0.1
-	word_embedding_type = "random"
-	word_embedding_dimension = 300
+	class = "TextClassificationDatasetManager"
+	train_filename="sectLabel.train"
+	dev_filename="sectLabel.dev"
+	test_filename="sectLabel.test"
 
 [model]
     class="SimpleClassifier"
-    encoding_dim=300
+    encoding_dim=50
     num_classes=23
     classification_layer_bias=true
     [model.encoder]
-        emb_dim = 300
         class="BOW_Encoder"
-        dropout_value = 0.5
         aggregation_type="sum"
         [[model.encoder.embedder]]
         class="WordEmbedder"
-        embed="word_vocab"
-        freeze=false
+        embedding_type="glove_6B_50"
+
 
 [engine]
     batch_size=32
@@ -40,6 +30,7 @@
     tensorboard_logdir="debug_parsect_dataset"
     device="cpu"
     gradient_norm_clip_value=5.0
+    sample_proportion=0.1
     [engine.metric]
         class="PrecisionRecallFMeasure"
     [engine.optimizer]

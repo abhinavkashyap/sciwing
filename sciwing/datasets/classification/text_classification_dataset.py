@@ -11,6 +11,7 @@ from sciwing.datasets.classification.base_text_classification import (
     BaseTextClassification,
 )
 from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.utils.class_nursery import ClassNursery
 
 
 class TextClassificationDataset(BaseTextClassification, Dataset):
@@ -71,7 +72,7 @@ class TextClassificationDataset(BaseTextClassification, Dataset):
         self._labels = value
 
 
-class TextClassificationDatasetManager(DatasetsManager):
+class TextClassificationDatasetManager(DatasetsManager, ClassNursery):
     def __init__(
         self,
         train_filename: str,

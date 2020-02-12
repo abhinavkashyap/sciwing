@@ -2,6 +2,7 @@ import pytest
 from sciwing.datasets.classification.text_classification_dataset import (
     TextClassificationDatasetManager,
 )
+from sciwing.utils.class_nursery import ClassNursery
 
 
 @pytest.fixture(scope="session")
@@ -56,3 +57,8 @@ class TestDatasetManager:
             clf_dataset_manager.print_stats()
         except:
             pytest.fail(f"Print Stats fail to work in datasets manager")
+
+    def test_texclassification_dataset_manager_in_nursery(self, clf_dataset_manager):
+        assert (
+            ClassNursery.class_nursery["TextClassificationDatasetManager"] is not None
+        )
