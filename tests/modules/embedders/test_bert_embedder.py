@@ -49,18 +49,21 @@ def setup_bert_embedder(request):
 
 
 @pytest.mark.skipif(
-    system_memory < 10, reason="System memory too small to run BERT Embedder"
+    system_memory < 10, reason="System memory too small to run testing for BertEmbedder"
 )
 class TestBertEmbedder:
-    # def test_embedder_dimensions(self, setup_bert_embedder):
-    #     """
-    #         The bow bert encoder should return a single instance
-    #         that is the sum of the word embeddings of the instance
-    #     """
-    #     bert_embedder, lines = setup_bert_embedder
-    #     encoding = bert_embedder(lines)
-    #     assert encoding.size(0) == 2
-    #     assert encoding.size(2) == bert_embedder.get_embedding_dimension()
+    def test_embedder_dimensions(self, setup_bert_embedder):
+        """
+            The bow bert encoder should return a single instance
+            that is the sum of the word embeddings of the instance
+        """
+        bert_embedder, lines = setup_bert_embedder
+        encoding = bert_embedder(lines)
+        lens = [len(line.tokens["tokens"]) for line in lines]
+        max_word_len = max(lens)
+        assert encoding.size(0) == 2
+        assert encoding.size(2) == bert_embedder.get_embedding_dimension()
+        assert encoding.size(1) == max_word_len
 
     def test_bert_embedder_tokens(self, setup_bert_embedder):
         bert_embedder, lines = setup_bert_embedder

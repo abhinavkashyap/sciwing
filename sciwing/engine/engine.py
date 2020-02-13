@@ -240,7 +240,7 @@ class Engine(ClassNursery):
         """
         dataset_size = len(dataset)
         sample_size = int(np.floor(dataset_size * self.sample_proportion))
-        indices = np.random.randint(low=0, high=dataset_size, size=sample_size)
+        indices = np.random.choice(range(dataset_size), size=sample_size, replace=False)
         sampler = SubsetRandomSampler(indices=indices)
         loader = DataLoader(
             dataset=dataset,

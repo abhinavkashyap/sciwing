@@ -72,8 +72,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    SECT_LABEL_FILE = "sectLabel.train.data"
-
     DATA_PATH = pathlib.Path(DATA_DIR)
     train_file = DATA_PATH.joinpath("sectLabel.train")
     dev_file = DATA_PATH.joinpath("sectLabel.dev")

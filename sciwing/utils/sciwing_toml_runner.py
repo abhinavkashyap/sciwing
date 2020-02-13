@@ -400,7 +400,6 @@ class SciWingTOMLRunner:
         engine_args["experiment_name"] = self.experiment_name
         engine_args["experiment_hyperparams"] = self.doc
 
-        print(f"engine_args: {engine_args}")
         engine_module = ClassNursery.class_nursery["Engine"]
         engine_classname = "Engine"
         engine_cls = create_class(classname=engine_classname, module_name=engine_module)

@@ -138,6 +138,8 @@ class BertEmbedder(nn.Module, ClassNursery):
             text = line.text
             word_tokens = line.tokens[self.word_tokens_namespace]
             word_tokens_lengths.append(len(word_tokens))
+
+            # split every token to subtokens
             for word_token in word_tokens:
                 word_piece_tokens = self.bert_tokenizer.tokenize(word_token.text)
                 word_token.sub_tokens = word_piece_tokens
@@ -149,7 +151,6 @@ class BertEmbedder(nn.Module, ClassNursery):
 
         max_len_bert = max(bert_tokens_lengths)
         max_len_words = max(word_tokens_lengths)
-
         # pad the tokenized text to a maximum length
         indexed_tokens = []
         segment_ids = []
@@ -185,9 +186,10 @@ class BertEmbedder(nn.Module, ClassNursery):
         elif "large" in self.bert_type:
             assert len(encoded_layers) == 24
 
-        # num_bert_layers, batch_size, sequence_length, bert_hidden_dimension
+        # num_bert_layers, batch_size, max_len_bert + 2, bert_hidden_dimension
         all_layers = torch.stack(encoded_layers, dim=0)
 
+        # batch_size, max_len_bert + 2, bert_hidden_dimension
         if self.aggregation_type == "sum":
             encoding = torch.sum(all_layers, dim=0)
 
@@ -200,11 +202,11 @@ class BertEmbedder(nn.Module, ClassNursery):
         batch_embeddings = []
         for idx, line in enumerate(lines):
             word_tokens = line.tokens[self.word_tokens_namespace]  # word tokens
-            bert_tokens = line.tokens[self.embedder_name]
-            token_embeddings = encoding[idx]  # max_len + 2, embedding
+            bert_tokens_ = line.tokens[self.embedder_name]
+            token_embeddings = encoding[idx]  # max_len_bert + 2, bert_hidden_dimensiofn
 
             len_word_tokens = len(word_tokens)
-            len_bert_tokens = len(bert_tokens)
+            len_bert_tokens = len(bert_tokens_)
             padding_length_bert = max_len_bert - len_bert_tokens
             padding_length_words = max_len_words - len_word_tokens
 
@@ -215,10 +217,15 @@ class BertEmbedder(nn.Module, ClassNursery):
             # do not want embeddings for start and end tokens
             token_embeddings = token_embeddings[1:-1]
 
-            assert token_embeddings.size(0) == len_bert_tokens
+            # just have embeddings for the bert tokens now
+            # without padding and start and end tokens
+            assert token_embeddings.size(0) == len_bert_tokens, (
+                f"bert token embeddings size {token_embeddings.size()} and length of bert tokens "
+                f"{len_bert_tokens}"
+            )
 
             line_embeddings = []
-            for token, token_embedding in zip(word_tokens, token_embeddings):
+            for token in word_tokens:
                 idx = 0
                 sub_tokens = token.sub_tokens
                 len_sub_tokens = len(sub_tokens)
@@ -226,7 +233,7 @@ class BertEmbedder(nn.Module, ClassNursery):
                 # taking the embedding of only the first token
                 # TODO: Have different strategies for this
                 emb = token_embeddings[idx]
-                line_embeddings.append(token_embedding)
+                line_embeddings.append(emb)
                 token.set_embedding(name=self.embedder_name, value=emb)
                 idx += len_sub_tokens
 
@@ -238,6 +245,7 @@ class BertEmbedder(nn.Module, ClassNursery):
             line_embeddings = torch.stack(line_embeddings)
             batch_embeddings.append(line_embeddings)
 
+        # batch_size, max_len_words, bert_hidden_dimension
         batch_embeddings = torch.stack(batch_embeddings)
         return batch_embeddings
 
