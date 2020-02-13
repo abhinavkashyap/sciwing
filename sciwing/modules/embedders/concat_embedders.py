@@ -43,3 +43,8 @@ class ConcatEmbedders(nn.Module, ClassNursery):
 
         concat_embedding = torch.cat(embeddings, dim=2)
         return concat_embedding
+
+    def get_embedding_dimension(self):
+        dims = [embedder.get_embedding_dimension() for embedder in self.embedders]
+        emb_dim = sum(dims)
+        return emb_dim
