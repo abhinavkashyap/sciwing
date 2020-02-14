@@ -8,9 +8,6 @@ from sciwing.infer.bow_elmo_emb_lc_gensect_infer import get_elmo_emb_lc_infer_ge
 from sciwing.infer.bow_bert_emb_lc_parsect_infer import (
     get_bow_bert_emb_lc_parsect_infer,
 )
-from sciwing.infer.bow_bert_emb_lc_gensect_infer import (
-    get_bow_bert_emb_lc_gensect_infer,
-)
 from sciwing.infer.bi_lstm_lc_infer_gensect import get_bilstm_lc_infer_gensect
 from sciwing.infer.bi_lstm_lc_infer_parsect import get_bilstm_lc_infer_parsect
 from sciwing.infer.elmo_bi_lstm_lc_infer import get_elmo_bilstm_lc_infer
@@ -49,7 +46,6 @@ class ParsectCli:
             "elmo-embedding-bow-encoder-linear-classifier-sciwing",
             "elmo-embedding-bow-encoder-linear-classifier-gensect",
             "bert-embedding-bow-encoder-linear-classifier-sciwing",
-            "bert-embedding-bow-encoder-linear-classifier-gensect",
             "bi-lstm-random-emb-linear-classifier-sciwing",
             "bi-lstm-random-emb-linear-classifier-gensect",
             "elmo-bilstm-linear-classifier",
@@ -64,7 +60,6 @@ class ParsectCli:
             "elmo-embedding-bow-encoder-linear-classifier-sciwing": "parsect_bow_elmo_emb_lc",
             "elmo-embedding-bow-encoder-linear-classifier-gensect": "gensect_bow_elmo_emb_lc",
             "bert-embedding-bow-encoder-linear-classifier-sciwing": "parsect_bow_bert",
-            "bert-embedding-bow-encoder-linear-classifier-gensect": "gensect_bow_bert",
             "bi-lstm-random-emb-linear-classifier-sciwing": "parsect_bi_lstm_lc",
             "bi-lstm-random-emb-linear-classifier-gensect": "gensect_bi_lstm_lc",
             "elmo-bilstm-linear-classifier": "parsect_elmo_bi_lstm_lc",
@@ -79,7 +74,6 @@ class ParsectCli:
             "elmo-embedding-bow-encoder-linear-classifier-sciwing": get_elmo_emb_lc_infer_parsect,
             "elmo-embedding-bow-encoder-linear-classifier-gensect": get_elmo_emb_lc_infer_gensect,
             "bert-embedding-bow-encoder-linear-classifier-sciwing": get_bow_bert_emb_lc_parsect_infer,
-            "bert-embedding-bow-encoder-linear-classifier-gensect": get_bow_bert_emb_lc_gensect_infer,
             "bi-lstm-random-emb-linear-classifier-sciwing": get_bilstm_lc_infer_parsect,
             "bi-lstm-random-emb-linear-classifier-gensect": get_bilstm_lc_infer_gensect,
             "elmo-bilstm-linear-classifier": get_elmo_bilstm_lc_infer,
