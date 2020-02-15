@@ -135,7 +135,7 @@ class TestAccuracy:
         lines, labels = dataset_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
         metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
-        accuracy_metrics = metric.get_metric()
+        accuracy_metrics = metric.get_metric()["label"]
 
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
@@ -165,7 +165,7 @@ class TestAccuracy:
         lines, labels = dataset_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
         metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
-        metrics = metric.get_metric()
+        metrics = metric.get_metric()["label"]
 
         macro_precision = metrics["macro_precision"]
         macro_recall = metrics["macro_recall"]
@@ -202,7 +202,7 @@ class TestAccuracy:
         lines, labels = dataset_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
         metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
-        accuracy_metrics = metric.get_metric()
+        accuracy_metrics = metric.get_metric()["label"]
 
         precision = accuracy_metrics["precision"]
         recall = accuracy_metrics["recall"]
@@ -238,7 +238,7 @@ class TestAccuracy:
         lines, labels = datasets_manager.train_dataset.get_lines_labels()
         forward_dict = {"normalized_probs": predicted_probs}
         metric.calc_metric(lines=lines, labels=labels, model_forward_dict=forward_dict)
-        accuracy_metrics = metric.get_metric()
+        accuracy_metrics = metric.get_metric()["label"]
 
         macro_precision = accuracy_metrics["macro_precision"]
         macro_recall = accuracy_metrics["macro_recall"]

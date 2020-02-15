@@ -2,10 +2,11 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Any, List
 from sciwing.data.line import Line
 from sciwing.data.label import Label
+from sciwing.data.datasets_manager import DatasetsManager
 
 
 class BaseMetric(metaclass=ABCMeta):
-    def __init__(self):
+    def __init__(self, datasets_manager: DatasetsManager):
         pass
 
     @abstractmethod

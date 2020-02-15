@@ -13,12 +13,7 @@ from sciwing.utils.class_nursery import ClassNursery
 
 
 class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
-    def __init__(
-        self,
-        datasets_manager: DatasetsManager,
-        label_namespace="label",
-        normalized_probs_namespace="normalized_probs",
-    ):
+    def __init__(self, datasets_manager: DatasetsManager):
         """
 
         Parameters
@@ -26,15 +21,15 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         datasets_manager : DatasetsManager
             The dataset manager managing the labels and other information
         """
-        super(PrecisionRecallFMeasure, self).__init__()
+        super(PrecisionRecallFMeasure, self).__init__(datasets_manager=datasets_manager)
         self.datasets_manager = datasets_manager
         self.idx2labelname_mapping = None
         self.msg_printer = Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils(
             idx2labelname_mapping=self.idx2labelname_mapping
         )
-        self.label_namespace = label_namespace
-        self.normalized_probs_namespace = normalized_probs_namespace
+        self.label_namespace = self.datasets_manager.label_namespaces[0]
+        self.normalized_probs_namespace = "normalized_probs"
         self.label_numericalizer = self.datasets_manager.namespace_to_numericalizer[
             self.label_namespace
         ]
@@ -236,7 +231,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         Returns
         -------
         Dict[str, Any]
-            Returns a dictionary with the following key value pairs
+            Returns a dictionary with the following key value pairs for every namespace
 
             precision: Dict[str, float]
                 The precision for different classes
@@ -300,20 +295,24 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             fscore_dict=fscore_dict,
         )
 
-        return {
-            "precision": precision_dict,
-            "recall": recall_dict,
-            "fscore": fscore_dict,
-            "num_tp": self.tp_counter,
-            "num_fp": self.fp_counter,
-            "num_fn": self.fn_counter,
-            "macro_precision": macro_precision,
-            "macro_recall": macro_recall,
-            "macro_fscore": macro_fscore,
-            "micro_precision": micro_precision,
-            "micro_recall": micro_recall,
-            "micro_fscore": micro_fscore,
+        metric = {
+            self.label_namespace: {
+                "precision": precision_dict,
+                "recall": recall_dict,
+                "fscore": fscore_dict,
+                "num_tp": self.tp_counter,
+                "num_fp": self.fp_counter,
+                "num_fn": self.fn_counter,
+                "macro_precision": macro_precision,
+                "macro_recall": macro_recall,
+                "macro_fscore": macro_fscore,
+                "micro_precision": micro_precision,
+                "micro_recall": micro_recall,
+                "micro_fscore": micro_fscore,
+            }
         }
+
+        return metric
 
     def reset(self) -> None:
         """ Resets all the counters
@@ -340,18 +339,6 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
             precision recall and fmeasures for different classes
 
         """
-
-        accuracy_metrics = self.get_metric()
-        precision = accuracy_metrics["precision"]
-        recall = accuracy_metrics["recall"]
-        fscore = accuracy_metrics["fscore"]
-        macro_precision = accuracy_metrics["macro_precision"]
-        macro_recall = accuracy_metrics["macro_recall"]
-        macro_fscore = accuracy_metrics["macro_fscore"]
-        micro_precision = accuracy_metrics["micro_precision"]
-        micro_recall = accuracy_metrics["micro_recall"]
-        micro_fscore = accuracy_metrics["micro_fscore"]
-
         if report_type == "wasabi":
             table = self.classification_metrics_utils.generate_table_report_from_counters(
                 tp_counter=self.tp_counter,
@@ -359,11 +346,3 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
                 fn_counter=self.fn_counter,
             )
             return table
-
-        elif report_type == "paper":
-            "Refer to the paper Logical Structure Recovery in Scholarly Articles with " "Rich Document Features Table 2. It generates just fscores and returns"
-            class_nums = fscore.keys()
-            class_nums = sorted(class_nums, reverse=False)
-            fscores = [fscore[class_num] for class_num in class_nums]
-            fscores.extend([micro_fscore, macro_fscore])
-            return fscores

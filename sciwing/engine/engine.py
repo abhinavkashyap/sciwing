@@ -148,6 +148,7 @@ class Engine(ClassNursery):
         )
         self.use_wandb = wandb and use_wandb
         self.sample_proportion = sample_proportion
+        self.label_namespaces = self.datasets_manager.label_namespaces
         self.datasets_manager.print_stats()
 
         if experiment_name is None:
@@ -396,10 +397,15 @@ class Engine(ClassNursery):
         if self.use_wandb:
             wandb.log({"train_loss": average_loss}, step=epoch_num + 1)
             if self.track_for_best != "loss":
-                wandb.log(
-                    {f"train_{self.track_for_best}": metric[self.track_for_best]},
-                    step=epoch_num + 1,
-                )
+                for label_namespace in self.label_namespaces:
+                    wandb.log(
+                        {
+                            f"train_{self.track_for_best}_{label_namespace}": metric[
+                                label_namespace
+                            ][self.track_for_best]
+                        },
+                        step=epoch_num + 1,
+                    )
 
         # save the model after every `self.save_every` epochs
         if (epoch_num + 1) % self.save_every == 0:
@@ -485,10 +491,17 @@ class Engine(ClassNursery):
             wandb.log({"validation_loss": average_loss}, step=epoch_num + 1)
             metric = self.validation_metric_calc.get_metric()
             if self.track_for_best != "loss":
-                wandb.log(
-                    {f"validation_{self.track_for_best}": metric[self.track_for_best]},
-                    step=epoch_num + 1,
-                )
+                for label_namespace in self.label_namespaces:
+                    wandb.log(
+                        {
+                            f"validation_{self.track_for_best}_{label_namespace}": metric[
+                                label_namespace
+                            ][
+                                self.track_for_best
+                            ]
+                        },
+                        step=epoch_num + 1,
+                    )
 
         self.summaryWriter.add_scalars(
             "train_validation_loss",
@@ -505,10 +518,16 @@ class Engine(ClassNursery):
             self.track_for_best == "micro_fscore"
             or self.track_for_best == "macro_fscore"
         ):
-            value_tracked = self.validation_metric_calc.get_metric()[
-                self.track_for_best
-            ]
-            is_best = self.is_best_higher(current_best=value_tracked)
+            # If there are multiple namespaces for the metric
+            # we decide the best model based on the average score
+            values_tracked = []
+            metrics = self.validation_metric_calc.get_metric()
+            for label_namespace in self.label_namespaces:
+                value_tracked = metrics[label_namespace][self.track_for_best]
+                values_tracked.append(value_tracked)
+
+            average_value = sum(values_tracked) / len(values_tracked)
+            is_best = self.is_best_higher(current_best=average_value)
 
         if is_best:
             self.set_best_track_value(current_best=value_tracked)
