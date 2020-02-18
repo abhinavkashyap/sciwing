@@ -46,10 +46,10 @@ class ParscitTagger(nn.Module):
     def forward(
         self,
         lines: List[Line],
-        labels: List[SeqLabel],
-        is_training: bool,
-        is_validation: bool,
-        is_test: bool,
+        labels: List[SeqLabel] = None,
+        is_training: bool = False,
+        is_validation: bool = False,
+        is_test: bool = False,
     ):
         """
         Parameters

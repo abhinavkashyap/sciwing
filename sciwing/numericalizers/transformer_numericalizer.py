@@ -3,6 +3,7 @@ from sciwing.vocab.vocab import Vocab
 from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
 from sciwing.data.token import Token
+import torch
 
 
 class NumericalizerForTransformer(BaseNumericalizer):
@@ -99,3 +100,23 @@ class NumericalizerForTransformer(BaseNumericalizer):
             )
             padded_instances.append(padded_instance)
         return padded_instances
+
+    def get_mask_for_instance(self, instance: List[int]):
+        start_idx = self.tokenizer.tokenizer.vocab["[CLS]"]
+        end_idx = self.tokenizer.tokenizer.vocab["[SEP]"]
+        pad_idx = self.tokenizer.tokenizer.vocab["[PAD]"]
+        unk_idx = self.tokenizer.tokenizer.vocab["[UNK]"]
+
+        masked_tokens = [start_idx, end_idx, pad_idx, unk_idx]
+        mask = [1 if token in masked_tokens else 0 for token in instance]
+        mask = torch.ByteTensor(mask)
+        return mask
+
+    def get_mask_for_batch_instances(self, instances: List[List[int]]):
+        masks = []
+        for instance in instances:
+            mask = self.get_mask_for_batch_instances(instance=instance)
+            masks.append(mask)
+
+        masks = torch.BytTensor(masks)
+        return masks

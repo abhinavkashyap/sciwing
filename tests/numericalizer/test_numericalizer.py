@@ -1,6 +1,7 @@
 import pytest
 from sciwing.numericalizers.numericalizer import Numericalizer
 from sciwing.vocab.vocab import Vocab
+import torch
 
 
 @pytest.fixture
@@ -57,3 +58,19 @@ class TestNumericalizer:
         numerical_tokens = numericalizer.numericalize_batch_instances(single_instance)
         for instance in numerical_tokens:
             assert isinstance(instance, list)
+
+    def test_mask_instance(self, single_instance_setup):
+        single_instance, numericalizer, vocab = single_instance_setup
+        numerical_tokens = numericalizer.numericalize_instance(
+            instance=single_instance[0]
+        )
+        padded_numerical_tokens = numericalizer.pad_instance(
+            numericalized_text=numerical_tokens,
+            max_length=10,
+            add_start_end_token=False,
+        )
+        padding_length = 10 - len(numerical_tokens)
+        expected_mask = [0] * len(numerical_tokens) + [1] * padding_length
+        expected_mask = torch.ByteTensor(expected_mask)
+        mask = numericalizer.get_mask_for_instance(instance=padded_numerical_tokens)
+        assert torch.all(torch.eq(mask, expected_mask))

@@ -124,3 +124,20 @@ class BaseClassificationInference(metaclass=ABCMeta):
         """ Reports the metrics for returning the dataset
         """
         pass
+
+    def run_test(self):
+        pass
+
+    def print_confusion_matrix(self):
+        pass
+
+    def get_misclassified_sentences(
+        self, true_label_idx: int, pred_label_idx: int
+    ) -> List[str]:
+        pass
+
+    def on_user_input(self, line: Line):
+        pass
+
+    def infer_batch(self, lines: List[Line]):
+        pass

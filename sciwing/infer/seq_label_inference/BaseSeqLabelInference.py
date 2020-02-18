@@ -2,6 +2,10 @@ from abc import ABCMeta, abstractmethod
 from typing import Dict, Any, List, Optional, Union
 import torch
 import wasabi
+from sciwing.data.line import Line
+from sciwing.data.seq_label import SeqLabel
+import torch.nn as nn
+from sciwing.data.datasets_manager import DatasetsManager
 
 
 class BaseSeqLabelInference(metaclass=ABCMeta):
@@ -10,8 +14,15 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
     text classification task.
     """
 
-    def __init__(self, model, model_filepath, dataset, device):
+    def __init__(
+        self,
+        model: nn.Module,
+        model_filepath: str,
+        datasets_manager: DatasetsManager,
+        device: Optional[Union[str, torch.device]] = torch.device("cpu"),
+    ):
         """
+
         Parameters
         ----------
         model : nn.Module
@@ -19,14 +30,14 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
         model_filepath : str
             The path where the parameters for the best models are stored. This is usually
             the ``best_model.pt`` while in an experiment directory
-        dataset : Dataset
+        datasets_manager : DatasetsManager
             Any dataset that conforms to the pytorch Dataset specification
         device : Optional[Union[str, torch.device]]
             This is either a string like ``cpu``, ``cuda:0`` or a torch.device object
         """
         self.model = model
         self.model_filepath = model_filepath
-        self.dataset = dataset
+        self.datasets_manager = datasets_manager
         self.device = device
         self.msg_printer = wasabi.Printer()
 
@@ -60,34 +71,16 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
         )
 
     @abstractmethod
-    def model_forward_on_iter_dict(self, iter_dict: Dict[str, Any]):
+    def model_forward_on_lines(self, lines: List[Line]):
         """ Perform the model forward pass  given an ``iter_dict``
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
+        lines : List[Line]
             ``iter_dict`` returned by a dataset
 
         """
         pass
-
-    @abstractmethod
-    def metric_calc_on_iter_dict(
-        self, iter_dict: Dict[str, Any], model_output_dict: Dict[str, Any]
-    ):
-        """ Calculate the metric given an ``iter_dict`` and an ``model_output_dict``
-        that is obtained by a forward pass of the model
-
-        Parameters
-        ----------
-        iter_dict : Dict[str, Any]
-            ``iter_dict`` returned by a dataset
-
-        model_output_dict : Dict[str, Any]
-            ``model_output_dict`` : output dict that is returned by
-            forwarding the ``iter_dict`` through the model
-
-        """
 
     @abstractmethod
     def model_output_dict_to_prediction_indices_names(
@@ -109,40 +102,23 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
           """
 
     @abstractmethod
-    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]):
-        """ Returns human readable sentences given an ``iter_dict``
+    def get_true_label_indices_names(
+        self, labels: List[SeqLabel]
+    ) -> (Dict[str, List[int]], Dict[str, List[str]]):
+        """ Given an list of labels, it returns the indices and the names of the label
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
+        labels : Dict[str, Any]
             ``iter_dict`` returned by a dataset
 
         Returns
         -------
-        List[str]
-            A list of human readable sentences
+        (Dict[str, List[int]], Dict[str, List[str]])
+            A mapping between a label namespace and List of integers that represent the true class
+            A mapping between a label namespace and a List of strings that represent the true class
 
         """
-        pass
-
-    @abstractmethod
-    def iter_dict_to_true_indices_names(self, iter_dict: Dict[str, Any]):
-        """ Given an ``iter_dict``, it returns the indices of the true classes
-        and the corresponding classnames
-
-        Parameters
-        ----------
-        iter_dict : Dict[str, Any]
-            ``iter_dict`` returned by a dataset
-
-        Returns
-        -------
-        (List[int], List[str])
-            List of integers that represent the true class
-            List of strings that represent the true class
-
-        """
-        pass
 
     @abstractmethod
     def report_metrics(self):
@@ -150,7 +126,19 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
     def run_test(self):
-        """ Runs the inference on test dataset and reports metrics"""
+        pass
+
+    def print_confusion_matrix(self):
+        pass
+
+    def get_misclassified_sentences(
+        self, true_label_idx: int, pred_label_idx: int
+    ) -> List[str]:
+        pass
+
+    def on_user_input(self, line: Line):
+        pass
+
+    def infer_batch(self, lines: List[Line]):
         pass

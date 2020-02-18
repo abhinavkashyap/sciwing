@@ -42,7 +42,6 @@ class ClassificationInference(BaseClassificationInference):
         model_filepath: str,
         datasets_manager: DatasetsManager,
         tokens_namespace: str = "tokens",
-        labels_namespace: str = "label",
         normalized_probs_namespace: str = "normalized_probs",
     ):
 
@@ -54,7 +53,7 @@ class ClassificationInference(BaseClassificationInference):
         self.batch_size = 32
         self.tokens_namespace = tokens_namespace
         self.normalized_probs_namespace = normalized_probs_namespace
-        self.label_namespace = labels_namespace
+        self.label_namespace = self.datasets_manager.label_namespaces[0]
 
         self.labelname2idx_mapping = self.datasets_manager.get_label_idx_mapping(
             label_namespace=self.label_namespace

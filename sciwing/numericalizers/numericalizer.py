@@ -1,6 +1,7 @@
 from typing import List
 from sciwing.vocab.vocab import Vocab
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
+import torch
 
 
 class Numericalizer(BaseNumericalizer):
@@ -148,3 +149,27 @@ class Numericalizer(BaseNumericalizer):
     @vocabulary.setter
     def vocabulary(self, value):
         self._vocabulary = value
+
+    def get_mask_for_instance(self, instance: List[int]) -> torch.ByteTensor:
+        start_token_idx = self.vocabulary.get_idx_from_token(
+            self.vocabulary.start_token
+        )
+        end_token_idx = self.vocabulary.get_idx_from_token(self.vocabulary.end_token)
+        pad_token_idx = self.vocabulary.get_idx_from_token(self.vocabulary.pad_token)
+        unk_token_idx = self.vocabulary.get_idx_from_token(self.vocabulary.unk_token)
+        masked_tokens = [start_token_idx, end_token_idx, pad_token_idx, unk_token_idx]
+
+        mask = [1 if token in masked_tokens else 0 for token in instance]
+        mask = torch.ByteTensor(mask)
+        return mask
+
+    def get_mask_for_batch_instances(
+        self, instances: List[List[int]]
+    ) -> torch.ByteTensor:
+        masks = []
+        for instance in instances:
+            mask = self.get_mask_for_batch_instances(instance=instance)
+            masks.append(mask)
+
+        masks = torch.BytTensor(masks)
+        return masks

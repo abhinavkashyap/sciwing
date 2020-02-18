@@ -1,6 +1,7 @@
 from sciwing.vocab.vocab import Vocab
 from typing import List
 from abc import ABCMeta, abstractmethod
+import torch
 
 
 class BaseNumericalizer(metaclass=ABCMeta):
@@ -31,4 +32,14 @@ class BaseNumericalizer(metaclass=ABCMeta):
         max_length: int,
         add_start_end_token: bool = True,
     ):
+        pass
+
+    @abstractmethod
+    def get_mask_for_instance(self, instance: List[int]) -> torch.ByteTensor:
+        pass
+
+    @abstractmethod
+    def get_mask_for_batch_instances(
+        self, instances: List[List[int]]
+    ) -> torch.ByteTensor:
         pass

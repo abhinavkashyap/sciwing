@@ -60,7 +60,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
             for namespace in self.label_namespaces:
                 # List[List[int]]
                 predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
-                max_length = len(predicted_tags[0])  # max num tokens
+                max_length = max(
+                    [len(tags) for tags in predicted_tags]
+                )  # max num tokens
 
                 true_labels = label.tokens[namespace]
                 true_labels = [tok.text for tok in true_labels]
@@ -217,13 +219,16 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
            precision recall and fmeasures for different classes
 
        """
+        reports = {}
         for namespace in self.label_namespaces:
             if report_type == "wasabi":
-                return self.classification_metrics_utils.generate_table_report_from_counters(
+                report = self.classification_metrics_utils.generate_table_report_from_counters(
                     tp_counter=self.tp_counter[namespace],
                     fp_counter=self.fp_counter[namespace],
                     fn_counter=self.fn_counter[namespace],
                 )
+                reports[namespace] = report
+        return reports
 
     def reset(self):
         self.tp_counter = {}
@@ -237,7 +242,8 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         true_tag_indices: List[List[int]],
         labels_mask: Optional[torch.ByteTensor] = None,
     ) -> None:
-        """
+        """ Prints confusion matrics for a batch of tag indices. It assumes that the batch
+        is padded and every instance is of similar length
 
         Parameters
         ----------
@@ -252,6 +258,7 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         """
 
+        print(f"true tag indices {true_tag_indices}")
         if labels_mask is None:
             labels_mask = torch.zeros_like(torch.Tensor(true_tag_indices)).type(
                 torch.ByteTensor
