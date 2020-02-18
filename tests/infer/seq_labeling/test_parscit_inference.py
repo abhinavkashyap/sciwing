@@ -138,9 +138,17 @@ class TestParscitInference:
         except:
             pytest.fail("Parscit print confusion metrics fails")
 
-    # def test_on_user_input(self, setup_parscit_inference):
-    #     inference_clinet = setup_parscit_inference
-    #     try:
-    #         inference_clinet.on_user_input("A.B. Abalone, Future Paper")
-    #     except:
-    #         pytest.fail("Infer on single sentence does not work")
+    def test_on_user_input(self, setup_parscit_inference):
+        inference = setup_parscit_inference
+        try:
+            inference.on_user_input("A.B. Abalone, Future Paper")
+        except:
+            pytest.fail("Infer on single sentence does not work")
+
+    def test_get_miscalssified_sentences(self, setup_parscit_inference):
+        inference = setup_parscit_inference
+        inference.run_test()
+        try:
+            inference.get_misclassified_sentences(true_label_idx=0, pred_label_idx=1)
+        except:
+            pytest.fail("Get misclassified sentences fails")

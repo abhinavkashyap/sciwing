@@ -66,9 +66,6 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
                 true_labels = label.tokens[namespace]
                 true_labels = [tok.text for tok in true_labels]
-                len_true_labels = len(true_labels)
-                len_padding = max_length - len_true_labels
-                labels_mask = [0] * len_true_labels + [1] * len_padding
                 numericalizer = self.datasets_manager.namespace_to_numericalizer[
                     namespace
                 ]
@@ -78,6 +75,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
                     max_length=max_length,
                     add_start_end_token=False,
                 )
+                labels_mask = numericalizer.get_mask_for_instance(
+                    instance=true_labels
+                ).tolist()
                 namespace_to_true_labels[namespace].append(true_labels)
                 namespace_to_labels_mask[namespace].append(labels_mask)
 

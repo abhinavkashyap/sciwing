@@ -137,8 +137,8 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
     ) -> List[str]:
         pass
 
-    def on_user_input(self, line: Line):
+    def on_user_input(self, line: Union[Line, str]) -> Dict[str, List[str]]:
         pass
 
-    def infer_batch(self, lines: List[Line]):
+    def infer_batch(self, lines: Union[List[Line], List[str]]) -> Dict[str, List[str]]:
         pass

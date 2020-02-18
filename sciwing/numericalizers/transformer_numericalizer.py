@@ -115,8 +115,8 @@ class NumericalizerForTransformer(BaseNumericalizer):
     def get_mask_for_batch_instances(self, instances: List[List[int]]):
         masks = []
         for instance in instances:
-            mask = self.get_mask_for_batch_instances(instance=instance)
+            mask = self.get_mask_for_instance(instance=instance).tolist()
             masks.append(mask)
 
-        masks = torch.BytTensor(masks)
+        masks = torch.ByteTensor(masks)
         return masks

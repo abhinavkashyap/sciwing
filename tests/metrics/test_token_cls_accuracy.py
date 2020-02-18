@@ -1,5 +1,4 @@
 import pytest
-import torch
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
     SeqLabellingDatasetManager,

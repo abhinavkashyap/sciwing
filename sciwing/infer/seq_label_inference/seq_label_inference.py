@@ -55,6 +55,9 @@ class SequenceLabellingInference(BaseSeqLabelInference):
         self.batch_size = 32
         self.load_model()
 
+        categories = set([label for label in self.label2idx_mapping.keys()])
+        self.seq_tagging_visualizer = VisTagging(tags=categories)
+
     def run_inference(self):
         with self.msg_printer.loading(text="Running inference on test data"):
             loader = DataLoader(
@@ -183,28 +186,110 @@ class SequenceLabellingInference(BaseSeqLabelInference):
         self.output_df = pd.DataFrame(self.output_analytics)
 
     def print_confusion_matrix(self):
+        """ This prints the confusion metrics for the entire dataset
+        Returns
+        -------
+        None
+        """
         for namespace in self.labels_namespaces:
-
             # List[List[int]]
             true_tags_indices = self.output_analytics[namespace]["true_tag_indices"]
             predicted_tag_indices = self.output_analytics[namespace][
                 "predicted_tag_indices"
             ]
 
+            max_len_pred = max([len(pred_tags) for pred_tags in predicted_tag_indices])
+            max_len_true = max([len(true_tags) for true_tags in true_tags_indices])
+
+            # pad everything to the max len of both
+            max_len = max_len_pred if max_len_pred > max_len_true else max_len_true
+
+            numericalizer = self.datasets_manager.namespace_to_numericalizer[namespace]
+            padded_true_tag_indices = numericalizer.pad_batch_instances(
+                instances=true_tags_indices,
+                max_length=max_len,
+                add_start_end_token=False,
+            )
+
+            padded_predicted_tag_indices = numericalizer.pad_batch_instances(
+                instances=predicted_tag_indices,
+                max_length=max_len,
+                add_start_end_token=False,
+            )
+
+            labels_mask = numericalizer.get_mask_for_batch_instances(
+                instances=padded_true_tag_indices
+            )
             # we have to pad the true tags indices and predicted tag indices all to max length
 
             self.metrics_calculator.print_confusion_metrics(
-                true_tag_indices=true_tags_indices,
-                predicted_tag_indices=predicted_tag_indices,
+                true_tag_indices=padded_true_tag_indices,
+                predicted_tag_indices=padded_predicted_tag_indices,
+                labels_mask=labels_mask,
             )
 
     def get_misclassified_sentences(
         self, true_label_idx: int, pred_label_idx: int
     ) -> List[str]:
-        pass
 
-    def on_user_input(self, line: Line):
-        pass
+        misclf_sentences = defaultdict(list)
+        print(self.output_df)
 
-    def infer_batch(self, lines: List[Line]):
-        pass
+        for namespace in self.labels_namespaces:
+            true_tag_indices = self.output_df[namespace].true_tag_indices
+            pred_tag_indices = self.output_df[namespace].predicted_tag_indices
+
+            indices = []
+
+            for idx, (true_tag_index, pred_tag_index) in enumerate(
+                zip(true_tag_indices, pred_tag_indices)
+            ):
+                true_tags_pred_tags = zip(true_tag_index, pred_tag_index)
+                for true_tag, pred_tag in true_tags_pred_tags:
+                    if true_tag == true_label_idx and pred_tag == pred_label_idx:
+                        indices.append(idx)
+                        break
+
+            for idx in indices:
+                sentence = self.output_analytics["sentences"][idx].split()
+                true_labels = self.output_analytics["true_tag_names"][idx].split()
+                pred_labels = self.output_analytics["predicted_tag_names"][idx].split()
+                len_sentence = len(sentence)
+                true_labels = true_labels[:len_sentence]
+                pred_labels = pred_labels[:len_sentence]
+                stylized_string_true = self.seq_tagging_visualizer.visualize_tokens(
+                    sentence, true_labels
+                )
+                stylized_string_predicted = self.seq_tagging_visualizer.visualize_tokens(
+                    sentence, pred_labels
+                )
+
+                sentence = (
+                    f"GOLD LABELS \n{'*' * 80} \n{stylized_string_true} \n\n"
+                    f"PREDICTED LABELS \n{'*' * 80} \n{stylized_string_predicted}\n\n"
+                )
+                misclf_sentences[namespace].append(sentence)
+
+        return misclf_sentences
+
+
+def on_user_input(self, line: Union[Line, str]) -> Dict[str, List[str]]:
+    return self.infer_batch(lines=[line])
+
+
+def infer_batch(self, lines: Union[List[Line], List[str]]) -> Dict[str, List[str]]:
+    lines_ = []
+
+    if isinstance(lines[0], str):
+        for line in lines:
+            line_ = self.datasets_manager.make_line(line=line)
+            lines_.append(line_)
+
+    else:
+        lines_ = lines
+
+    model_output_dict = self.model_forward_on_lines(lines=lines_)
+    _, pred_classnames = self.model_output_dict_to_prediction_indices_names(
+        model_output_dict
+    )
+    return pred_classnames
