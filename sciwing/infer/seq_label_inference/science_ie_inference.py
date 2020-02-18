@@ -16,6 +16,10 @@ import pandas as pd
 from deprecated import deprecated
 
 
+@deprecated(
+    reason="seq_label_inference which is more generic will be used for this"
+    "and will be removed in version 0.1"
+)
 class ScienceIEInference(BaseSeqLabelInference):
     def __init__(
         self,
@@ -76,25 +80,19 @@ class ScienceIEInference(BaseSeqLabelInference):
             )
             batch_sentences = self.iter_dict_to_sentences(iter_dict=iter_dict)
 
-            (predicted_task_tags, predicted_task_strings), (
-                predicted_process_tags,
-                predicted_process_strings,
-            ), (
-                predicted_material_tags,
-                predicted_material_strings,
+            (
+                (predicted_task_tags, predicted_task_strings),
+                (predicted_process_tags, predicted_process_strings),
+                (predicted_material_tags, predicted_material_strings),
             ) = self.model_output_dict_to_prediction_indices_names(
                 model_output_dict=model_output_dict
             )
 
-            (true_task_labels, true_task_labels_strings), (
-                true_process_labels,
-                true_process_labels_strings,
-            ), (
-                true_material_labels,
-                true_material_labels_strings,
-            ) = self.iter_dict_to_true_indices_names(
-                iter_dict=iter_dict
-            )
+            (
+                (true_task_labels, true_task_labels_strings),
+                (true_process_labels, true_process_labels_strings),
+                (true_material_labels, true_material_labels_strings),
+            ) = self.iter_dict_to_true_indices_names(iter_dict=iter_dict)
 
             sentences.extend(batch_sentences)
 
@@ -274,9 +272,10 @@ class ScienceIEInference(BaseSeqLabelInference):
 
         model_output_dict = self.model_forward_on_iter_dict(iter_dict=iter_dict)
 
-        (_, task_tag_names), (_, process_tag_names), (
-            _,
-            material_tag_names,
+        (
+            (_, task_tag_names),
+            (_, process_tag_names),
+            (_, material_tag_names),
         ) = self.model_output_dict_to_prediction_indices_names(
             model_output_dict=model_output_dict
         )
@@ -309,9 +308,11 @@ class ScienceIEInference(BaseSeqLabelInference):
         """
         words = line.split()
         len_words = len(words)
-        task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
-            line
-        )
+        (
+            task_tag_names,
+            process_tag_names,
+            material_tag_names,
+        ) = self.infer_single_sentence(line)
         len_task_tag_names = len(task_tag_names)
 
         infer_len = len_words if len_words < len_task_tag_names else len_task_tag_names
@@ -385,9 +386,11 @@ class ScienceIEInference(BaseSeqLabelInference):
                 for sent in sents:
                     line = [token.text for token in sent]
                     line = " ".join(line)
-                    task_tag_names, process_tag_names, material_tag_names = self.infer_single_sentence(
-                        line=line
-                    )
+                    (
+                        task_tag_names,
+                        process_tag_names,
+                        material_tag_names,
+                    ) = self.infer_single_sentence(line=line)
 
                     assert len(line.split()) == len(
                         task_tag_names

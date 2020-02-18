@@ -39,9 +39,11 @@ class ScienceIETaggerResource:
             resp.body = f"text is not present in the request"
 
         else:
-            task_tags, process_tags, material_tags = self.model_infer_client.infer_single_sentence(
-                science_text
-            )
+            (
+                task_tags,
+                process_tags,
+                material_tags,
+            ) = self.model_infer_client.infer_single_sentence(science_text)
             resp.status = falcon.HTTP_200
             resp.media = {
                 "text": science_text,

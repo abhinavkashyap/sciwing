@@ -14,6 +14,10 @@ import wasabi
 from deprecated import deprecated
 
 
+@deprecated(
+    reason="seq_label_inference which is more generic will be used for this"
+    "and will be removed in version 0.1"
+)
 class ParscitInference(BaseSeqLabelInference):
     def __init__(
         self,
@@ -63,7 +67,10 @@ class ParscitInference(BaseSeqLabelInference):
             )
             batch_sentences = self.iter_dict_to_sentences(iter_dict=iter_dict)
 
-            predicted_tags, predicted_tag_strings = self.model_output_dict_to_prediction_indices_names(
+            (
+                predicted_tags,
+                predicted_tag_strings,
+            ) = self.model_output_dict_to_prediction_indices_names(
                 model_output_dict=model_output_dict
             )
             true_tags, true_labels_strings = self.iter_dict_to_true_indices_names(
