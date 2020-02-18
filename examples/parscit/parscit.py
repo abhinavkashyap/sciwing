@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     char_embedder = CharEmbedder(
         char_embedding_dimension=args.char_emb_dim,
-        hidden_dimension=args.hidden_dim,
+        hidden_dimension=args.char_encoder_hidden_dim,
         datasets_manager=data_manager,
     )
 
