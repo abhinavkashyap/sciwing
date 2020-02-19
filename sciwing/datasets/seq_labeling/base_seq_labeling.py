@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import Dict, List
 from sciwing.data.line import Line
-from sciwing.data.label import Label
+from sciwing.data.seq_label import SeqLabel
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 
 
@@ -19,7 +19,7 @@ class BaseSeqLabelingDataset(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def get_lines_labels(self) -> (List[Line], List[Label]):
+    def get_lines_labels(self) -> (List[Line], List[SeqLabel]):
         """ A list of lines from the file and a list of corresponding labels
 
         This method is to be implemented by a new dataset. The decision on

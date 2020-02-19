@@ -33,6 +33,9 @@ class TestParscitDataset:
         lines, labels = train_dataset.get_lines_labels()
         train_labels = []
         for label in labels:
-            train_labels.extend(label.labels)
-        num_classes = len(set(train_labels))
+            label_tokens = label.tokens["seq_label"]
+            label_tokens = [tok.text for tok in label_tokens]
+            train_labels.extend(label_tokens)
+        train_labels = set(train_labels)
+        num_classes = len(train_labels)
         assert num_classes == 14

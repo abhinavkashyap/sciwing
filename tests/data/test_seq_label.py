@@ -5,7 +5,7 @@ import pytest
 @pytest.fixture
 def setup_seq_labels():
     labels = ["B-PER", "L-PER"]
-    label = SeqLabel(labels=labels)
+    label = SeqLabel(labels={"seq_label": labels})
     return label
 
 

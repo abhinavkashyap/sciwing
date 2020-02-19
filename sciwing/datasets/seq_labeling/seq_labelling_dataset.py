@@ -44,7 +44,7 @@ class SeqLabellingDataset(BaseSeqLabelingDataset, Dataset):
                     word_labels.append(word_label)
 
                 line = Line(text=" ".join(words), tokenizers=self.tokenizers)
-                label = SeqLabel(labels=word_labels)
+                label = SeqLabel(labels={"seq_label": word_labels})
                 lines.append(line)
                 labels.append(label)
 

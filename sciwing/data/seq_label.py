@@ -4,22 +4,20 @@ from collections import defaultdict
 
 
 class SeqLabel:
-    def __init__(self, labels: List[str], namespace="seq_label"):
+    def __init__(self, labels: Dict[str, List[str]]):
         """ Sequential Labels are used to label every token in a line. This mostly gets used for sequential
 
         Parameters
         ----------
-        labels : List[str]
-            A list of labels
-        namespace : str
-            The namespace used for this label
+        labels : Dict[str, List[str]]
+            A mapping between a namespace and a list of strings
         """
         self.labels = labels
-        self.namespace = namespace
+        self.namespace = list(self.labels.keys())
         self.tokens: Dict[str, List[Token]] = defaultdict(list)
 
-        for label in labels:
-            self.add_token(token=label, namespace=self.namespace)
+        for namespace, label in labels.items():
+            self.add_tokens(tokens=label, namespace=namespace)
 
     @property
     def labels(self):
@@ -31,7 +29,7 @@ class SeqLabel:
 
     @property
     def namespace(self):
-        return self._namespace
+        return list(self.tokens.keys())
 
     @namespace.setter
     def namespace(self, value):

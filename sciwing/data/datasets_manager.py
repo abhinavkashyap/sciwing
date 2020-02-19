@@ -65,9 +65,8 @@ class DatasetsManager:
         self.namespaces = list(self.namespace_to_vocab.keys())
         self.num_labels = {}
         for namespace in self.label_namespaces:
-            self.num_labels[namespace] = self.namespace_to_vocab[
-                namespace
-            ].get_vocab_len()
+            vocab = self.namespace_to_vocab[namespace]
+            self.num_labels[namespace] = vocab.get_vocab_len()
 
     def build_vocab(self) -> Dict[str, Vocab]:
         """ Returns a vocab for each of the namespace

@@ -3,7 +3,6 @@ from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.data.token import Token
 from typing import Union, List, Dict
 from collections import defaultdict
-import copy
 
 
 class Line:
