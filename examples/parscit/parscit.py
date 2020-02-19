@@ -1,4 +1,4 @@
-from sciwing.models.parscit_tagger import ParscitTagger
+from sciwing.models.parscit_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         rnn_bias=True,
         device=torch.device(args.device),
     )
-    model = ParscitTagger(
+    model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
         encoding_dim=2 * args.hidden_dim
         if args.bidirectional and args.combine_strategy == "concat"

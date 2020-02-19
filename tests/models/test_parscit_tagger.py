@@ -1,5 +1,5 @@
 import pytest
-from sciwing.models.parscit_tagger import ParscitTagger
+from sciwing.models.parscit_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
@@ -61,7 +61,7 @@ def setup_parscit_tagger(seq_dataset_manager):
         rnn_bias=False,
     )
 
-    tagger = ParscitTagger(
+    tagger = RnnSeqCrfTagger(
         rnn2seqencoder=encoder,
         encoding_dim=2 * HIDDEN_DIM
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"

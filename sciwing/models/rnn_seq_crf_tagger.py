@@ -1,15 +1,16 @@
 import torch.nn as nn
-from typing import Dict, List
-from torchcrf import CRF
+from typing import Dict, List, Tuple
+from allennlp.modules.conditional_random_field import ConditionalRandomField as CRF
 import torch
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.utils.tensor_utils import get_mask
 from sciwing.data.seq_label import SeqLabel
 from sciwing.data.line import Line
 from collections import defaultdict
 
 
-class ParscitTagger(nn.Module):
+class RnnSeqCrfTagger(nn.Module):
     """PyTorch module for Neural Parscit"""
 
     def __init__(
@@ -18,6 +19,7 @@ class ParscitTagger(nn.Module):
         encoding_dim: int,
         datasets_manager: DatasetsManager,
         device: torch.device = torch.device("cpu"),
+        namespace_to_constraints: Dict[str, List[Tuple[int, int]]] = None,
     ):
         """
 
@@ -27,18 +29,29 @@ class ParscitTagger(nn.Module):
             Lstm2SeqEncoder that encodes a set of instances to a sequence of hidden states
         encoding_dim : int
             Hidden dimension of the lstm2seq encoder
+        namespace_to_constraints: Dict[str, List[Tuple[int, int]]]
+            A set of constraints that are valid transitions
         """
-        super(ParscitTagger, self).__init__()
+        super(RnnSeqCrfTagger, self).__init__()
         self.rnn2seqencoder = rnn2seqencoder
         self.encoding_dim = encoding_dim
         self.datasets_manager = datasets_manager
+
+        if namespace_to_constraints is None:
+            namespace_to_constraints = defaultdict(list)
+
+        self.namespace_to_constraints = namespace_to_constraints
         self.label_namespaces = datasets_manager.label_namespaces
         self.device = device
         self.crfs = {}
         self.linear_clfs = {}
         for namespace in self.label_namespaces:
             num_labels = self.datasets_manager.num_labels[namespace]
-            crf = CRF(num_tags=num_labels, batch_first=True)
+            crf = CRF(
+                num_tags=num_labels,
+                constraints=self.namespace_to_constraints.get(namespace),
+                include_start_end_transitions=False,
+            )  # we do not add start and end tags to our labels
             clf = nn.Linear(self.encoding_dim, num_labels)
             self.crfs[namespace] = crf
             self.linear_clfs[namespace] = clf
@@ -84,13 +97,19 @@ class ParscitTagger(nn.Module):
         encoding = self.rnn2seqencoder(lines=lines)
         max_time_steps = encoding.size(1)
 
-        # batch size, time steps, num_classes
         output_dict = {}
         for namespace in self.label_namespaces:
+            # batch size, time steps, num_classes
             namespace_logits = self.linear_clfs[namespace](encoding)
+            batch_size, time_steps, _ = namespace_logits.size()
             output_dict[f"logits_{namespace}"] = namespace_logits
-            output_dict[f"predicted_tags_{namespace}"] = self.crfs[namespace].decode(
-                namespace_logits
+            output_dict[f"predicted_tags_{namespace}"] = self.crfs[
+                namespace
+            ].viterbi_tags(
+                logits=namespace_logits,
+                mask=torch.ones(
+                    size=(batch_size, time_steps), dtype=torch.long, device=self.device
+                ),
             )
 
         if is_training or is_validation:
@@ -114,13 +133,19 @@ class ParscitTagger(nn.Module):
                     label_instances = label_instances.to(self.device)
                     labels_indices[namespace].append(label_instances)
 
+            len_tokens = torch.LongTensor([len(line.tokens) for line in lines])
+            mask = get_mask(
+                batch_size=len(lines), max_size=max_time_steps, lengths=len_tokens
+            )
+            mask = mask.to(self.device)
+
             losses = []
             for namespace in self.label_namespaces:
                 labels_tensor = labels_indices[namespace]
                 labels_tensor = torch.stack(labels_tensor)
-                loss_ = -self.crfs[namespace](
-                    output_dict[f"logits_{namespace}"], labels_tensor
-                )
+                logits_namespace = output_dict[f"logits_{namespace}"]
+                crf_ = self.crfs[namespace]
+                loss_ = -crf_(logits_namespace, labels_tensor, mask)
                 losses.append(loss_)
 
             loss = sum(losses)

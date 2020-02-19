@@ -8,7 +8,7 @@ from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
-from sciwing.models.parscit_tagger import ParscitTagger
+from sciwing.models.parscit_tagger import RnnSeqCrfTagger
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from sciwing.engine.engine import Engine
 from sciwing.infer.seq_label_inference.seq_label_inference import (
@@ -72,7 +72,7 @@ def setup_parscit_inference(seq_dataset_manager, tmpdir_factory):
         rnn_bias=False,
     )
 
-    tagger = ParscitTagger(
+    tagger = RnnSeqCrfTagger(
         rnn2seqencoder=encoder,
         encoding_dim=2 * HIDDEN_DIM
         if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"

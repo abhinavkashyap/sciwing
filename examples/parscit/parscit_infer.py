@@ -7,7 +7,7 @@ from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.models.parscit_tagger import ParscitTagger
+from sciwing.models.parscit_tagger import RnnSeqCrfTagger
 from sciwing.infer.seq_label_inference.seq_label_inference import (
     SequenceLabellingInference,
 )
@@ -44,7 +44,7 @@ def build_parscit_model(dirname: str):
         device=torch.device("cpu"),
     )
 
-    model = ParscitTagger(
+    model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder, encoding_dim=512, datasets_manager=data_manager
     )
 
