@@ -9,10 +9,10 @@ from sciwing.utils.tensor_utils import get_mask
 from sciwing.data.seq_label import SeqLabel
 from sciwing.data.line import Line
 from collections import defaultdict
-import copy
+from sciwing.utils.class_nursery import ClassNursery
 
 
-class RnnSeqCrfTagger(nn.Module):
+class RnnSeqCrfTagger(nn.Module, ClassNursery):
     """PyTorch module for Neural Parscit"""
 
     def __init__(
