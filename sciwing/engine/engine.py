@@ -369,7 +369,9 @@ class Engine(ClassNursery):
                 num_iterations += 1
                 if (num_iterations + 1) % self.log_train_metrics_every == 0:
                     metrics = self.train_metric_calc.report_metrics()
-                    print(metrics)
+                    for label_namespace, table in metrics.items():
+                        self.msg_printer.divider(text=f"{label_namespace}")
+                        print(table)
             except StopIteration:
                 self.train_epoch_end(epoch_num)
                 break
@@ -479,7 +481,10 @@ class Engine(ClassNursery):
         metric_report = self.validation_metric_calc.report_metrics()
 
         average_loss = self.validation_loss_meter.get_average()
-        print(metric_report)
+
+        for label_namespace, table in metric_report.items():
+            self.msg_printer.divider(text=f"{label_namespace}")
+            print(table)
 
         self.msg_printer.text(f"Average Loss: {average_loss}")
 
@@ -594,9 +599,12 @@ class Engine(ClassNursery):
 
         """
         metric_report = self.test_metric_calc.report_metrics()
+        for label_namespace, table in metric_report.items():
+            self.msg_printer.divider(text=f"{label_namespace}")
+            print(table)
+
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
         self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
-        print(metric_report)
         self.test_logger.info(
             f"Test Metrics @ Epoch {epoch_num+1} - {precision_recall_fmeasure}"
         )

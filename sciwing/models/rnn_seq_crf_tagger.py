@@ -1,6 +1,7 @@
 import torch.nn as nn
 from typing import Dict, List, Tuple
 from allennlp.modules.conditional_random_field import ConditionalRandomField as CRF
+from allennlp.modules.conditional_random_field import allowed_transitions
 import torch
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.data.datasets_manager import DatasetsManager
@@ -8,6 +9,7 @@ from sciwing.utils.tensor_utils import get_mask
 from sciwing.data.seq_label import SeqLabel
 from sciwing.data.line import Line
 from collections import defaultdict
+import copy
 
 
 class RnnSeqCrfTagger(nn.Module):
@@ -20,6 +22,7 @@ class RnnSeqCrfTagger(nn.Module):
         datasets_manager: DatasetsManager,
         device: torch.device = torch.device("cpu"),
         namespace_to_constraints: Dict[str, List[Tuple[int, int]]] = None,
+        tagging_type=None,
     ):
         """
 
@@ -37,14 +40,25 @@ class RnnSeqCrfTagger(nn.Module):
         self.encoding_dim = encoding_dim
         self.datasets_manager = datasets_manager
 
-        if namespace_to_constraints is None:
+        self.label_namespaces = datasets_manager.label_namespaces
+        self.device = device
+        self.tagging_type = tagging_type
+        self.crfs = {}
+        self.linear_clfs = {}
+        if namespace_to_constraints is None and self.tagging_type is not None:
+            namespace_to_constraints = defaultdict(list)
+            for namespace in self.label_namespaces:
+                idx2label_mapping = self.datasets_manager.get_idx_label_mapping(
+                    label_namespace=namespace
+                )
+                transitions_allowed = allowed_transitions(
+                    constraint_type="BIOUL", labels=idx2label_mapping
+                )
+                namespace_to_constraints[namespace] = transitions_allowed
+        else:
             namespace_to_constraints = defaultdict(list)
 
         self.namespace_to_constraints = namespace_to_constraints
-        self.label_namespaces = datasets_manager.label_namespaces
-        self.device = device
-        self.crfs = {}
-        self.linear_clfs = {}
         for namespace in self.label_namespaces:
             num_labels = self.datasets_manager.num_labels[namespace]
             crf = CRF(
@@ -103,14 +117,15 @@ class RnnSeqCrfTagger(nn.Module):
             namespace_logits = self.linear_clfs[namespace](encoding)
             batch_size, time_steps, _ = namespace_logits.size()
             output_dict[f"logits_{namespace}"] = namespace_logits
-            output_dict[f"predicted_tags_{namespace}"] = self.crfs[
-                namespace
-            ].viterbi_tags(
+            crf_ = self.crfs[namespace]
+            predicted_tags = crf_.viterbi_tags(
                 logits=namespace_logits,
                 mask=torch.ones(
                     size=(batch_size, time_steps), dtype=torch.long, device=self.device
                 ),
             )
+            predicted_tags = [tag for tag, _ in predicted_tags]
+            output_dict[f"predicted_tags_{namespace}"] = predicted_tags
 
         if is_training or is_validation:
             labels_indices = defaultdict(list)

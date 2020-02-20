@@ -1,4 +1,4 @@
-from sciwing.models.parscit_tagger import RnnSeqCrfTagger
+from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
@@ -112,6 +112,7 @@ if __name__ == "__main__":
         encoding_dim=2 * args.hidden_dim
         if args.bidirectional and args.combine_strategy == "concat"
         else args.hidden_dim,
+        device=torch.device(args.device),
         datasets_manager=data_manager,
     )
 

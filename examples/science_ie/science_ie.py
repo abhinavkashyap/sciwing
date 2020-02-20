@@ -1,54 +1,25 @@
-from sciwing.models.science_ie_tagger import ScienceIETagger
+from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
+from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.modules.charlstm_encoder import CharLSTMEncoder
-from sciwing.modules.embedders.vanilla_embedder import WordEmbedder
+from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
-from sciwing.datasets.seq_labeling.science_ie_dataset import ScienceIEDataset
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
 import sciwing.constants as constants
-from allennlp.modules.conditional_random_field import allowed_transitions
-import os
 import torch
 import torch.optim as optim
 from sciwing.engine.engine import Engine
-import json
 import argparse
 import pathlib
-import torch.nn as nn
 import wasabi
 
 DATA_DIR = constants.PATHS["DATA_DIR"]
 
 if __name__ == "__main__":
     # read the hyperparams from config file
-    parser = argparse.ArgumentParser(
-        description="LSTM CRF Parscit tagger for reference string parsing"
-    )
+    parser = argparse.ArgumentParser(description="ScienceIE Tagger for ScienceIE task")
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
-    parser.add_argument(
-        "--max_num_words",
-        help="Maximum number of words to be considered " "in the vocab",
-        type=int,
-    )
-    parser.add_argument(
-        "--max_len", help="Maximum length of sentences to be considered", type=int
-    )
-    parser.add_argument(
-        "--max_char_len", help="Maximum length of sentences to be considered", type=int
-    )
-
-    parser.add_argument(
-        "--debug",
-        help="Specify whether this is run on a debug options. The "
-        "dataset considered will be small",
-        action="store_true",
-    )
-    parser.add_argument(
-        "--debug_dataset_proportion",
-        help="The proportion of the dataset " "that will be used if debug is true",
-        type=float,
-    )
     parser.add_argument("--bs", help="batch size", type=int)
     parser.add_argument("--lr", help="learning rate", type=float)
     parser.add_argument("--epochs", help="number of epochs", type=int)
@@ -78,11 +49,6 @@ if __name__ == "__main__":
         action="store_true",
     )
     parser.add_argument(
-        "--use_char_encoder",
-        help="Specify whether to use character encoder with neural-parscit",
-        action="store_true",
-    )
-    parser.add_argument(
         "--char_encoder_hidden_dim",
         help="Character encoder hidden dimension.",
         type=int,
@@ -101,9 +67,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--seq_num_layers", help="Number of layers in the Seq2Seq encoder", type=int
-    )
-    parser.add_argument(
         "--exp_dir_path", help="Directory to store all experiment related information"
     )
     parser.add_argument(
@@ -111,251 +74,74 @@ if __name__ == "__main__":
         help="Directory where the checkpoints during model training are stored.",
     )
     parser.add_argument(
-        "--vocab_store_location", help="File in which the vocab is stored"
-    )
-    parser.add_argument(
-        "--char_vocab_store_location",
-        help="File in which the character vocab  is stored",
+        "--sample_proportion", help="Sample proportion of the dataset", type=float
     )
 
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
 
-    config = {
-        "EXP_NAME": args.exp_name,
-        "DEBUG": args.debug,
-        "DEBUG_DATASET_PROPORTION": args.debug_dataset_proportion,
-        "BATCH_SIZE": args.bs,
-        "EMBEDDING_DIMENSION": args.emb_dim,
-        "CHAR_EMBEDDING_DIMENSION": args.char_emb_dim,
-        "LEARNING_RATE": args.lr,
-        "NUM_EPOCHS": args.epochs,
-        "SAVE_EVERY": args.save_every,
-        "LOG_TRAIN_METRICS_EVERY": args.log_train_metrics_every,
-        "EMBEDDING_TYPE": args.emb_type,
-        "MAX_NUM_WORDS": args.max_num_words,
-        "MAX_LENGTH": args.max_len,
-        "MAX_CHAR_LENGTH": args.max_char_len,
-        "DEVICE": args.device,
-        "HIDDEN_DIM": args.hidden_dim,
-        "BIDIRECTIONAL": args.bidirectional,
-        "COMBINE_STRATEGY": args.combine_strategy,
-        "USE_CHAR_ENCODER": args.use_char_encoder,
-        "CHAR_ENCODER_HIDDEN_DIM": args.char_encoder_hidden_dim,
-        "REGULARIZATION_STRENGTH": args.reg,
-        "DROPOUT": args.dropout,
-        "NUM_LAYERS": args.seq_num_layers,
-        "EXP_DIR_PATH": args.exp_dir_path,
-        "MODEL_SAVE_DIR": args.model_save_dir,
-        "VOCAB_STORE_LOCATION": args.vocab_store_location,
-        "CHAR_VOCAB_STORE_LOCATION": args.char_vocab_store_location,
-    }
+    DATA_DIR = pathlib.Path(DATA_DIR)
+    train_filename = DATA_DIR.joinpath("train_science_ie_conll.txt")
+    dev_filename = DATA_DIR.joinpath("dev_science_ie_conll.txt")
 
-    EXP_NAME = config["EXP_NAME"]
-    VOCAB_STORE_LOCATION = config["VOCAB_STORE_LOCATION"]
-    DEBUG = config["DEBUG"]
-    DEBUG_DATASET_PROPORTION = config["DEBUG_DATASET_PROPORTION"]
-    BATCH_SIZE = config["BATCH_SIZE"]
-    LEARNING_RATE = config["LEARNING_RATE"]
-    NUM_EPOCHS = config["NUM_EPOCHS"]
-    SAVE_EVERY = config["SAVE_EVERY"]
-    LOG_TRAIN_METRICS_EVERY = config["LOG_TRAIN_METRICS_EVERY"]
-    EMBEDDING_DIMENSION = config["EMBEDDING_DIMENSION"]
-    CHAR_EMBEDDING_DIMENSION = config["CHAR_EMBEDDING_DIMENSION"]
-    EMBEDDING_TYPE = config["EMBEDDING_TYPE"]
-    MAX_NUM_WORDS = config["MAX_NUM_WORDS"]
-    MAX_LENGTH = config["MAX_LENGTH"]
-    DEVICE = config["DEVICE"]
-    HIDDEN_DIM = config["HIDDEN_DIM"]
-    BIDIRECTIONAL = config["BIDIRECTIONAL"]
-    COMBINE_STRATEGY = config["COMBINE_STRATEGY"]
-    MAX_CHAR_LENGTH = config["MAX_CHAR_LENGTH"]
-    USE_CHAR_ENCODER = config["USE_CHAR_ENCODER"]
-    CHAR_ENCODER_HIDDEN_DIM = config["CHAR_ENCODER_HIDDEN_DIM"]
-    REGULARIZATION_STRENGTH = config["REGULARIZATION_STRENGTH"]
-    DROPOUT = config["DROPOUT"]
-    NUM_LAYERS = config["NUM_LAYERS"]
-    EXP_DIR_PATH = config["EXP_DIR_PATH"]
-    EXP_DIR_PATH = pathlib.Path(EXP_DIR_PATH)
-    MODEL_SAVE_DIR = config["MODEL_SAVE_DIR"]
-    CHAR_VOCAB_STORE_LOCATION = config["CHAR_VOCAB_STORE_LOCATION"]
-
-    train_dataset = ScienceIEDataset(
-        filename=pathlib.Path(".", "train_science_ie_conll.txt"),
-        dataset_type="train",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        max_char_length=MAX_CHAR_LENGTH,
-        word_vocab_store_location=VOCAB_STORE_LOCATION,
-        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
-        debug=DEBUG,
-        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=EMBEDDING_TYPE,
-        word_embedding_dimension=EMBEDDING_DIMENSION,
-        char_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
-        word_start_token="<SOS>",
-        word_end_token="<EOS>",
-        word_pad_token="<PAD>",
-        word_unk_token="<UNK>",
-        word_add_start_end_token=False,
+    data_manager = CoNLLDatasetManager(
+        train_filename=train_filename,
+        dev_filename=dev_filename,
+        test_filename=dev_filename,
+        column_names=["TASK", "PROCESS", "MATERIAL"],
     )
 
-    validation_dataset = ScienceIEDataset(
-        filename=pathlib.Path(".", "dev_science_ie_conll.txt"),
-        dataset_type="valid",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        max_char_length=MAX_CHAR_LENGTH,
-        word_vocab_store_location=VOCAB_STORE_LOCATION,
-        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
-        debug=DEBUG,
-        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=EMBEDDING_TYPE,
-        word_embedding_dimension=EMBEDDING_DIMENSION,
-        char_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
-        word_start_token="<SOS>",
-        word_end_token="<EOS>",
-        word_pad_token="<PAD>",
-        word_unk_token="<UNK>",
-        word_add_start_end_token=False,
+    embedder = WordEmbedder(embedding_type=args.emb_type)
+    char_embedder = CharEmbedder(
+        char_embedding_dimension=args.char_emb_dim,
+        hidden_dimension=args.char_encoder_hidden_dim,
+        datasets_manager=data_manager,
     )
-
-    test_dataset = ScienceIEDataset(
-        filename=pathlib.Path(".", "dev_science_ie_conll.txt"),
-        dataset_type="test",
-        max_num_words=MAX_NUM_WORDS,
-        max_instance_length=MAX_LENGTH,
-        max_char_length=MAX_CHAR_LENGTH,
-        word_vocab_store_location=VOCAB_STORE_LOCATION,
-        char_vocab_store_location=CHAR_VOCAB_STORE_LOCATION,
-        debug=DEBUG,
-        debug_dataset_proportion=DEBUG_DATASET_PROPORTION,
-        word_embedding_type=EMBEDDING_TYPE,
-        word_embedding_dimension=EMBEDDING_DIMENSION,
-        char_embedding_dimension=CHAR_EMBEDDING_DIMENSION,
-        word_start_token="<SOS>",
-        word_end_token="<EOS>",
-        word_pad_token="<PAD>",
-        word_unk_token="<UNK>",
-        word_add_start_end_token=False,
-    )
-
-    train_dataset.print_stats()
-    validation_dataset.print_stats()
-    test_dataset.print_stats()
-
-    if not EXP_DIR_PATH.is_dir():
-        EXP_DIR_PATH.mkdir()
-
-    VOCAB_SIZE = train_dataset.word_vocab.get_vocab_len()
-    NUM_CLASSES = train_dataset.get_num_classes()
-    config["VOCAB_SIZE"] = VOCAB_SIZE
-    config["NUM_CLASSES"] = NUM_CLASSES
-
-    with open(os.path.join(f"{EXP_DIR_PATH}", "config.json"), "w") as fp:
-        json.dump(config, fp)
-
-    embedding = train_dataset.word_vocab.load_embedding()
-    embedding = nn.Embedding.from_pretrained(embedding, freeze=False)
-    char_embedding = train_dataset.char_vocab.load_embedding()
-    char_embedding = nn.Embedding.from_pretrained(char_embedding, freeze=False)
-
-    classnames2idx = train_dataset.classnames2idx
-    idx2classnames = {idx: classname for classname, idx in classnames2idx.items()}
-
-    task_idx2classnames = {
-        idx: classname
-        for idx, classname in idx2classnames.items()
-        if idx in range(0, 8)
-    }
-    process_idx2classnames = {
-        idx - 8: classname
-        for idx, classname in idx2classnames.items()
-        if idx in range(8, 16)
-    }
-    material_idx2classnames = {
-        idx - 16: classname
-        for idx, classname in idx2classnames.items()
-        if idx in range(16, 24)
-    }
-
-    task_constraints = allowed_transitions(
-        constraint_type="BIOUL", labels=task_idx2classnames
-    )
-    process_constraints = allowed_transitions(
-        constraint_type="BIOUL", labels=process_idx2classnames
-    )
-    material_constraints = allowed_transitions(
-        constraint_type="BIOUL", labels=material_idx2classnames
-    )
-
-    embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIMENSION)
-
-    if USE_CHAR_ENCODER:
-        char_embedder = WordEmbedder(
-            embedding=char_embedding, embedding_dim=CHAR_EMBEDDING_DIMENSION
-        )
-        char_encoder = CharLSTMEncoder(
-            char_emb_dim=CHAR_EMBEDDING_DIMENSION,
-            char_embedder=char_embedder,
-            bidirectional=True,
-            hidden_dim=CHAR_ENCODER_HIDDEN_DIM,
-            combine_strategy="concat",
-            device=torch.device(DEVICE),
-        )
-        embedder = ConcatEmbedders([embedder, char_encoder])
-        EMBEDDING_DIMENSION += 2 * CHAR_ENCODER_HIDDEN_DIM
+    embedder = ConcatEmbedders([embedder, char_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
-        emb_dim=EMBEDDING_DIMENSION,
         embedder=embedder,
-        dropout_value=DROPOUT,
-        hidden_dim=HIDDEN_DIM,
-        bidirectional=BIDIRECTIONAL,
-        combine_strategy=COMBINE_STRATEGY,
-        num_layers=NUM_LAYERS,
+        dropout_value=args.dropout,
+        hidden_dim=args.hidden_dim,
+        bidirectional=args.bidirectional,
+        combine_strategy=args.combine_strategy,
         rnn_bias=True,
-        device=torch.device(DEVICE),
+        device=torch.device(args.device),
     )
-    model = ScienceIETagger(
+    model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
-        num_classes=NUM_CLASSES,
-        hid_dim=2 * HIDDEN_DIM
-        if BIDIRECTIONAL and COMBINE_STRATEGY == "concat"
-        else HIDDEN_DIM,
-        task_constraints=task_constraints,
-        process_constraints=process_constraints,
-        material_constraints=material_constraints,
-        device=torch.device(DEVICE),
+        encoding_dim=2 * args.hidden_dim
+        if args.bidirectional and args.combine_strategy == "concat"
+        else args.hidden_dim,
+        device=torch.device(args.device),
+        tagging_type="BIOUL",
+        datasets_manager=data_manager,
     )
 
-    optimizer = optim.Adam(
-        params=model.parameters(),
-        lr=LEARNING_RATE,
-        weight_decay=REGULARIZATION_STRENGTH,
-    )
+    optimizer = optim.Adam(params=model.parameters(), lr=args.lr, weight_decay=args.reg)
 
-    metric = TokenClassificationAccuracy(
-        idx2labelname_mapping=train_dataset.idx2classnames
-    )
+    train_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
+    dev_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
+    test_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
 
     engine = Engine(
         model=model,
-        train_dataset=train_dataset,
-        validation_dataset=validation_dataset,
-        test_dataset=test_dataset,
+        datasets_manager=data_manager,
         optimizer=optimizer,
-        batch_size=BATCH_SIZE,
-        save_dir=MODEL_SAVE_DIR,
-        num_epochs=NUM_EPOCHS,
-        save_every=SAVE_EVERY,
-        log_train_metrics_every=LOG_TRAIN_METRICS_EVERY,
+        batch_size=args.bs,
+        save_dir=args.model_save_dir,
+        num_epochs=args.epochs,
+        save_every=args.save_every,
+        log_train_metrics_every=args.log_train_metrics_every,
         track_for_best="macro_fscore",
-        device=torch.device(DEVICE),
-        metric=metric,
+        device=torch.device(args.device),
+        train_metric=train_metric,
+        validation_metric=dev_metric,
+        test_metric=test_metric,
         use_wandb=True,
-        experiment_name=EXP_NAME,
-        experiment_hyperparams=config,
+        experiment_name=args.exp_name,
+        experiment_hyperparams=vars(args),
+        sample_proportion=args.sample_proportion,
     )
 
     engine.run()

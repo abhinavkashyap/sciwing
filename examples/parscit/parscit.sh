@@ -20,5 +20,5 @@ python ${SCRIPT_FILE} \
 --epochs 1 \
 --save_every 10 \
 --log_train_metrics_every 10 \
---sample_proportion 0.01
+--sample_proportion 1.0
 
