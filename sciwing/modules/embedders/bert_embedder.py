@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
 from sciwing.numericalizers.transformer_numericalizer import NumericalizerForTransformer
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
+from sciwing.data.datasets_manager import DatasetsManager
 from typing import List, Union
 import wasabi
 import sciwing.constants as constants
@@ -14,9 +16,10 @@ PATHS = constants.PATHS
 EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
 
 
-class BertEmbedder(nn.Module, ClassNursery):
+class BertEmbedder(nn.Module, BaseEmbedder, ClassNursery):
     def __init__(
         self,
+        datasets_manager: DatasetsManager = None,
         dropout_value: float = 0.0,
         aggregation_type: str = "sum",
         bert_type: str = "bert-base-uncased",
@@ -73,6 +76,7 @@ class BertEmbedder(nn.Module, ClassNursery):
         """
         super(BertEmbedder, self).__init__()
 
+        self.datasets_manager = datasets_manager
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
         self.bert_type = bert_type

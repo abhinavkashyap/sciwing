@@ -228,7 +228,7 @@ class SciWingTOMLRunner:
 
             # models accept a datasets manager by default
             # TODO: make this true for all the modules and models including embedders?
-            if tag == "model":
+            if tag == "model" or tag == "embedder":
                 class_args["datasets_manager"] = self.datasets_manager
 
             # instantiated class holds the object that is instantiated for

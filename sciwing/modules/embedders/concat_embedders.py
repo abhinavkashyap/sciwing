@@ -1,12 +1,16 @@
 import torch
 import torch.nn as nn
-from typing import Any, List
+from typing import List
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
+from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
 
 
-class ConcatEmbedders(nn.Module, ClassNursery):
-    def __init__(self, embedders: List[nn.Module]):
+class ConcatEmbedders(nn.Module, BaseEmbedder, ClassNursery):
+    def __init__(
+        self, embedders: List[nn.Module], datasets_manager: DatasetsManager = None
+    ):
         """ Concatenates a set of embedders into a single embedder.
 
         Parameters
@@ -16,6 +20,7 @@ class ConcatEmbedders(nn.Module, ClassNursery):
         """
         super(ConcatEmbedders, self).__init__()
         self.embedders = embedders
+        self.datasets_manager = datasets_manager
 
         for idx, embedder in enumerate(self.embedders):
             self.add_module(f"embedder_{embedder.embedder_name}", embedder)

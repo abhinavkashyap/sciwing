@@ -1,12 +1,13 @@
 import torch.nn as nn
 from typing import List
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.datasets_manager import DatasetsManager
 from sciwing.data.line import Line
 import torch
 
 
-class CharEmbedder(nn.Module, ClassNursery):
+class CharEmbedder(nn.Module, BaseEmbedder, ClassNursery):
     def __init__(
         self,
         char_embedding_dimension: int,

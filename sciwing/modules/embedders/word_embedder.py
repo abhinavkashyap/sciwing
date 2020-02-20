@@ -4,10 +4,17 @@ from typing import List
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
 from sciwing.vocab.embedding_loader import EmbeddingLoader
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
+from sciwing.data.datasets_manager import DatasetsManager
 
 
-class WordEmbedder(nn.Module, ClassNursery):
-    def __init__(self, embedding_type: str, word_tokens_namespace="tokens"):
+class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
+    def __init__(
+        self,
+        embedding_type: str,
+        datasets_manager: DatasetsManager = None,
+        word_tokens_namespace="tokens",
+    ):
         """ Word Embedder embeds the tokens using the desired embeddings. These are static
         embeddings.
 
@@ -19,6 +26,7 @@ class WordEmbedder(nn.Module, ClassNursery):
         super(WordEmbedder, self).__init__()
 
         self.embedding_type = embedding_type
+        self.datasets_manager = datasets_manager
         self.embedding_loader = EmbeddingLoader(embedding_type=self.embedding_type)
         self.embedder_name = embedding_type
         self.embedding_dimension = self.get_embedding_dimension()

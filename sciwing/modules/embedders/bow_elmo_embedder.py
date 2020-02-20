@@ -1,15 +1,18 @@
 import torch
 from allennlp.commands.elmo import ElmoEmbedder
 import wasabi
-from typing import List, Any
+from typing import List
 import torch.nn as nn
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
+from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
 
 
-class BowElmoEmbedder(nn.Module, ClassNursery):
+class BowElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
     def __init__(
         self,
+        datasets_manager: DatasetsManager = None,
         layer_aggregation: str = "sum",
         cuda_device_id: int = -1,
         word_tokens_namespace="tokens",
@@ -40,6 +43,7 @@ class BowElmoEmbedder(nn.Module, ClassNursery):
             Namespace where all the word tokens are stored
         """
         super(BowElmoEmbedder, self).__init__()
+        self.dataset_manager = datasets_manager
         self.embedding_dimension = self.get_embedding_dimension()
         self.embedder_name = "elmo"
         self.word_tokens_namespace = word_tokens_namespace
