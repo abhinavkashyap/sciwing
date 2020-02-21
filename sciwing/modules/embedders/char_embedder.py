@@ -95,7 +95,9 @@ class CharEmbedder(nn.Module, BaseEmbedder, ClassNursery):
                 instance=word_tokens
             )
             word_tokens_num_padded = self.word_numericalizer.pad_instance(
-                numericalized_text=word_tokens_num, max_length=max_line_length
+                numericalized_text=word_tokens_num,
+                max_length=max_line_length,
+                add_start_end_token=False,
             )
             word_tokens_padded = [
                 self.word_vocab.get_token_from_idx(token)

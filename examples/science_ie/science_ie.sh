@@ -21,4 +21,4 @@ python ${SCRIPT_FILE} \
 --epochs 1 \
 --save_every 50 \
 --log_train_metrics_every 5 \
---sample_proportion 1
+--sample_proportion 0.1

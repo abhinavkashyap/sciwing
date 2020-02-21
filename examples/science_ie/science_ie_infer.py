@@ -1,8 +1,6 @@
 import sciwing.constants as constants
 import pathlib
-from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
-    SeqLabellingDatasetManager,
-)
+from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
@@ -17,35 +15,40 @@ PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
 
 
-def build_parscit_model(dirname: str):
+def build_science_ie_model(dirname: str):
     exp_dirpath = pathlib.Path(dirname)
     data_dir = pathlib.Path(DATA_DIR)
-    train_filename = data_dir.joinpath("parscit.train")
-    dev_filename = data_dir.joinpath("parscit.dev")
-    test_filename = data_dir.joinpath("parscit.test")
-    data_manager = SeqLabellingDatasetManager(
+    train_filename = data_dir.joinpath("train_science_ie_conll.txt")
+    dev_filename = data_dir.joinpath("dev_science_ie_conll.txt")
+    test_filename = data_dir.joinpath("dev_science_ie_conll.txt")
+    data_manager = CoNLLDatasetManager(
         train_filename=train_filename,
         dev_filename=dev_filename,
         test_filename=test_filename,
+        column_names=["TASK", "PROCESS", "MATERIAL"],
     )
 
-    word_embedder = WordEmbedder(embedding_type="parscit")
+    word_embedder = WordEmbedder(embedding_type="glove_6B_50")
     char_embedder = CharEmbedder(
-        char_embedding_dimension=25, hidden_dimension=50, datasets_manager=data_manager
+        char_embedding_dimension=5, hidden_dimension=10, datasets_manager=data_manager
     )
     embedder = ConcatEmbedders([word_embedder, char_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
-        hidden_dim=256,
-        bidirectional=True,
+        hidden_dim=10,
+        bidirectional=False,
         combine_strategy="concat",
         rnn_bias=True,
         device=torch.device("cpu"),
     )
 
     model = RnnSeqCrfTagger(
-        rnn2seqencoder=lstm2seqencoder, encoding_dim=512, datasets_manager=data_manager
+        rnn2seqencoder=lstm2seqencoder,
+        encoding_dim=10,
+        datasets_manager=data_manager,
+        namespace_to_constraints=None,
+        tagging_type="BIOUL",
     )
 
     infer = SequenceLabellingInference(
@@ -59,6 +62,16 @@ def build_parscit_model(dirname: str):
 
 if __name__ == "__main__":
     dirname = pathlib.Path(".", "output")
-    infer = build_parscit_model(str(dirname))
-    infer.run_inference()
-    infer.report_metrics()
+    infer = build_science_ie_model(str(dirname))
+    # infer.run_inference()
+    # infer.report_metrics()
+    prediction_folder = pathlib.Path(".", "science_ie_pred")
+    FILES = constants.FILES
+    SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
+    SCIENCE_IE_DEV_FOLDER = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
+    if not prediction_folder.is_dir():
+        prediction_folder.mkdir()
+
+    infer.generate_scienceie_prediction_folder(
+        dev_folder=SCIENCE_IE_DEV_FOLDER, pred_folder=prediction_folder
+    )

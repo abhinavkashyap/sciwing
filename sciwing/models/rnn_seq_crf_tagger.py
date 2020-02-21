@@ -52,7 +52,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                     label_namespace=namespace
                 )
                 transitions_allowed = allowed_transitions(
-                    constraint_type="BIOUL", labels=idx2label_mapping
+                    constraint_type=self.tagging_type, labels=idx2label_mapping
                 )
                 namespace_to_constraints[namespace] = transitions_allowed
         else:

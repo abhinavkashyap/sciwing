@@ -7,12 +7,14 @@ from sciwing.data.seq_label import SeqLabel
 from sciwing.infer.seq_label_inference.BaseSeqLabelInference import (
     BaseSeqLabelInference,
 )
+from sciwing.utils.science_ie_data_utils import ScienceIEDataUtils
 import wasabi
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
 from sciwing.utils.vis_seq_tags import VisTagging
 from collections import defaultdict
 from torch.utils.data import DataLoader
 import pandas as pd
+import pathlib
 
 
 class SequenceLabellingInference(BaseSeqLabelInference):
@@ -179,6 +181,7 @@ class SequenceLabellingInference(BaseSeqLabelInference):
     def report_metrics(self):
         prf_tables = self.metrics_calculator.report_metrics()
         for namespace in self.labels_namespaces:
+            self.msg_printer.divider(f"Report for {namespace}")
             print(prf_tables[namespace])
 
     def run_test(self):
@@ -272,24 +275,101 @@ class SequenceLabellingInference(BaseSeqLabelInference):
 
         return misclf_sentences
 
+    def on_user_input(self, line: Union[Line, str]) -> Dict[str, List[str]]:
+        return self.infer_batch(lines=[line])
 
-def on_user_input(self, line: Union[Line, str]) -> Dict[str, List[str]]:
-    return self.infer_batch(lines=[line])
+    def infer_batch(self, lines: Union[List[Line], List[str]]) -> Dict[str, List[str]]:
+        lines_ = []
+
+        if isinstance(lines[0], str):
+            for line in lines:
+                line_ = self.datasets_manager.make_line(line=line)
+                lines_.append(line_)
+
+        else:
+            lines_ = lines
+
+        model_output_dict = self.model_forward_on_lines(lines=lines_)
+        _, pred_classnames = self.model_output_dict_to_prediction_indices_names(
+            model_output_dict
+        )
+        return pred_classnames
+
+    def generate_scienceie_prediction_folder(
+        self, dev_folder: pathlib.Path, pred_folder: pathlib.Path
+    ):
+        """ Generates the predicted folder for the dataset in the test folder
+        for ScienceIE. This is very specific to ScienceIE. Not meant to use
+        with other tasks
+
+        ScienceIE is a SemEval Task that needs the files to be written into a
+        folder and it reports metrics by reading files from that folder. This
+        method generates the predicted folder given the dev folder
 
 
-def infer_batch(self, lines: Union[List[Line], List[str]]) -> Dict[str, List[str]]:
-    lines_ = []
+        Parameters
+        ----------
+        dev_folder : pathlib.Path
+            The path where the dev files are present
+        pred_folder : pathlib.Path
+            The path where the predicted files will be written
 
-    if isinstance(lines[0], str):
-        for line in lines:
-            line_ = self.datasets_manager.make_line(line=line)
-            lines_.append(line_)
+        Returns
+        -------
 
-    else:
-        lines_ = lines
+        """
+        science_ie_data_utils = ScienceIEDataUtils(
+            folderpath=dev_folder, ignore_warnings=True
+        )
+        file_ids = science_ie_data_utils.get_file_ids()
 
-    model_output_dict = self.model_forward_on_lines(lines=lines_)
-    _, pred_classnames = self.model_output_dict_to_prediction_indices_names(
-        model_output_dict
-    )
-    return pred_classnames
+        for file_id in file_ids:
+            with self.msg_printer.loading(
+                f"Generating Science IE results for file {file_id}"
+            ):
+                text = science_ie_data_utils.get_text_from_fileid(file_id)
+                sents = science_ie_data_utils.get_sents(text)
+                try:
+                    assert bool(text.split()), f"File {file_id} does not have any text"
+                except AssertionError:
+                    continue
+
+                try:
+                    assert len(sents) > 0
+                except AssertionError:
+                    continue
+
+                conll_filepath = pred_folder.joinpath(f"{file_id}.conll")
+                ann_filepath = pred_folder.joinpath(f"{file_id}.ann")
+                conll_lines = []
+
+                for sent in sents:
+                    line = [token.text for token in sent]
+                    line = " ".join(line)
+                    prediction_classnames = self.on_user_input(line=line)
+
+                    tag_names = [line.split()]
+                    for namespace in ["TASK", "PROCESS", "MATERIAL"]:
+                        # List[str] - List of predicted classnames
+                        classnames_ = prediction_classnames[namespace][0].split()
+                        tag_names.append(classnames_)
+                        assert len(line.split()) == len(
+                            classnames_
+                        ), f"len sent: {len(line.split())}, len task_tag_name: {len(classnames_)}"
+
+                    zipped_text_tag_names = list(zip(*tag_names))
+
+                    for text_tag_name in zipped_text_tag_names:
+                        token, task_tag, process_tag, material_tag = text_tag_name
+                        conll_line = " ".join(
+                            [token, task_tag, process_tag, material_tag]
+                        )
+                        conll_lines.append(conll_line)
+
+                with open(conll_filepath, "w") as fp:
+                    fp.writelines("\n".join(conll_lines))
+                    fp.write("\n")
+
+                science_ie_data_utils.write_ann_file_from_conll_file(
+                    conll_filepath=conll_filepath, ann_filepath=ann_filepath, text=text
+                )
