@@ -72,7 +72,9 @@ if __name__ == "__main__":
         device=torch.device(args.device),
     )
 
-    encoder = BOW_Encoder(embedder=embedder, aggregation_type="average")
+    encoder = BOW_Encoder(
+        embedder=embedder, aggregation_type="average", device=args.device
+    )
 
     model = SimpleClassifier(
         encoder=encoder,
@@ -80,6 +82,7 @@ if __name__ == "__main__":
         num_classes=23,
         classification_layer_bias=True,
         datasets_manager=data_manager,
+        device=args.device,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
