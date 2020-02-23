@@ -6,7 +6,7 @@ python ${SCRIPT_FILE} \
 --exp_name "parsect_elmo_bi_lstm_lc" \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
---device cpu \
+--device cuda:0 \
 --bs 10 \
 --emb_type "glove_6B_50" \
 --hidden_dim 512 \

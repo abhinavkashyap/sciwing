@@ -85,15 +85,10 @@ if __name__ == "__main__":
     )
 
     # instantiate the elmo embedder
-    elmo_embedder = BowElmoEmbedder(
-        layer_aggregation="sum",
-        cuda_device_id=-1
-        if args.device == "cpu"
-        else int(args.device.split("cuda:")[1]),
-    )
+    elmo_embedder = BowElmoEmbedder(layer_aggregation="sum", device=args.device)
 
     # instantiate the vanilla embedder
-    vanilla_embedder = WordEmbedder(embedding_type=args.emb_type)
+    vanilla_embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
 
     # concat the embeddings
     embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])
@@ -118,6 +113,7 @@ if __name__ == "__main__":
         num_classes=23,
         classification_layer_bias=True,
         datasets_manager=data_manager,
+        device=args.device,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
