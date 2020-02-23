@@ -7,7 +7,7 @@ python ${SCRIPT_FILE} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
 --vocab_store_location "./output/vocab.json" \
---device cpu \
+--device cuda:0 \
 --layer_aggregation last \
 --word_aggregation sum \
 --bs 10 \

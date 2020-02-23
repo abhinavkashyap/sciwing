@@ -9,8 +9,6 @@ import sciwing.constants as constants
 import torch.optim as optim
 from sciwing.engine.engine import Engine
 import argparse
-import torch
-import re
 import pathlib
 
 
@@ -85,11 +83,12 @@ if __name__ == "__main__":
 
     # BowElmoEmbedder embeds sentences using ELMO
     embedder = BowElmoEmbedder(
-        layer_aggregation=args.layer_aggregation,
-        cuda_device_id=0 if re.match("cuda", args.device) else -1,
+        layer_aggregation=args.layer_aggregation, device=args.device
     )
 
-    encoder = BOW_Encoder(embedder=embedder, aggregation_type=args.word_aggregation)
+    encoder = BOW_Encoder(
+        embedder=embedder, aggregation_type=args.word_aggregation, device=args.device
+    )
 
     model = SimpleClassifier(
         encoder=encoder,
@@ -97,6 +96,7 @@ if __name__ == "__main__":
         num_classes=data_manager.num_labels["label"],
         classification_layer_bias=True,
         datasets_manager=data_manager,
+        device=args.device,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         num_epochs=args.epochs,
         save_every=args.save_every,
         log_train_metrics_every=args.log_train_metrics_every,
-        device=torch.device(args.device),
+        device=args.device,
         train_metric=train_metric,
         validation_metric=dev_metric,
         test_metric=test_metric,

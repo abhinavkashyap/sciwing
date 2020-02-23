@@ -1,7 +1,7 @@
 import torch
 from allennlp.commands.elmo import ElmoEmbedder
 import wasabi
-from typing import List
+from typing import List, Union
 import torch.nn as nn
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
@@ -14,7 +14,7 @@ class BowElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self,
         datasets_manager: DatasetsManager = None,
         layer_aggregation: str = "sum",
-        cuda_device_id: int = -1,
+        device: Union[str, torch.device] = torch.device("cpu"),
         word_tokens_namespace="tokens",
     ):
         """ Bag of words Elmo Embedder which aggregates elmo embedding for every token
@@ -49,12 +49,14 @@ class BowElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.word_tokens_namespace = word_tokens_namespace
         self.layer_aggregation_type = layer_aggregation
         self.allowed_layer_aggregation_types = ["sum", "average", "last", "first"]
-        self.cuda_device_id = cuda_device_id
         self.device = (
-            torch.device("cpu")
-            if cuda_device_id < 0
-            else torch.device(f"cuda:{cuda_device_id}")
+            torch.device(device) if isinstance(device, str) else torch.device(device)
         )
+
+        if self.device.index:
+            self.cuda_device_id = self.device.index
+        else:
+            self.cuda_device_id = -1
         self.msg_printer = wasabi.Printer()
 
         assert (
