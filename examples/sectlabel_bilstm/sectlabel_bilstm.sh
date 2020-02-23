@@ -9,7 +9,7 @@ python ${SCRIPT_FILE} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
 --emb_type "glove_6B_50" \
---device cpu \
+--device cuda:0 \
 --bs 32 \
 --hidden_dim 512 \
 --lr 1e-3 \

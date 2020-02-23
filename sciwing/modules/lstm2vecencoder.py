@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import wasabi
-from typing import Dict, List
+from typing import Union, List
 from sciwing.data.line import Line
 from sciwing.utils.class_nursery import ClassNursery
 
@@ -15,7 +15,7 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
         bidirectional: bool = False,
         combine_strategy: str = "concat",
         rnn_bias: bool = True,
-        device: torch.device = torch.device("cpu"),
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         """LSTM2Vec encoder that encodes a series of tokens to a single vector representation
 
@@ -33,7 +33,7 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
             Strategy to combine the vectors from two different directions
         rnn_bias : str
             Whether to use the bias layer in RNN. Should be set to false only for debugging purposes
-        device : torch.device
+        device : Union[str, torch.device]
             The device on which the model is run
         """
         super(LSTM2VecEncoder, self).__init__()
@@ -47,7 +47,7 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
         self.combine_strategy = combine_strategy
         self.allowed_combine_strategies = ["sum", "concat"]
         self.rnn_bias = rnn_bias
-        self.device = device
+        self.device = torch.device(device) if isinstance(device, str) else device
         self.msg_printer = wasabi.Printer()
 
         assert (
