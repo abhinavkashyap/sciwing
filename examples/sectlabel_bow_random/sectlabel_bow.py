@@ -10,6 +10,7 @@ import torch.optim as optim
 from sciwing.engine.engine import Engine
 import argparse
 import pathlib
+import torch
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--vocab_store_location", help="File in which the vocab is stored"
     )
+    parser.add_argument("--device", help="Device to run the models on")
 
     args = parser.parse_args()
 
@@ -58,10 +60,10 @@ if __name__ == "__main__":
         test_filename=str(test_file),
     )
 
-    embedder = WordEmbedder(embedding_type=args.emb_type)
+    embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
 
     # initialize a bag of word emcoder
-    encoder = BOW_Encoder(embedder=embedder)
+    encoder = BOW_Encoder(embedder=embedder, device=args.device)
 
     # Instantiate a simple classifier
     model = SimpleClassifier(
@@ -70,6 +72,7 @@ if __name__ == "__main__":
         classification_layer_bias=True,
         num_classes=data_manager.num_labels["label"],
         datasets_manager=data_manager,
+        device=args.device,
     )
 
     # you get to use any optimizer from Pytorch
@@ -98,6 +101,7 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         track_for_best="macro_fscore",
         sample_proportion=0.01,
+        device=args.device,
     )
 
     # Run the engine

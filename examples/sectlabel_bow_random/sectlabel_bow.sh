@@ -12,4 +12,5 @@ python ${SCRIPT_FILE} \
 --lr 1e-4 \
 --epochs 2 \
 --save_every 1 \
---log_train_metrics_every 50
+--log_train_metrics_every 50 \
+--device cuda:0

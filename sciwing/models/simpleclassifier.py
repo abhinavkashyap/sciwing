@@ -1,7 +1,7 @@
 import torch.nn as nn
 from torch.nn.functional import softmax
 from torch.nn import CrossEntropyLoss
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Union
 from sciwing.data.line import Line
 from sciwing.data.label import Label
 from wasabi import Printer
@@ -19,7 +19,7 @@ class SimpleClassifier(nn.Module, ClassNursery):
         classification_layer_bias: bool = True,
         label_namespace: str = "label",
         datasets_manager: DatasetsManager = None,
-        device: torch.device = torch.device("cpu"),
+        device: Union[torch.device, str] = torch.device("cpu"),
     ):
         """ SimpleClassifier is a linear classifier head on top of any encoder
 
@@ -57,7 +57,7 @@ class SimpleClassifier(nn.Module, ClassNursery):
         self.label_numericalizer = self.datasets_manager.namespace_to_numericalizer[
             self.label_namespace
         ]
-        self.device = device
+        self.device = torch.device(device) if isinstance(device, str) else device
         self.msg_printer = Printer()
 
     def forward(
@@ -123,8 +123,9 @@ class SimpleClassifier(nn.Module, ClassNursery):
                 label_ = self.label_numericalizer.numericalize_instance(instance=label_)
                 label_indices.append(label_[0])  # taking only the first label here
 
-            labels_tensor = torch.LongTensor(label_indices)
-            labels_tensor = labels_tensor.to(self.device)
+            labels_tensor = torch.tensor(
+                label_indices, device=self.device, dtype=torch.long
+            )
 
             assert labels_tensor.ndimension() == 1, self.msg_printer.fail(
                 "the labels should have 1 dimension "

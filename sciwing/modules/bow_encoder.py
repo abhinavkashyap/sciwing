@@ -1,13 +1,19 @@
 import torch
 import torch.nn as nn
 from wasabi import Printer
-from typing import List, Any
+from typing import List, Union
 from sciwing.data.line import Line
 from sciwing.utils.class_nursery import ClassNursery
 
 
 class BOW_Encoder(nn.Module, ClassNursery):
-    def __init__(self, embedder=None, dropout_value: float = 0, aggregation_type="sum"):
+    def __init__(
+        self,
+        embedder=None,
+        dropout_value: float = 0,
+        aggregation_type="sum",
+        device: Union[torch.device, str] = torch.device("cpu"),
+    ):
         """Bag of Words Encoder
 
         Parameters
@@ -22,6 +28,8 @@ class BOW_Encoder(nn.Module, ClassNursery):
                     Aggregate word embedding by summing them
                 average
                     Aggregate word embedding by averaging them
+        device: Union[torch.device, str]
+            The device where the embeddings are stored
         """
         super(BOW_Encoder, self).__init__()
         self.emb_dim = embedder.get_embedding_dimension()
@@ -30,6 +38,7 @@ class BOW_Encoder(nn.Module, ClassNursery):
         self.aggregation_type = aggregation_type
         self.valid_aggregation_types = ["sum", "average"]
         self.msg_printer = Printer()
+        self.device = torch.device(device) if isinstance(device, str) else device
 
         assert self.aggregation_type in self.valid_aggregation_types
 

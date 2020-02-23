@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
 from wasabi import Printer
-from typing import Iterator, Any, Optional, Dict
+from typing import Iterator, Any, Optional, Dict, Union
 from sciwing.meters.loss_meter import LossMeter
 from sciwing.data.datasets_manager import DatasetsManager
 from tensorboardX import SummaryWriter
@@ -43,7 +43,7 @@ class Engine(ClassNursery):
         tensorboard_logdir: str = None,
         track_for_best: str = "loss",
         collate_fn=list,
-        device=torch.device("cpu"),
+        device: Union[torch.device, str] = torch.device("cpu"),
         gradient_norm_clip_value: Optional[float] = 5.0,
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
         use_wandb: bool = False,

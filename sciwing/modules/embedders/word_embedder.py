@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-from typing import List
+from typing import List, Union
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
 from sciwing.vocab.embedding_loader import EmbeddingLoader
@@ -14,6 +14,7 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         embedding_type: str,
         datasets_manager: DatasetsManager = None,
         word_tokens_namespace="tokens",
+        device: Union[torch.device, str] = torch.device("cpu"),
     ):
         """ Word Embedder embeds the tokens using the desired embeddings. These are static
         embeddings.
@@ -22,6 +23,12 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         ----------
         embedding_type : str
             The type of embedding that you would want
+        datasets_manager: DatasetsManager
+            The datasets manager which is running your experiments
+        word_tokens_namespace: str
+            The namespace where the word tokens are stored in your data
+        device: Union[torch.device, str]
+            The device on which this embedder is run
         """
         super(WordEmbedder, self).__init__()
 
@@ -31,6 +38,7 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.embedder_name = embedding_type
         self.embedding_dimension = self.get_embedding_dimension()
         self.word_tokens_namespace = word_tokens_namespace
+        self.device = torch.device(device) if isinstance(device, str) else device
 
     def forward(self, lines: List[Line]) -> torch.FloatTensor:
         """ This will only consider the "tokens" present in the line. The "tokens"
@@ -52,9 +60,12 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
             for token in line.tokens[self.word_tokens_namespace]:
                 try:
                     emb = self.embedding_loader.embeddings[token.text]
+                    emb = torch.tensor(emb, dtype=torch.float, device=self.device)
                 except:
-                    emb = torch.zeros(self.embedding_dimension)
-                emb = torch.FloatTensor(emb)
+                    emb = torch.zeros(
+                        self.embedding_dimension, device=self.device, dtype=torch.float
+                    )
+
                 token.set_embedding(name=self.embedder_name, value=emb)
 
         # return the [batch_size, longest_sequence, embedding_dimension]
@@ -73,7 +84,11 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
                 token_embedding = token.get_embedding(name=self.embedder_name)
                 sentence_embedding.append(token_embedding)
             for i in range(padding_length):
-                zeros = torch.zeros(self.embedding_loader.embedding_dimension)
+                zeros = torch.zeros(
+                    self.embedding_loader.embedding_dimension,
+                    device=self.device,
+                    dtype=torch.float,
+                )
                 sentence_embedding.append(zeros)
 
             sentence_embedding = torch.stack(sentence_embedding)
