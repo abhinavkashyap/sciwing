@@ -1,5 +1,4 @@
 import click
-from sciwing.commands.new_dataset import create_new_dataset_interactive
 
 
 @click.command()
@@ -14,7 +13,7 @@ def new(entity_type):
 
     """
     if entity_type == "dataset":
-        create_new_dataset_interactive()
+        pass
     elif entity_type == "model":
         pass
 
