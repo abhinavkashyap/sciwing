@@ -10,7 +10,6 @@ import torch.optim as optim
 from sciwing.engine.engine import Engine
 import argparse
 import torch
-import re
 import pathlib
 
 PATHS = constants.PATHS
@@ -67,11 +66,12 @@ if __name__ == "__main__":
     )
 
     embedder = BowElmoEmbedder(
-        layer_aggregation=args.layer_aggregation,
-        cuda_device_id=0 if re.match("cuda", args.device) else -1,
+        layer_aggregation=args.layer_aggregation, device=args.device
     )
 
-    encoder = BOW_Encoder(aggregation_type=args.word_aggregation, embedder=embedder)
+    encoder = BOW_Encoder(
+        aggregation_type=args.word_aggregation, embedder=embedder, device=args.device
+    )
 
     model = SimpleClassifier(
         encoder=encoder,
@@ -79,6 +79,7 @@ if __name__ == "__main__":
         num_classes=12,
         classification_layer_bias=True,
         datasets_manager=data_manager,
+        device=args.device,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
