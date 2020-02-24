@@ -81,7 +81,7 @@ if __name__ == "__main__":
         test_filename=test_filename,
     )
 
-    embedder = WordEmbedder(embedding_type="glove_6B_50")
+    embedder = WordEmbedder(embedding_type="glove_6B_50", device=args.device)
     encoder = LSTM2VecEncoder(
         embedder=embedder,
         dropout_value=0.0,
@@ -100,6 +100,7 @@ if __name__ == "__main__":
         num_classes=12,
         classification_layer_bias=True,
         datasets_manager=data_manager,
+        device=args.device,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
