@@ -1,6 +1,5 @@
 import spacy
 from typing import List
-from tqdm import tqdm
 from wasabi import Printer
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.utils.custom_spacy_tokenizers import CustomSpacyWhiteSpaceTokenizer

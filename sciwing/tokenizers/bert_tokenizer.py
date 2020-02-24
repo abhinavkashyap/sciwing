@@ -11,9 +11,10 @@ EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
 
 
 class TokenizerForBert(BaseTokenizer):
-    def __init__(self, bert_type: str):
+    def __init__(self, bert_type: str, do_basic_tokenize=True):
         super(TokenizerForBert, self).__init__()
         self.bert_type = bert_type
+        self.do_basic_tokenize = do_basic_tokenize
         self.msg_printer = wasabi.Printer()
         self.allowed_bert_types = [
             "bert-base-uncased",
@@ -45,7 +46,9 @@ class TokenizerForBert(BaseTokenizer):
             self.vocab_type_or_filename = self.bert_type
 
         with self.msg_printer.loading("Loading Bert model"):
-            self.tokenizer = BertTokenizer.from_pretrained(self.vocab_type_or_filename)
+            self.tokenizer = BertTokenizer.from_pretrained(
+                self.vocab_type_or_filename, do_basic_tokenize=do_basic_tokenize
+            )
 
     def tokenize(self, text: str) -> List[str]:
         return self.tokenizer.tokenize(text)
@@ -57,6 +60,3 @@ class TokenizerForBert(BaseTokenizer):
 
         self.msg_printer.good(f"Finished tokenizing text")
         return tokenized
-
-    def convert_tokens_to_ids(self, tokens: List[str]):
-        return self.tokenizer.convert_tokens_to_ids(tokens)

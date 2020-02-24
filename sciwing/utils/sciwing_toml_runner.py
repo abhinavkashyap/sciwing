@@ -13,6 +13,11 @@ from typing import Dict
 import networkx as nx
 import copy
 import wasabi
+import pathlib
+import sciwing.constants as constants
+
+PATHS = constants.PATHS
+DATA_DIR = PATHS["DATA_DIR"]
 
 
 class SciWingTOMLRunner:
@@ -21,11 +26,11 @@ class SciWingTOMLRunner:
         self.infer = infer
         self.msg_printer = wasabi.Printer()
         self.doc = self._parse_toml_file()
+        self.data_dir = pathlib.Path(DATA_DIR)
 
         self.experiment_name = None
         self.experiment_dir = None
-        # Dict {'train': Dataset, 'valid': Dataset, 'test': Dataset}
-        self.all_datasets = None
+        self.datasets_manager = None
         self.model_section = None
         self.dataset_section = None
         self.engine_section = None
@@ -70,70 +75,72 @@ class SciWingTOMLRunner:
                 )
 
         # get the dataset section from toml
-        self.dataset_section = self.doc.get(f"dataset")
-        if self.dataset_section is None:
-            raise TOMLConfigurationError(
-                f"{self.toml_filename} does not have a datasets section. Please "
-                f"Provide a dataset section in your toml file"
-            )
-        else:
-            self.all_datasets = self.parse_dataset_section()
-            pass
+        self.datasets_manager = self.parse_dataset_section()
 
         # get the model section from toml
-        self.model_section = self.doc.get("model")
-        if self.model_section is None:
-            raise TOMLConfigurationError(
-                f"{self.toml_filename} does not have model section."
-                f"Please provide a model section to construct the model"
-            )
-        else:
-            self.model = self.parse_model_section()
+        self.model = self.parse_model_section()
 
         # get the engine section from toml
-        self.engine_section = self.doc.get("engine")
-        if self.engine_section is None:
-            raise TOMLConfigurationError(
-                f"{self.toml_filename} does not have an engine section"
-            )
-        else:
-            self.engine = self.parse_engine_section()
+        self.engine = self.parse_engine_section()
 
     def parse_dataset_section(self):
         """ Parse the dataset section of the toml file and instantiate the dataset
 
         Returns
         -------
-        Dict[str, Any]
-            The keys are ``[train, valid, test]`` with values being the
-            instantiations of the dataset mentioned in the toml filename
+        DatasetManager
+            The dataset manager for the experiment
         """
         dataset_section = self.doc.get("dataset")
-        all_datasets = {}
+        if dataset_section is None:
+            raise TOMLConfigurationError(
+                f"{self.toml_filename} does not have a datasets section. Please "
+                f"Provide a dataset section in your toml file"
+            )
 
+        self.dataset_section = dataset_section
         dataset_classname = dataset_section.get("class")
         if dataset_classname is None:
             raise TOMLConfigurationError(
                 f"Dataset section needs to have a name and class section"
             )
-        args = dataset_section.get("args")
-        for dataset_type in ["train", "valid", "test"]:
-            try:
-                dataset_cls = create_class(
-                    classname=dataset_classname,
-                    module_name=ClassNursery.class_nursery[dataset_classname],
-                )
-                args["dataset_type"] = dataset_type
-                args["filename"] = dataset_section[f"{dataset_type}_filename"]
-                dataset = dataset_cls(**args)
-                all_datasets[dataset_type] = dataset
-            except ModuleNotFoundError:
-                print(
-                    f"Module {ClassNursery.class_nursery[dataset_classname]} is not found"
-                )
-            except AttributeError:
-                print(f"Class {dataset_classname} is not found ")
-        return all_datasets
+
+        train_filename = dataset_section.get("train_filename")
+        dev_filename = dataset_section.get("dev_filename")
+        test_filename = dataset_section.get("test_filename")
+        train_filename = self.data_dir.joinpath(train_filename)
+        dev_filename = self.data_dir.joinpath(dev_filename)
+        test_filename = self.data_dir.joinpath(test_filename)
+        train_filename = str(train_filename)
+        dev_filename = str(dev_filename)
+        test_filename = str(test_filename)
+
+        tokenizers = dataset_section.get("tokenizers")
+        namespace_vocab_options = dataset_section.get("namespace_vocab_options")
+        namespace_numericalizer_map = dataset_section.get("namespace_numericalizer_map")
+
+        args = {
+            "train_filename": train_filename,
+            "dev_filename": dev_filename,
+            "test_filename": test_filename,
+            "tokenizers": tokenizers,
+            "namespace_vocab_options": namespace_vocab_options,
+            "namespace_numericalizer_map": namespace_numericalizer_map,
+        }
+        try:
+            dataset_cls = create_class(
+                classname=dataset_classname,
+                module_name=ClassNursery.class_nursery[dataset_classname],
+            )
+            dataset_manager = dataset_cls(**args)
+            self.msg_printer.good(title=f"Finished Creating {dataset_classname}")
+            return dataset_manager
+        except ModuleNotFoundError:
+            print(
+                f"Module {ClassNursery.class_nursery[dataset_classname]} is not found"
+            )
+        except AttributeError:
+            print(f"Class {dataset_classname} is not found ")
 
     def _form_dag(self, section_name: str, section: Dict, parent: str):
         """ Forms a DAG of the model section for execution
@@ -209,59 +216,39 @@ class SciWingTOMLRunner:
         root_nodename = topo_order[-1]
 
         for node_id in topo_order:
-
             node_data = self.model_dag.nodes[node_id]
             tag = node_data.get("tag", None)
             classname = node_data.pop("class", None)
             if classname is None:
                 raise TOMLConfigurationError(
-                    f"class is missing for one of the components of your model"
+                    f"Class {classname} is missing for one of the components of your model."
+                    f"Have you added the class into the ClassNursery?"
                 )
             class_args = copy.deepcopy(self.model_dag.nodes[node_id])
+
+            # models accept a datasets manager by default
+            # TODO: make this true for all the modules and models including embedders?
+            if tag == "model" or tag == "embedder":
+                class_args["datasets_manager"] = self.datasets_manager
+
+            # instantiated class holds the object that is instantiated for
+            # the node
             class_args.pop("instantiated_class", None)
             current_node_tag = class_args.pop("tag", None)
+
             # leaf node
-            # we always assume that vanilla embedder is used at the lower level
+            # we always assume that embedders are  used at the lower level
             # This is a reasonable assumption to make
             if not list(self.model_dag.successors(node_id)):
-                if node_data.get("embed") == "word_vocab":
-                    embedding = self.all_datasets["train"].word_vocab.load_embedding()
-                    embedding_dim = self.all_datasets[
-                        "train"
-                    ].word_vocab.embedding_dimension
-                    freeze = node_data.get("freeze", False)
-                    embedding = nn.Embedding.from_pretrained(embedding, freeze=freeze)
-                    embedder = VanillaEmbedder(
-                        embedding_dim=embedding_dim, embedding=embedding
-                    )
-                    self.model_dag.nodes[node_id]["instantiated_class"] = {
-                        "key": tag,
-                        "object": embedder,
-                    }
-                elif node_data.get("embed") == "char_vocab":
-                    embedding = self.all_datasets["train"].char_vocab.load_embedding()
-                    embedding_dim = self.all_datasets[
-                        "train"
-                    ].char_vocab.embedding_dimension
-                    freeze = node_data.get("freeze", False)
-                    embedding = nn.Embedding.from_pretrained(embedding, freeze=freeze)
-                    embedder = VanillaEmbedder(
-                        embedding_dim=embedding_dim, embedding=embedding
-                    )
-                    self.model_dag.nodes[node_id]["instantiated_class"] = {
-                        "key": tag,
-                        "object": embedder,
-                    }
-                else:
-                    cls_obj = create_class(
-                        classname=classname,
-                        module_name=ClassNursery.class_nursery[classname],
-                    )
-                    cls_obj = cls_obj(**class_args)
-                    self.model_dag.nodes[node_id]["instantiated_class"] = {
-                        "key": tag,
-                        "object": cls_obj,
-                    }
+                cls_obj = create_class(
+                    classname=classname,
+                    module_name=ClassNursery.class_nursery[classname],
+                )
+                cls_obj = cls_obj(**class_args)
+                self.model_dag.nodes[node_id]["instantiated_class"] = {
+                    "key": tag,
+                    "object": cls_obj,
+                }
 
             # must have children that would have been instantiated
             else:
@@ -272,16 +259,19 @@ class SciWingTOMLRunner:
                 )
                 num_different_tags = len(different_tags)
 
+                # They are a lst of embedders
+                # They all have the same section name
+                # but different classes
                 if num_successors > 1 and num_different_tags == 1:
                     # pass through concat embedders
-                    embedders = []
+                    embedders_ = []
                     unique_tag = different_tags.pop()
                     for successor in successors:
                         node_data = self.model_dag.nodes[successor]
                         embedder = node_data["instantiated_class"]["object"]
-                        embedders.append(embedder)
+                        embedders_.append(embedder)
 
-                    embedder = ConcatEmbedders(embedders=embedders)
+                    embedder = ConcatEmbedders(embedders=embedders_)
 
                     # instantiate the current node here
                     class_args[unique_tag] = embedder
@@ -326,8 +316,14 @@ class SciWingTOMLRunner:
             nn.Module
                 A torch module representing the model
             """
+        model_section = self.doc.get("model")
+        if model_section is None:
+            raise TOMLConfigurationError(
+                f"{self.toml_filename} does not have model section."
+                f"Please provide a model section to construct the model"
+            )
+        self.model_section = model_section
         with self.msg_printer.loading("Loading Model from file"):
-            model_section = self.doc.get("model")
             self._form_dag(section_name="model", section=model_section, parent=None)
             # it has to be a DAG (no cycles please!)
             assert nx.dag.is_directed_acyclic_graph(self.model_dag)
@@ -347,6 +343,11 @@ class SciWingTOMLRunner:
 
         """
         engine_section = self.doc.get("engine")
+        if engine_section is None:
+            raise TOMLConfigurationError(
+                f"{self.toml_filename} does not have an engine section"
+            )
+        self.engine_section = engine_section
         engine_args = {}
         for key, value in engine_section.items():
             if not isinstance(value, dict):
@@ -375,7 +376,9 @@ class SciWingTOMLRunner:
 
         metric_section = engine_section.get("metric")
         metric_classname = metric_section.get("class")
-        metric_args = {}
+
+        # parse any other arguments for metric
+        metric_args = {"datasets_manager": self.datasets_manager}
         for key, value in metric_section.items():
             if key == "class":
                 pass
@@ -386,15 +389,13 @@ class SciWingTOMLRunner:
             module_name=ClassNursery.class_nursery[metric_classname],
             classname=metric_classname,
         )
-        metric = metric_cls(**metric_args)
-        engine_args["metric"] = metric
-
-        train_dataset = self.all_datasets["train"]
-        valid_dataset = self.all_datasets["valid"]
-        test_dataset = self.all_datasets["test"]
-        engine_args["train_dataset"] = train_dataset
-        engine_args["validation_dataset"] = valid_dataset
-        engine_args["test_dataset"] = test_dataset
+        train_metric = metric_cls(**metric_args)
+        dev_metric = metric_cls(**metric_args)
+        test_metric = metric_cls(**metric_args)
+        engine_args["train_metric"] = train_metric
+        engine_args["validation_metric"] = dev_metric
+        engine_args["test_metric"] = test_metric
+        engine_args["datasets_manager"] = self.datasets_manager
         engine_args["model"] = self.model
         engine_args["experiment_name"] = self.experiment_name
         engine_args["experiment_hyperparams"] = self.doc
@@ -408,13 +409,3 @@ class SciWingTOMLRunner:
     def run(self):
         self.parse()
         self.engine.run()
-
-
-if __name__ == "__main__":
-    import sciwing.constants as constants
-
-    PATHS = constants.PATHS
-    CONFIGS_DIR = PATHS["CONFIGS_DIR"]
-    bow_random_parsect_toml = pathlib.Path(CONFIGS_DIR, "bow_random_gensect.toml")
-    toml_parser = SciWingTOMLRunner(toml_filename=bow_random_parsect_toml)
-    toml_parser.run()

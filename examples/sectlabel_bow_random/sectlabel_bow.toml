@@ -1,0 +1,38 @@
+[experiment]
+    exp_name = "sectlabel-bow-random"
+    exp_dir = "sectlabel_bow_random_toml"
+
+[dataset]
+	class = "TextClassificationDatasetManager"
+	train_filename="sectLabel.train"
+	dev_filename="sectLabel.dev"
+	test_filename="sectLabel.test"
+
+[model]
+    class="SimpleClassifier"
+    encoding_dim=50
+    num_classes=23
+    classification_layer_bias=true
+    [model.encoder]
+        class="BOW_Encoder"
+        aggregation_type="sum"
+        [[model.encoder.embedder]]
+        class="WordEmbedder"
+        embedding_type="glove_6B_50"
+
+
+[engine]
+    batch_size=32
+    save_dir="sectlabel_bow_random_toml/checkpoints"
+    num_epochs=1
+    save_every=10
+    log_train_metrics_every=10
+    tensorboard_logdir="debug_parsect_dataset"
+    device="cpu"
+    gradient_norm_clip_value=5.0
+    sample_proportion=0.1
+    [engine.metric]
+        class="PrecisionRecallFMeasure"
+    [engine.optimizer]
+        class="Adam"
+        lr=1e-3

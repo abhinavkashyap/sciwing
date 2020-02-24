@@ -1,12 +1,5 @@
 import sciwing.constants as constants
-from sciwing.utils.common import convert_sectlabel_to_json
-from sciwing.utils.common import merge_dictionaries_with_sum
-from sciwing.utils.common import pack_to_length
-from sciwing.utils.common import convert_generic_sect_to_json
-from sciwing.utils.common import convert_parscit_to_conll
-from sciwing.utils.common import write_cora_to_conll_file
-from sciwing.utils.common import write_parscit_to_conll_file
-from sciwing.utils.common import create_class
+from sciwing.utils.common import *
 import pytest
 import pathlib
 from sciwing.engine.engine import Engine
@@ -60,6 +53,68 @@ class TestCommon:
         file_numbers = [each_line["file_no"] for each_line in output]
         file_numbers = set(file_numbers)
         assert len(file_numbers) == 40  # number of files expected
+
+    def test_sectlabel_sciwing_clf_format_lines_labels_not_empty(self, tmp_path):
+        tmp_dir = tmp_path / "temp"
+        tmp_dir.mkdir()
+        try:
+            convert_sectlabel_to_sciwing_clf_format(SECTLABEL_FILENAME, tmp_dir)
+            with open(tmp_dir / "sectLabel.train", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert text.strip() != ""
+                    assert label.strip() != ""
+        except:
+            pytest.fail(
+                "Failed to write SectLabel file in Sciwing classification format"
+            )
+
+    def test_genericsect_sciwing_clf_format_lines_labels_not_empty(self, tmp_path):
+        tmp_dir = tmp_path / "temp"
+        tmp_dir.mkdir()
+
+        try:
+            convert_generic_sect_to_sciwing_clf_format(
+                GENERIC_SECTION_TRAIN_FILE, tmp_dir
+            )
+            with open(tmp_dir / "genericSect.train", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert bool(text.strip())
+                    assert bool(label.strip())
+
+            with open(tmp_dir / "genericSect.dev", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert bool(text.strip())
+                    assert bool(label.strip())
+
+            with open(tmp_dir / "genericSect.test", "r") as fp:
+                for line in fp:
+                    text, label = line.split("###")
+                    assert bool(text.strip())
+                    assert bool(label.strip())
+        except:
+            pytest.fail(
+                f"Failed to write GenericSect file in SciWING classification format"
+            )
+
+    @pytest.mark.parametrize("random_state", [1729, None])
+    def test_stratified_split_returns_right_split(self, random_state):
+        lines = ["a"] * 100
+        labels = ["label"] * 100
+
+        (
+            (train_lines, train_labels),
+            (dev_lines, dev_labels),
+            (test_lines, test_labels),
+        ) = get_train_dev_test_stratified_split(
+            lines=lines, labels=labels, random_state=random_state
+        )
+
+        assert len(train_lines) == len(train_labels) == 80
+        assert len(dev_lines) == len(dev_labels) == 10
+        assert len(test_lines) == len(test_labels) == 10
 
     def test_merge_dictionaries_empty(self):
         a = {}
@@ -274,6 +329,26 @@ class TestCommon:
             pytest.fail("Failed to write parscit train conll format file")
         else:
             parscit_train_path.unlink()
+
+    def test_parscit_sciwing_seqlabel_format_works(self, tmp_path):
+        tmp_dir = tmp_path / "temp"
+        tmp_dir.mkdir()
+
+        try:
+            convert_parscit_to_sciwing_seqlabel_format(
+                parscit_train_filepath=PARSCIT_TRAIN_FILE, output_dir=tmp_dir
+            )
+            with open(tmp_dir / "parscit.train") as fp:
+                for line in fp:
+                    word_tags = line.split()
+                    for word_tag in word_tags:
+                        word, tag = word_tag.split("###")
+                        assert bool(word.strip())
+                        assert bool(tag.split())
+        except:
+            pytest.fail(
+                f"SciWING parscit sequential labelling formatting does not work"
+            )
 
     @pytest.mark.parametrize(
         "classname, modulename", [(Engine.__name__, Engine.__module__)]

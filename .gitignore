@@ -159,9 +159,6 @@ Pyre type checker
 .idea
 
 sciwing/vis/*
-sciwing/data/*
-.idea
-*.egg-info
 sciwing/outputs/*
 tests/utils/dummy_folder/*
 tests/utils/dummy_file.txt

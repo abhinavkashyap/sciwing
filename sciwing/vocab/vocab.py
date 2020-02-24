@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Any, Optional
+from typing import List, Dict, Tuple, Optional
 from collections import Counter
 from operator import itemgetter
 import json
@@ -6,10 +6,6 @@ import os
 from wasabi import Printer
 import wasabi
 from copy import deepcopy
-from sciwing.vocab.embedding_loader import EmbeddingLoader
-from sciwing.vocab.char_emb_loader import CharEmbLoader
-import torch
-from typing import Union
 
 
 class Vocab:
@@ -24,40 +20,51 @@ class Vocab:
         end_token: str = "<EOS>",
         special_token_freq: float = 1e10,
         store_location: str = None,
-        embedding_type: Union[str, None] = None,
-        embedding_dimension: Union[int, None] = None,
+        max_instance_length: int = 100,
+        include_special_vocab: bool = True,
     ):
         """
 
-        :param instances: type: List[List[str]]
-         Pass in the list of tokenized instances from which vocab is built
-        :param max_num_tokens: type: int
-        The top `max_num_words` frequent words will be considered for
-        vocabulary and the rest of them will be mapped to `unk_token`
-        :param min_count: type: int
-        All words that do not have min count will be mapped to `unk_token`
-        :param unk_token: str
-        This token will be used for unknown words
-        :param pad_token: type: str
-        This token will be used for <PAD> words
-        :param start_token: type: str
-        This token will be used for start of sentence indicator
-        :param end_token: type: str
-        This token will be used for end of sentence indicator
-        :param special_token_freq: type: float
-        special tokens should have high frequency.
-        The higher the frequency, the more common they are
-        :param store_location: type: str
-        The users can provide a store location optionally.
-        The vocab will be stored in the location
-        If the file exists then, the vocab will be restored from the file, rather than building it.
-        :param embedding_type: type: str
-        The embedding type is the type of pre-trained embedding that will be loaded
-        for all the words in the vocab optionally. You can refer to `WordEmbLoder`
-        for all the available embedding types
-        :param embedding_dimension: type: int
-        Embedding dimension of the embedding type
+        Parameters
+        ----------
+        instances : Optional[List[List[str]]]
+            A list of tokenized instances
+        max_num_tokens : int
+            The maximum number of tokens to be used in the vocab
+            All the other tokens above this number will be replaced
+            by UNK.
+            If this is not passed then the maximum possible number
+            will be used
+        min_count : int
+            All words that do not have min count will be mapped to `unk_token`
+        unk_token : str
+            This token will be used for unknown words
+        pad_token : str
+            This token will be used for <PAD> words
+        start_token : str
+            This token will be used for start of line indicator
+        end_token : str
+            This token will be used for end of sentence indicator
+        special_token_freq : float
+            special tokens should have high frequency.
+        store_location : str
+            The users can provide a store location optionally.
+            The vocab will be stored in the location
+            If the file exists then, the vocab will be restored from the file, rather than building it.
+        max_instance_length : int
+            Every vocab is related to a namespace. Every instance
+            in that namespace will be clipped or padded to this
+            length
+        include_special_vocab : bool
+            Boolean value to indicate whether special vocab should be included or no
+            If this is false, you will have to set add_start_end_token to False
+            and you cannot pad your instances. This is mostly set for labels -
+            such as for classification that require no padding. For such
+            cases please make sure that min_count is always 1 and max_num_tokens
+            is always None. Otherwise some of the labels will be missed and it
+            might result in error
         """
+
         self.instances = instances
         self.max_num_tokens = max_num_tokens
         self.min_count = min_count
@@ -71,18 +78,31 @@ class Vocab:
         self.idx2token = None
         self.token2idx = None
         self.store_location = store_location
-        self.embedding_type = embedding_type
-        self.embedding_dimension = embedding_dimension
+        self.max_instance_length = max_instance_length
+        self.include_special_vocab = include_special_vocab
 
         self.msg_printer = Printer()
 
         # store the special tokens
-        self.special_vocab = {
-            self.unk_token: (self.special_token_freq + 3, 0),
-            self.pad_token: (self.special_token_freq + 2, 1),
-            self.start_token: (self.special_token_freq + 1, 2),
-            self.end_token: (self.special_token_freq, 3),
-        }
+        if self.include_special_vocab:
+            self.special_vocab = {
+                self.unk_token: (self.special_token_freq + 3, 0),
+                self.pad_token: (self.special_token_freq + 2, 1),
+                self.start_token: (self.special_token_freq + 1, 2),
+                self.end_token: (self.special_token_freq, 3),
+            }
+        else:
+            if self.min_count != 1:
+                self.msg_printer.warn(
+                    "Warning: You are building vocab without special vocab. "
+                    "Please make sure that min_count is 1"
+                )
+            if self.max_num_tokens is not None:
+                self.msg_printer.warn(
+                    "You are building vocab without special vocab. Please make "
+                    "sure that max_num_tokens is None"
+                )
+            self.special_vocab = {}
 
     def map_tokens_to_freq_idx(self) -> Dict[str, Tuple[int, int]]:
         """
@@ -142,9 +162,15 @@ class Vocab:
         Clip the vocab based on the maximum number of words
         We return `max_num_words + len(self.special_vocab)` words effectively
         The rest of them will be mapped to `self.unk_token`
-        :param vocab: type: Dict[str, Tuple[int, int]]
-        :return: vocab: type: Dict[str, Tuple[int, int]]
-        The new vocab
+        Parameters
+        ----------
+        vocab : Dict[str, Tuple[int, int]]
+            The mapping from token to idx and frequency
+        Returns
+        -------
+        Dict[str, Tuple[int, int]]
+            The new vocab
+
         """
         for key, (freq, idx) in vocab.items():
             if idx >= len(self.special_vocab) + self.max_num_tokens:
@@ -202,9 +228,14 @@ class Vocab:
         else:
             self.msg_printer.info("BUILDING VOCAB")
             vocab = self.map_tokens_to_freq_idx()
-            self.orig_vocab = deepcopy(
-                vocab
-            )  # dictionary are passed by reference. Be careful
+
+            # dictionary are passed by reference. Be careful
+            self.orig_vocab = deepcopy(vocab)
+
+            # set max num of tokens to maximum possible if it is not set
+            if self.max_num_tokens is None:
+                self.max_num_tokens = len(self.orig_vocab.keys())
+
             vocab = self.clip_on_mincount(vocab)
             vocab = self.clip_on_max_num(vocab)
             self.vocab = vocab
@@ -272,8 +303,6 @@ class Vocab:
             "start_token": self.start_token,
             "end_token": self.end_token,
             "special_token_freq": self.special_token_freq,
-            "embedding_type": self.embedding_type,
-            "embedding_dimension": self.embedding_dimension,
             "special_vocab": self.special_vocab,
         }
         vocab_state["vocab"] = self.vocab
@@ -308,8 +337,6 @@ class Vocab:
                 end_token = vocab_options["end_token"]
                 special_token_freq = vocab_options["special_token_freq"]
                 store_location = filename
-                embedding_type = vocab_options["embedding_type"]
-                embedding_dimension = vocab_options["embedding_dimension"]
                 vocab = cls(
                     max_num_tokens=max_num_tokens,
                     min_count=min_count,
@@ -320,8 +347,6 @@ class Vocab:
                     instances=None,
                     special_token_freq=special_token_freq,
                     store_location=store_location,
-                    embedding_type=embedding_type,
-                    embedding_dimension=embedding_dimension,
                 )
 
                 # instead of building the vocab, set the vocab from vocab_dict
@@ -347,20 +372,17 @@ class Vocab:
         if not self.idx2token:
             self.idx2token = self.get_idx2token_mapping()
 
-        try:
-            if idx == self.special_vocab[self.unk_token][1]:
-                return self.unk_token
-            else:
-                token = self.idx2token[idx]
-                return token
-        except KeyError:
-            vocab_len = self.get_vocab_len()
+        vocab_len = self.get_vocab_len()
+
+        if idx > vocab_len - 1:
             message = (
-                "You tried to access idx {0} of the vocab "
-                "The length of the vocab is {1}. Please Provide "
-                "Number between {2}".format(idx, vocab_len, vocab_len - 1)
+                f"You tried to access idx {idx} of the vocab The length of the vocab is "
+                f"{vocab_len}. Please Provide Number between 0 and {vocab_len - 1}"
             )
             raise ValueError(message)
+
+        token = self.idx2token.get(idx)
+        return token
 
     def get_idx_from_token(self, token: str) -> int:
         if not self.vocab:
@@ -372,7 +394,7 @@ class Vocab:
         try:
             return self.token2idx[token]
         except KeyError:
-            return self.token2idx[self.unk_token]
+            return self.token2idx.get(self.unk_token, None)
 
     def get_topn_frequent_words(self, n: int = 5) -> List[Tuple[str, int]]:
         idx2token = self.idx2token
@@ -401,29 +423,6 @@ class Vocab:
         self.msg_printer.divider("VOCAB STATS")
         print(table_string)
 
-    def load_embedding(self) -> torch.FloatTensor:
-        if not self.vocab:
-            raise ValueError("Please build the vocab first")
-
-        embedding_loader = EmbeddingLoader(
-            token2idx=self.token2idx,
-            embedding_type=self.embedding_type,
-            embedding_dimension=self.embedding_dimension,
-        )
-
-        indices = [key for key in self.idx2token.keys()]
-        indices = sorted(indices)
-
-        embeddings = []
-        for idx in indices:
-            token = self.idx2token[idx]
-            # numpy array appends to the embeddings array
-            embedding = embedding_loader.vocab_embedding[token]
-            embeddings.append(embedding)
-
-        embeddings = torch.FloatTensor(embeddings)
-        return embeddings
-
     def set_vocab(self, vocab: Dict[str, Tuple[int, int]]):
         self.vocab = vocab
 
@@ -449,10 +448,13 @@ class Vocab:
         str
             A string representing the index
         """
-        pad_token_index = self.get_idx_from_token(self.pad_token)
-        start_token_index = self.get_idx_from_token(self.start_token)
-        end_token_index = self.get_idx_from_token(self.end_token)
-        special_indices = [pad_token_index, start_token_index, end_token_index]
+        if self.special_vocab:
+            pad_token_index = self.get_idx_from_token(self.pad_token)
+            start_token_index = self.get_idx_from_token(self.start_token)
+            end_token_index = self.get_idx_from_token(self.end_token)
+            special_indices = [pad_token_index, start_token_index, end_token_index]
+        else:
+            special_indices = []
 
         token = [
             self.get_token_from_idx(idx)
@@ -461,3 +463,19 @@ class Vocab:
         ]
         sentence = " ".join(token)
         return sentence
+
+    @property
+    def token2idx(self):
+        return self._token2idx
+
+    @token2idx.setter
+    def token2idx(self, value):
+        self._token2idx = value
+
+    @property
+    def idx2token(self):
+        return self._idx2token
+
+    @idx2token.setter
+    def idx2token(self, value):
+        self._idx2token = value

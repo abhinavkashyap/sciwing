@@ -1,11 +1,16 @@
 import torch
 import torch.nn as nn
-from typing import Dict, Any, List
+from typing import List
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.line import Line
+from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
 
 
-class ConcatEmbedders(nn.Module, ClassNursery):
-    def __init__(self, embedders: List[nn.Module]):
+class ConcatEmbedders(nn.Module, BaseEmbedder, ClassNursery):
+    def __init__(
+        self, embedders: List[nn.Module], datasets_manager: DatasetsManager = None
+    ):
         """ Concatenates a set of embedders into a single embedder.
 
         Parameters
@@ -15,18 +20,18 @@ class ConcatEmbedders(nn.Module, ClassNursery):
         """
         super(ConcatEmbedders, self).__init__()
         self.embedders = embedders
+        self.datasets_manager = datasets_manager
 
         for idx, embedder in enumerate(self.embedders):
-            self.add_module(f"embedder {idx}", embedder)
+            self.add_module(f"embedder_{embedder.embedder_name}", embedder)
 
-    def forward(self, iter_dict: Dict[str, Any]):
+    def forward(self, lines: List[Line]):
         """
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            The ``iter_dict`` from any dataset. All the ``keys`` that are expected
-            by different embedders are expected to be present in the iterdict
+        lines : List[Line]
+           A list of Lines.
 
         Returns
         -------
@@ -38,8 +43,13 @@ class ConcatEmbedders(nn.Module, ClassNursery):
         """
         embeddings = []
         for embedder in self.embedders:
-            embedding = embedder(iter_dict)
+            embedding = embedder(lines)
             embeddings.append(embedding)
 
         concat_embedding = torch.cat(embeddings, dim=2)
         return concat_embedding
+
+    def get_embedding_dimension(self):
+        dims = [embedder.get_embedding_dimension() for embedder in self.embedders]
+        emb_dim = sum(dims)
+        return emb_dim

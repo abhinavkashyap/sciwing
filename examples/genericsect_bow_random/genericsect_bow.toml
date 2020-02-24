@@ -1,0 +1,38 @@
+[experiment]
+    exp_name = "genericsect-bow-random"
+    exp_dir = "genericsect_bow_random_toml"
+
+[dataset]
+	class = "TextClassificationDatasetManager"
+	train_filename="genericSect.train"
+	dev_filename="genericSect.dev"
+	test_filename="genericSect.test"
+
+[model]
+    class="SimpleClassifier"
+    encoding_dim=50
+    num_classes=12
+    classification_layer_bias=true
+    [model.encoder]
+        class="BOW_Encoder"
+        dropout_value = 0.5
+        aggregation_type="sum"
+        [[model.encoder.embedder]]
+        class="WordEmbedder"
+        embedding_type="glove_6B_50"
+
+
+[engine]
+    batch_size=32
+    save_dir="genericsect_bow_random_toml/checkpoints"
+    num_epochs=1
+    save_every=10
+    log_train_metrics_every=10
+    device="cpu"
+    gradient_norm_clip_value=5.0
+    sample_proportion=0.01
+    [engine.metric]
+        class="PrecisionRecallFMeasure"
+    [engine.optimizer]
+        class="Adam"
+        lr=1e-3

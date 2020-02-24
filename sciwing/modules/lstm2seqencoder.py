@@ -1,14 +1,14 @@
 import torch
 import torch.nn as nn
 import wasabi
-from typing import Dict, Any
+from typing import List
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.line import Line
 
 
 class Lstm2SeqEncoder(nn.Module, ClassNursery):
     def __init__(
         self,
-        emb_dim: int,
         embedder: nn.Module,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
@@ -22,8 +22,6 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
 
         Parameters
         ----------
-        emb_dim : int
-            Embedding dimension of the tokens
         embedder : nn.Module
             Any embedder can be used for this purpose
         dropout_value : float
@@ -46,8 +44,8 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         device : torch.device
         """
         super(Lstm2SeqEncoder, self).__init__()
-        self.emb_dim = emb_dim
         self.embedder = embedder
+        self.emb_dim = embedder.get_embedding_dimension()
         self.dropout_value = dropout_value
         self.hidden_dim = hidden_dim
         self.bidirectional = bidirectional
@@ -80,7 +78,7 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
 
     def forward(
         self,
-        iter_dict: Dict[str, Any],
+        lines: List[Line],
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.Tensor:
@@ -88,8 +86,8 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
 
             Parameters
             ----------
-            iter_dict : Dict[str, Any]
-                Any ``iter_dict`` that is passed from the dataset
+            lines : List[Line]
+                A list of lines
             c0 : torch.FloatTensor
                 The initial state vector for the LSTM
             h0 : torch.FloatTensor
@@ -103,10 +101,9 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 [batch_size, 2*hidden_dim] if bidirectional
         """
 
-        # TODO: the batch size should be present in the iter_dict
-        batch_size, seq_length = iter_dict["tokens"].size()
-
-        embeddings = self.embedder(iter_dict=iter_dict)
+        embeddings = self.embedder(lines=lines)
+        batch_size = len(lines)
+        seq_length = embeddings.size(1)
 
         embeddings = self.emb_dropout(embeddings)
 
@@ -126,6 +123,8 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 encoding = torch.cat([forward_output, backward_output], dim=2)
             elif self.combine_strategy == "sum":
                 encoding = torch.add(forward_output, backward_output)
+            else:
+                raise ValueError("The combine strategy should be one of concat or sum")
         else:
             encoding = output
 

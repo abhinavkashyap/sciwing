@@ -3,26 +3,17 @@
     exp_dir = "genericsect_bilstm_toml"
 
 [dataset]
-	class = "GenericSectDataset"
-	train_filename="genericSect.train.data"
-	valid_filename="genericSect.train.data"
-	test_filename="genericSect.train.data"
-	[dataset.args]
-	max_num_words = 1000
-	max_instance_length = 100
-	word_vocab_store_location = "genericsect_bilstm_toml/vocab.json"
-	debug = true
-	debug_dataset_proportion = 0.1
-	word_embedding_type = "random"
-	word_embedding_dimension = 300
+	class = "TextClassificationDatasetManager"
+	train_filename="genericSect.train"
+	dev_filename="genericSect.dev"
+	test_filename="genericSect.test"
 
 [model]
     class="SimpleClassifier"
     encoding_dim=200
-    num_classes=23
+    num_classes=12
     classification_layer_bias=true
     [model.encoder]
-        emb_dim = 300
         class="LSTM2VecEncoder"
         dropout_value = 0.5
         combine_strategy="concat"
@@ -30,9 +21,9 @@
         device="cpu"
         hidden_dim=100
         [[model.encoder.embedder]]
-        class="VanillaEmbedder"
-        embed="word_vocab"
-        freeze=false
+        class="WordEmbedder"
+        embedding_type="glove_6B_50"
+
 
 
 [engine]
@@ -43,6 +34,7 @@
     log_train_metrics_every=10
     device="cpu"
     gradient_norm_clip_value=5.0
+    sample_proportion=0.01
     [engine.metric]
         class="PrecisionRecallFMeasure"
     [engine.optimizer]

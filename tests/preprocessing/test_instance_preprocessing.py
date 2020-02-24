@@ -57,9 +57,11 @@ class TestInstancePreprocessing:
         assert len(clean_instance) == 0
 
     def test_is_capitalized(self, setup_tests_indicate_capitalization):
-        instance, expected_instance, instance_preprocessing = (
-            setup_tests_indicate_capitalization
-        )
+        (
+            instance,
+            expected_instance,
+            instance_preprocessing,
+        ) = setup_tests_indicate_capitalization
         processed_instance = instance_preprocessing.indicate_capitalization(instance)
         assert len(instance) == len(processed_instance)
         assert processed_instance == expected_instance

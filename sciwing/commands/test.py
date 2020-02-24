@@ -42,11 +42,11 @@ def test(toml_filename):
     exp_dirpath = pathlib.Path(exp_dirpath)
     model_filepath = exp_dirpath.joinpath("checkpoints", "best_model.pt")
     model = sciwing_toml_runner.model
-    dataset = sciwing_toml_runner.all_datasets["test"]
+    data_manager = sciwing_toml_runner.datasets_manager
     model_class = sciwing_toml_runner.model_section.get("class")
     inference_cls = class_infer_client_mapping.get(model_class)
     inference_client = inference_cls(
-        model=model, model_filepath=model_filepath, dataset=dataset
+        model=model, model_filepath=model_filepath, datasets_manager=data_manager
     )
     inference_client.run_test()
     inference_client.report_metrics()

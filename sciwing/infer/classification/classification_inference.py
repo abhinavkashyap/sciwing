@@ -3,20 +3,18 @@ from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 from sciwing.infer.classification.BaseClassificationInference import (
     BaseClassificationInference,
 )
-from sciwing.datasets.classification.base_text_classification import (
-    BaseTextClassification,
-)
+from sciwing.data.datasets_manager import DatasetsManager
 from deprecated import deprecated
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 import pandas as pd
-from sciwing.utils.tensor_utils import move_to_device
+from sciwing.data.line import Line
+from sciwing.data.label import Label
 from wasabi.util import MESSAGES
 
 FILES = constants.FILES
-
 SECT_LABEL_FILE = FILES["SECT_LABEL_FILE"]
 
 
@@ -39,21 +37,35 @@ class ClassificationInference(BaseClassificationInference):
     """
 
     def __init__(
-        self, model: nn.Module, model_filepath: str, dataset: BaseTextClassification
+        self,
+        model: nn.Module,
+        model_filepath: str,
+        datasets_manager: DatasetsManager,
+        tokens_namespace: str = "tokens",
+        normalized_probs_namespace: str = "normalized_probs",
     ):
 
         super(ClassificationInference, self).__init__(
-            model=model, model_filepath=model_filepath, dataset=dataset
+            model=model,
+            model_filepath=model_filepath,
+            datasets_manager=datasets_manager,
         )
         self.batch_size = 32
+        self.tokens_namespace = tokens_namespace
+        self.normalized_probs_namespace = normalized_probs_namespace
+        self.label_namespace = self.datasets_manager.label_namespaces[0]
 
-        self.labelname2idx_mapping = self.dataset.get_classname2idx()
-        self.idx2labelname_mapping = {
-            idx: label_name for label_name, idx in self.labelname2idx_mapping.items()
-        }
+        self.labelname2idx_mapping = self.datasets_manager.get_label_idx_mapping(
+            label_namespace=self.label_namespace
+        )
+        self.idx2labelname_mapping = self.datasets_manager.get_idx_label_mapping(
+            label_namespace=self.label_namespace
+        )
+
         self.load_model()
+
         self.metrics_calculator = PrecisionRecallFMeasure(
-            idx2labelname_mapping=self.idx2labelname_mapping
+            datasets_manager=datasets_manager
         )
         self.output_analytics = None
 
@@ -61,61 +73,73 @@ class ClassificationInference(BaseClassificationInference):
         self.output_df = None
 
     def run_inference(self) -> Dict[str, Any]:
-        loader = DataLoader(
-            dataset=self.dataset, batch_size=self.batch_size, shuffle=False
-        )
-        output_analytics = {}
 
-        # contains the predicted class names for all the instances
-        pred_class_names = []
-        true_class_names = []  # contains the true class names for all the instances
-        sentences = []  # batch sentences in english
-        true_labels_indices = []
-        predicted_labels_indices = []
-        all_pred_probs = []
-        self.metrics_calculator.reset()
-
-        for iter_dict in loader:
-            iter_dict = move_to_device(obj=iter_dict, cuda_device=self.device)
-            batch_sentences = self.iter_dict_to_sentences(iter_dict)
-            model_output_dict = self.model_forward_on_iter_dict(iter_dict)
-            normalized_probs = model_output_dict["normalized_probs"]
-            self.metrics_calculator.calc_metric(
-                iter_dict=iter_dict, model_forward_dict=model_output_dict
+        with self.msg_printer.loading(text="Running inference on test data"):
+            loader = DataLoader(
+                dataset=self.datasets_manager.test_dataset,
+                batch_size=self.batch_size,
+                shuffle=False,
+                collate_fn=list,
             )
-            true_label_ind, true_label_names = self.iter_dict_to_true_indices_names(
-                iter_dict=iter_dict
-            )
-            pred_label_indices, pred_label_names = self.model_output_dict_to_prediction_indices_names(
-                model_output_dict=model_output_dict
-            )
+            output_analytics = {}
 
-            true_label_ind = torch.LongTensor(true_label_ind)
-            true_labels_indices.append(true_label_ind)
-            true_class_names.extend(true_label_names)
-            predicted_labels_indices.extend(pred_label_indices)
-            pred_class_names.extend(pred_label_names)
-            sentences.extend(batch_sentences)
-            all_pred_probs.append(normalized_probs)
+            # contains the predicted class names for all the instances
+            pred_class_names = []
+            true_class_names = []  # contains the true class names for all the instances
+            sentences = []  # batch sentences in english
+            true_labels_indices = []
+            predicted_labels_indices = []
+            all_pred_probs = []
+            self.metrics_calculator.reset()
 
-        # contains predicted probs for all the instances
-        all_pred_probs = torch.cat(all_pred_probs, dim=0)
-        true_labels_indices = torch.cat(true_labels_indices, dim=0).squeeze()
+            for lines_labels in loader:
+                lines_labels = list(zip(*lines_labels))
+                lines = lines_labels[0]
+                labels = lines_labels[1]
 
-        # torch.LongTensor N, 1
-        output_analytics["true_labels_indices"] = true_labels_indices
-        output_analytics["predicted_labels_indices"] = predicted_labels_indices
-        output_analytics["pred_class_names"] = pred_class_names
-        output_analytics["true_class_names"] = true_class_names
-        output_analytics["sentences"] = sentences
-        output_analytics["all_pred_probs"] = all_pred_probs
+                batch_sentences = [line.text for line in lines]
+                model_output_dict = self.model_forward_on_lines(lines=lines)
+                normalized_probs = model_output_dict[self.normalized_probs_namespace]
+                self.metrics_calculator.calc_metric(
+                    lines=lines, labels=labels, model_forward_dict=model_output_dict
+                )
+                true_label_ind, true_label_names = self.get_true_label_indices_names(
+                    labels=labels
+                )
+                (
+                    pred_label_indices,
+                    pred_label_names,
+                ) = self.model_output_dict_to_prediction_indices_names(
+                    model_output_dict=model_output_dict
+                )
 
+                true_label_ind = torch.LongTensor(true_label_ind)
+                true_labels_indices.append(true_label_ind)
+                true_class_names.extend(true_label_names)
+                predicted_labels_indices.extend(pred_label_indices)
+                pred_class_names.extend(pred_label_names)
+                sentences.extend(batch_sentences)
+                all_pred_probs.append(normalized_probs)
+
+            # contains predicted probs for all the instances
+            all_pred_probs = torch.cat(all_pred_probs, dim=0)
+            true_labels_indices = torch.cat(true_labels_indices, dim=0).squeeze()
+
+            # torch.LongTensor N, 1
+            output_analytics["true_labels_indices"] = true_labels_indices
+            output_analytics["predicted_labels_indices"] = predicted_labels_indices
+            output_analytics["pred_class_names"] = pred_class_names
+            output_analytics["true_class_names"] = true_class_names
+            output_analytics["sentences"] = sentences
+            output_analytics["all_pred_probs"] = all_pred_probs
+
+        self.msg_printer.good(title="Finished running inference")
         return output_analytics
 
-    def model_forward_on_iter_dict(self, iter_dict: Dict[str, Any]):
+    def model_forward_on_lines(self, lines: List[Line]):
         with torch.no_grad():
             model_output_dict = self.model(
-                iter_dict, is_training=False, is_validation=False, is_test=True
+                lines=lines, is_training=False, is_validation=False, is_test=True
             )
         return model_output_dict
 
@@ -180,7 +204,7 @@ class ClassificationInference(BaseClassificationInference):
         prf_table = self.metrics_calculator.report_metrics()
         print(prf_table)
 
-    @deprecated(reason="This method is deprecated. It will be removed in version 0.2")
+    @deprecated(reason="This method is deprecated. It will be removed in version 0.1")
     def generate_report_for_paper(self):
         """ Generates just the fscore to be used in reporting on print
 
@@ -193,13 +217,6 @@ class ClassificationInference(BaseClassificationInference):
         ]
         row_names.extend([f"Micro-Fscore", f"Macro-Fscore"])
         return paper_report, row_names
-
-    def metric_calc_on_iter_dict(
-        self, iter_dict: Dict[str, Any], model_output_dict: Dict[str, Any]
-    ):
-        self.metrics_calculator.calc_metric(
-            iter_dict=iter_dict, model_forward_dict=model_output_dict
-        )
 
     def model_output_dict_to_prediction_indices_names(
         self, model_output_dict: Dict[str, Any]
@@ -230,12 +247,9 @@ class ClassificationInference(BaseClassificationInference):
             Reutrns the class names for all the sentences in the input
 
         """
-        iter_dict = self.dataset.get_iter_dict(lines=lines)
+        lines = [self.datasets_manager.make_line(line=line) for line in lines]
 
-        if len(lines) == 1:
-            iter_dict["tokens"] = iter_dict["tokens"].unsqueeze(0)
-
-        model_output_dict = self.model_forward_on_iter_dict(iter_dict=iter_dict)
+        model_output_dict = self.model_forward_on_lines(lines=lines)
         _, pred_classnames = self.model_output_dict_to_prediction_indices_names(
             model_output_dict=model_output_dict
         )
@@ -258,21 +272,14 @@ class ClassificationInference(BaseClassificationInference):
         """
         return self.infer_batch(lines=[line])[0]
 
-    def iter_dict_to_sentences(self, iter_dict: Dict[str, Any]) -> List[str]:
-        tokens = iter_dict["tokens"]  # N * max_length
-        tokens_list = tokens.tolist()
-        batch_sentences = list(
-            map(self.dataset.word_vocab.get_disp_sentence_from_indices, tokens_list)
-        )
-        return batch_sentences
-
-    def iter_dict_to_true_indices_names(
-        self, iter_dict: Dict[str, Any]
+    def get_true_label_indices_names(
+        self, labels: List[Label]
     ) -> (List[int], List[str]):
-        labels = iter_dict["label"]  # N, 1
-        labels_list = labels.squeeze().tolist()
-        true_label_names = self.dataset.get_class_names_from_indices(labels_list)
-        return labels_list, true_label_names
+        label_names = [label.text for label in labels]
+        label_indices = [
+            self.labelname2idx_mapping[label_name] for label_name in label_names
+        ]
+        return label_indices, label_names
 
     def run_test(self):
         """ Runs inference and reports test metrics

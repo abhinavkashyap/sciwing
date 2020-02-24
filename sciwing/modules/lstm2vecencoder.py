@@ -1,28 +1,26 @@
 import torch
 import torch.nn as nn
 import wasabi
-from typing import Dict, Any
+from typing import Union, List
+from sciwing.data.line import Line
 from sciwing.utils.class_nursery import ClassNursery
 
 
 class LSTM2VecEncoder(nn.Module, ClassNursery):
     def __init__(
         self,
-        emb_dim: int,
         embedder,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
         combine_strategy: str = "concat",
         rnn_bias: bool = True,
-        device: torch.device = torch.device("cpu"),
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         """LSTM2Vec encoder that encodes a series of tokens to a single vector representation
 
         Parameters
         ----------
-        emb_dim : int
-            Embedding dimension of the embedder
         embedder : nn.Module
             Any embedder can be passed
         dropout_value : float
@@ -35,12 +33,12 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
             Strategy to combine the vectors from two different directions
         rnn_bias : str
             Whether to use the bias layer in RNN. Should be set to false only for debugging purposes
-        device : torch.device
+        device : Union[str, torch.device]
             The device on which the model is run
         """
         super(LSTM2VecEncoder, self).__init__()
-        self.emb_dim = emb_dim
         self.embedder = embedder
+        self.emb_dim = embedder.get_embedding_dimension()
         self.dropout_value = dropout_value
         self.hidden_dimension = hidden_dim
         self.bidirectional = bidirectional
@@ -49,7 +47,7 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
         self.combine_strategy = combine_strategy
         self.allowed_combine_strategies = ["sum", "concat"]
         self.rnn_bias = rnn_bias
-        self.device = device
+        self.device = torch.device(device) if isinstance(device, str) else device
         self.msg_printer = wasabi.Printer()
 
         assert (
@@ -71,7 +69,7 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
 
     def forward(
         self,
-        iter_dict: Dict[str, Any],
+        lines: List[Line],
         c0: torch.FloatTensor = None,
         h0: torch.FloatTensor = None,
     ) -> torch.FloatTensor:
@@ -79,8 +77,8 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
 
         Parameters
         ----------
-        iter_dict : Dict[str, Any]
-            Any ``iter_dict`` that is passed from the dataset
+        lines: List[Line]
+            A list of lines to be encoder
         c0 : torch.FloatTensor
             The initial state vector for the LSTM
         h0 : torch.FloatTensor
@@ -94,10 +92,8 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
             [batch_size, 2*hidden_dim] if bidirectional
         """
 
-        # TODO: the batch size should be present in the iter_dict
-
-        batch_size = iter_dict["tokens"].size(0)
-        embedded_tokens = self.embedder(iter_dict)
+        batch_size = len(lines)
+        embedded_tokens = self.embedder(lines)
         embedded_tokens = self.emb_dropout(embedded_tokens)
 
         if h0 is None or c0 is None:
@@ -120,6 +116,8 @@ class LSTM2VecEncoder(nn.Module, ClassNursery):
                 encoding = torch.cat([forward_hidden, backward_hidden], dim=1)
             elif self.combine_strategy == "sum":
                 encoding = torch.add(forward_hidden, backward_hidden)
+            else:
+                raise ValueError(f"The combine strategy should be one of concat or sum")
         else:
             encoding = h_n[0, :, :]
 

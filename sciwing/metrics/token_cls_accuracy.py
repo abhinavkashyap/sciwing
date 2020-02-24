@@ -7,91 +7,117 @@ import pandas as pd
 from sciwing.metrics.classification_metrics_utils import ClassificationMetricsUtils
 import torch
 from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.data.line import Line
+from sciwing.data.seq_label import SeqLabel
+from collections import defaultdict
 
 
 class TokenClassificationAccuracy(BaseMetric, ClassNursery):
-    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
-        super(TokenClassificationAccuracy, self).__init__()
-        self.idx2labelname_mapping = idx2labelname_mapping
-        self.msg_printer = wasabi.Printer()
-        self.classification_metrics_utils = ClassificationMetricsUtils(
-            idx2labelname_mapping=idx2labelname_mapping
+    def __init__(self, datasets_manager: DatasetsManager = None):
+        super(TokenClassificationAccuracy, self).__init__(
+            datasets_manager=datasets_manager
         )
+        self.datasets_manager = datasets_manager
+        self.label_namespaces = datasets_manager.label_namespaces
+        self.msg_printer = wasabi.Printer()
+        self.classification_metrics_utils = ClassificationMetricsUtils()
 
-        self.tp_counter = {}
-        self.fp_counter = {}
-        self.fn_counter = {}
-        self.tn_counter = {}
+        # a mapping between namespace and tp_counters for every class
+        self.tp_counter: Dict[str, Dict[str, Any]] = defaultdict(dict)
+        self.fp_counter: Dict[str, Dict[str, Any]] = defaultdict(dict)
+        self.fn_counter: Dict[str, Dict[str, Any]] = defaultdict(dict)
+        self.tn_counter: Dict[str, Dict[str, Any]] = defaultdict(dict)
 
     def calc_metric(
-        self, iter_dict: Dict[str, Any], model_forward_dict: Dict[str, Any]
+        self,
+        lines: List[Line],
+        labels: List[SeqLabel],
+        model_forward_dict: Dict[str, Any],
     ) -> None:
         """
 
         Parameters
         ----------------
-        iter_dict: Dict[str, Any]
-            The ``iter_dict`` should have label key
-            The ``label`` are gold labels for the batch
-            They should have the shape ``[batch_size, time_steps]``
-            where time_steps are the size of the sequence
+        lines: List[Line]
+            The list of lines
+
+        labels: List[Label]
+            The list of sequence labels
 
         model_forward_dict: Dict[str, Any]
-            The model_forward_dict should have ``predicted_tags`` key
-            The ``predicted_tags`` are the best possible predicted tags for the batch
+            The model_forward_dict should have predicted tags for every namespace
+            The predicted_tags are the best possible predicted tags for the batch
             They are List[List[int]] where the size is ``[batch_size, time_steps]``
+            We expect that the predicted tags are
 
         """
-        labels = iter_dict.get("label", None)
-        labels = labels.cpu()
-        predicted_tags = model_forward_dict.get(
-            "predicted_tags", None
-        )  # List[List[int]]
 
-        labels_mask = iter_dict.get("label_mask")
-        if labels_mask is None:
-            labels_mask = torch.zeros_like(labels).type(torch.ByteTensor)
+        # get true labels for all namespaces
+        namespace_to_true_labels = defaultdict(list)
+        namespace_to_labels_mask = defaultdict(list)
+        for label in labels:
+            for namespace in self.label_namespaces:
+                # List[List[int]]
+                predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
+                max_length = max(
+                    [len(tags) for tags in predicted_tags]
+                )  # max num tokens
 
-        if labels is None or predicted_tags is None:
-            raise ValueError(
-                f"While calling {self.__class__.__name__}, the iter_dict should"
-                f"have a key called label and model_forward_dict "
-                f"should have predicted_tags"
+                true_labels = label.tokens[namespace]
+                true_labels = [tok.text for tok in true_labels]
+                numericalizer = self.datasets_manager.namespace_to_numericalizer[
+                    namespace
+                ]
+                true_labels = numericalizer.numericalize_instance(instance=true_labels)
+                true_labels = numericalizer.pad_instance(
+                    numericalized_text=true_labels,
+                    max_length=max_length,
+                    add_start_end_token=False,
+                )
+                labels_mask = numericalizer.get_mask_for_instance(
+                    instance=true_labels
+                ).tolist()
+                namespace_to_true_labels[namespace].append(true_labels)
+                namespace_to_labels_mask[namespace].append(labels_mask)
+
+        for namespace in self.label_namespaces:
+            labels_ = namespace_to_true_labels[namespace]
+            labels_mask = namespace_to_labels_mask[namespace]
+            # List[List[int]]
+            predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
+            labels_mask = torch.LongTensor(labels_mask).type(torch.ByteTensor).tolist()
+
+            (
+                confusion_mtrx,
+                classes,
+            ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
+                true_tag_indices=labels_,
+                predicted_tag_indices=predicted_tags,
+                masked_label_indices=labels_mask,
             )
 
-        assert labels.ndimension() == 2, self.msg_printer.fail(
-            f"The labels  for the metric {self.__class__.__name__} should have 2 dimensions."
-            f"The labels that you passed have the shape {labels.size()}"
-        )
+            tps = np.around(np.diag(confusion_mtrx), decimals=4)
+            fps = np.around(np.sum(confusion_mtrx, axis=0) - tps, decimals=4)
+            fns = np.around(np.sum(confusion_mtrx, axis=1) - tps, decimals=4)
 
-        # flatten predicted tags to a single dimension
-        confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
-            true_tag_indices=labels.numpy().tolist(),
-            predicted_tag_indices=predicted_tags,
-            masked_label_indices=labels_mask.cpu().numpy().tolist(),
-        )
+            tps = tps.tolist()
+            fps = fps.tolist()
+            fns = fns.tolist()
 
-        tps = np.around(np.diag(confusion_mtrx), decimals=4)
-        fps = np.around(np.sum(confusion_mtrx, axis=0) - tps, decimals=4)
-        fns = np.around(np.sum(confusion_mtrx, axis=1) - tps, decimals=4)
+            class_tps_mapping = dict(zip(classes, tps))
+            class_fps_mapping = dict(zip(classes, fps))
+            class_fns_mapping = dict(zip(classes, fns))
 
-        tps = tps.tolist()
-        fps = fps.tolist()
-        fns = fns.tolist()
-
-        class_tps_mapping = dict(zip(classes, tps))
-        class_fps_mapping = dict(zip(classes, fps))
-        class_fns_mapping = dict(zip(classes, fns))
-
-        self.tp_counter = merge_dictionaries_with_sum(
-            self.tp_counter, class_tps_mapping
-        )
-        self.fp_counter = merge_dictionaries_with_sum(
-            self.fp_counter, class_fps_mapping
-        )
-        self.fn_counter = merge_dictionaries_with_sum(
-            self.fn_counter, class_fns_mapping
-        )
+            self.tp_counter[namespace] = merge_dictionaries_with_sum(
+                self.tp_counter.get(namespace, {}), class_tps_mapping
+            )
+            self.fp_counter[namespace] = merge_dictionaries_with_sum(
+                self.fp_counter.get(namespace, {}), class_fps_mapping
+            )
+            self.fn_counter[namespace] = merge_dictionaries_with_sum(
+                self.fn_counter.get(namespace, {}), class_fns_mapping
+            )
 
     def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
         """ Returns different values being tracked to calculate Precision Recall FMeasure
@@ -99,7 +125,7 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         Returns
         -------
         Dict[str, Any]
-            Returns a dictionary with following key value pairs
+            Returns a dictionary with following key value pairs for every namespace
             precision: Dict[str, float]
                 The precision for different classes
             recall: Dict[str, float]
@@ -126,44 +152,61 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
                 The micro fscore value considering all different classes
         """
 
-        precision_dict, recall_dict, fscore_dict = self.classification_metrics_utils.get_prf_from_counters(
-            tp_counter=self.tp_counter,
-            fp_counter=self.fp_counter,
-            fn_counter=self.fn_counter,
-        )
+        metrics = {}
 
-        # macro scores
-        # for a detailed discussion on micro and macro scores please follow the discussion @
-        # https://datascience.stackexchange.com/questions/15989/micro-average-vs-macro-average-performance-in-a-multiclass-classification-settin
+        for namespace in self.label_namespaces:
+            (
+                precision_dict,
+                recall_dict,
+                fscore_dict,
+            ) = self.classification_metrics_utils.get_prf_from_counters(
+                tp_counter=self.tp_counter[namespace],
+                fp_counter=self.fp_counter[namespace],
+                fn_counter=self.fn_counter[namespace],
+            )
 
-        # micro scores
-        micro_precision, micro_recall, micro_fscore = self.classification_metrics_utils.get_micro_prf_from_counters(
-            tp_counter=self.tp_counter,
-            fp_counter=self.fp_counter,
-            fn_counter=self.fn_counter,
-        )
+            # macro scores
+            # for a detailed discussion on micro and macro scores please follow the discussion @
+            # https://datascience.stackexchange.com/questions/15989/micro-average-vs-macro-average-performance-in-a-multiclass-classification-settin
 
-        # macro scores
-        macro_precision, macro_recall, macro_fscore = self.classification_metrics_utils.get_macro_prf_from_prf_dicts(
-            precision_dict=precision_dict,
-            recall_dict=recall_dict,
-            fscore_dict=fscore_dict,
-        )
+            # micro scores
+            (
+                micro_precision,
+                micro_recall,
+                micro_fscore,
+            ) = self.classification_metrics_utils.get_micro_prf_from_counters(
+                tp_counter=self.tp_counter[namespace],
+                fp_counter=self.fp_counter[namespace],
+                fn_counter=self.fn_counter[namespace],
+            )
 
-        return {
-            "precision": precision_dict,
-            "recall": recall_dict,
-            "fscore": fscore_dict,
-            "num_tp": self.tp_counter,
-            "num_fp": self.fp_counter,
-            "num_fn": self.fn_counter,
-            "macro_precision": macro_precision,
-            "macro_recall": macro_recall,
-            "macro_fscore": macro_fscore,
-            "micro_precision": micro_precision,
-            "micro_recall": micro_recall,
-            "micro_fscore": micro_fscore,
-        }
+            # macro scores
+            (
+                macro_precision,
+                macro_recall,
+                macro_fscore,
+            ) = self.classification_metrics_utils.get_macro_prf_from_prf_dicts(
+                precision_dict=precision_dict,
+                recall_dict=recall_dict,
+                fscore_dict=fscore_dict,
+            )
+
+            metrics[namespace] = {
+                "precision": precision_dict,
+                "recall": recall_dict,
+                "fscore": fscore_dict,
+                "num_tp": self.tp_counter[namespace],
+                "num_fp": self.fp_counter[namespace],
+                "num_fn": self.fn_counter[namespace],
+                "macro_precision": macro_precision,
+                "macro_recall": macro_recall,
+                "macro_fscore": macro_fscore,
+                "micro_precision": micro_precision,
+                "micro_recall": micro_recall,
+                "micro_fscore": micro_fscore,
+            }
+
+        return metrics
 
     def report_metrics(self, report_type="wasabi") -> Any:
         """ Reports metrics in a printable format
@@ -176,36 +219,16 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
            precision recall and fmeasures for different classes
 
        """
-        accuracy_metrics = self.get_metric()
-        precision = accuracy_metrics["precision"]
-        recall = accuracy_metrics["recall"]
-        fscore = accuracy_metrics["fscore"]
-        macro_precision = accuracy_metrics["macro_precision"]
-        macro_recall = accuracy_metrics["macro_recall"]
-        macro_fscore = accuracy_metrics["macro_fscore"]
-        micro_precision = accuracy_metrics["micro_precision"]
-        micro_recall = accuracy_metrics["micro_recall"]
-        micro_fscore = accuracy_metrics["micro_fscore"]
-
-        if report_type == "wasabi":
-            return self.classification_metrics_utils.generate_table_report_from_counters(
-                tp_counter=self.tp_counter,
-                fp_counter=self.fp_counter,
-                fn_counter=self.fn_counter,
-            )
-
-        elif report_type == "paper":
-            class_nums = fscore.keys()
-            class_nums = sorted(class_nums, reverse=False)
-            fscores = [fscore[class_num] for class_num in class_nums]
-            fscores.extend([micro_fscore, macro_fscore])
-            rownames = [
-                f"class_{class_num} - ({self.idx2labelname_mapping[class_num]})"
-                for class_num in class_nums
-            ]
-            rownames.extend(["Micro-Fscore", "Macro-Fscore"])
-            assert len(rownames) == len(fscores)
-            return fscores, rownames
+        reports = {}
+        for namespace in self.label_namespaces:
+            if report_type == "wasabi":
+                report = self.classification_metrics_utils.generate_table_report_from_counters(
+                    tp_counter=self.tp_counter[namespace],
+                    fp_counter=self.fp_counter[namespace],
+                    fn_counter=self.fn_counter[namespace],
+                )
+                reports[namespace] = report
+        return reports
 
     def reset(self):
         self.tp_counter = {}
@@ -219,7 +242,8 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         true_tag_indices: List[List[int]],
         labels_mask: Optional[torch.ByteTensor] = None,
     ) -> None:
-        """
+        """ Prints confusion matrics for a batch of tag indices. It assumes that the batch
+        is padded and every instance is of similar length
 
         Parameters
         ----------
@@ -234,24 +258,22 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         """
 
+        print(f"true tag indices {true_tag_indices}")
         if labels_mask is None:
             labels_mask = torch.zeros_like(torch.Tensor(true_tag_indices)).type(
                 torch.ByteTensor
             )
 
-        confusion_mtrx, classes = self.classification_metrics_utils.get_confusion_matrix_and_labels(
+        (
+            confusion_mtrx,
+            classes,
+        ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             predicted_tag_indices=predicted_tag_indices,
             true_tag_indices=true_tag_indices,
             masked_label_indices=labels_mask,
         )
 
-        if self.idx2labelname_mapping is not None:
-            classes_with_names = [
-                f"cls_{class_}({self.idx2labelname_mapping[class_]})"
-                for class_ in classes
-            ]
-        else:
-            classes_with_names = classes
+        classes_with_names = classes
 
         confusion_mtrx = pd.DataFrame(confusion_mtrx)
         confusion_mtrx.insert(0, "class_name", classes_with_names)
