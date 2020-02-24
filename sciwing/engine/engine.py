@@ -17,6 +17,7 @@ from sciwing.utils.class_nursery import ClassNursery
 import logzero
 import hashlib
 import pathlib
+import random
 
 try:
     import wandb
@@ -48,6 +49,7 @@ class Engine(ClassNursery):
         lr_scheduler: Optional[torch.optim.lr_scheduler._LRScheduler] = None,
         use_wandb: bool = False,
         sample_proportion: float = 1.0,
+        seeds: Dict[str, int] = None,
     ):
         """ Engine runs the models end to end. It iterates through the train dataset and passes
         it through the model. During training it helps in tracking a lot of parameters for the run
@@ -114,10 +116,21 @@ class Engine(ClassNursery):
             wandb or weights and biases is a tool that is used to track experiments
             online. Sciwing comes with inbuilt functionality to track experiments
             on weights and biases
+        seeds: Dict[str, int]
+            The dict of seeds to be set.
+            Set the random_seed, pytorch_seed and numpy_seed
+            Found in
+            https://github.com/allenai/allennlp/blob/master/allennlp/common/util.py
         """
 
         if isinstance(device, str):
             device = torch.device(device)
+
+        if seeds is None:
+            seeds = {}
+        self.seeds = seeds
+
+        self._set_seeds()
 
         self.model = model
         self.datasets_manager = datasets_manager
@@ -370,7 +383,9 @@ class Engine(ClassNursery):
                 if (num_iterations + 1) % self.log_train_metrics_every == 0:
                     metrics = self.train_metric_calc.report_metrics()
                     for label_namespace, table in metrics.items():
-                        self.msg_printer.divider(text=f"{label_namespace}")
+                        self.msg_printer.divider(
+                            text=f"Train Metrics for {label_namespace.upper()}"
+                        )
                         print(table)
             except StopIteration:
                 self.train_epoch_end(epoch_num)
@@ -483,7 +498,9 @@ class Engine(ClassNursery):
         average_loss = self.validation_loss_meter.get_average()
 
         for label_namespace, table in metric_report.items():
-            self.msg_printer.divider(text=f"{label_namespace}")
+            self.msg_printer.divider(
+                text=f"Validation Metrics for {label_namespace.upper()}"
+            )
             print(table)
 
         self.msg_printer.text(f"Average Loss: {average_loss}")
@@ -600,7 +617,7 @@ class Engine(ClassNursery):
         """
         metric_report = self.test_metric_calc.report_metrics()
         for label_namespace, table in metric_report.items():
-            self.msg_printer.divider(text=f"{label_namespace}")
+            self.msg_printer.divider(text=f"Test Metrics for {label_namespace.upper()}")
             print(table)
 
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
@@ -677,3 +694,18 @@ class Engine(ClassNursery):
 
         model_state = model_chkpoint["model_state"]
         self.model.load_state_dict(model_state)
+
+    def _set_seeds(self):
+        seed = self.seeds.get("random_seed", 17290)
+        numpy_seed = self.seeds.get("numpy_seed", 1729)
+        torch_seed = self.seeds.get("pytorch_seed", 172)
+
+        if seed is not None:
+            random.seed(seed)
+        if numpy_seed is not None:
+            np.random.seed(numpy_seed)
+        if torch_seed is not None:
+            torch.manual_seed(torch_seed)
+            # Seed all GPUs with the same seed if available.
+            if torch.cuda.is_available():
+                torch.cuda.manual_seed_all(torch_seed)
