@@ -150,8 +150,6 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                     )
                     labels_indices[namespace].append(label_instances)
 
-            print(f"got labels indices")
-
             len_tokens = torch.tensor(
                 [len(line.tokens) for line in lines],
                 dtype=torch.long,

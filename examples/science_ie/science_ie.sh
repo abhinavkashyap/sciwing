@@ -8,7 +8,7 @@ python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
---device cpu \
+--device cuda:1 \
 --dropout 0.4 \
 --reg 0 \
 --bs 32 \
