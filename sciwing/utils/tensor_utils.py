@@ -1,4 +1,5 @@
 import torch
+from typing import Union
 
 
 def has_tensor(obj) -> bool:

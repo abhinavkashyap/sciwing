@@ -43,8 +43,9 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
         self.label_namespaces = datasets_manager.label_namespaces
         self.device = device
         self.tagging_type = tagging_type
-        self.crfs = {}
-        self.linear_clfs = {}
+        self.crfs = nn.ModuleDict()
+        self.linear_clfs = nn.ModuleDict()
+
         if namespace_to_constraints is None and self.tagging_type is not None:
             namespace_to_constraints = defaultdict(list)
             for namespace in self.label_namespaces:
@@ -67,8 +68,8 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                 include_start_end_transitions=False,
             )  # we do not add start and end tags to our labels
             clf = nn.Linear(self.encoding_dim, num_labels)
-            self.crfs[namespace] = crf
-            self.linear_clfs[namespace] = clf
+            self.crfs.update({namespace: crf})
+            self.linear_clfs.update({namespace: clf})
 
     def forward(
         self,
@@ -144,11 +145,18 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                         max_length=max_time_steps,
                         add_start_end_token=False,
                     )
-                    label_instances = torch.LongTensor(label_instances)
-                    label_instances = label_instances.to(self.device)
+                    label_instances = torch.tensor(
+                        label_instances, dtype=torch.long, device=self.device
+                    )
                     labels_indices[namespace].append(label_instances)
 
-            len_tokens = torch.LongTensor([len(line.tokens) for line in lines])
+            print(f"got labels indices")
+
+            len_tokens = torch.tensor(
+                [len(line.tokens) for line in lines],
+                dtype=torch.long,
+                device=self.device,
+            )
             mask = get_mask(
                 batch_size=len(lines), max_size=max_time_steps, lengths=len_tokens
             )

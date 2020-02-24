@@ -1,5 +1,5 @@
 import torch.nn as nn
-from typing import List
+from typing import List, Union
 from sciwing.modules.embedders.base_embedders import BaseEmbedder
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.datasets_manager import DatasetsManager
@@ -15,6 +15,7 @@ class CharEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         datasets_manager: DatasetsManager = None,
         word_tokens_namespace: str = "tokens",
         char_tokens_namespace: str = "char_tokens",
+        device: Union[str, torch.device] = torch.device("cpu"),
     ):
         """ This is a character embedder that takes in lines and collates the character
         embeddings for all the tokens in the lines.
@@ -39,6 +40,7 @@ class CharEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.char_tokens_namespace = char_tokens_namespace
         self.datasets_manager = datasets_manager
         self.hidden_dimension = hidden_dimension
+        self.device = torch.device(device) if isinstance(device, str) else device
 
         self.char_vocab = self.datasets_manager.namespace_to_vocab[
             self.char_tokens_namespace
@@ -115,7 +117,9 @@ class CharEmbedder(nn.Module, BaseEmbedder, ClassNursery):
                     max_length=max_token_length,
                     add_start_end_token=False,
                 )  # max_num_chars
-                char_numericalized = torch.LongTensor(char_numericalized)
+                char_numericalized = torch.tensor(
+                    char_numericalized, device=self.device, dtype=torch.long
+                )
                 line_numericalized.append(char_numericalized)
             line_numericalized = torch.stack(
                 line_numericalized
