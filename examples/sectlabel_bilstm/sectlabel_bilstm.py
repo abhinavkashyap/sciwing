@@ -122,7 +122,7 @@ if __name__ == "__main__":
         train_metric=train_metric,
         validation_metric=dev_metric,
         test_metric=test_metric,
-        use_wandb=True,
+        use_wandb=False,
         experiment_name=args.exp_name,
         experiment_hyperparams=vars(args),
         track_for_best="macro_fscore",

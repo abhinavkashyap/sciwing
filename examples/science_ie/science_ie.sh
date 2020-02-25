@@ -8,17 +8,18 @@ python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
---device cuda:1 \
---dropout 0.4 \
+--device cuda:2 \
+--dropout 0.5 \
 --reg 0 \
---bs 32 \
+--bs 64 \
 --emb_type "glove_6B_50" \
---char_emb_dim 5 \
---char_encoder_hidden_dim 10 \
---hidden_dim 10 \
+--char_emb_dim 25 \
+--char_encoder_hidden_dim 25 \
+--hidden_dim 128 \
 --lr 1e-2 \
+--bidirectional \
 --combine_strategy concat \
---epochs 1 \
+--epochs 50 \
 --save_every 50 \
 --log_train_metrics_every 5 \
---sample_proportion 0.1
+--sample_proportion 1
