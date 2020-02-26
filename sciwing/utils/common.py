@@ -15,7 +15,7 @@ import importlib
 from tqdm import tqdm
 import tarfile
 import psutil
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -461,9 +461,11 @@ def convert_parscit_to_sciwing_seqlabel_format(
         instances.append(" ".join(line_))
 
     # shuffle and split train dev and test
-    kf = KFold(n_splits=2, shuffle=True, random_state=1729)
+    splitter = ShuffleSplit(
+        n_splits=1, train_size=0.9, test_size=0.1, random_state=1729
+    )
     len_citations = len(instances)
-    splits = kf.split(np.arange(len_citations))
+    splits = splitter.split(range(len_citations))
     splits = list(splits)
     train_indices, test_indices = splits[0]
 

@@ -14,9 +14,8 @@ class ClassificationMetricsUtils:
     that helps in calculating these.
     """
 
-    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
+    def __init__(self):
         self.msg_printer = wasabi.Printer()
-        self.idx2labelname_mapping = idx2labelname_mapping
 
     def get_prf_from_counters(
         self,
@@ -197,7 +196,7 @@ class ClassificationMetricsUtils:
         # get the masked label indices
         masked_label_indices = torch.ByteTensor(masked_label_indices).cpu()
         masked_label_indices = torch.masked_select(
-            torch.Tensor(true_tag_indices), masked_label_indices
+            torch.tensor(true_tag_indices, dtype=torch.long), masked_label_indices
         )
         masked_label_indices = masked_label_indices.tolist()
 
@@ -221,6 +220,7 @@ class ClassificationMetricsUtils:
         tp_counter: Dict[int, int],
         fp_counter: Dict[int, int],
         fn_counter: Dict[int, int],
+        idx2labelname_mapping: Dict[int, str] = None,
     ) -> str:
         """ Returns a table representation for Precision Recall and FMeasure
 
@@ -232,6 +232,8 @@ class ClassificationMetricsUtils:
             The mapping between class index and false positive count
         fn_counter : Dict[int, int]
             The mapping between class index and false negative count
+        idx2labelname_mapping: Dict[int, str]
+            The mapping between idx and label name
 
         Returns
         -------
@@ -255,10 +257,10 @@ class ClassificationMetricsUtils:
         classes = precision_dict.keys()
         classes = sorted(classes)
 
-        if self.idx2labelname_mapping is None:
+        if idx2labelname_mapping is None:
             idx2labelname_mapping = {class_num: class_num for class_num in classes}
         else:
-            idx2labelname_mapping = self.idx2labelname_mapping
+            idx2labelname_mapping = idx2labelname_mapping
 
         header_row = [" ", "Precision", "Recall", "F_measure"]
         rows = []

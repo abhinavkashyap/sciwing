@@ -31,9 +31,12 @@ class SeqLabellingDataset(BaseSeqLabelingDataset, Dataset):
         lines: List[Line] = []
         labels: List[SeqLabel] = []
 
-        with open(self.filename, "r") as fp:
+        with open(self.filename, "r", encoding="utf-8") as fp:
             for line in fp:
-                lines_and_labels = line.split(" ")
+                line = line.strip()
+                if not bool(line):
+                    continue
+                lines_and_labels = line.strip().split(" ")
                 words: List[str] = []
                 word_labels: List[str] = []
                 for word_line_labels in lines_and_labels:
@@ -74,7 +77,7 @@ class SeqLabellingDatasetManager(DatasetsManager):
         self.dev_filename = dev_filename
         self.test_filename = test_filename
         self.tokenizers = tokenizers or {
-            "tokens": WordTokenizer(),
+            "tokens": WordTokenizer(tokenizer="vanilla"),
             "char_tokens": CharacterTokenizer(),
         }
         self.namespace_vocab_options = namespace_vocab_options or {

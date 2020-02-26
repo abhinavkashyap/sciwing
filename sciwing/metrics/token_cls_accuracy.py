@@ -14,12 +14,17 @@ from collections import defaultdict
 
 
 class TokenClassificationAccuracy(BaseMetric, ClassNursery):
-    def __init__(self, datasets_manager: DatasetsManager = None):
+    def __init__(
+        self,
+        datasets_manager: DatasetsManager = None,
+        predicted_tags_namespace_prefix="predicted_tags",
+    ):
         super(TokenClassificationAccuracy, self).__init__(
             datasets_manager=datasets_manager
         )
         self.datasets_manager = datasets_manager
         self.label_namespaces = datasets_manager.label_namespaces
+        self.predicted_tags_namespace_prefix = predicted_tags_namespace_prefix
         self.msg_printer = wasabi.Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils()
 
@@ -59,7 +64,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         for label in labels:
             for namespace in self.label_namespaces:
                 # List[List[int]]
-                predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
+                predicted_tags = model_forward_dict.get(
+                    f"{self.predicted_tags_namespace_prefix}_{namespace}"
+                )
                 max_length = max(
                     [len(tags) for tags in predicted_tags]
                 )  # max num tokens
@@ -85,7 +92,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
             labels_ = namespace_to_true_labels[namespace]
             labels_mask = namespace_to_labels_mask[namespace]
             # List[List[int]]
-            predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
+            predicted_tags = model_forward_dict.get(
+                f"{self.predicted_tags_namespace_prefix}_{namespace}"
+            )
             labels_mask = torch.LongTensor(labels_mask).type(torch.ByteTensor).tolist()
 
             (
@@ -226,6 +235,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
                     tp_counter=self.tp_counter[namespace],
                     fp_counter=self.fp_counter[namespace],
                     fn_counter=self.fn_counter[namespace],
+                    idx2labelname_mapping=self.datasets_manager.get_idx_label_mapping(
+                        namespace
+                    ),
                 )
                 reports[namespace] = report
         return reports
@@ -258,7 +270,6 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         """
 
-        print(f"true tag indices {true_tag_indices}")
         if labels_mask is None:
             labels_mask = torch.zeros_like(torch.Tensor(true_tag_indices)).type(
                 torch.ByteTensor

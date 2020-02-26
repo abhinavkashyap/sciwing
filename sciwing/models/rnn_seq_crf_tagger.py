@@ -65,7 +65,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             crf = CRF(
                 num_tags=num_labels,
                 constraints=self.namespace_to_constraints.get(namespace),
-                include_start_end_transitions=False,
+                include_start_end_transitions=True,
             )  # we do not add start and end tags to our labels
             clf = nn.Linear(self.encoding_dim, num_labels)
             self.crfs.update({namespace: crf})

@@ -39,3 +39,24 @@ class TestParscitDataset:
         train_labels = set(train_labels)
         num_classes = len(train_labels)
         assert num_classes == 14
+
+    def test_num_lines(self, setup_parscit_dataset_manager):
+        dataset_manager = setup_parscit_dataset_manager
+        train_dataset = dataset_manager.train_dataset
+        dev_dataset = dataset_manager.dev_dataset
+        test_dataset = dataset_manager.test_dataset
+        assert len(train_dataset) == 1245
+        assert len(dev_dataset) == 139
+        assert len(test_dataset) == 139
+
+    def test_lines_labels_equal_length(self, setup_parscit_dataset_manager):
+        dataset_manager = setup_parscit_dataset_manager
+        datasets = [
+            dataset_manager.train_dataset,
+            dataset_manager.dev_dataset,
+            dataset_manager.test_dataset,
+        ]
+        for dataset in datasets:
+            lines, labels = dataset.get_lines_labels()
+            for line, label in zip(lines, labels):
+                assert len(line.tokens["tokens"]) == len(label.tokens["seq_label"])

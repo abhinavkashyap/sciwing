@@ -91,14 +91,7 @@ if __name__ == "__main__":
     )
     embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
 
-    char_embedder = CharEmbedder(
-        char_embedding_dimension=args.char_emb_dim,
-        hidden_dimension=args.char_encoder_hidden_dim,
-        datasets_manager=data_manager,
-        device=args.device,
-    )
-
-    embedder = ConcatEmbedders([embedder, char_embedder])
+    embedder = ConcatEmbedders([embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,

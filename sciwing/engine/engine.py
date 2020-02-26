@@ -342,7 +342,7 @@ class Engine(ClassNursery):
         self.train_metric_calc.reset()
         self.model.train()
 
-        self.msg_printer.info("starting training epoch")
+        self.msg_printer.info(f"Starting Training Epoch-{epoch_num}")
         while True:
             try:
                 # N*T, N * 1, N * 1
@@ -403,12 +403,10 @@ class Engine(ClassNursery):
             The current epoch number (0 based)
 
         """
-        self.msg_printer.divider("Training end @ Epoch {0}".format(epoch_num + 1))
+        self.msg_printer.divider(f"Training end @ Epoch {epoch_num + 1}")
         average_loss = self.train_loss_meter.get_average()
         self.msg_printer.text("Average Loss: {0}".format(average_loss))
-        self.train_logger.info(
-            "Average loss @ Epoch {0} - {1}".format(epoch_num + 1, average_loss)
-        )
+        self.train_logger.info(f"Average loss @ Epoch {epoch_num+1} - {average_loss}")
         metric = self.train_metric_calc.get_metric()
 
         if self.use_wandb:
@@ -553,7 +551,7 @@ class Engine(ClassNursery):
 
         if is_best:
             self.set_best_track_value(current_best=value_tracked)
-            self.msg_printer.good(f"Found best model @ epoch {epoch_num + 1}")
+            self.msg_printer.good(f"Found Best Model @ epoch {epoch_num + 1}")
             torch.save(
                 {
                     "epoch_num": epoch_num,
@@ -577,7 +575,7 @@ class Engine(ClassNursery):
             This is after the last training epoch.
 
         """
-        self.msg_printer.divider("Running on test batch")
+        self.msg_printer.divider("Running on Test Batch")
         self.load_model_from_file(self.save_dir.joinpath("best_model.pt"))
         self.model.eval()
         test_iter = iter(self.test_loader)
@@ -621,12 +619,14 @@ class Engine(ClassNursery):
             print(table)
 
         precision_recall_fmeasure = self.test_metric_calc.get_metric()
-        self.msg_printer.divider("Test @ Epoch {0}".format(epoch_num + 1))
+        self.msg_printer.divider(f"Test @ Epoch {epoch_num+1}")
         self.test_logger.info(
             f"Test Metrics @ Epoch {epoch_num+1} - {precision_recall_fmeasure}"
         )
         if self.use_wandb:
             wandb.log({"test_metrics": str(precision_recall_fmeasure)})
+
+        self.summaryWriter.close()
 
     def get_train_dataset(self):
         """ Returns the train dataset of the experiment

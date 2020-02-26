@@ -159,6 +159,7 @@ class Numericalizer(BaseNumericalizer):
         unk_token_idx = self.vocabulary.get_idx_from_token(self.vocabulary.unk_token)
         masked_tokens = [start_token_idx, end_token_idx, pad_token_idx, unk_token_idx]
 
+        assert len(set(masked_tokens)) == 4
         mask = [1 if token in masked_tokens else 0 for token in instance]
         mask = torch.ByteTensor(mask)
         return mask
