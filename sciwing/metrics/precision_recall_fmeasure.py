@@ -95,7 +95,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             predicted_tag_indices=top_indices_numpy,
             true_tag_indices=true_labels_numpy,
-            masked_label_indices=labels_mask,
+            true_masked_label_indices=labels_mask,
         )
 
         if self.idx2labelname_mapping is not None:
@@ -191,7 +191,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             true_tag_indices=true_labels_numpy,
             predicted_tag_indices=top_indices_numpy,
-            masked_label_indices=labels_mask,
+            true_masked_label_indices=labels_mask,
         )
 
         # For further confirmation on how I calculated this I searched for stackoverflow on

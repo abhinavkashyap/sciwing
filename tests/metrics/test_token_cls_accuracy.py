@@ -4,6 +4,12 @@ from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
     SeqLabellingDatasetManager,
 )
 from sciwing.utils.class_nursery import ClassNursery
+import sciwing.constants as constants
+import pathlib
+import numpy as np
+
+PATHS = constants.PATHS
+DATA_DIR = PATHS["DATA_DIR"]
 
 
 @pytest.fixture(scope="session")
@@ -28,6 +34,21 @@ def seq_dataset_manager(tmpdir_factory):
     )
 
     return data_manager
+
+
+@pytest.fixture
+def parscit_dataset_manager():
+    data_dir = pathlib.Path(DATA_DIR)
+    parscit_train_file = data_dir.joinpath("parscit.train")
+    parscit_dev_file = data_dir.joinpath("parscit.dev")
+    parscit_test_file = data_dir.joinpath("parscit.test")
+
+    dataset_manager = SeqLabellingDatasetManager(
+        train_filename=str(parscit_train_file),
+        dev_filename=str(parscit_dev_file),
+        test_filename=str(parscit_test_file),
+    )
+    return dataset_manager
 
 
 @pytest.fixture
@@ -73,6 +94,27 @@ def setup_basecase(seq_dataset_manager):
             "expected_micro_fscore": expected_micro_fscore,
         },
     )
+
+
+@pytest.fixture
+def setup_parscit_case(parscit_dataset_manager):
+    data_manager = parscit_dataset_manager
+    num_labels = data_manager.num_labels["seq_label"]
+    print(f"Parscit number of labels {num_labels}")
+    train_dataset = data_manager.train_dataset
+    lines, labels = train_dataset.get_lines_labels()
+    max_len_labels = max([len(label.tokens["seq_label"]) for label in labels])
+    # generate random predicted tags
+    predicted_tags = []
+    for label in labels:
+        predicted_tags_ = np.random.choice(
+            range(num_labels), size=max_len_labels
+        ).tolist()
+        predicted_tags.append(predicted_tags_)
+
+    model_forward_dict = {"predicted_tags_seq_label": predicted_tags}
+
+    return data_manager, lines, labels, model_forward_dict
 
 
 class TestTokenClsAccuracy:
@@ -143,3 +185,31 @@ class TestTokenClsAccuracy:
 
     def test_token_cls_accuracy_in_class_nursery(self):
         assert ClassNursery.class_nursery.get("TokenClassificationAccuracy") is not None
+
+    def test_parscit_metrics_dont_have_special_tokens(self, setup_parscit_case):
+        data_manager, lines, labels, model_forward_dict = setup_parscit_case
+        metric = TokenClassificationAccuracy(datasets_manager=data_manager)
+
+        metric.calc_metric(
+            lines=lines, labels=labels, model_forward_dict=model_forward_dict
+        )
+        label_vocab = data_manager.namespace_to_vocab["seq_label"]
+
+        start_token_idx = label_vocab.get_idx_from_token(label_vocab.start_token)
+        end_token_idx = label_vocab.get_idx_from_token(label_vocab.end_token)
+        pad_token_idx = label_vocab.get_idx_from_token(label_vocab.pad_token)
+        unk_token_idx = label_vocab.get_idx_from_token(label_vocab.unk_token)
+
+        special_indices = [start_token_idx, end_token_idx, pad_token_idx, unk_token_idx]
+
+        tp_counter = metric.tp_counter["seq_label"]
+        fp_counter = metric.fp_counter["seq_label"]
+        fn_counter = metric.fn_counter["seq_label"]
+
+        tp_counter_classes = tp_counter.keys()
+        fp_counter_classes = fp_counter.keys()
+        fn_counter_classes = fn_counter.keys()
+
+        assert len(set(special_indices).intersection(tp_counter_classes)) == 0
+        assert len(set(special_indices).intersection(fp_counter_classes)) == 0
+        assert len(set(special_indices).intersection(fn_counter_classes)) == 0

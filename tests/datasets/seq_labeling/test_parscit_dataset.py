@@ -5,9 +5,8 @@ from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
     SeqLabellingDatasetManager,
 )
 
-FILES = constants.FILES
+
 PATHS = constants.PATHS
-PARSCIT_TRAIN_FILE = FILES["PARSCIT_TRAIN_FILE"]
 DATA_DIR = PATHS["DATA_DIR"]
 
 
