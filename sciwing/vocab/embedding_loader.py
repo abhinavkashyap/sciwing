@@ -6,6 +6,7 @@ from tqdm import tqdm
 from wasabi import Printer
 import gensim
 from sciwing.vocab.vocab import Vocab
+import torch
 
 
 PATHS = constants.PATHS
@@ -99,8 +100,23 @@ class EmbeddingLoader:
         self.embedding_dimension = 500
         return pretrained
 
-    def get_embeddings_for_vocab(self, vocab: Vocab):
-        pass
+    def get_embeddings_for_vocab(self, vocab: Vocab) -> torch.FloatTensor:
+        idx2item = vocab.get_idx2token_mapping()
+        len_vocab = len(idx2item)
+        embeddings = []
+        for idx in range(len_vocab):
+            item = idx2item.get(idx)
+            try:
+                emb = self._embeddings[item]
+            except KeyError:
+                try:
+                    emb = self._embeddings[item.lower()]
+                except KeyError:
+                    emb = np.zeros(shape=self.embedding_dimension)
+            embeddings.append(emb)
+
+        embeddings = torch.tensor(embeddings, dtype=torch.float)
+        return embeddings
 
     @property
     def embeddings(self):
