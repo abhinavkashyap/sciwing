@@ -1,6 +1,6 @@
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.modules.embedders.char_embedder import CharEmbedder
+from sciwing.models.simple_tagger import SimpleTagger
 from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         rnn_bias=True,
         device=torch.device(args.device),
     )
-    model = RnnSeqCrfTagger(
+    model = SimpleTagger(
         rnn2seqencoder=lstm2seqencoder,
         encoding_dim=2 * args.hidden_dim
         if args.bidirectional and args.combine_strategy == "concat"
