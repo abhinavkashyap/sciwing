@@ -118,8 +118,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             namespace_logits = self.linear_clfs[namespace](encoding)
             batch_size, time_steps, _ = namespace_logits.size()
             output_dict[f"logits_{namespace}"] = namespace_logits
-            crf_ = self.crfs[namespace]
-            predicted_tags = crf_.viterbi_tags(
+            predicted_tags = self.crfs[namespace].viterbi_tags(
                 logits=namespace_logits,
                 mask=torch.ones(
                     size=(batch_size, time_steps), dtype=torch.long, device=self.device
@@ -127,6 +126,9 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             )
             predicted_tags = [tag for tag, _ in predicted_tags]
             output_dict[f"predicted_tags_{namespace}"] = predicted_tags
+
+            print(f"Predicted tag")
+            print(predicted_tags[0])
 
         if is_training or is_validation:
             labels_indices = defaultdict(list)
@@ -165,8 +167,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                 labels_tensor = labels_indices[namespace]
                 labels_tensor = torch.stack(labels_tensor)
                 logits_namespace = output_dict[f"logits_{namespace}"]
-                crf_ = self.crfs[namespace]
-                loss_ = -crf_(logits_namespace, labels_tensor, mask)
+                loss_ = -self.crfs[namespace](logits_namespace, labels_tensor, mask)
                 losses.append(loss_)
 
             loss = sum(losses)
