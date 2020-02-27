@@ -29,7 +29,7 @@ class EmbeddingLoader:
             The type of embedding that needs to be loaded
         """
         self.embedding_dimension = None
-        self.embedding_type = "glove_" if embedding_type is None else embedding_type
+        self.embedding_type = embedding_type
 
         self.allowed_embedding_types = [
             "glove_6B_50",
@@ -39,9 +39,10 @@ class EmbeddingLoader:
             "parscit",
         ]
 
-        assert (
-            self.embedding_type in self.allowed_embedding_types
-        ), f"You can use one of {self.allowed_embedding_types} for embedding type"
+        assert self.embedding_type in self.allowed_embedding_types, (
+            f"You can use one of {self.allowed_embedding_types} for embedding type."
+            f"You passed {self.embedding_type}"
+        )
         self.embedding_filename = self.get_preloaded_filename()
         self.vocab_embedding = {}  # stores the embedding for all words in vocab
         self.msg_printer = Printer()
@@ -107,11 +108,14 @@ class EmbeddingLoader:
         for idx in range(len_vocab):
             item = idx2item.get(idx)
             try:
+                # try getting the embeddings from the embeddings dictionary
                 emb = self._embeddings[item]
             except KeyError:
                 try:
+                    # try lowercasing the item and getting the embedding
                     emb = self._embeddings[item.lower()]
                 except KeyError:
+                    # nothing is working, lets fill it with zeros
                     emb = np.zeros(shape=self.embedding_dimension)
             embeddings.append(emb)
 
