@@ -12,7 +12,7 @@ class TrainableWordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
     def __init__(
         self,
         embedding_type: str,
-        datasets_manager: DatasetsManager,
+        datasets_manager: DatasetsManager = None,
         word_tokens_namespace: str = "tokens",
         device: torch.device = torch.device("cpu"),
     ):
@@ -39,7 +39,7 @@ class TrainableWordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.device = torch.device(device) if isinstance(device, str) else device
         self.word_tokens_namespace = word_tokens_namespace
         self.embedding_loader = EmbeddingLoader(embedding_type=embedding_type)
-        self.embedder_name = None
+        self.embedder_name = self.embedding_loader.embedding_type
         self.embedding_dimension = self.get_embedding_dimension()
         self.vocab = self.datasets_manager.namespace_to_vocab[
             self.word_tokens_namespace
@@ -67,7 +67,7 @@ class TrainableWordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
                 max_length=max_line_length,
                 add_start_end_token=False,
             )
-            tokens.append(numericalized_tokens)
+            numericalized_tokens.append(tokens)
 
         numericalized_tokens = torch.tensor(
             numericalized_tokens, dtype=torch.long, device=self.device
@@ -76,4 +76,4 @@ class TrainableWordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         return embedding
 
     def get_embedding_dimension(self) -> int:
-        pass
+        return self.embedding_loader.embedding_dimension

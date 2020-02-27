@@ -1,7 +1,6 @@
-from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.simple_tagger import SimpleTagger
-from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
     SeqLabellingDatasetManager,
@@ -89,9 +88,9 @@ if __name__ == "__main__":
         dev_filename=dev_filename,
         test_filename=test_filename,
     )
-    embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
-
-    embedder = ConcatEmbedders([embedder])
+    embedder = TrainableWordEmbedder(
+        embedding_type=args.emb_type, device=args.device, datasets_manager=data_manager
+    )
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
@@ -100,6 +99,7 @@ if __name__ == "__main__":
         combine_strategy=args.combine_strategy,
         rnn_bias=True,
         device=torch.device(args.device),
+        dropout_value=0.1,
     )
     model = SimpleTagger(
         rnn2seqencoder=lstm2seqencoder,

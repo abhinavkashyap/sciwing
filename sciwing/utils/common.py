@@ -461,9 +461,7 @@ def convert_parscit_to_sciwing_seqlabel_format(
         instances.append(" ".join(line_))
 
     # shuffle and split train dev and test
-    splitter = ShuffleSplit(
-        n_splits=1, train_size=0.9, test_size=0.1, random_state=1729
-    )
+    splitter = ShuffleSplit(n_splits=1, train_size=0.9, test_size=0.1)
     len_citations = len(instances)
     splits = splitter.split(range(len_citations))
     splits = list(splits)
@@ -727,4 +725,12 @@ def get_train_dev_test_stratified_split(
         (train_lines, train_labels),
         (validation_lines, validation_labels),
         (test_lines, test_labels),
+    )
+
+
+if __name__ == "__main__":
+    data_dir = pathlib.Path(DATA_DIR)
+    parscit_train_file = data_dir.joinpath("parsCit.train.data")
+    convert_parscit_to_sciwing_seqlabel_format(
+        parscit_train_filepath=parscit_train_file, output_dir=str(data_dir)
     )

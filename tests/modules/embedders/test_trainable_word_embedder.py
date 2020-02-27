@@ -57,3 +57,11 @@ class TestTrainableWordEmbedder:
 
     def test_embedder_in_class_nursery(self):
         assert ClassNursery.class_nursery["TrainableWordEmbedder"] is not None
+
+    def test_embedding_dimensions(self, setup_embedder):
+        embedder, data_manager = setup_embedder
+        train_dataset = data_manager.train_dataset
+        lines, labels = train_dataset.get_lines_labels()
+        for lines_batch in chunks(lines, 10):
+            embedding = embedder(lines_batch)
+            assert embedding.dim() == 3

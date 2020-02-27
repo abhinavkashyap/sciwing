@@ -195,7 +195,7 @@ class ClassificationMetricsUtils:
             label in `true_tag_indices` will be ignored
         """
         # get the masked label indices
-        true_masked_label_indices = torch.ByteTensor(true_masked_label_indices).cpu()
+        true_masked_label_indices = torch.BoolTensor(true_masked_label_indices).cpu()
 
         # select the elements in true tag indices where mask is 1
         # these classes will not be considered for calculating the metrics
@@ -207,7 +207,7 @@ class ClassificationMetricsUtils:
 
         # do the same for pred labels
         if pred_labels_mask is not None:
-            pred_mask_label_indices = torch.ByteTensor(pred_labels_mask).cpu()
+            pred_mask_label_indices = torch.BoolTensor(pred_labels_mask).cpu()
             pred_mask_label_indices = torch.masked_select(
                 torch.tensor(predicted_tag_indices, dtype=torch.long),
                 pred_mask_label_indices,

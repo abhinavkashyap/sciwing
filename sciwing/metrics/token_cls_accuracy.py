@@ -72,7 +72,7 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
             numericalizer = self.datasets_manager.namespace_to_numericalizer[namespace]
             pred_tags_mask = numericalizer.get_mask_for_batch_instances(
                 instances=predicted_tags
-            )
+            ).tolist()
             namespace_to_pred_labels_mask[namespace] = pred_tags_mask
 
             for label in labels:
