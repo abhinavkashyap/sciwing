@@ -16,7 +16,7 @@ python ${SCRIPT_FILE} \
 --lr 1e-2 \
 --char_encoder_hidden_dim 100 \
 --combine_strategy concat \
---epochs 100 \
+--epochs 15 \
 --save_every 10 \
 --log_train_metrics_every 20 \
 --sample_proportion 1

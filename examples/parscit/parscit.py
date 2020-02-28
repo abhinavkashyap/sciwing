@@ -1,5 +1,5 @@
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.models.simple_tagger import SimpleTagger
+from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         device=torch.device(args.device),
         dropout_value=0.1,
     )
-    model = SimpleTagger(
+    model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
         encoding_dim=2 * args.hidden_dim
         if args.bidirectional and args.combine_strategy == "concat"

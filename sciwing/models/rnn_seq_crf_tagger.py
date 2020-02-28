@@ -127,9 +127,6 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             predicted_tags = [tag for tag, _ in predicted_tags]
             output_dict[f"predicted_tags_{namespace}"] = predicted_tags
 
-            print(f"Predicted tag")
-            print(predicted_tags[0])
-
         if is_training or is_validation:
             labels_indices = defaultdict(list)
             for label in labels:
@@ -157,15 +154,15 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                 dtype=torch.long,
                 device=self.device,
             )
-            mask = get_mask(
-                batch_size=len(lines), max_size=max_time_steps, lengths=len_tokens
-            )
-            mask = mask.to(self.device)
 
             losses = []
             for namespace in self.label_namespaces:
                 labels_tensor = labels_indices[namespace]
                 labels_tensor = torch.stack(labels_tensor)
+                batch_size, time_steps = labels_tensor.size()
+                mask = torch.ones(
+                    size=(batch_size, time_steps), dtype=torch.long, device=self.device
+                )
                 logits_namespace = output_dict[f"logits_{namespace}"]
                 loss_ = -self.crfs[namespace](logits_namespace, labels_tensor, mask)
                 losses.append(loss_)
