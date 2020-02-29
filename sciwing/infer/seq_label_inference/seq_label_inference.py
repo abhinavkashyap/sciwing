@@ -57,8 +57,15 @@ class SequenceLabellingInference(BaseSeqLabelInference):
         self.batch_size = 32
         self.load_model()
 
-        categories = set([label for label in self.label2idx_mapping.keys()])
-        self.seq_tagging_visualizer = VisTagging(tags=categories)
+        self.namespace_to_unique_categories = {}
+        self.namespace_to_visualizer = {}
+        for namespace in self.labels_namespaces:
+            categories = list(
+                set([label for label in self.label2idx_mapping[namespace].keys()])
+            )
+            visualizer = VisTagging(tags=categories)
+            self.namespace_to_unique_categories[namespace] = categories
+            self.namespace_to_visualizer[namespace] = visualizer
 
     def run_inference(self):
         with self.msg_printer.loading(text="Running inference on test data"):
@@ -231,14 +238,11 @@ class SequenceLabellingInference(BaseSeqLabelInference):
                 labels_mask=labels_mask,
             )
 
-    def get_misclassified_sentences(
-        self, true_label_idx: int, pred_label_idx: int
-    ) -> List[str]:
-
-        misclf_sentences = defaultdict(list)
-        print(self.output_df)
+    def get_misclassified_sentences(self, true_label_idx: int, pred_label_idx: int):
 
         for namespace in self.labels_namespaces:
+            self.msg_printer.divider(f"Namespace {namespace.lower()}")
+
             true_tag_indices = self.output_df[namespace].true_tag_indices
             pred_tag_indices = self.output_df[namespace].predicted_tag_indices
 
@@ -254,26 +258,28 @@ class SequenceLabellingInference(BaseSeqLabelInference):
                         break
 
             for idx in indices:
-                sentence = self.output_analytics["sentences"][idx].split()
-                true_labels = self.output_analytics["true_tag_names"][idx].split()
-                pred_labels = self.output_analytics["predicted_tag_names"][idx].split()
+                sentence = self.output_analytics[namespace]["sentences"][idx].split()
+                true_labels = self.output_analytics[namespace]["true_tag_names"][
+                    idx
+                ].split()
+                pred_labels = self.output_analytics[namespace]["predicted_tag_names"][
+                    idx
+                ].split()
                 len_sentence = len(sentence)
                 true_labels = true_labels[:len_sentence]
                 pred_labels = pred_labels[:len_sentence]
-                stylized_string_true = self.seq_tagging_visualizer.visualize_tokens(
-                    sentence, true_labels
-                )
-                stylized_string_predicted = self.seq_tagging_visualizer.visualize_tokens(
-                    sentence, pred_labels
-                )
+                stylized_string_true = self.namespace_to_visualizer[
+                    namespace
+                ].visualize_tokens(sentence, true_labels)
+                stylized_string_predicted = self.namespace_to_visualizer[
+                    namespace
+                ].visualize_tokens(sentence, pred_labels)
 
                 sentence = (
                     f"GOLD LABELS \n{'*' * 80} \n{stylized_string_true} \n\n"
                     f"PREDICTED LABELS \n{'*' * 80} \n{stylized_string_predicted}\n\n"
                 )
-                misclf_sentences[namespace].append(sentence)
-
-        return misclf_sentences
+                print(sentence)
 
     def on_user_input(self, line: Union[Line, str]) -> Dict[str, List[str]]:
         return self.infer_batch(lines=[line])

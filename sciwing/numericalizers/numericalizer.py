@@ -150,7 +150,7 @@ class Numericalizer(BaseNumericalizer):
     def vocabulary(self, value):
         self._vocabulary = value
 
-    def get_mask_for_instance(self, instance: List[int]) -> torch.ByteTensor:
+    def get_mask_for_instance(self, instance: List[int]) -> torch.BoolTensor:
         start_token_idx = self.vocabulary.get_idx_from_token(
             self.vocabulary.start_token
         )
@@ -161,16 +161,16 @@ class Numericalizer(BaseNumericalizer):
 
         assert len(set(masked_tokens)) == 4
         mask = [1 if token in masked_tokens else 0 for token in instance]
-        mask = torch.ByteTensor(mask)
+        mask = torch.BoolTensor(mask)
         return mask
 
     def get_mask_for_batch_instances(
         self, instances: List[List[int]]
-    ) -> torch.ByteTensor:
+    ) -> torch.BoolTensor:
         masks = []
         for instance in instances:
             mask = self.get_mask_for_instance(instance=instance).tolist()
             masks.append(mask)
 
-        masks = torch.ByteTensor(masks)
+        masks = torch.BoolTensor(masks)
         return masks

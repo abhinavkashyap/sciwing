@@ -276,7 +276,7 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         if labels_mask is None:
             labels_mask = torch.zeros_like(torch.Tensor(true_tag_indices)).type(
-                torch.ByteTensor
+                torch.bool
             )
 
         (
