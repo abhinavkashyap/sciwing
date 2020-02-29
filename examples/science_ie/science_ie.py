@@ -1,7 +1,7 @@
 from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
@@ -91,7 +91,10 @@ if __name__ == "__main__":
         column_names=["TASK", "PROCESS", "MATERIAL"],
     )
 
-    embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
+    embedder = TrainableWordEmbedder(
+        embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
+    )
+
     char_embedder = CharEmbedder(
         char_embedding_dimension=args.char_emb_dim,
         hidden_dimension=args.char_encoder_hidden_dim,

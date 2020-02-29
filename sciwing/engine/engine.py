@@ -342,7 +342,9 @@ class Engine(ClassNursery):
         self.train_metric_calc.reset()
         self.model.train()
 
-        self.msg_printer.info(f"Starting Training Epoch-{epoch_num}")
+        self.msg_printer.info(
+            f"Starting Training Epoch: {epoch_num+1}/{self.num_epochs}"
+        )
         while True:
             try:
                 # N*T, N * 1, N * 1
@@ -455,6 +457,9 @@ class Engine(ClassNursery):
         self.validation_loss_meter.reset()
         self.validation_metric_calc.reset()
 
+        self.msg_printer.info(
+            f"Starting Validation Epoch: {epoch_num + 1}/{self.num_epochs}"
+        )
         while True:
             try:
                 lines_labels = next(valid_iter)

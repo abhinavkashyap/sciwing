@@ -5,7 +5,6 @@ from allennlp.modules.conditional_random_field import allowed_transitions
 import torch
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.data.datasets_manager import DatasetsManager
-from sciwing.utils.tensor_utils import get_mask
 from sciwing.data.seq_label import SeqLabel
 from sciwing.data.line import Line
 from collections import defaultdict
@@ -148,12 +147,6 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                         label_instances, dtype=torch.long, device=self.device
                     )
                     labels_indices[namespace].append(label_instances)
-
-            len_tokens = torch.tensor(
-                [len(line.tokens) for line in lines],
-                dtype=torch.long,
-                device=self.device,
-            )
 
             losses = []
             for namespace in self.label_namespaces:
