@@ -77,6 +77,10 @@ if __name__ == "__main__":
         "--sample_proportion", help="Sample proportion of the dataset", type=float
     )
 
+    parser.add_argument(
+        "--num_layers", help="Number of layers in rnn2seq encoder", type=int
+    )
+
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
 
@@ -111,6 +115,7 @@ if __name__ == "__main__":
         combine_strategy=args.combine_strategy,
         rnn_bias=True,
         device=torch.device(args.device),
+        num_layers=args.num_layers,
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
