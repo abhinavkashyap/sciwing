@@ -343,4 +343,4 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
                 fp_counter=self.fp_counter,
                 fn_counter=self.fn_counter,
             )
-            print(table)
+            return {self.label_namespace: table}

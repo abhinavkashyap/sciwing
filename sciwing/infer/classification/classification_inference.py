@@ -196,8 +196,10 @@ class ClassificationInference(BaseClassificationInference):
         )
 
     def report_metrics(self):
-        prf_table = self.metrics_calculator.report_metrics()
-        print(prf_table)
+        metrics = self.metrics_calculator.report_metrics()
+        for namespace, table in metrics.items():
+            self.msg_printer.divider(f"Results for {namespace.upper()}")
+            print(table)
 
     @deprecated(reason="This method is deprecated. It will be removed in version 0.1")
     def generate_report_for_paper(self):
