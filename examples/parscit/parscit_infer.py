@@ -5,6 +5,7 @@ from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
 )
 from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
@@ -34,13 +35,22 @@ class BuildParscitInterference(BaseInterfaceClient):
             datasets_manager=self.data_manager,
         )
 
+        char_embedder = CharEmbedder(
+            char_embedding_dimension=self.hparams.get("char_emb_dim"),
+            hidden_dimension=self.hparams.get("char_encoder_hidden_dim"),
+            datasets_manager=self.data_manager,
+        )
+
+        elmo_embedder = BowElmoEmbedder(datasets_manager=self.data_manager)
+
+        embedder = ConcatEmbedders([word_embedder, char_embedder, elmo_embedder])
+
         lstm2seqencoder = Lstm2SeqEncoder(
-            embedder=word_embedder,
+            embedder=embedder,
             hidden_dim=self.hparams.get("hidden_dim"),
             bidirectional=self.hparams.get("bidirectional"),
             combine_strategy=self.hparams.get("combine_strategy"),
             rnn_bias=True,
-            device=self.hparams.get("device"),
         )
 
         model = RnnSeqCrfTagger(
@@ -80,13 +90,12 @@ if __name__ == "__main__":
     dirname = pathlib.Path(".", "output")
     model_filepath = dirname.joinpath("checkpoints", "best_model.pt")
     hparams = {
-        "emb_type": "glove_6B_100",
+        "emb_type": "parscit",
         "char_emb_dim": 25,
-        "char_encoder_hidden_dim": 100,
+        "char_encoder_hidden_dim": 50,
         "hidden_dim": 256,
         "bidirectional": True,
         "combine_strategy": "concat",
-        "device": "cpu",
         "model_filepath": str(model_filepath),
     }
     parscit_inference = BuildParscitInterference(hparams)

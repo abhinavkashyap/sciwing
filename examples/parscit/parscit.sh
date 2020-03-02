@@ -141,7 +141,7 @@ SCRIPT_FILE="parscit.py"
 python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_parscit_100ch_25cd_256h_bidir_50e_1e-3lr" \
 --model_save_dir "./output/checkpoints" \
---device "cuda:2" \
+--device "cpu" \
 --bs 64 \
 --emb_type "parscit" \
 --hidden_dim 256 \
@@ -150,7 +150,7 @@ python ${SCRIPT_FILE} \
 --char_emb_dim 25 \
 --char_encoder_hidden_dim 50 \
 --combine_strategy concat \
---epochs 50 \
+--epochs 1 \
 --save_every 10 \
 --log_train_metrics_every 10 \
 --sample_proportion 1
