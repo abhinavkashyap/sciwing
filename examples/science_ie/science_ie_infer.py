@@ -33,22 +33,23 @@ def build_science_ie_model(dirname: str):
         embedding_type="glove_6B_100", datasets_manager=data_manager
     )
     char_embedder = CharEmbedder(
-        char_embedding_dimension=50, hidden_dimension=100, datasets_manager=data_manager
+        char_embedding_dimension=20, hidden_dimension=25, datasets_manager=data_manager
     )
     embedder = ConcatEmbedders([word_embedder, char_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
-        hidden_dim=256,
+        hidden_dim=350,
         bidirectional=True,
         combine_strategy="concat",
         rnn_bias=True,
         device=torch.device("cpu"),
+        num_layers=2,
     )
 
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
-        encoding_dim=512,
+        encoding_dim=700,
         datasets_manager=data_manager,
         namespace_to_constraints=None,
         tagging_type="BIOUL",
@@ -75,9 +76,9 @@ if __name__ == "__main__":
     if not prediction_folder.is_dir():
         prediction_folder.mkdir()
 
-    # infer.generate_scienceie_prediction_folder(
-    #     dev_folder=SCIENCE_IE_DEV_FOLDER, pred_folder=prediction_folder
-    # )
+    infer.generate_scienceie_prediction_folder(
+        dev_folder=SCIENCE_IE_DEV_FOLDER, pred_folder=prediction_folder
+    )
 
     calculateMeasures(
         folder_gold=str(SCIENCE_IE_DEV_FOLDER),
