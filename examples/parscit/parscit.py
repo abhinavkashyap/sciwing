@@ -2,6 +2,7 @@ from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
     SeqLabellingDatasetManager,
@@ -100,7 +101,11 @@ if __name__ == "__main__":
         device=args.device,
     )
 
-    embedder = ConcatEmbedders([word_embedder, char_embedder])
+    elmo_embedder = BowElmoEmbedder(
+        datasets_manager=data_manager, layer_aggregation="sum", device=args.device
+    )
+
+    embedder = ConcatEmbedders([word_embedder, char_embedder, elmo_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,

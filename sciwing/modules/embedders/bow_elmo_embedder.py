@@ -35,9 +35,8 @@ class BowElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
             first
                 Representations from first layer is considered
 
-        cuda_device_id : int
-            Cuda device id on which representations will be transferred
-            -1 indicates cpu
+        device : Union[str, torch.device]
+            device for running the model on
 
         word_tokens_namespace: int
             Namespace where all the word tokens are stored
