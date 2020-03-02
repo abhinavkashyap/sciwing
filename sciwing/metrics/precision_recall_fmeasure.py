@@ -25,9 +25,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         self.datasets_manager = datasets_manager
         self.idx2labelname_mapping = None
         self.msg_printer = Printer()
-        self.classification_metrics_utils = ClassificationMetricsUtils(
-            idx2labelname_mapping=self.idx2labelname_mapping
-        )
+        self.classification_metrics_utils = ClassificationMetricsUtils()
         self.label_namespace = self.datasets_manager.label_namespaces[0]
         self.normalized_probs_namespace = "normalized_probs"
         self.label_numericalizer = self.datasets_manager.namespace_to_numericalizer[
@@ -78,7 +76,7 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
         )
 
         if labels_mask is None:
-            labels_mask = torch.zeros_like(labels).type(torch.ByteTensor)
+            labels_mask = torch.zeros_like(labels, dtype=torch.bool)
 
         # TODO: for now k=1, change it to different number of ks
         top_probs, top_indices = predicted_probs.topk(k=1, dim=1)
@@ -345,4 +343,4 @@ class PrecisionRecallFMeasure(BaseMetric, ClassNursery):
                 fp_counter=self.fp_counter,
                 fn_counter=self.fn_counter,
             )
-            return {self.label_namespace: table}
+            print(table)
