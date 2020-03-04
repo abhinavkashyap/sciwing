@@ -125,6 +125,7 @@ class NeuralParscit(nn.Module):
                 text=text.split(), labels=prediction[0].split()
             )
             print(stylized_string)
+            return prediction[0]
 
     def _get_data(self):
         data_manager = SeqLabellingDatasetManager(
