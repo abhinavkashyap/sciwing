@@ -6,7 +6,7 @@ from wasabi import Printer
 import zipfile
 from sys import stdout
 import re
-import pathlib
+from sciwing.utils.amazon_s3 import S3Util
 from sklearn.model_selection import KFold
 import numpy as np
 import sciwing.constants as constants
@@ -15,6 +15,7 @@ import importlib
 from tqdm import tqdm
 import tarfile
 import psutil
+import pathlib
 from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit
 
 PATHS = constants.PATHS
@@ -726,6 +727,27 @@ def get_train_dev_test_stratified_split(
         (validation_lines, validation_labels),
         (test_lines, test_labels),
     )
+
+
+def cached_path(
+    path: pathlib.Path, file_folder_name: str, is_file: bool
+) -> pathlib.Path:
+
+    msg_printer = Printer()
+    if path.is_file() or path.is_dir():
+        msg_printer.info(f"{path} exists.")
+        return path
+
+    aws_creds_dir = PATHS["AWS_CRED_DIR"]
+    aws_creds_dir = pathlib.Path(aws_creds_dir)
+    config_json = aws_creds_dir.joinpath("aws_s3_credentials.json")
+    util = S3Util(aws_cred_config_json_filename=str(config_json))
+    if is_file:
+        util.download_file(filename_s3=str(file_folder_name), local_filename=str(path))
+    else:
+        util.download_folder(folder_name_s3=str(file_folder_name), output_dir=str(path))
+
+    return path
 
 
 if __name__ == "__main__":

@@ -44,7 +44,6 @@ if __name__ == "__main__":
         help="Log training metrics every few iterations",
         type=int,
     )
-    parser.add_argument("--emb_dim", help="embedding dimension", type=int)
     parser.add_argument(
         "--char_emb_dim", help="character embedding dimension", type=int
     )

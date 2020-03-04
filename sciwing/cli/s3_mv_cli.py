@@ -9,7 +9,7 @@ import shutil
 
 PATHS = constants.PATHS
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
-OUTPUT_DIR = PATHS["OUTPUT_DIR"]
+MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 
 
 class S3OutputMove:
@@ -102,4 +102,4 @@ class S3OutputMove:
 
 
 if __name__ == "__main__":
-    s3_move_cli = S3OutputMove(foldername=OUTPUT_DIR)
+    s3_move_cli = S3OutputMove(foldername=MODELS_CACHE_DIR)

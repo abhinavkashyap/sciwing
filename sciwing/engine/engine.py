@@ -18,6 +18,7 @@ import logzero
 import hashlib
 import pathlib
 import random
+import json
 
 try:
     import wandb
@@ -182,6 +183,9 @@ class Engine(ClassNursery):
 
         if not self.save_dir.is_dir():
             self.save_dir.mkdir(parents=True)
+
+        with open(self.save_dir.joinpath("hyperparams.json"), "w") as fp:
+            json.dump(self.experiment_hyperparams, fp)
 
         self.num_workers = 1
         self.model.to(self.device)

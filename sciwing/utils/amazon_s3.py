@@ -181,6 +181,7 @@ class S3Util:
         download_only_best_checkpoint: bool = False,
         chkpoints_foldername: str = "checkpoints",
         best_model_filename="best_model.pt",
+        output_dir: str = OUTPUT_DIR,
     ):
         """ Downloads a folder from s3 recursively
 
@@ -201,20 +202,22 @@ class S3Util:
 
         """
         bucket = self.s3_resource.Bucket(self.credentials.bucket_name)
-        if len(list(bucket.objects.filter(Prefix=folder_name_s3))) == 0:
-            raise FileNotFoundError(f"Failed to find folder {folder_name_s3}")
+        with self.msg_printer.loading(f"Downloading folder {folder_name_s3}"):
+            if len(list(bucket.objects.filter(Prefix=folder_name_s3))) == 0:
+                raise FileNotFoundError(f"Failed to find folder {folder_name_s3}")
 
-        for key in bucket.objects.filter(Prefix=folder_name_s3):
-            if not os.path.exists(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}"):
-                os.makedirs(f"{OUTPUT_DIR}/{os.path.dirname(key.key)}")
-            if download_only_best_checkpoint:
-                if re.search(chkpoints_foldername, key.key):
-                    if re.search(best_model_filename, key.key):
-                        bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
+            for key in bucket.objects.filter(Prefix=folder_name_s3):
+                if not os.path.exists(f"{output_dir}/{os.path.dirname(key.key)}"):
+                    os.makedirs(f"{output_dir}/{os.path.dirname(key.key)}")
+                if download_only_best_checkpoint:
+                    if re.search(chkpoints_foldername, key.key):
+                        if re.search(best_model_filename, key.key):
+                            bucket.download_file(key.key, f"{output_dir}/{key.key}")
+                    else:
+                        bucket.download_file(key.key, f"{output_dir}/{key.key}")
                 else:
-                    bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
-            else:
-                bucket.download_file(key.key, f"{OUTPUT_DIR}/{key.key}")
+                    bucket.download_file(key.key, f"{output_dir}/{key.key}")
+        self.msg_printer.good(f"Finished downloading {folder_name_s3}")
 
     def search_folders_with(self, pattern):
         """ Searches for folders in the s3 bucket with specific pattern

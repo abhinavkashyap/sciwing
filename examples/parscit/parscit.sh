@@ -139,8 +139,8 @@ SCRIPT_FILE="parscit.py"
 #--sample_proportion 1
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX}"_parscit_100ch_25cd_256h_bidir_50e_1e-3lr" \
---model_save_dir "./output/checkpoints" \
+--exp_name ${EXPERIMENT_PREFIX}"_final_model" \
+--model_save_dir "./output/"${EXPERIMENT_PREFIX}"_final" \
 --device "cuda:2" \
 --bs 64 \
 --emb_type "parscit" \
