@@ -352,7 +352,7 @@ def extract_zip(filename: str, destination_dir: str):
 
         msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
     except zipfile.BadZipFile:
-        msg_printer.fail("Couldnot extract {filename} to {destination}")
+        msg_printer.fail(f"Couldnot extract {filename} to {destination}")
 
 
 def extract_tar(filename: str, destination_dir: str, mode="r"):
@@ -729,25 +729,17 @@ def get_train_dev_test_stratified_split(
     )
 
 
-def cached_path(
-    path: pathlib.Path, file_folder_name: str, is_file: bool
-) -> pathlib.Path:
+def cached_path(path: pathlib.Path, url: str, unzip=True) -> pathlib.Path:
 
     msg_printer = Printer()
     if path.is_file() or path.is_dir():
         msg_printer.info(f"{path} exists.")
         return path
 
-    aws_creds_dir = PATHS["AWS_CRED_DIR"]
-    aws_creds_dir = pathlib.Path(aws_creds_dir)
-    config_json = aws_creds_dir.joinpath("aws_s3_credentials.json")
-    util = S3Util(aws_cred_config_json_filename=str(config_json))
-    if is_file:
-        util.download_file(filename_s3=str(file_folder_name), local_filename=str(path))
-    else:
-        util.download_folder(folder_name_s3=str(file_folder_name), output_dir=str(path))
+    download_file(url=url, dest_filename=f"{str(path)}.zip")
 
-    return path
+    if unzip:
+        extract_zip(filename=f"{path}.zip", destination_dir=str(path.parent))
 
 
 if __name__ == "__main__":

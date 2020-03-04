@@ -141,4 +141,7 @@ class NeuralParscit(nn.Module):
 
     def _download_if_required(self):
         # download the model weights and data to client machine
-        cached_path(self.final_model_dir, self.final_model_dir.stem, is_file=False)
+        cached_path(
+            path=self.final_model_dir,
+            url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/lstm_crf_parscit_final.zip",
+        )
