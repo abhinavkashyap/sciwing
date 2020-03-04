@@ -150,7 +150,7 @@ python ${SCRIPT_FILE} \
 --char_emb_dim 25 \
 --char_encoder_hidden_dim 50 \
 --combine_strategy concat \
---epochs 50 \
+--epochs 1 \
 --save_every 10 \
 --log_train_metrics_every 10 \
 --sample_proportion 1

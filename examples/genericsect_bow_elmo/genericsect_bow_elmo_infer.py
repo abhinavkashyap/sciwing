@@ -9,53 +9,71 @@ from sciwing.datasets.classification.text_classification_dataset import (
     TextClassificationDatasetManager,
 )
 from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
+from sciwing.infer.interface_client_base import BaseInterfaceClient
+from sciwing.cli.sciwing_interact import SciWINGInteract
 import pathlib
+from typing import Dict, Any
 
 PATHS = constants.PATHS
 DATA_DIR = PATHS["DATA_DIR"]
 DATA_DIR = pathlib.Path(DATA_DIR)
 
 
-def build_genericsect_bow_elmo_model(dirname: str):
-    exp_dirpath = pathlib.Path(dirname)
+class BuildGenericSectBowElmo(BaseInterfaceClient):
+    def __init__(self, hparams: Dict[str, Any]):
+        self.hparams = hparams
+        self.data_manager = self.build_dataset()
+        self.model = self.build_model()
 
-    CUDA_DEVICE = "cpu"
+    def build_model(self):
+        embedder = BowElmoEmbedder(
+            layer_aggregation=self.hparams.get("layer_aggregation")
+        )
 
-    train_filename = DATA_DIR.joinpath("genericSect.train")
-    dev_filename = DATA_DIR.joinpath("genericSect.dev")
-    test_filename = DATA_DIR.joinpath("genericSect.test")
+        encoder = BOW_Encoder(
+            aggregation_type=self.hparams.get("word_aggregation"), embedder=embedder
+        )
 
-    data_manager = TextClassificationDatasetManager(
-        train_filename=train_filename,
-        dev_filename=dev_filename,
-        test_filename=test_filename,
-    )
+        model = SimpleClassifier(
+            encoder=encoder,
+            encoding_dim=self.hparams.get("encoding_dim"),
+            num_classes=self.hparams.get("num_classes"),
+            classification_layer_bias=True,
+            datasets_manager=self.data_manager,
+        )
+        return model
 
-    embedder = BowElmoEmbedder(
-        layer_aggregation="last",
-        cuda_device_id=0 if re.match("cuda", CUDA_DEVICE) else -1,
-    )
+    def build_dataset(self):
+        train_filename = DATA_DIR.joinpath("genericSect.train")
+        dev_filename = DATA_DIR.joinpath("genericSect.dev")
+        test_filename = DATA_DIR.joinpath("genericSect.test")
 
-    encoder = BOW_Encoder(embedder=embedder, aggregation_type="sum")
-    model = SimpleClassifier(
-        encoder=encoder,
-        encoding_dim=1024,
-        num_classes=12,
-        classification_layer_bias=True,
-        datasets_manager=data_manager,
-    )
+        data_manager = TextClassificationDatasetManager(
+            train_filename=train_filename,
+            dev_filename=dev_filename,
+            test_filename=test_filename,
+        )
+        return data_manager
 
-    parsect_inference = ClassificationInference(
-        model=model,
-        model_filepath=str(exp_dirpath.joinpath("checkpoints", "best_model.pt")),
-        datasets_manager=data_manager,
-    )
-
-    return parsect_inference
+    def build_infer(self):
+        parsect_inference = ClassificationInference(
+            model=self.model,
+            model_filepath=self.hparams.get("model_filepath"),
+            datasets_manager=self.data_manager,
+        )
+        return parsect_inference
 
 
 if __name__ == "__main__":
     dirname = pathlib.Path(".", "output")
-    infer = build_genericsect_bow_elmo_model(str(dirname))
-    infer.run_inference()
-    infer.report_metrics()
+    model_filepath = dirname.joinpath("checkpoints", "best_model.pt")
+    hparams = {
+        "layer_aggregation": "last",
+        "word_aggregation": "sum",
+        "encoding_dim": 1024,
+        "num_classes": 12,
+        "model_filepath": model_filepath,
+    }
+    infer = BuildGenericSectBowElmo(hparams)
+    cli = SciWINGInteract(infer)
+    cli.interact()

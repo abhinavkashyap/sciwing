@@ -7,7 +7,7 @@ python ${SCRIPT_FILE} \
 --exp_name "genericsect_bow_elmo" \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
---device cuda:1 \
+--device cpu \
 --layer_aggregation last \
 --word_aggregation sum \
 --bs 10 \

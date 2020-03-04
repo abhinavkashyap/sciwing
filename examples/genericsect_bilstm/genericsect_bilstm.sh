@@ -13,7 +13,7 @@ python ${SCRIPT_FILE} \
 --lr 1e-3 \
 --bidirectional \
 --combine_strategy concat \
---epochs 20 \
+--epochs 1 \
 --save_every 1 \
 --log_train_metrics_every 50 \
 --sample_proportion 1

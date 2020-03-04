@@ -65,7 +65,7 @@ if __name__ == "__main__":
     )
 
     embedder = WordEmbedder(embedding_type=args.emb_type)
-    encoder = BOW_Encoder(embedder=embedder, dropout_value=0.0, aggregation_type="sum")
+    encoder = BOW_Encoder(embedder=embedder)
 
     model = SimpleClassifier(
         encoder=encoder,
