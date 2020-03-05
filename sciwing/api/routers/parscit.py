@@ -21,4 +21,4 @@ def tag_citation_string(citation: str):
 
     """
     predictions = parscit_model.predict_for_text(citation)
-    return {"tags": predictions}
+    return {"tags": predictions, "text_tokens": citation.split()}
