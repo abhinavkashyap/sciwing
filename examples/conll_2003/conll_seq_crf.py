@@ -124,7 +124,7 @@ if __name__ == "__main__":
         if args.bidirectional and args.combine_strategy == "concat"
         else args.hidden_dim,
         device=args.device,
-        tagging_type="BIO",
+        tagging_type="IOB1",
         datasets_manager=data_manager,
     )
 
