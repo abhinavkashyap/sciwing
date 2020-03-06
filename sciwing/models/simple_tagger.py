@@ -19,6 +19,7 @@ class SimpleTagger(nn.Module, ClassNursery):
         encoding_dim: int,
         datasets_manager: DatasetsManager,
         device: torch.device = torch.device("cpu"),
+        label_namespace: str = "seq_label",
     ):
         """
 
@@ -34,9 +35,9 @@ class SimpleTagger(nn.Module, ClassNursery):
         self.encoding_dim = encoding_dim
         self.datasets_manager = datasets_manager
 
-        self.label_namespaces = datasets_manager.label_namespaces
+        self.label_namespace = datasets_manager.label_namespaces[0]
         self.device = device
-        self.num_labels = self.datasets_manager.num_labels["seq_label"]
+        self.num_labels = self.datasets_manager.num_labels[self.label_namespace]
 
         self.linear_proj = nn.Linear(self.encoding_dim, self.num_labels)
         self._loss = CrossEntropyLoss()
@@ -90,21 +91,21 @@ class SimpleTagger(nn.Module, ClassNursery):
         normalized_probs = softmax(namespace_logits, dim=2)
 
         batch_size, time_steps, _ = namespace_logits.size()
-        output_dict[f"logits_seq_label"] = namespace_logits
+        output_dict[f"logits_{self.label_namespace}"] = namespace_logits
         output_dict["normalized_probs"] = normalized_probs
         predicted_tags = torch.topk(namespace_logits, k=1, dim=2)
 
         # gets the max element indices and flattens it to get List[List[int]]
         predicted_tags = predicted_tags.indices.flatten(start_dim=1).tolist()
-        output_dict["predicted_tags_seq_label"] = predicted_tags
+        output_dict[f"predicted_tags_{self.label_namespace}"] = predicted_tags
 
         labels_indices = []
         if is_training or is_validation:
             for label in labels:
                 numericalizer = self.datasets_manager.namespace_to_numericalizer[
-                    "seq_label"
+                    self.label_namespace
                 ]
-                label_ = label.tokens["seq_label"]
+                label_ = label.tokens[self.label_namespace]
                 label_ = [tok.text for tok in label_]
                 label_instances = numericalizer.numericalize_instance(instance=label_)
                 label_instances = numericalizer.pad_instance(

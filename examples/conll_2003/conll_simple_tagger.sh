@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-EXPERIMENT_PREFIX="conll_seq_crf"
-SCRIPT_FILE="conll_seq_crf.py"
+EXPERIMENT_PREFIX="conll_simple_tagger"
+SCRIPT_FILE="conll_simple_tagger.py"
 
 python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX} \

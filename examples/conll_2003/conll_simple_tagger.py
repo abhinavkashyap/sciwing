@@ -5,7 +5,7 @@ from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbed
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
-from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
+from sciwing.models.simple_tagger import SimpleTagger
 import argparse
 import wasabi
 import torch
@@ -118,14 +118,14 @@ if __name__ == "__main__":
         device=args.device,
         num_layers=args.num_layers,
     )
-    model = RnnSeqCrfTagger(
+    model = SimpleTagger(
         rnn2seqencoder=lstm2seqencoder,
         encoding_dim=2 * args.hidden_dim
         if args.bidirectional and args.combine_strategy == "concat"
         else args.hidden_dim,
         device=args.device,
-        tagging_type="BIO",
         datasets_manager=data_manager,
+        label_namespace="NER",
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr, weight_decay=args.reg)
