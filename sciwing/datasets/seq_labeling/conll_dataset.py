@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.numericalizers.base_numericalizer import BaseNumericalizer
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
@@ -18,6 +18,7 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
         filename: str,
         tokenizers: Dict[str, BaseTokenizer],
         column_names: List[str] = None,
+        train_only: Optional[str] = None,
     ):
         """ Dataset in CoNLL format
 
@@ -29,6 +30,10 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
         column_names: List[str]
             A list of column names for the three labels in the CoNLL format
             If this is not provided then we will use ["label_1", "label_2", "label_3"]
+        train_only: str
+            You can pass one of ["pos", "dep", "ner"]
+            If this is passed only those columns in CoNLL will be used
+            And appropriate column names will be chosen
         """
         super().__init__(filename, tokenizers)
         if column_names is None:
@@ -38,6 +43,7 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
         self.filename = filename
         self.tokenizers = tokenizers
         self.column_names = column_names
+        self.train_only = train_only
         self.lines, self.labels = self.get_lines_labels()
 
     def get_lines_labels(self) -> (List[Line], List[SeqLabel]):
@@ -51,7 +57,7 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
                     text = text.strip()
                     line_labels = text.split()
                     line_ = line_labels[0]
-                    label_ = line_labels[1:]
+                    label_ = line_labels[1:]  # all 3 tags
                     lines_.append(line_)
                     labels_.append(label_)
                 elif "-DOCSTART-" in text:
@@ -79,6 +85,18 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
         labels_ = zip(*labels)
         labels_ = zip(self.column_names, labels_)
         labels_ = dict(labels_)
+        if self.train_only:
+            if self.train_only == "pos":
+                column_index = 0
+            elif self.train_only == "dep":
+                column_index = 1
+            elif self.train_only == "ner":
+                column_index = 2
+            else:
+                raise ValueError(f"train_only parameter can be one of [pos, dep, ner]")
+
+            column_name = self.column_names[column_index]
+            labels_ = {column_name: labels_[column_name]}
         label = SeqLabel(labels=labels_)
         return line, label
 
@@ -102,6 +120,7 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size=10,
         column_names: List[str] = None,
+        train_only: Optional[str] = None,
     ):
 
         self.train_filename = train_filename
@@ -136,18 +155,21 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
             filename=self.train_filename,
             tokenizers=self.tokenizers,
             column_names=column_names,
+            train_only=train_only,
         )
 
         self.dev_dataset = CoNLLDataset(
             filename=self.dev_filename,
             tokenizers=self.tokenizers,
             column_names=column_names,
+            train_only=train_only,
         )
 
         self.test_dataset = CoNLLDataset(
             filename=self.test_filename,
             tokenizers=self.tokenizers,
             column_names=column_names,
+            train_only=train_only,
         )
 
         super(CoNLLDatasetManager, self).__init__(

@@ -52,3 +52,18 @@ class TestCoNLLDataset:
                 == len(labels_pos)
                 == len(labels_dep)
             )
+
+    @pytest.mark.parametrize("train_only", ["ner", "pos", "dep"])
+    def test_restricted_namesapces(self, test_file, train_only):
+        dataset = CoNLLDataset(
+            filename=test_file,
+            tokenizers={"tokens": WordTokenizer()},
+            column_names=["POS", "DEP", "NER"],
+            train_only=train_only,
+        )
+        lines, labels = dataset.get_lines_labels()
+
+        for label in labels:
+            namespaces = label.namespace
+            assert len(namespaces) == 1
+            assert train_only.upper() in namespaces
