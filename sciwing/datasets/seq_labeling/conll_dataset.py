@@ -58,8 +58,6 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
                     # skip next empty line as well
                     next(fp)
                 else:
-                    assert len(lines_) > 0
-                    assert len(labels_) > 0
                     text_ = " ".join(lines_)
                     line, label = self._form_line_label(text=text_, labels=labels_)
                     lines.append(line)

@@ -114,7 +114,7 @@ if __name__ == "__main__":
         bidirectional=args.bidirectional,
         combine_strategy=args.combine_strategy,
         rnn_bias=True,
-        device=torch.device(args.device),
+        device=args.device,
         num_layers=args.num_layers,
     )
     model = RnnSeqCrfTagger(
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         encoding_dim=2 * args.hidden_dim
         if args.bidirectional and args.combine_strategy == "concat"
         else args.hidden_dim,
-        device=torch.device(args.device),
+        device=args.device,
         tagging_type="BIOUL",
         datasets_manager=data_manager,
     )
