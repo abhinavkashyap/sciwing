@@ -92,7 +92,8 @@ if __name__ == "__main__":
         train_filename=train_filename,
         dev_filename=dev_filename,
         test_filename=test_filename,
-        column_names=["POS", "CHUNK", "NER"],
+        column_names=["POS", "DEP", "NER"],
+        train_only="ner",
     )
 
     embedder = TrainableWordEmbedder(

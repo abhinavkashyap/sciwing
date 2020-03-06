@@ -53,23 +53,26 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
             lines_: List[str] = []
             labels_: List[List[str]] = []  # every list is a label for one namespace
             for text in fp:
-                if bool(text.strip()):
-                    text = text.strip()
-                    line_labels = text.split()
+                text_ = text.strip()
+                if bool(text_):
+                    line_labels = text_.split()
                     line_ = line_labels[0]
                     label_ = line_labels[1:]  # all 3 tags
                     lines_.append(line_)
                     labels_.append(label_)
-                elif "-DOCSTART-" in text:
+                elif "-DOCSTART-" in text_:
                     # skip next empty line as well
                     next(fp)
                 else:
-                    text_ = " ".join(lines_)
-                    line, label = self._form_line_label(text=text_, labels=labels_)
-                    lines.append(line)
-                    labels.append(label)
-                    lines_ = []
-                    labels_ = []
+                    if len(lines_) > 0 and len(labels_) > 0:
+                        sentence = " ".join(lines_)
+                        line, label = self._form_line_label(
+                            text=sentence, labels=labels_
+                        )
+                        lines.append(line)
+                        labels.append(label)
+                        lines_ = []
+                        labels_ = []
             # handle the case when there is only one file without any new line
             else:
                 if len(lines_) > 0 and len(lines) == 0:
@@ -148,7 +151,16 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
         if column_names is None:
             column_names = ["label_1", "label_2", "label_3"]
 
-        for column_name in column_names:
+        if train_only == "pos":
+            valid_column_names = [column_names[0]]
+        elif train_only == "dep":
+            valid_column_names = [column_names[1]]
+        elif train_only == "ner":
+            valid_column_names = [column_names[2]]
+        else:
+            raise ValueError(f"train_only parameter can be one of [pos, dep, ner]")
+
+        for column_name in valid_column_names:
             self.namespace_numericalizer_map[column_name] = Numericalizer()
 
         self.train_dataset = CoNLLDataset(
