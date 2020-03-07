@@ -100,13 +100,7 @@ if __name__ == "__main__":
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
 
-    char_embedder = CharEmbedder(
-        char_embedding_dimension=args.char_emb_dim,
-        hidden_dimension=args.char_encoder_hidden_dim,
-        datasets_manager=data_manager,
-        device=args.device,
-    )
-    embedder = ConcatEmbedders([embedder, char_embedder])
+    embedder = ConcatEmbedders([embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
@@ -128,7 +122,7 @@ if __name__ == "__main__":
         datasets_manager=data_manager,
     )
 
-    optimizer = optim.Adam(params=model.parameters(), lr=args.lr, weight_decay=args.reg)
+    optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
 
     train_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
     dev_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
