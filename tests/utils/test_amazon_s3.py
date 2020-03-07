@@ -128,6 +128,7 @@ class TestS3Util:
         except:
             pytest.fail(f"Could not downlaod dummy_folder from s3")
 
+    @pytest.mark.skip
     def test_download_debug_random(self, setup_s3_util):
         """Test whether a dummy model folder can be downloaded"""
         util = setup_s3_util
@@ -149,6 +150,7 @@ class TestS3Util:
         with pytest.raises(FileNotFoundError):
             util.download_folder("debug_not_exists")
 
+    @pytest.mark.skip
     def test_download_only_best_model(self, setup_s3_util):
         """Test whether a dummy model folder can be downloaded"""
         util = setup_s3_util
