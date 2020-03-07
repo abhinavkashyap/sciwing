@@ -14,6 +14,7 @@ python ${SCRIPT_FILE} \
 --emb_type "glove_6B_100" \
 --hidden_dim 100 \
 --num_layers=1 \
+--bidirectional \
 --lr 1e-3 \
 --combine_strategy concat \
 --epochs 50 \
