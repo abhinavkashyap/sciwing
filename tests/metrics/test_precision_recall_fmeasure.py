@@ -118,7 +118,7 @@ def setup_data_for_all_zeros(clf_dataset_manager):
 class TestAccuracy:
     def test_print_confusion_matrix_works(self, setup_data_basecase):
         predicted_probs, labels, metric, dataset_manager, expected = setup_data_basecase
-        labels_mask = torch.zeros_like(predicted_probs).type(torch.ByteTensor)
+        labels_mask = torch.zeros_like(predicted_probs).type(torch.BoolTensor)
         try:
             metric.print_confusion_metrics(
                 predicted_probs=predicted_probs, labels=labels, labels_mask=labels_mask

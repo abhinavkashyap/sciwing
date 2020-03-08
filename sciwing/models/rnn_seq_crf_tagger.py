@@ -5,7 +5,6 @@ from allennlp.modules.conditional_random_field import allowed_transitions
 import torch
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.data.datasets_manager import DatasetsManager
-from sciwing.utils.tensor_utils import get_mask
 from sciwing.data.seq_label import SeqLabel
 from sciwing.data.line import Line
 from collections import defaultdict
@@ -65,7 +64,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             crf = CRF(
                 num_tags=num_labels,
                 constraints=self.namespace_to_constraints.get(namespace),
-                include_start_end_transitions=False,
+                include_start_end_transitions=True,
             )  # we do not add start and end tags to our labels
             clf = nn.Linear(self.encoding_dim, num_labels)
             self.crfs.update({namespace: crf})
@@ -118,8 +117,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             namespace_logits = self.linear_clfs[namespace](encoding)
             batch_size, time_steps, _ = namespace_logits.size()
             output_dict[f"logits_{namespace}"] = namespace_logits
-            crf_ = self.crfs[namespace]
-            predicted_tags = crf_.viterbi_tags(
+            predicted_tags = self.crfs[namespace].viterbi_tags(
                 logits=namespace_logits,
                 mask=torch.ones(
                     size=(batch_size, time_steps), dtype=torch.long, device=self.device
@@ -150,23 +148,16 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
                     )
                     labels_indices[namespace].append(label_instances)
 
-            len_tokens = torch.tensor(
-                [len(line.tokens) for line in lines],
-                dtype=torch.long,
-                device=self.device,
-            )
-            mask = get_mask(
-                batch_size=len(lines), max_size=max_time_steps, lengths=len_tokens
-            )
-            mask = mask.to(self.device)
-
             losses = []
             for namespace in self.label_namespaces:
                 labels_tensor = labels_indices[namespace]
                 labels_tensor = torch.stack(labels_tensor)
+                batch_size, time_steps = labels_tensor.size()
+                mask = torch.ones(
+                    size=(batch_size, time_steps), dtype=torch.long, device=self.device
+                )
                 logits_namespace = output_dict[f"logits_{namespace}"]
-                crf_ = self.crfs[namespace]
-                loss_ = -crf_(logits_namespace, labels_tensor, mask)
+                loss_ = -self.crfs[namespace](logits_namespace, labels_tensor, mask)
                 losses.append(loss_)
 
             loss = sum(losses)

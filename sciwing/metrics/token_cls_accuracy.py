@@ -14,12 +14,17 @@ from collections import defaultdict
 
 
 class TokenClassificationAccuracy(BaseMetric, ClassNursery):
-    def __init__(self, datasets_manager: DatasetsManager = None):
+    def __init__(
+        self,
+        datasets_manager: DatasetsManager = None,
+        predicted_tags_namespace_prefix="predicted_tags",
+    ):
         super(TokenClassificationAccuracy, self).__init__(
             datasets_manager=datasets_manager
         )
         self.datasets_manager = datasets_manager
         self.label_namespaces = datasets_manager.label_namespaces
+        self.predicted_tags_namespace_prefix = predicted_tags_namespace_prefix
         self.msg_printer = wasabi.Printer()
         self.classification_metrics_utils = ClassificationMetricsUtils()
 
@@ -55,20 +60,25 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         # get true labels for all namespaces
         namespace_to_true_labels = defaultdict(list)
-        namespace_to_labels_mask = defaultdict(list)
-        for label in labels:
-            for namespace in self.label_namespaces:
-                # List[List[int]]
-                predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
-                max_length = max(
-                    [len(tags) for tags in predicted_tags]
-                )  # max num tokens
+        namespace_to_true_labels_mask = defaultdict(list)
+        namespace_to_pred_labels_mask = defaultdict(list)
 
+        for namespace in self.label_namespaces:
+            # List[List[int]]
+            predicted_tags = model_forward_dict.get(
+                f"{self.predicted_tags_namespace_prefix}_{namespace}"
+            )
+            max_length = max([len(tags) for tags in predicted_tags])  # max num tokens
+            numericalizer = self.datasets_manager.namespace_to_numericalizer[namespace]
+            pred_tags_mask = numericalizer.get_mask_for_batch_instances(
+                instances=predicted_tags
+            ).tolist()
+            namespace_to_pred_labels_mask[namespace] = pred_tags_mask
+
+            for label in labels:
                 true_labels = label.tokens[namespace]
                 true_labels = [tok.text for tok in true_labels]
-                numericalizer = self.datasets_manager.namespace_to_numericalizer[
-                    namespace
-                ]
+
                 true_labels = numericalizer.numericalize_instance(instance=true_labels)
                 true_labels = numericalizer.pad_instance(
                     numericalized_text=true_labels,
@@ -79,14 +89,16 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
                     instance=true_labels
                 ).tolist()
                 namespace_to_true_labels[namespace].append(true_labels)
-                namespace_to_labels_mask[namespace].append(labels_mask)
+                namespace_to_true_labels_mask[namespace].append(labels_mask)
 
         for namespace in self.label_namespaces:
             labels_ = namespace_to_true_labels[namespace]
-            labels_mask = namespace_to_labels_mask[namespace]
+            labels_mask_ = namespace_to_true_labels_mask[namespace]
+            pred_labels_mask_ = namespace_to_pred_labels_mask[namespace]
             # List[List[int]]
-            predicted_tags = model_forward_dict.get(f"predicted_tags_{namespace}")
-            labels_mask = torch.LongTensor(labels_mask).type(torch.ByteTensor).tolist()
+            predicted_tags = model_forward_dict.get(
+                f"{self.predicted_tags_namespace_prefix}_{namespace}"
+            )
 
             (
                 confusion_mtrx,
@@ -94,7 +106,8 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
             ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
                 true_tag_indices=labels_,
                 predicted_tag_indices=predicted_tags,
-                masked_label_indices=labels_mask,
+                true_masked_label_indices=labels_mask_,
+                pred_labels_mask=pred_labels_mask_,
             )
 
             tps = np.around(np.diag(confusion_mtrx), decimals=4)
@@ -226,6 +239,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
                     tp_counter=self.tp_counter[namespace],
                     fp_counter=self.fp_counter[namespace],
                     fn_counter=self.fn_counter[namespace],
+                    idx2labelname_mapping=self.datasets_manager.get_idx_label_mapping(
+                        namespace
+                    ),
                 )
                 reports[namespace] = report
         return reports
@@ -258,10 +274,9 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
         """
 
-        print(f"true tag indices {true_tag_indices}")
         if labels_mask is None:
             labels_mask = torch.zeros_like(torch.Tensor(true_tag_indices)).type(
-                torch.ByteTensor
+                torch.bool
             )
 
         (
@@ -270,7 +285,7 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
         ) = self.classification_metrics_utils.get_confusion_matrix_and_labels(
             predicted_tag_indices=predicted_tag_indices,
             true_tag_indices=true_tag_indices,
-            masked_label_indices=labels_mask,
+            true_masked_label_indices=labels_mask,
         )
 
         classes_with_names = classes

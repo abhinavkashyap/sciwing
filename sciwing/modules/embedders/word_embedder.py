@@ -41,8 +41,8 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.device = torch.device(device) if isinstance(device, str) else device
 
     def forward(self, lines: List[Line]) -> torch.FloatTensor:
-        """ This will only consider the "tokens" present in the line. The "tokens"
-        namespace
+        """ This will only consider the "tokens" present in the line. The namespace
+        for the tokens is set with the class instantiation
 
         Parameters
         ----------
@@ -61,10 +61,16 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
                 try:
                     emb = self.embedding_loader.embeddings[token.text]
                     emb = torch.tensor(emb, dtype=torch.float, device=self.device)
-                except:
-                    emb = torch.zeros(
-                        self.embedding_dimension, device=self.device, dtype=torch.float
-                    )
+                except KeyError:
+                    try:
+                        emb = self.embedding_loader.embeddings[token.text.lower()]
+                        emb = torch.tensor(emb, dtype=torch.float, device=self.device)
+                    except KeyError:
+                        emb = torch.zeros(
+                            self.embedding_dimension,
+                            device=self.device,
+                            dtype=torch.float,
+                        )
 
                 token.set_embedding(name=self.embedder_name, value=emb)
 

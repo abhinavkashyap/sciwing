@@ -54,8 +54,8 @@ def get_mask(batch_size: int, max_size: int, lengths: torch.LongTensor):
         >> torch.LongTensor([3, 1, 2])
 
     which often indicates the original length of the tensor
-    without padding, `get_mask()` returns a mask that indicates
-    the positions without mask
+    without padding, `get_mask()` returns a tensor with 1 positions
+    where there is no padding and 0 where there is padding
 
     Parameters
     ----------
@@ -69,7 +69,7 @@ def get_mask(batch_size: int, max_size: int, lengths: torch.LongTensor):
     Returns
     -------
     torch.LongTensor
-        Mask having 1 where there are no paddings
+        Mask having 1 where there are no paddings and 0 where there are paddings
     """
     assert batch_size == lengths.size(0)
     mask = []

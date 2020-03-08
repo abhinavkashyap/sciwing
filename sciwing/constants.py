@@ -14,7 +14,6 @@ PATHS = dict(
     CONFIGS_DIR=os.path.join(ROOT_DIR, "config"),
     REPORTS_DIR=os.path.join(HOME_DIR, ".sciwing.reports_cache"),
     TESTS_DIR=os.path.join(ROOT_UP_DIR, "tests"),
-    TEMPLATES_DIR=os.path.join(ROOT_DIR, "_templates"),
     DATASETS_DIR=os.path.join(ROOT_DIR, "datasets"),
     EMBEDDING_CACHE_DIR=os.path.join(HOME_DIR, ".sciwing.embedding_cache"),
 )

@@ -143,9 +143,7 @@ class ClassificationInference(BaseClassificationInference):
             )
         return model_output_dict
 
-    def get_misclassified_sentences(
-        self, true_label_idx: int, pred_label_idx: int
-    ) -> List[str]:
+    def get_misclassified_sentences(self, true_label_idx: int, pred_label_idx: int):
         """This returns the true label misclassified as
         pred label idx
 
@@ -169,7 +167,6 @@ class ClassificationInference(BaseClassificationInference):
             & self.output_df["predicted_labels_indices"].isin([pred_label_idx])
         ].index.tolist()
 
-        sentences = []
         for idx in instances_idx:
             sentence = self.output_analytics["sentences"][idx]
 
@@ -188,9 +185,7 @@ class ClassificationInference(BaseClassificationInference):
                     no_print=True,
                 )
 
-            sentences.append(stylized_sentence)
-
-        return sentences
+            print(stylized_sentence)
 
     def print_confusion_matrix(self) -> None:
         """ Prints the confusion matrix for the test dataset
@@ -201,8 +196,10 @@ class ClassificationInference(BaseClassificationInference):
         )
 
     def report_metrics(self):
-        prf_table = self.metrics_calculator.report_metrics()
-        print(prf_table)
+        metrics = self.metrics_calculator.report_metrics()
+        for namespace, table in metrics.items():
+            self.msg_printer.divider(f"Results for {namespace.upper()}")
+            print(table)
 
     @deprecated(reason="This method is deprecated. It will be removed in version 0.1")
     def generate_report_for_paper(self):

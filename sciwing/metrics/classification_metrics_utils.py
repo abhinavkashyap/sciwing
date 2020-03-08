@@ -14,9 +14,8 @@ class ClassificationMetricsUtils:
     that helps in calculating these.
     """
 
-    def __init__(self, idx2labelname_mapping: Optional[Dict[int, str]] = None):
+    def __init__(self):
         self.msg_printer = wasabi.Printer()
-        self.idx2labelname_mapping = idx2labelname_mapping
 
     def get_prf_from_counters(
         self,
@@ -178,7 +177,8 @@ class ClassificationMetricsUtils:
     def get_confusion_matrix_and_labels(
         predicted_tag_indices: List[List[int]],
         true_tag_indices: List[List[int]],
-        masked_label_indices: List[List[int]],
+        true_masked_label_indices: List[List[int]],
+        pred_labels_mask: List[List[int]] = None,
     ) -> (np.array, List[int]):
         """ Gets the confusion matrix and the list of classes for which the confusion matrix
         is generated
@@ -190,25 +190,39 @@ class ClassificationMetricsUtils:
             Predicted tag indices for a batch
         true_tag_indices : List[List[int]]
             True tag indices for a batch
-        masked_label_indices : List[List[int]]
+        true_masked_label_indices : List[List[int]]
             Every integer is either a 0 or 1, where 1 will indicate that the
             label in `true_tag_indices` will be ignored
         """
         # get the masked label indices
-        masked_label_indices = torch.ByteTensor(masked_label_indices).cpu()
-        masked_label_indices = torch.masked_select(
-            torch.Tensor(true_tag_indices), masked_label_indices
-        )
-        masked_label_indices = masked_label_indices.tolist()
+        true_masked_label_indices = torch.BoolTensor(true_masked_label_indices).cpu()
 
+        # select the elements in true tag indices where mask is 1
+        # these classes will not be considered for calculating the metrics
+        true_masked_label_indices = torch.masked_select(
+            torch.tensor(true_tag_indices, dtype=torch.long), true_masked_label_indices
+        )
+        true_masked_label_indices = list(set(true_masked_label_indices.tolist()))
+        masked_classes = true_masked_label_indices
+
+        # do the same for pred labels
+        if pred_labels_mask is not None:
+            pred_mask_label_indices = torch.BoolTensor(pred_labels_mask).cpu()
+            pred_mask_label_indices = torch.masked_select(
+                torch.tensor(predicted_tag_indices, dtype=torch.long),
+                pred_mask_label_indices,
+            )
+            pred_mask_label_indices = list(set(pred_mask_label_indices.tolist()))
+            masked_classes = masked_classes + pred_mask_label_indices
+
+        # get the set of unique classes
         predicted_tags_flat = list(itertools.chain.from_iterable(predicted_tag_indices))
         labels = list(itertools.chain.from_iterable(true_tag_indices))
         predicted_tags_flat = np.array(predicted_tags_flat)
         labels_numpy = np.array(labels)
-
-        # filter the classes
         classes = unique_labels(labels_numpy, predicted_tags_flat)
-        classes = filter(lambda class_: class_ not in masked_label_indices, classes)
+
+        classes = filter(lambda class_: class_ not in masked_classes, classes)
         classes = list(classes)
 
         confusion_mtrx = confusion_matrix(
@@ -221,6 +235,7 @@ class ClassificationMetricsUtils:
         tp_counter: Dict[int, int],
         fp_counter: Dict[int, int],
         fn_counter: Dict[int, int],
+        idx2labelname_mapping: Dict[int, str] = None,
     ) -> str:
         """ Returns a table representation for Precision Recall and FMeasure
 
@@ -232,6 +247,8 @@ class ClassificationMetricsUtils:
             The mapping between class index and false positive count
         fn_counter : Dict[int, int]
             The mapping between class index and false negative count
+        idx2labelname_mapping: Dict[int, str]
+            The mapping between idx and label name
 
         Returns
         -------
@@ -255,10 +272,10 @@ class ClassificationMetricsUtils:
         classes = precision_dict.keys()
         classes = sorted(classes)
 
-        if self.idx2labelname_mapping is None:
+        if idx2labelname_mapping is None:
             idx2labelname_mapping = {class_num: class_num for class_num in classes}
         else:
-            idx2labelname_mapping = self.idx2labelname_mapping
+            idx2labelname_mapping = idx2labelname_mapping
 
         header_row = [" ", "Precision", "Recall", "F_measure"]
         rows = []

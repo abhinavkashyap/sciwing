@@ -6,7 +6,7 @@ from wasabi import Printer
 import zipfile
 from sys import stdout
 import re
-import pathlib
+from sciwing.utils.amazon_s3 import S3Util
 from sklearn.model_selection import KFold
 import numpy as np
 import sciwing.constants as constants
@@ -15,7 +15,8 @@ import importlib
 from tqdm import tqdm
 import tarfile
 import psutil
-from sklearn.model_selection import StratifiedShuffleSplit
+import pathlib
+from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -351,7 +352,7 @@ def extract_zip(filename: str, destination_dir: str):
 
         msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
     except zipfile.BadZipFile:
-        msg_printer.fail("Couldnot extract {filename} to {destination}")
+        msg_printer.fail(f"Couldnot extract {filename} to {destination}")
 
 
 def extract_tar(filename: str, destination_dir: str, mode="r"):
@@ -461,9 +462,9 @@ def convert_parscit_to_sciwing_seqlabel_format(
         instances.append(" ".join(line_))
 
     # shuffle and split train dev and test
-    kf = KFold(n_splits=2, shuffle=True, random_state=1729)
+    splitter = ShuffleSplit(n_splits=1, train_size=0.9, test_size=0.1)
     len_citations = len(instances)
-    splits = kf.split(np.arange(len_citations))
+    splits = splitter.split(range(len_citations))
     splits = list(splits)
     train_indices, test_indices = splits[0]
 
@@ -725,4 +726,25 @@ def get_train_dev_test_stratified_split(
         (train_lines, train_labels),
         (validation_lines, validation_labels),
         (test_lines, test_labels),
+    )
+
+
+def cached_path(path: pathlib.Path, url: str, unzip=True) -> pathlib.Path:
+
+    msg_printer = Printer()
+    if path.is_file() or path.is_dir():
+        msg_printer.info(f"{path} exists.")
+        return path
+
+    download_file(url=url, dest_filename=f"{str(path)}.zip")
+
+    if unzip:
+        extract_zip(filename=f"{path}.zip", destination_dir=str(path.parent))
+
+
+if __name__ == "__main__":
+    data_dir = pathlib.Path(DATA_DIR)
+    parscit_train_file = data_dir.joinpath("parsCit.train.data")
+    convert_parscit_to_sciwing_seqlabel_format(
+        parscit_train_filepath=parscit_train_file, output_dir=str(data_dir)
     )

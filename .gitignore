@@ -160,11 +160,12 @@ Pyre type checker
 
 sciwing/vis/*
 sciwing/outputs/*
+output/
 tests/utils/dummy_folder/*
 tests/utils/dummy_file.txt
 
 # ignore runs directory wherever it is
-runs
+runs/
 .model_cache
 .aws
 sciwing/reports/*

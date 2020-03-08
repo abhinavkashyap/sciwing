@@ -1,7 +1,7 @@
 import sciwing.constants as constants
 import pathlib
 from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
-from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
@@ -9,6 +9,7 @@ from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.infer.seq_label_inference.seq_label_inference import (
     SequenceLabellingInference,
 )
+from sciwing.utils.science_ie_eval import calculateMeasures
 import torch
 
 PATHS = constants.PATHS
@@ -28,24 +29,27 @@ def build_science_ie_model(dirname: str):
         column_names=["TASK", "PROCESS", "MATERIAL"],
     )
 
-    word_embedder = WordEmbedder(embedding_type="glove_6B_50")
+    word_embedder = TrainableWordEmbedder(
+        embedding_type="glove_6B_100", datasets_manager=data_manager
+    )
     char_embedder = CharEmbedder(
-        char_embedding_dimension=5, hidden_dimension=10, datasets_manager=data_manager
+        char_embedding_dimension=20, hidden_dimension=25, datasets_manager=data_manager
     )
     embedder = ConcatEmbedders([word_embedder, char_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
-        hidden_dim=10,
-        bidirectional=False,
+        hidden_dim=350,
+        bidirectional=True,
         combine_strategy="concat",
         rnn_bias=True,
         device=torch.device("cpu"),
+        num_layers=2,
     )
 
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
-        encoding_dim=10,
+        encoding_dim=700,
         datasets_manager=data_manager,
         namespace_to_constraints=None,
         tagging_type="BIOUL",
@@ -74,4 +78,10 @@ if __name__ == "__main__":
 
     infer.generate_scienceie_prediction_folder(
         dev_folder=SCIENCE_IE_DEV_FOLDER, pred_folder=prediction_folder
+    )
+
+    calculateMeasures(
+        folder_gold=str(SCIENCE_IE_DEV_FOLDER),
+        folder_pred=str(prediction_folder),
+        remove_anno="rel",
     )

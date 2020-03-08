@@ -1,7 +1,8 @@
-from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
+from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
+from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
-from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
     SeqLabellingDatasetManager,
@@ -43,7 +44,6 @@ if __name__ == "__main__":
         help="Log training metrics every few iterations",
         type=int,
     )
-    parser.add_argument("--emb_dim", help="embedding dimension", type=int)
     parser.add_argument(
         "--char_emb_dim", help="character embedding dimension", type=int
     )
@@ -89,7 +89,9 @@ if __name__ == "__main__":
         dev_filename=dev_filename,
         test_filename=test_filename,
     )
-    embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
+    word_embedder = TrainableWordEmbedder(
+        embedding_type=args.emb_type, device=args.device, datasets_manager=data_manager
+    )
 
     char_embedder = CharEmbedder(
         char_embedding_dimension=args.char_emb_dim,
@@ -98,7 +100,11 @@ if __name__ == "__main__":
         device=args.device,
     )
 
-    embedder = ConcatEmbedders([embedder, char_embedder])
+    elmo_embedder = BowElmoEmbedder(
+        datasets_manager=data_manager, layer_aggregation="sum", device=args.device
+    )
+
+    embedder = ConcatEmbedders([word_embedder, char_embedder, elmo_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
@@ -107,6 +113,7 @@ if __name__ == "__main__":
         combine_strategy=args.combine_strategy,
         rnn_bias=True,
         device=torch.device(args.device),
+        dropout_value=0.1,
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
@@ -142,6 +149,8 @@ if __name__ == "__main__":
         track_for_best="macro_fscore",
         lr_scheduler=scheduler,
         sample_proportion=args.sample_proportion,
+        use_wandb=True,
+        experiment_hyperparams=vars(args),
     )
 
     engine.run()
