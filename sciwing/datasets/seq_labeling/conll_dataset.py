@@ -158,7 +158,7 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
         elif train_only == "ner":
             valid_column_names = [column_names[2]]
         else:
-            raise ValueError(f"train_only parameter can be one of [pos, dep, ner]")
+            valid_column_names = column_names
 
         for column_name in valid_column_names:
             self.namespace_numericalizer_map[column_name] = Numericalizer()
