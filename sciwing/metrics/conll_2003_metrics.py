@@ -11,6 +11,7 @@ import wasabi
 from collections import defaultdict
 import pathlib
 import os
+import numpy as np
 
 
 class ConLL2003Metrics(BaseMetric):
@@ -93,6 +94,10 @@ class ConLL2003Metrics(BaseMetric):
             precision = float(precision) / 100
             recall = float(recall) / 100
             fscore = float(fscore) / 100
+            accuracy = np.round(accuracy, decimals=3)
+            precision = np.round(precision, decimals=3)
+            recall = np.round(recall, decimals=3)
+            fscore = np.round(fscore, decimals=3)
 
             # update the counter
             self.acc_counter[namespace].append(accuracy)
@@ -115,6 +120,11 @@ class ConLL2003Metrics(BaseMetric):
             precision = sum(precision) / len(precision)
             recall = sum(recall) / len(recall)
             fscore = sum(fscore) / len(fscore)
+
+            acc = np.round(acc, decimals=3)
+            precision = np.round(precision, decimals=3)
+            recall = np.round(recall, decimals=3)
+            fscore = np.round(fscore, decimals=3)
 
             metrics[namespace] = {
                 "accuracy": acc,
@@ -149,7 +159,7 @@ class ConLL2003Metrics(BaseMetric):
         return reports
 
     def reset(self):
-        self.acc_counter = defaultdict(dict)
-        self.precision_counter = defaultdict(dict)
-        self.recall_counter = defaultdict(dict)
-        self.fmeasure_counter = defaultdict(dict)
+        self.acc_counter = defaultdict(list)
+        self.precision_counter = defaultdict(list)
+        self.recall_counter = defaultdict(list)
+        self.fmeasure_counter = defaultdict(list)

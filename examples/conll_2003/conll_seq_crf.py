@@ -1,7 +1,7 @@
 from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 import sciwing.constants as constants
 import pathlib
-from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
+from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
@@ -10,7 +10,7 @@ import argparse
 import wasabi
 import torch
 import torch.optim as optim
-from sciwing.metrics.token_cls_accuracy import TokenClassificationAccuracy
+from sciwing.metrics.conll_2003_metrics import ConLL2003Metrics
 from sciwing.engine.engine import Engine
 
 PATHS = constants.PATHS
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         train_only="ner",
     )
 
-    embedder = TrainableWordEmbedder(
+    embedder = WordEmbedder(
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
 
@@ -124,9 +124,9 @@ if __name__ == "__main__":
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
 
-    train_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
-    dev_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
-    test_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
+    train_metric = ConLL2003Metrics(datasets_manager=data_manager)
+    dev_metric = ConLL2003Metrics(datasets_manager=data_manager)
+    test_metric = ConLL2003Metrics(datasets_manager=data_manager)
 
     engine = Engine(
         model=model,
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         num_epochs=args.epochs,
         save_every=args.save_every,
         log_train_metrics_every=args.log_train_metrics_every,
-        track_for_best="macro_fscore",
+        track_for_best="fscore",
         device=torch.device(args.device),
         train_metric=train_metric,
         validation_metric=dev_metric,

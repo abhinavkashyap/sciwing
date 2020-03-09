@@ -230,6 +230,7 @@ class Engine(ClassNursery):
                 )
             if (
                 self.best_track_value == "macro_fscore"
+                or self.best_track_value == "fscore"
                 and self.lr_scheduler.mode == "min"
             ):
                 self.msg_printer.warn(
@@ -316,7 +317,7 @@ class Engine(ClassNursery):
         """
         if self.track_for_best == "loss":
             self.best_track_value = np.inf if current_best is None else current_best
-        elif self.track_for_best == "macro_fscore":
+        elif self.track_for_best == "macro_fscore" or self.track_for_best == "fscore":
             self.best_track_value = 0 if current_best is None else current_best
         elif self.track_for_best == "micro_fscore":
             self.best_track_value = 0 if current_best is None else current_best
@@ -546,6 +547,7 @@ class Engine(ClassNursery):
         elif (
             self.track_for_best == "micro_fscore"
             or self.track_for_best == "macro_fscore"
+            or self.track_for_best == "fscore"
         ):
             # If there are multiple namespaces for the metric
             # we decide the best model based on the average score
