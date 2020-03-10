@@ -131,7 +131,7 @@ class Engine(ClassNursery):
             seeds = {}
         self.seeds = seeds
 
-        # self._set_seeds()
+        self._set_seeds()
 
         self.model = model
         self.datasets_manager = datasets_manager

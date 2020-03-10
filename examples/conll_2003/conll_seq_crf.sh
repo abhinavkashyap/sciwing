@@ -4,9 +4,9 @@ EXPERIMENT_PREFIX="conll_seq_crf"
 SCRIPT_FILE="conll_seq_crf.py"
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX} \
---exp_dir_path  "./output" \
---model_save_dir "./output/checkpoints" \
+--exp_name ${EXPERIMENT_PREFIX}"_optim_conlleval_fscore_smallerlr" \
+--exp_dir_path  "./output_optim_conlleval_fscore_smallerlr" \
+--model_save_dir "./output_optim_conlleval_fscore_smallerlr" \
 --device cpu \
 --dropout 0.5 \
 --reg 0 \
@@ -15,9 +15,9 @@ python ${SCRIPT_FILE} \
 --hidden_dim 300 \
 --num_layers=1 \
 --bidirectional \
---lr 1e-3 \
+--lr 5e-4 \
 --combine_strategy concat \
---epochs 1 \
+--epochs 50 \
 --save_every 20 \
 --log_train_metrics_every 3 \
---sample_proportion 0.1
+--sample_proportion 1

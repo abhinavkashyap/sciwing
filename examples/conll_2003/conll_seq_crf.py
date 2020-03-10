@@ -128,6 +128,10 @@ if __name__ == "__main__":
     dev_metric = ConLL2003Metrics(datasets_manager=data_manager)
     test_metric = ConLL2003Metrics(datasets_manager=data_manager)
 
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer=optimizer, factor=0.1, mode=max, patience=5
+    )
+
     engine = Engine(
         model=model,
         datasets_manager=data_manager,
@@ -146,6 +150,7 @@ if __name__ == "__main__":
         experiment_name=args.exp_name,
         experiment_hyperparams=vars(args),
         sample_proportion=args.sample_proportion,
+        lr_scheduler=scheduler,
     )
 
     engine.run()
