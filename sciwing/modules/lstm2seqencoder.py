@@ -146,7 +146,9 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
             encoding = output
 
         if self.add_projection_layer:
-            encoding = self.projection_activation_module(encoding)
+            encoding = self.projection_activation_module(
+                self.projection_layer(encoding)
+            )
 
         return encoding
 

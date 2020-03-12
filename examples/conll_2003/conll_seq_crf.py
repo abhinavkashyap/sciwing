@@ -1,7 +1,11 @@
 from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 import sciwing.constants as constants
 import pathlib
-from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.trainable_word_embedder import (
+    TrainableWordEmbedder as WordEmbedder,
+)
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.modules.embedders.char_embedder import CharEmbedder
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 import argparse
@@ -77,6 +81,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_layers", help="Number of layers in rnn2seq encoder", type=int
     )
+    parser.add_argument(
+        "--add_projection_layer",
+        help="If set to true, then projection layer will be added "
+        "after lstm2seq encoder with an activation function",
+        action="store_true",
+    )
 
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
@@ -94,12 +104,20 @@ if __name__ == "__main__":
         train_only="ner",
     )
 
-    embedder = WordEmbedder(
+    word_embedder = WordEmbedder(
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
+    # char_embedder = CharEmbedder(
+    #     char_embedding_dimension=args.char_emb_dim,
+    #     hidden_dimension=args.char_encoder_hidden_dim,
+    #     datasets_manager=data_manager,
+    #     device=args.device,
+    # )
+
+    # embedder = ConcatEmbedders([word_embedder, char_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
-        embedder=embedder,
+        embedder=word_embedder,
         dropout_value=args.dropout,
         hidden_dim=args.hidden_dim,
         bidirectional=args.bidirectional,
@@ -107,15 +125,15 @@ if __name__ == "__main__":
         rnn_bias=True,
         device=args.device,
         num_layers=args.num_layers,
+        add_projection_layer=args.add_projection_layer,
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
-        encoding_dim=2 * args.hidden_dim
-        if args.bidirectional and args.combine_strategy == "concat"
-        else args.hidden_dim,
+        encoding_dim=args.hidden_dim,
         device=args.device,
         tagging_type="IOB1",
         datasets_manager=data_manager,
+        include_start_end_trainsitions=False,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
@@ -128,7 +146,7 @@ if __name__ == "__main__":
         optimizer=optimizer,
         factor=0.1,
         mode="max",
-        patience=5,
+        patience=25,
         verbose=True,
         threshold=1e-3,
     )
