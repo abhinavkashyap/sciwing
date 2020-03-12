@@ -14,7 +14,14 @@ DATA_DIR = constants.PATHS["DATA_DIR"]
 
 
 @pytest.fixture(
-    params=["glove_6B_50", "glove_6B_100", "glove_6B_200", "glove_6B_300", "parscit"],
+    params=[
+        "glove_6B_50",
+        "glove_6B_100",
+        "glove_6B_200",
+        "glove_6B_300",
+        "parscit",
+        "lample_conll",
+    ],
     scope="session",
 )
 def setup_word_emb_loader(request):
