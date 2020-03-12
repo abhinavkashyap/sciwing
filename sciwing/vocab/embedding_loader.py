@@ -115,8 +115,8 @@ class EmbeddingLoader:
                     # try lowercasing the item and getting the embedding
                     emb = self._embeddings[item.lower()]
                 except KeyError:
-                    # nothing is working, lets fill it with zeros
-                    emb = np.zeros(shape=self.embedding_dimension)
+                    # nothing is working, lets fill it with random integers from normal dist
+                    emb = np.random.randn(shape=self.embedding_dimension)
             embeddings.append(emb)
 
         embeddings = torch.tensor(embeddings, dtype=torch.float)

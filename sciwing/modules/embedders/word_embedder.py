@@ -90,7 +90,7 @@ class WordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
                 token_embedding = token.get_embedding(name=self.embedder_name)
                 sentence_embedding.append(token_embedding)
             for i in range(padding_length):
-                zeros = torch.zeros(
+                zeros = torch.randn(
                     self.embedding_loader.embedding_dimension,
                     device=self.device,
                     dtype=torch.float,

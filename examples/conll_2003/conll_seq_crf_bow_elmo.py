@@ -2,6 +2,9 @@ from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 import sciwing.constants as constants
 import pathlib
 from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.char_embedder import CharEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 import argparse
@@ -97,6 +100,12 @@ if __name__ == "__main__":
     embedder = WordEmbedder(
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
+
+    elmo_embedder = BowElmoEmbedder(
+        datasets_manager=data_manager, layer_aggregation="average", device=args.device
+    )
+
+    embedder = ConcatEmbedders([embedder, elmo_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,

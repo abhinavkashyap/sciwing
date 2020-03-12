@@ -12,6 +12,7 @@ from collections import defaultdict
 import pathlib
 import os
 import numpy as np
+import uuid
 
 
 class ConLL2003Metrics(BaseMetric):
@@ -57,7 +58,7 @@ class ConLL2003Metrics(BaseMetric):
             )
 
             true_labels = [label.tokens[namespace] for label in labels]
-            namespace_filename = f"{cwd}/{namespace}_pred.txt"
+            namespace_filename = f"{cwd}/{str(uuid.uuid4())}_{namespace}_pred.txt"
             namespace_filename = pathlib.Path(namespace_filename)
             with open(namespace_filename, "w") as fp:
 

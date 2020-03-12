@@ -557,8 +557,10 @@ class Engine(ClassNursery):
                 value_tracked = metrics[label_namespace][self.track_for_best]
                 values_tracked.append(value_tracked)
 
-            average_value = sum(values_tracked) / len(values_tracked)
-            is_best = self.is_best_higher(current_best=average_value)
+            value_tracked = sum(values_tracked) / len(values_tracked)
+            is_best = self.is_best_higher(current_best=value_tracked)
+
+        self.lr_scheduler.step(value_tracked)
 
         if is_best:
             self.set_best_track_value(current_best=value_tracked)
