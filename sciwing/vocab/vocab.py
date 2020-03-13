@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, Callable
 from collections import Counter
 from operator import itemgetter
 import json
@@ -22,6 +22,7 @@ class Vocab:
         store_location: str = None,
         max_instance_length: int = 100,
         include_special_vocab: bool = True,
+        preprocessing_pipeline: List[Callable] = None,
     ):
         """
 
@@ -63,6 +64,10 @@ class Vocab:
             cases please make sure that min_count is always 1 and max_num_tokens
             is always None. Otherwise some of the labels will be missed and it
             might result in error
+        preprocessing_pipeline: List[Callable]
+            You can add a set of callables that take in a list of
+            str and return a list of str for pre-processing. For
+            example methods look at instance_preprocessing module in sciwing.preprocessing
         """
 
         self.instances = instances
@@ -80,6 +85,7 @@ class Vocab:
         self.store_location = store_location
         self.max_instance_length = max_instance_length
         self.include_special_vocab = include_special_vocab
+        self.preprocessing_pipeline = preprocessing_pipeline
 
         self.msg_printer = Printer()
 
@@ -103,6 +109,16 @@ class Vocab:
                     "sure that max_num_tokens is None"
                 )
             self.special_vocab = {}
+
+        if self.preprocessing_pipeline:
+            self.instances = self.apply_preprocessing()
+
+    def apply_preprocessing(self):
+        instances = deepcopy(self.instances)
+        for preprocessor in self.preprocessing_pipeline:
+            instances = list(map(preprocessor, instances))
+
+        return instances
 
     def map_tokens_to_freq_idx(self) -> Dict[str, Tuple[int, int]]:
         """
