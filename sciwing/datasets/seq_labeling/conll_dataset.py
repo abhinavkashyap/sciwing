@@ -10,6 +10,7 @@ from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.datasets_manager import DatasetsManager
 from sciwing.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from torch.utils.data import Dataset
+import copy
 
 
 class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
@@ -133,7 +134,8 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
             "tokens": WordTokenizer(tokenizer="vanilla"),
             "char_tokens": CharacterTokenizer(),
         }
-        self.namespace_vocab_options = namespace_vocab_options or {
+
+        namespace_vocab_options_defaults = {
             "char_tokens": {
                 "start_token": " ",
                 "end_token": " ",
@@ -141,6 +143,12 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
                 "unk_token": " ",
             }
         }
+        self.namespace_vocab_options = copy.deepcopy(namespace_vocab_options_defaults)
+
+        for namespace, options in namespace_vocab_options.items():
+            default = namespace_vocab_options_defaults.get(namespace, {})
+            self.namespace_vocab_options[namespace] = {**default, **options}
+
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),
             "char_tokens": Numericalizer(),

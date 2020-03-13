@@ -1,6 +1,10 @@
 import pytest
-from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDataset
+from sciwing.datasets.seq_labeling.conll_dataset import (
+    CoNLLDataset,
+    CoNLLDatasetManager,
+)
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
+from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 
 
 @pytest.fixture(scope="session")
@@ -67,3 +71,22 @@ class TestCoNLLDataset:
             namespaces = label.namespace
             assert len(namespaces) == 1
             assert train_only.upper() in namespaces
+
+    def test_conll_dataset_manager(self, test_file):
+        instance_preprocessing = InstancePreprocessing()
+        manager = CoNLLDatasetManager(
+            train_filename=test_file,
+            dev_filename=test_file,
+            test_filename=test_file,
+            namespace_vocab_options={
+                "tokens": {
+                    "preprocessing_pipeline": [instance_preprocessing.lowercase],
+                    "include_special_vocab": False,
+                }
+            },
+        )
+
+        token_vocab = manager.namespace_to_vocab["tokens"].get_token2idx_mapping()
+
+        for token in token_vocab.keys():
+            assert token.islower()
