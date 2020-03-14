@@ -4,8 +4,9 @@ import pathlib
 from sciwing.modules.embedders.trainable_word_embedder import (
     TrainableWordEmbedder as WordEmbedder,
 )
-from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.embedders.char_embedder import CharEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 import argparse
@@ -90,11 +91,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
-
     data_dir = pathlib.Path(DATA_DIR)
-    train_filename = data_dir.joinpath("eng.train")
-    dev_filename = data_dir.joinpath("eng.testa")
-    test_filename = data_dir.joinpath("eng.testb")
+    train_filename = data_dir.joinpath("conll_bioul.train")
+    dev_filename = data_dir.joinpath("conll_bioul.dev")
+    test_filename = data_dir.joinpath("conll_bioul.test")
+
+    instance_preprocessing = InstancePreprocessing()
 
     data_manager = CoNLLDatasetManager(
         train_filename=train_filename,
@@ -102,14 +104,26 @@ if __name__ == "__main__":
         test_filename=test_filename,
         column_names=["POS", "DEP", "NER"],
         train_only="ner",
+        namespace_vocab_options={
+            "tokens": {"preprocessing_pipeline": [instance_preprocessing.lowercase]}
+        },
     )
 
     word_embedder = WordEmbedder(
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
 
+    char_embedder = CharEmbedder(
+        char_embedding_dimension=args.char_emb_dim,
+        hidden_dimension=args.char_encoder_hidden_dim,
+        datasets_manager=data_manager,
+        device=args.device,
+    )
+
+    embedder = ConcatEmbedders([word_embedder, char_embedder])
+
     lstm2seqencoder = Lstm2SeqEncoder(
-        embedder=word_embedder,
+        embedder=embedder,
         dropout_value=args.dropout,
         hidden_dim=args.hidden_dim,
         bidirectional=args.bidirectional,
@@ -123,7 +137,7 @@ if __name__ == "__main__":
         rnn2seqencoder=lstm2seqencoder,
         encoding_dim=args.hidden_dim,
         device=args.device,
-        tagging_type="IOB1",
+        tagging_type="BIOUL",
         datasets_manager=data_manager,
         include_start_end_trainsitions=False,
     )
@@ -162,6 +176,7 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         sample_proportion=args.sample_proportion,
         lr_scheduler=scheduler,
+        seeds={"random_seed": 17, "numpy_seed": 17, "pytorch_seed": 17},
     )
 
     engine.run()

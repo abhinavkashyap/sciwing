@@ -4,18 +4,18 @@ EXPERIMENT_PREFIX="conll_seq_crf"
 SCRIPT_FILE="conll_seq_crf.py"
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX}"two_layer_rnn" \
---exp_dir_path  "./two_layer_rnn" \
---model_save_dir "./two_layer_rnn/checkpoints" \
---device cuda:2 \
+--exp_name ${EXPERIMENT_PREFIX}"lample_embeddings_charenc" \
+--exp_dir_path  "./lample_embeddings_charenc" \
+--model_save_dir "./lample_embeddings_charenc/checkpoints" \
+--device cuda:4 \
 --dropout 0.5 \
 --reg 0 \
 --bs 64 \
---emb_type "glove_6B_100" \
---hidden_dim 200 \
---num_layers=2 \
---bidirectional \
+--emb_type "lample_conll" \
+--hidden_dim 100 \
 --add_projection_layer \
+--num_layers=1 \
+--bidirectional \
 --char_emb_dim 10 \
 --char_encoder_hidden_dim 25 \
 --lr 1e-3 \
