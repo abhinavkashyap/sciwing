@@ -36,6 +36,7 @@ class ElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.msg_printer = wasabi.Printer()
         self.word_tokens_namespace = word_tokens_namespace
         self.fine_tune = fine_tune
+        self.embedder_name = "ElmoEmbedder"
 
         with self.msg_printer.loading("Loading Elmo Object"):
             self.elmo: nn.Module = Elmo(
