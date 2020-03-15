@@ -4,9 +4,10 @@ from sciwing.data.line import Line
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 
 
-@pytest.fixture
-def flair_embedder():
-    embedder = FlairEmbedder(embedding_type="news", datasets_manager=None)
+@pytest.fixture(params=["news", "en"])
+def flair_embedder(request):
+    embedding_type = request.param
+    embedder = FlairEmbedder(embedding_type=embedding_type, datasets_manager=None)
 
     return embedder
 
@@ -28,3 +29,7 @@ class TestFlairEmbedder:
     def test_embedding_dimension(self, flair_embedder, lines):
         embedding = flair_embedder(lines)
         assert embedding.dim() == 3
+
+    def test_embedding_length(self, flair_embedder, lines):
+        embedding = flair_embedder(lines)
+        assert embedding.size(1) == 5
