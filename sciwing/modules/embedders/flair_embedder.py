@@ -68,8 +68,17 @@ class FlairEmbedder(nn.Module, ClassNursery, BaseEmbedder):
             sentence_embeddings = torch.stack(sentence_embeddings)
             batch_embeddings.append(sentence_embeddings)
 
+        # batch_size, num_tokens, embedding_dim
         batch_embeddings = torch.stack(batch_embeddings)
         batch_embeddings = batch_embeddings.to(self.device)
+
+        for idx, line in enumerate(lines):
+            line_embeddings = batch_embeddings[idx]
+            for token, emb in zip(
+                line.tokens[self.word_tokens_namespace], line_embeddings
+            ):
+                token.set_embedding(name=self.embedder_name, value=emb)
+
         return batch_embeddings
 
     def get_embedding_dimension(self):
