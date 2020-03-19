@@ -3,7 +3,7 @@ import sciwing.constants as constants
 import pathlib
 from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
-from sciwing.modules.embedders.elmo_embedder import ElmoEmbedder
+from sciwing.modules.embedders.flair_embedder import FlairEmbedder
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
 import argparse
@@ -86,6 +86,8 @@ if __name__ == "__main__":
         help="Add projection layer in rnn2seq encoder",
         action="store_true",
     )
+
+    parser.add_argument("--flair_type", help="Bert type")
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
 
@@ -111,9 +113,13 @@ if __name__ == "__main__":
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
 
-    elmo_embedder = ElmoEmbedder(datasets_manager=data_manager, device=args.device)
+    flair_embedder = FlairEmbedder(
+        datasets_manager=data_manager,
+        device=args.device,
+        embedding_type=args.flair_type,
+    )
 
-    embedder = ConcatEmbedders([embedder, elmo_embedder])
+    embedder = ConcatEmbedders([embedder, flair_embedder])
 
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
@@ -128,14 +134,14 @@ if __name__ == "__main__":
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
-        encoding_dim=args.hidden_dim,
+        encoding_dim=2 * args.hidden_dim,
         device=args.device,
         tagging_type="BIOUL",
         datasets_manager=data_manager,
         include_start_end_trainsitions=False,
     )
 
-    optimizer = optim.Adam(params=model.parameters(), lr=args.lr)
+    optimizer = optim.SGD(params=model.parameters(), lr=args.lr)
 
     train_metric = ConLL2003Metrics(datasets_manager=data_manager)
     dev_metric = ConLL2003Metrics(datasets_manager=data_manager)
@@ -169,7 +175,6 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         sample_proportion=args.sample_proportion,
         lr_scheduler=scheduler,
-        seeds={"random_seed": 127, "numpy_seed": 127, "pytorch_seed": 127},
     )
 
     engine.run()

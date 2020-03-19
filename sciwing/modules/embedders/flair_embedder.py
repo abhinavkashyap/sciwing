@@ -2,6 +2,7 @@ from flair.data import Sentence
 from sciwing.data.line import Line
 from typing import List, Union
 import torch
+import flair
 from flair.embeddings import FlairEmbeddings
 from sciwing.data.datasets_manager import DatasetsManager
 from sciwing.utils.class_nursery import ClassNursery
