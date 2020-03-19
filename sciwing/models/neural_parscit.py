@@ -74,6 +74,7 @@ class NeuralParscit(nn.Module):
             combine_strategy=self.hparams.get("combine_strategy"),
             rnn_bias=True,
             dropout_value=self.hparams.get("lstm2seq_dropout", 0.0),
+            add_projection_layer=False,
         )
         model = RnnSeqCrfTagger(
             rnn2seqencoder=lstm2seqencoder,
