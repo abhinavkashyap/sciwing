@@ -61,7 +61,7 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
                     label_ = line_labels[1:]  # all 3 tags
                     lines_.append(line_)
                     labels_.append(label_)
-                elif "-DOCSTART-" in text_:
+                elif "DOCSTART" in text_:
                     # skip next empty line as well
                     next(fp)
                 else:
@@ -74,7 +74,7 @@ class CoNLLDataset(BaseSeqLabelingDataset, Dataset):
                         labels.append(label)
                         lines_ = []
                         labels_ = []
-            # handle the case when there is only one file without any new line
+            # handle the case when there is only one example without any new line
             else:
                 if len(lines_) > 0 and len(lines) == 0:
                     text_ = " ".join(lines_)
