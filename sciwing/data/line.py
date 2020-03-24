@@ -1,7 +1,7 @@
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.data.token import Token
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Any
 from collections import defaultdict
 
 
@@ -11,7 +11,7 @@ class Line:
             tokenizers = {"tokens": WordTokenizer()}
         self.text = text
         self.tokenizers = tokenizers
-        self.tokens: Dict[str, List[Token]] = defaultdict(list)
+        self.tokens: Dict[str, List[Any]] = defaultdict(list)
         self.namespaces = list(tokenizers.keys())
 
         for namespace, tokenizer in tokenizers.items():

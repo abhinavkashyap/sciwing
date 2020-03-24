@@ -131,7 +131,7 @@ def intersect_conll_yago(conll_filename: str, yago_filename: str, out_filename: 
                 if len(line_labels) == 7:
                     yago_entity = line_labels[3]  # the 4th column is the YAGO entity
                 else:
-                    yago_entity = "<None>"  # indicates there is no entity for this word
+                    yago_entity = "None"  # indicates there is no entity for this word
 
                 words.append(word)
                 yago_entities.append(yago_entity)

@@ -70,9 +70,9 @@ class TestConllYagoDataset:
         tokens_vocab = dataset_manager.namespace_to_vocab["tokens"]
         assert tokens_vocab.get_vocab_len() > 0
 
-    def test_context_lines_tokens_namespace(self, conll_yago_dataset):
+    def test_context_tokens_has_no_none(self, conll_yago_dataset):
         dataset = conll_yago_dataset
         lines, labels = dataset.get_lines_labels()
         for line in lines:
-            tokens = line.context_tokens
-            assert "tokens" in tokens.keys()
+            context_tokens = line.tokens["contextual_tokens"]
+            assert "<None>" not in context_tokens

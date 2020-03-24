@@ -1,4 +1,4 @@
-from sciwing.data.contextual_lines import LinesWithContext
+from sciwing.data.contextual_lines import LineWithContext
 from sciwing.data.seq_label import SeqLabel
 from sciwing.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from sciwing.numericalizers.numericalizer import Numericalizer
@@ -39,8 +39,8 @@ class ConllYagoDataset(BaseSeqLabelingDataset, Dataset):
         self.column_names = column_names
         self.lines, self.labels = self.get_lines_labels()
 
-    def get_lines_labels(self) -> (List[LinesWithContext], List[SeqLabel]):
-        lines: List[LinesWithContext] = []
+    def get_lines_labels(self) -> (List[LineWithContext], List[SeqLabel]):
+        lines: List[LineWithContext] = []
         labels: List[SeqLabel] = []
 
         with open(self.filename) as fp:
@@ -55,9 +55,15 @@ class ConllYagoDataset(BaseSeqLabelingDataset, Dataset):
                     word = line_labels[0]
                     ner_label = line_labels[1]
                     yago_entity = line_labels[2]
+
+                    if yago_entity != "None":
+                        yago_entity = yago_entity.split("_")
+                        yago_entity = " ".join(yago_entity)
+                        yago_entities.append(yago_entity)
+
                     words_.append(word)
                     labels_.append(ner_label)
-                    yago_entities.append(yago_entity)
+
                 elif "DOCSTART" in line_:
                     continue
                 else:
@@ -75,7 +81,7 @@ class ConllYagoDataset(BaseSeqLabelingDataset, Dataset):
         return lines, labels
 
     def _form_line_label(self, line: str, label: List[str], yago_entities: List[str]):
-        line = LinesWithContext(
+        line = LineWithContext(
             text=line, context=yago_entities, tokenizers=self.tokenizers
         )
         label = SeqLabel({self.column_names[0]: label})

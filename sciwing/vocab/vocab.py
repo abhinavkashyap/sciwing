@@ -6,6 +6,8 @@ import os
 from wasabi import Printer
 import wasabi
 from copy import deepcopy
+from sciwing.data.token import Token
+from sciwing.utils.common import flatten
 
 
 class Vocab:
@@ -110,8 +112,14 @@ class Vocab:
                 )
             self.special_vocab = {}
 
-        if self.preprocessing_pipeline:
-            self.instances = self.apply_preprocessing()
+        if instances is not None:
+            self.instances = list(
+                flatten(instances)
+            )  # just flatten the entire instance
+            if isinstance(self.instances[0], Token):
+                self.instances = [tok.text for tok in self.instances]
+            if self.preprocessing_pipeline:
+                self.instances = self.apply_preprocessing()
 
     def apply_preprocessing(self):
         instances = deepcopy(self.instances)
@@ -126,9 +134,9 @@ class Vocab:
         return the word -> (freq, idx)
         :return:
         """
-        all_tokens = []
-        for instance in self.instances:
-            all_tokens.extend(instance)
+        all_tokens = deepcopy(self.instances)
+
+        print(f"all tokens {all_tokens}")
 
         # counter will map a list to Dict[str, count] values
         counter = Counter(all_tokens)

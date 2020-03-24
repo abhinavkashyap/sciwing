@@ -9,6 +9,7 @@ from sciwing.data.line import Line
 from typing import Dict, List, Any
 from collections import defaultdict
 import wasabi
+import itertools
 
 
 class DatasetsManager:
@@ -88,12 +89,10 @@ class DatasetsManager:
         for line in lines:
             namespace_tokens = line.tokens
             for namespace, tokens in namespace_tokens.items():
-                tokens = [tok.text for tok in tokens]
                 namespace_to_instances[namespace].append(tokens)
         for label in labels:
             namespace_tokens = label.tokens
             for namespace, tokens in namespace_tokens.items():
-                tokens = [tok.text for tok in tokens]
                 namespace_to_instances[namespace].append(tokens)
 
         self.label_namespaces = list(labels[0].tokens.keys())
