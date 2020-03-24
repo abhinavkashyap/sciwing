@@ -3,7 +3,7 @@ from sciwing.data.seq_label import SeqLabel
 from sciwing.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
 from sciwing.numericalizers.numericalizer import Numericalizer
 from torch.utils.data import Dataset
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 from sciwing.tokenizers.character_tokenizer import CharacterTokenizer
@@ -110,11 +110,15 @@ class ConllYagoDatasetsManager(DatasetsManager, ClassNursery):
                 "unk_token": " ",
             }
         }
+
+        if namespace_vocab_options is None:
+            namespace_vocab_options = {}
+
         self.namespace_vocab_options = copy.deepcopy(namespace_vocab_options_defaults)
 
         for namespace, options in self.namespace_vocab_options.items():
-            default = namespace_vocab_options_defaults.get(namespace, {})
-            self.namespace_vocab_options[namespace] = {**default, **options}
+            user_passed = namespace_vocab_options.get(namespace, {})
+            self.namespace_vocab_options[namespace] = {**options, **user_passed}
 
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),

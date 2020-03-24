@@ -69,3 +69,10 @@ class TestConllYagoDataset:
         dataset_manager = conll_yago_dataset_manager
         tokens_vocab = dataset_manager.namespace_to_vocab["tokens"]
         assert tokens_vocab.get_vocab_len() > 0
+
+    def test_context_lines_tokens_namespace(self, conll_yago_dataset):
+        dataset = conll_yago_dataset
+        lines, labels = dataset.get_lines_labels()
+        for line in lines:
+            tokens = line.context_tokens
+            assert "tokens" in tokens.keys()
