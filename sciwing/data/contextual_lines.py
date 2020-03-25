@@ -1,6 +1,7 @@
 from typing import List, Dict, Any, Union
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.data.token import Token
+from sciwing.data.line import Line
 from collections import defaultdict
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 
@@ -38,6 +39,12 @@ class LineWithContext:
                 tokens = tokenizer.tokenize(contextual_line)
                 tokens = [Token(tok) for tok in tokens]
                 self.tokens[f"contextual_{namespace}"].append(tokens)
+
+        self.line = Line(text=text, tokenizers=self.tokenizers)
+        self.context_lines = []
+        for text in self.context:
+            context_line = Line(text=text, tokenizers=self.tokenizers)
+            self.context_lines.append(context_line)
 
     def add_token(self, token: Union[Token, str], namespace: str):
         if isinstance(token, str):
