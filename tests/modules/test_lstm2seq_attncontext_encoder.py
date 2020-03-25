@@ -17,7 +17,9 @@ def encoder():
 
     attn_module = DotProductAttention()
 
-    context_embedder = WordEmbedder(embedding_type="glove_6B_50")
+    context_embedder = WordEmbedder(
+        embedding_type="glove_6B_50", word_tokens_namespace="tokens"
+    )
 
     encoder = Lstm2SeqAttnContextEncoder(
         rnn2seqencoder=lstm2seqencoder,
@@ -31,14 +33,14 @@ def encoder():
 @pytest.fixture
 def data():
     text = "This is a string"
-    context = ["Context string first", "Context string second lah!"]
+    context = ["NULL"]  # represents a null string
     line = LineWithContext(text=text, context=context)
-    return [line]
+    return [line, line]
 
 
 class TestLSTM2SeqAttnContextEncoder:
     def test_encoding_size(self, encoder, data):
         encoding = encoder(data)
-        assert encoding.size(0) == 1
+        assert encoding.size(0) == 2
         assert encoding.size(1) == 4
         assert encoding.size(2) == 100

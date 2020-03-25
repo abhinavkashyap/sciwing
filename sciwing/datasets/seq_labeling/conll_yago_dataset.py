@@ -69,6 +69,10 @@ class ConllYagoDataset(BaseSeqLabelingDataset, Dataset):
                 else:
                     if len(words_) > 0 and len(labels_) > 0:
                         text = " ".join(words_)
+
+                        if len(yago_entities) == 0:
+                            yago_entities = ["NULL"]
+
                         line, label = self._form_line_label(
                             line=text, label=labels_, yago_entities=yago_entities
                         )
