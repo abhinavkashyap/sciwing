@@ -43,7 +43,9 @@ def setup_lstm2seqencoder(request):
             "COMBINE_STRATEGY": COMBINE_STRATEGY,
             "BIDIRECTIONAL": BIDIRECTIONAL,
             "EXPECTED_HIDDEN_DIM": 2 * HIDDEN_DIM
-            if COMBINE_STRATEGY == "concat" and BIDIRECTIONAL
+            if COMBINE_STRATEGY == "concat"
+            and BIDIRECTIONAL
+            and not ADD_PROJECTION_LAYER
             else HIDDEN_DIM,
             "NUM_LAYERS": NUM_LAYERS,
             "LINES": lines,

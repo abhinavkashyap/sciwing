@@ -135,6 +135,9 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
             "char_tokens": CharacterTokenizer(),
         }
 
+        if namespace_vocab_options is None:
+            namespace_vocab_options = {}
+
         namespace_vocab_options_defaults = {
             "char_tokens": {
                 "start_token": " ",
@@ -143,11 +146,16 @@ class CoNLLDatasetManager(DatasetsManager, ClassNursery):
                 "unk_token": " ",
             }
         }
-        self.namespace_vocab_options = copy.deepcopy(namespace_vocab_options_defaults)
+        self.namespace_vocab_options = {}
 
-        for namespace, options in namespace_vocab_options.items():
-            default = namespace_vocab_options_defaults.get(namespace, {})
-            self.namespace_vocab_options[namespace] = {**default, **options}
+        vocab_namespaces = set(namespace_vocab_options.keys()).union(
+            namespace_vocab_options_defaults.keys()
+        )
+
+        for namespace in vocab_namespaces:
+            user_passed = namespace_vocab_options.get(namespace, {})
+            defaults = namespace_vocab_options_defaults.get(namespace, {})
+            self.namespace_vocab_options[namespace] = {**defaults, **user_passed}
 
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),
