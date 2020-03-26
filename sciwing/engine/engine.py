@@ -560,7 +560,8 @@ class Engine(ClassNursery):
             value_tracked = sum(values_tracked) / len(values_tracked)
             is_best = self.is_best_higher(current_best=value_tracked)
 
-        self.lr_scheduler.step(value_tracked)
+        if self.lr_scheduler is not None:
+            self.lr_scheduler.step(value_tracked)
 
         if is_best:
             self.set_best_track_value(current_best=value_tracked)
