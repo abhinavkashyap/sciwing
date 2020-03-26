@@ -75,4 +75,4 @@ class TestConllYagoDataset:
         lines, labels = dataset.get_lines_labels()
         for line in lines:
             context_tokens = line.tokens["contextual_tokens"]
-            assert "<None>" not in context_tokens
+            assert "None" not in context_tokens

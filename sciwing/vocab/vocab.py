@@ -136,8 +136,6 @@ class Vocab:
         """
         all_tokens = deepcopy(self.instances)
 
-        print(f"all tokens {all_tokens}")
-
         # counter will map a list to Dict[str, count] values
         counter = Counter(all_tokens)
 

@@ -91,6 +91,14 @@ class ConllYagoDataset(BaseSeqLabelingDataset, Dataset):
         label = SeqLabel({self.column_names[0]: label})
         return line, label
 
+    def __len__(self):
+        return len(self.lines)
+
+    def __getitem__(self, idx):
+        line = self.lines[idx]
+        label = self.labels[idx]
+        return line, label
+
 
 class ConllYagoDatasetsManager(DatasetsManager, ClassNursery):
     def __init__(
