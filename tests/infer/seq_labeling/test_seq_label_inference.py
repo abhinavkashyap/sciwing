@@ -70,6 +70,7 @@ def setup_parscit_inference(seq_dataset_manager, tmpdir_factory):
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
         rnn_bias=False,
+        add_projection_layer=False,
     )
 
     tagger = RnnSeqCrfTagger(

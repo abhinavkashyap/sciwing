@@ -121,11 +121,8 @@ class Vocab:
             if self.preprocessing_pipeline:
                 self.instances = self.apply_preprocessing()
 
-            print(f"self.instances in vocab {self.instances}")
-
     def apply_preprocessing(self):
         instances = deepcopy(self.instances)
-        print(f"instances in apply preprocessing {instances}")
         for preprocessor in self.preprocessing_pipeline:
             instances = preprocessor(instances)
 
