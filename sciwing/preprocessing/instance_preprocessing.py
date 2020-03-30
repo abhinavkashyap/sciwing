@@ -14,7 +14,6 @@ class InstancePreprocessing:
 
     @staticmethod
     def lowercase(instance: List[str]) -> List[str]:
-        print(f"instance in lower case {instance}")
         lowercased_instance = []
         for token in instance:
             lowercased_instance.append(token.lower())
