@@ -4,10 +4,10 @@ EXPERIMENT_PREFIX="conll_seq_crf"
 SCRIPT_FILE="conll_seq_crf.py"
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX}"lample_embeddings_charenc" \
---exp_dir_path  "./lample_embeddings_charenc" \
---model_save_dir "./lample_embeddings_charenc/checkpoints" \
---device cuda:4 \
+--exp_name ${EXPERIMENT_PREFIX}"_small_data" \
+--exp_dir_path  "./_small_data" \
+--model_save_dir "./_small_data/checkpoints" \
+--device cuda:2 \
 --dropout 0.5 \
 --reg 0 \
 --bs 64 \

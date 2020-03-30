@@ -169,7 +169,7 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         sample_proportion=args.sample_proportion,
         lr_scheduler=scheduler,
-        seeds={"random_seed": 127, "numpy_seed": 127, "pytorch_seed": 127},
+        seeds={"random_seed": 5123, "numpy_seed": 5123, "pytorch_seed": 5123},
     )
 
     engine.run()

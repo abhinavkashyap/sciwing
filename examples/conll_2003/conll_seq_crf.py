@@ -1,11 +1,7 @@
 from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 import sciwing.constants as constants
 import pathlib
-from sciwing.modules.embedders.trainable_word_embedder import (
-    TrainableWordEmbedder as WordEmbedder,
-)
-from sciwing.modules.embedders.char_embedder import CharEmbedder
-from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
+from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.models.rnn_seq_crf_tagger import RnnSeqCrfTagger
@@ -113,17 +109,8 @@ if __name__ == "__main__":
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
 
-    char_embedder = CharEmbedder(
-        char_embedding_dimension=args.char_emb_dim,
-        hidden_dimension=args.char_encoder_hidden_dim,
-        datasets_manager=data_manager,
-        device=args.device,
-    )
-
-    embedder = ConcatEmbedders([word_embedder, char_embedder])
-
     lstm2seqencoder = Lstm2SeqEncoder(
-        embedder=embedder,
+        embedder=word_embedder,
         dropout_value=args.dropout,
         hidden_dim=args.hidden_dim,
         bidirectional=args.bidirectional,

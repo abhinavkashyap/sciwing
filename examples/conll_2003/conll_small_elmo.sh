@@ -4,10 +4,10 @@ EXPERIMENT_PREFIX="conll_small_elmo"
 SCRIPT_FILE="conll_small_elmo.py"
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX}"_conll_small_elmo" \
---exp_dir_path  "./_conll_small_elmo" \
---model_save_dir "./_conll_small_elmo/checkpoints" \
---device cuda:3 \
+--exp_name ${EXPERIMENT_PREFIX}"_conll_small_elmo_seed3" \
+--exp_dir_path  "./_conll_small_elmo_seed3" \
+--model_save_dir "./_conll_small_elmo_seed3/checkpoints" \
+--device cuda:6 \
 --dropout 0.5 \
 --reg 0 \
 --bs 64 \
