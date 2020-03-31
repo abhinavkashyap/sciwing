@@ -1,19 +1,18 @@
 #!/usr/bin/env bash
 
-EXPERIMENT_PREFIX="conll_small_elmo"
+EXPERIMENT_PREFIX="conll_elmo_small"
 SCRIPT_FILE="conll_small_elmo.py"
 
 python ${SCRIPT_FILE} \
---exp_name ${EXPERIMENT_PREFIX}"_conll_small_elmo_seed3" \
---exp_dir_path  "./_conll_small_elmo_seed3" \
---model_save_dir "./_conll_small_elmo_seed3/checkpoints" \
+--exp_name ${EXPERIMENT_PREFIX}"_no_projection_layer" \
+--exp_dir_path  "./_no_projection_layer" \
+--model_save_dir "./_no_projection_layer/checkpoints" \
 --device cuda:6 \
 --dropout 0.5 \
 --reg 0 \
 --bs 64 \
 --emb_type "lample_conll" \
 --hidden_dim 100 \
---add_projection_layer \
 --num_layers=1 \
 --bidirectional \
 --char_emb_dim 10 \

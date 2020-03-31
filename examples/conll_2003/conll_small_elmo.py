@@ -128,7 +128,7 @@ if __name__ == "__main__":
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
-        encoding_dim=args.hidden_dim,
+        encoding_dim=2 * args.hidden_dim,
         device=args.device,
         tagging_type="BIOUL",
         datasets_manager=data_manager,

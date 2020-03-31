@@ -88,9 +88,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
     data_dir = pathlib.Path(DATA_DIR)
-    train_filename = data_dir.joinpath("conll_bioul.train")
-    dev_filename = data_dir.joinpath("conll_bioul.dev")
-    test_filename = data_dir.joinpath("conll_bioul.test")
+    train_filename = data_dir.joinpath("conll_2003_small.train")
+    dev_filename = data_dir.joinpath("conll_2003_small.dev")
+    test_filename = data_dir.joinpath("conll_2003_small.test")
 
     instance_preprocessing = InstancePreprocessing()
 

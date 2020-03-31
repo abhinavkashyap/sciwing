@@ -5,8 +5,8 @@ SCRIPT_FILE="conll_seq_crf.py"
 
 python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_small_data" \
---exp_dir_path  "./_small_data" \
---model_save_dir "./_small_data/checkpoints" \
+--exp_dir_path  "./conll_small_data" \
+--model_save_dir "./conll_small_data/checkpoints" \
 --device cuda:2 \
 --dropout 0.5 \
 --reg 0 \

@@ -235,9 +235,9 @@ if __name__ == "__main__":
     scicite_dev_jsonl = data_dir.joinpath("scicite_dev.jsonl")
     scicite_test_jsonl = data_dir.joinpath("scicite_test.jsonl")
 
-    scicite_train_filename = data_dir.joinpath("scicite_train.txt")
-    scicite_dev_filename = data_dir.joinpath("scicite_dev.txt")
-    scicite_test_filename = data_dir.joinpath("scicite_test.txt")
+    scicite_train_filename = data_dir.joinpath("scicite.train")
+    scicite_dev_filename = data_dir.joinpath("scicite.dev")
+    scicite_test_filename = data_dir.joinpath("scicite.test")
 
     write_scicite_to_sciwing_text_clf(
         scicite_json_filename=scicite_train_jsonl, out_filename=scicite_train_filename
@@ -248,5 +248,5 @@ if __name__ == "__main__":
     )
 
     write_scicite_to_sciwing_text_clf(
-        scicite_json_filename=scicite_test_jsonl, out_filename=scicite_dev_filename
+        scicite_json_filename=scicite_test_jsonl, out_filename=scicite_test_filename
     )
