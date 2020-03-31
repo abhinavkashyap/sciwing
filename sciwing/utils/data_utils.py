@@ -3,6 +3,7 @@ from typing import List, Dict
 import wasabi
 from collections import OrderedDict
 from tqdm import tqdm
+import json
 
 
 def convert_conll2003_ner_to_bioul(filename: str, out_filename: str):
@@ -179,6 +180,49 @@ def intersect_conll_yago(conll_filename: str, yago_filename: str, out_filename: 
     printer.good("Finished writing intersection of conll and yago files")
 
 
+def write_scicite_to_sciwing_text_clf(scicite_json_filename: str, out_filename: str):
+    """ SciCite files are jsonl filenames with citation strings.
+
+    Parameters
+    ----------
+    scicite_json_filename : str
+        The jsonl filename where citations are stored
+
+    out_filename: str
+        The output filename where the text classification dataset is stored
+
+    Returns
+    -------
+    None
+
+    """
+    printer = wasabi.Printer()
+    citations = []
+
+    with printer.loading(f"Writing f{out_filename}"):
+        with open(scicite_json_filename, "r") as fp:
+            for line in fp:
+                citation = json.loads(line)
+                citations.append(citation)
+
+        lines = []
+        for citation in citations:
+            citation_str = citation["string"].strip()
+            citation_str = citation_str.replace("\n", " ")
+            label_str = citation["label"].strip()
+            label_str = label_str.replace("\n", " ")
+            if bool(citation_str) and bool(label_str):
+                line = "###".join([citation_str, label_str])
+                lines.append(line)
+
+        with open(out_filename, "w") as fp:
+            for line in lines:
+                fp.write(line)
+                fp.write("\n")
+
+    printer.good(f"Finished writing {out_filename}")
+
+
 if __name__ == "__main__":
     import sciwing.constants as constants
     import pathlib
@@ -187,32 +231,22 @@ if __name__ == "__main__":
     DATA_DIR = PATHS["DATA_DIR"]
 
     data_dir = pathlib.Path(DATA_DIR)
-    conll_train = data_dir.joinpath("conll_bioul.train")
-    yago_train = data_dir.joinpath("conll_yago.train")
-    conll_yago_train = data_dir.joinpath("conll_yago_ner.train")
+    scicite_train_jsonl = data_dir.joinpath("scicite_train.jsonl")
+    scicite_dev_jsonl = data_dir.joinpath("scicite_dev.jsonl")
+    scicite_test_jsonl = data_dir.joinpath("scicite_test.jsonl")
 
-    intersect_conll_yago(
-        conll_filename=str(conll_train),
-        yago_filename=str(yago_train),
-        out_filename=str(conll_yago_train),
+    scicite_train_filename = data_dir.joinpath("scicite_train.txt")
+    scicite_dev_filename = data_dir.joinpath("scicite_dev.txt")
+    scicite_test_filename = data_dir.joinpath("scicite_test.txt")
+
+    write_scicite_to_sciwing_text_clf(
+        scicite_json_filename=scicite_train_jsonl, out_filename=scicite_train_filename
     )
 
-    conll_dev = data_dir.joinpath("conll_bioul.dev")
-    yago_dev = data_dir.joinpath("conll_yago.testa")
-    conll_yago_dev = data_dir.joinpath("conll_yago_ner.dev")
-
-    intersect_conll_yago(
-        conll_filename=str(conll_dev),
-        yago_filename=str(yago_dev),
-        out_filename=str(conll_yago_dev),
+    write_scicite_to_sciwing_text_clf(
+        scicite_json_filename=scicite_dev_jsonl, out_filename=scicite_dev_filename
     )
 
-    conll_test = data_dir.joinpath("conll_bioul.test")
-    yago_test = data_dir.joinpath("conll_yago.testb")
-    conll_yago_test = data_dir.joinpath("conll_yago_test.test")
-
-    intersect_conll_yago(
-        conll_filename=str(conll_test),
-        yago_filename=str(yago_test),
-        out_filename=str(conll_yago_test),
+    write_scicite_to_sciwing_text_clf(
+        scicite_json_filename=scicite_test_jsonl, out_filename=scicite_dev_filename
     )
