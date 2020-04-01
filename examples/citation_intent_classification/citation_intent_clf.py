@@ -4,6 +4,8 @@ from sciwing.datasets.classification.text_classification_dataset import (
 )
 from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.elmo_embedder import ElmoEmbedder
+from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 import sciwing.constants as constants
 from sciwing.metrics.precision_recall_fmeasure import PrecisionRecallFMeasure
 import torch.optim as optim
@@ -83,7 +85,10 @@ if __name__ == "__main__":
         test_filename=str(test_file),
     )
 
-    embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
+    word_embedder = WordEmbedder(embedding_type=args.emb_type, device=args.device)
+    elmo_embedder = ElmoEmbedder(device=args.device)
+
+    embedder = ConcatEmbedders([word_embedder, elmo_embedder])
     encoder = LSTM2VecEncoder(
         embedder=embedder,
         hidden_dim=args.hidden_dim,
@@ -127,6 +132,7 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         track_for_best="macro_fscore",
         sample_proportion=args.sample_proportion,
+        seeds={"random_seed": 17, "numpy_seed": 17, "pytorch_seed": 17},
     )
 
     engine.run()
