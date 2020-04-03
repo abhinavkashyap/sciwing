@@ -2,6 +2,7 @@ from sciwing.datasets.seq_labeling.conll_yago_dataset import ConllYagoDatasetsMa
 import sciwing.constants as constants
 import pathlib
 from sciwing.modules.embedders.word_embedder import WordEmbedder
+from sciwing.modules.embedders.trainable_word_embedder import TrainableWordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
 from sciwing.modules.embedders.elmo_embedder import ElmoEmbedder
 from sciwing.modules.attentions.dot_product_attention import DotProductAttention
@@ -112,10 +113,6 @@ if __name__ == "__main__":
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
 
-    elmo_embedder = ElmoEmbedder(datasets_manager=data_manager, device=args.device)
-
-    embedder = ConcatEmbedders([embedder, elmo_embedder])
-
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
         dropout_value=args.dropout,
@@ -129,8 +126,8 @@ if __name__ == "__main__":
     )
 
     attn = DotProductAttention()
-    context_embedder = WordEmbedder(
-        embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
+    context_embedder = TrainableWordEmbedder(
+        embedding_type="glove_6B_300", datasets_manager=data_manager, device=args.device
     )
     lstm2seq_attn_encoder = Lstm2SeqAttnContextEncoder(
         rnn2seqencoder=lstm2seqencoder,
@@ -140,7 +137,7 @@ if __name__ == "__main__":
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seq_attn_encoder,
-        encoding_dim=200,
+        encoding_dim=600,
         device=args.device,
         tagging_type="BIOUL",
         datasets_manager=data_manager,

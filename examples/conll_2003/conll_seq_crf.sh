@@ -12,8 +12,7 @@ python ${SCRIPT_FILE} \
 --reg 0 \
 --bs 64 \
 --emb_type "lample_conll" \
---hidden_dim 100 \
---add_projection_layer \
+--hidden_dim 50 \
 --num_layers=1 \
 --bidirectional \
 --char_emb_dim 10 \

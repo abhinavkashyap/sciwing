@@ -62,7 +62,7 @@ class Lstm2SeqAttnContextEncoder(nn.Module, ClassNursery):
 
             # adding zeros for padding
             padding_length = max_num_context_lines - num_context_lines
-            zeros = torch.zeros(padding_length, emb_dim, device=self.device)
+            zeros = torch.randn(padding_length, emb_dim, device=self.device)
 
             embedding = torch.cat([embedding, zeros], dim=0)
             context_embedding.append(embedding)
