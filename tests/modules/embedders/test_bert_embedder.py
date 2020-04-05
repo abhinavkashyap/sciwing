@@ -49,7 +49,7 @@ def setup_bert_embedder(request):
 
 
 @pytest.mark.skipif(
-    system_memory < 10, reason="System memory too small to run testing for BertEmbedder"
+    system_memory < 4, reason="System memory too small to run testing for BertEmbedder"
 )
 class TestBertEmbedder:
     def test_embedder_dimensions(self, setup_bert_embedder):

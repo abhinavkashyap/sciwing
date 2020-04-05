@@ -12,7 +12,7 @@ stop_words
 allennlp==0.8.3
 botocore
 gensim==3.8.0
-pytest
+pytest==5.4.1
 pytest-xdist
 pytorch_pretrained_bert
 spacy==2.1.4

@@ -72,5 +72,5 @@ EMBEDDING_FILE_URLS = dict(
     SCIBERT_SCIVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_scivocab_cased.tar",
     SCIBERT_BASEVOCAB_UNCASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_uncased.tar",
     SCIBERT_BASEVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_cased.tar",
-    LAMPLE_CONLL="https://parsect-models.s3-ap-southeast-1.amazonaws.com/lample_conll ",
+    LAMPLE_CONLL="https://parsect-models.s3-ap-southeast-1.amazonaws.com/lample_conll",
 )
