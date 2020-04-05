@@ -38,8 +38,12 @@ FILES = dict(
 
 
 DATA_FILE_URLS = dict(
-    SECT_LABEL_FILE="https://sciwing.s3.amazonaws.com/sectLabel.train.data",
-    GENERIC_SECTION_TRAIN_FILE="https://sciwing.s3.amazonaws.com/genericSect.train.data",
+    SECT_LABEL_TRAIN_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectLabel.train",
+    SECT_LABEL_DEV_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectLabel.dev",
+    SECT_LABEL_TEST_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectLabel.test",
+    GENERIC_SECTION_TRAIN_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/genericSect.train",
+    GENERIC_SECTION_DEV_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/genericSect.dev",
+    GENERIC_SECTION_TEST_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/genericSect.test",
     PARSCIT_TRAIN_FILE="https://sciwing.s3.amazonaws.com/parsCit.train.data",
     SCIENCE_IE_TRAIN_FOLDER="https://sciwing.s3.amazonaws.com/scienceie_dev.zip",
     SCIENCE_IE_DEV_FOLDER="https://sciwing.s3.amazonaws.com/scienceie_train.zip",

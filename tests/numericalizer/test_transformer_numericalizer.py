@@ -2,6 +2,7 @@ import pytest
 from sciwing.tokenizers.bert_tokenizer import TokenizerForBert
 from sciwing.numericalizers.transformer_numericalizer import NumericalizerForTransformer
 import torch
+from sciwing.utils.common import get_system_mem_in_gb
 
 
 @pytest.fixture
@@ -24,6 +25,12 @@ def numericalizer(instances, request):
     return numericalizer
 
 
+mem_in_gb = get_system_mem_in_gb()
+
+
+@pytest.mark.skipif(
+    int(mem_in_gb) < 10, reason="Memory is too low to run bert tokenizers"
+)
 class TestNumericalizeForTransformer:
     def test_token_types(self, numericalizer, instances):
         tokenizer = numericalizer.tokenizer

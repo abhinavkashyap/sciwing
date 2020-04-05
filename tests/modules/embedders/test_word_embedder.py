@@ -3,6 +3,9 @@ from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.data.line import Line
 from sciwing.utils.class_nursery import ClassNursery
 import torch
+from sciwing.utils.common import get_system_mem_in_gb
+
+mem_in_gb = get_system_mem_in_gb()
 
 
 @pytest.fixture(
@@ -24,6 +27,9 @@ def setup_lines():
     return lines
 
 
+@pytest.mark.skipif(
+    int(mem_in_gb) < 4, reason="Memory is too low to run bert tokenizers"
+)
 class TestWordEmbedder:
     def test_dimension(self, setup_embedder, setup_lines):
         embedder = setup_embedder
