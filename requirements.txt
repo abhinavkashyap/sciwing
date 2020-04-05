@@ -33,3 +33,4 @@ sphinx
 sphinx-rtd-theme
 sphinx-autobuild
 Deprecated
+flair
