@@ -9,7 +9,7 @@ before_script:
 - sciwing develop makedirs
 - sciwing develop download
 script:
-- pytest -v -p no:warnings tests -n 4 --dist=loadfile
+- travis_wait 60 pytest -v -p no:warnings tests
 deploy:
   provider: pypi
   user: abhinavkashyap92
