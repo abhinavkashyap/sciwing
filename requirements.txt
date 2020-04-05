@@ -5,7 +5,7 @@ logzero
 typing==3.6.6
 torch
 wasabi==0.2.2
-boto3==1.9.211
+boto3
 tqdm==4.32.1
 wrapt==1.11.2
 stop_words
@@ -13,7 +13,6 @@ allennlp==0.8.3
 botocore
 gensim==3.8.0
 pytest
-pytest-sugar
 pytest-xdist
 pytorch_pretrained_bert
 spacy==2.1.4

@@ -46,6 +46,18 @@ DATA_FILE_URLS = dict(
     CORA_FILE="https://sciwing.s3.amazonaws.com/cora.data",
     TRAIN_SCIENCE_IE_CONLL_FILE="https://sciwing.s3.amazonaws.com/train_science_ie_conll.txt",
     DEV_SCIENCE_IE_CONLL_FILE="https://sciwing.s3.amazonaws.com/dev_science_ie_conll.txt",
+    CONLL_TRAIN_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/eng.train",
+    CONLL_DEV_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/eng.testa",
+    CONLL_TEST_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/eng.testb",
+    PARSCIT_TRAIN="https://parsect-models.s3-ap-southeast-1.amazonaws.com/parscit.train",
+    PARSCIT_DEV="https://parsect-models.s3-ap-southeast-1.amazonaws.com/parscit.dev",
+    PARSCIT_TEST="https://parsect-models.s3-ap-southeast-1.amazonaws.com/parscit.test",
+    SCICITE_TRAIN="https://parsect-models.s3-ap-southeast-1.amazonaws.com/scicite.train",
+    SCICITE_DEV="https://parsect-models.s3-ap-southeast-1.amazonaws.com/scicite.dev",
+    SCICITE_TEST="https://parsect-models.s3-ap-southeast-1.amazonaws.com/scicite.test",
+    CONLL_YAGO_TRAIN="https://parsect-models.s3-ap-southeast-1.amazonaws.com/conll_yago_ner.train",
+    CONLL_YAGO_DEV="https://parsect-models.s3-ap-southeast-1.amazonaws.com/conll_yago_ner.dev",
+    CONLL_YAGO_TEST="https://parsect-models.s3-ap-southeast-1.amazonaws.com/conll_yago_ner.test",
 )
 
 
@@ -60,4 +72,5 @@ EMBEDDING_FILE_URLS = dict(
     SCIBERT_SCIVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_scivocab_cased.tar",
     SCIBERT_BASEVOCAB_UNCASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_uncased.tar",
     SCIBERT_BASEVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_cased.tar",
+    LAMPLE_CONLL="https://parsect-models.s3-ap-southeast-1.amazonaws.com/lample_conll ",
 )
