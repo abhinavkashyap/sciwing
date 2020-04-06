@@ -11,7 +11,8 @@ DATA_DIR = pathlib.Path(DATA_DIR)
 
 
 @pytest.fixture(
-    params=["conll_yago_ner.train", "conll_yago_ner.dev", "conll_yago_ner.test"]
+    params=["conll_yago_ner.train", "conll_yago_ner.dev", "conll_yago_ner.test"],
+    scope="session",
 )
 def conll_yago_dataset(request):
     train_filename = DATA_DIR.joinpath(request.param)
@@ -24,7 +25,7 @@ def conll_yago_dataset(request):
     return dataset
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def conll_yago_dataset_manager():
     train_filename = DATA_DIR.joinpath("conll_yago_ner.train")
     dev_filename = DATA_DIR.joinpath("conll_yago_ner.dev")

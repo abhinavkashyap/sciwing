@@ -31,6 +31,7 @@ def setup_lines():
     int(mem_in_gb) < 4, reason="Memory is too low to run bert tokenizers"
 )
 class TestWordEmbedder:
+    @pytest.mark.slow
     def test_dimension(self, setup_embedder, setup_lines):
         embedder = setup_embedder
         lines = setup_lines
@@ -40,6 +41,7 @@ class TestWordEmbedder:
                 embedding = token.get_embedding(name=embedder.embedding_type)
                 assert isinstance(embedding, torch.FloatTensor)
 
+    @pytest.mark.slow
     def test_final_embedding_size(self, setup_embedder, setup_lines):
         embedder = setup_embedder
         lines = setup_lines

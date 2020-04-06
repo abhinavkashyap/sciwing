@@ -32,6 +32,7 @@ mem_in_gb = get_system_mem_in_gb()
     int(mem_in_gb) < 10, reason="Memory is too low to run bert tokenizers"
 )
 class TestNumericalizeForTransformer:
+    @pytest.mark.slow
     def test_token_types(self, numericalizer, instances):
         tokenizer = numericalizer.tokenizer
         for instance in instances:
@@ -40,6 +41,7 @@ class TestNumericalizeForTransformer:
             assert all([isinstance(token_id, int) for token_id in ids])
 
     @pytest.mark.parametrize("padding_length", [10, 100])
+    @pytest.mark.slow
     def test_padding_length(self, numericalizer, instances, padding_length):
         tokenizer = numericalizer.tokenizer
         for instance in instances:
@@ -50,6 +52,7 @@ class TestNumericalizeForTransformer:
             )
             assert len(padded_ids) == padding_length
 
+    @pytest.mark.slow
     def test_get_mask(self, numericalizer, instances):
         tokenizer = numericalizer.tokenizer
         max_length = 10

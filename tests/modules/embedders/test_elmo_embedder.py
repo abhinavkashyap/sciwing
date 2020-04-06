@@ -22,6 +22,7 @@ def setup_elmo_embedder():
     mem_gb < 16, reason="skipping ELMO embedder because system memory is low"
 )
 class TestElmoEmbedder:
+    @pytest.mark.slow
     def test_elmo_embedder_dimensions(self, setup_elmo_embedder):
         elmo_embedder, lines = setup_elmo_embedder
         embedding = elmo_embedder(lines)

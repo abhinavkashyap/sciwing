@@ -52,6 +52,7 @@ def setup_bert_embedder(request):
     system_memory < 4, reason="System memory too small to run testing for BertEmbedder"
 )
 class TestBertEmbedder:
+    @pytest.mark.slow
     def test_embedder_dimensions(self, setup_bert_embedder):
         """
             The bow bert encoder should return a single instance
@@ -65,6 +66,7 @@ class TestBertEmbedder:
         assert encoding.size(2) == bert_embedder.get_embedding_dimension()
         assert encoding.size(1) == max_word_len
 
+    @pytest.mark.slow
     def test_bert_embedder_tokens(self, setup_bert_embedder):
         bert_embedder, lines = setup_bert_embedder
         _ = bert_embedder(lines)
