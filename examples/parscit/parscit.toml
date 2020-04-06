@@ -1,0 +1,43 @@
+[experiment]
+    exp_name = "lstm_crf_parscit"
+    exp_dir = "lstm_crf_parscit_toml"
+
+[dataset]
+	class = "SeqLabellingDatasetManager"
+	train_filename="parscit.train"
+	dev_filename="parscit.dev"
+	test_filename="parscit.test"
+
+[model]
+    class="RnnSeqCrfTagger"
+    encoding_dim=2048
+    [model.rnn2seqencoder]
+        class="Lstm2SeqEncoder"
+        dropout_value = 0.1
+        bidirectional=true
+        rnn_bias=true
+        combine_strategy="concat"
+        [[model.rnn2seqencoder.embedder]]
+        class="WordEmbedder"
+        embedding_type="glove_6B_200"
+        [[model.rnn2seqencoder.embedder]]
+        class="CharEmbedder"
+        char_embedding_dimension=25
+        hidden_dimension=50
+        [[model.rnn2seqencoder.embedder]]
+        class="BowElmoEmbedder"
+
+[engine]
+    batch_size=64
+    save_dir="parscit_toml/checkpoints"
+    num_epochs=1
+    save_every=10
+    log_train_metrics_every=10
+    device="cpu"
+    gradient_norm_clip_value=5.0
+    sample_proportion=1
+    [engine.metric]
+        class="TokenClassificationAccuracy"
+    [engine.optimizer]
+        class="Adam"
+        lr=1e-3
