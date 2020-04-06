@@ -18,3 +18,5 @@ deploy:
   on:
     tags: true
     branch: master
+notifications:
+  slack: wing-nus:y2FydrZoKNsNzXcqSqfMhsSl
