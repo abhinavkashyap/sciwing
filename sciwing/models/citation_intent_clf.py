@@ -83,9 +83,12 @@ class CitationIntentClassification(nn.Module):
             for prediction, line in zip(predictions, lines):
                 self.msg_printer.text(title=line, text=prediction)
 
+        return predictions
+
     def predict_for_text(self, text: str):
         label = self.infer.on_user_input(line=text)
         self.msg_printer.text(title=text, text=label)
+        return label
 
     def _get_data(self):
         data_manager = TextClassificationDatasetManager(
