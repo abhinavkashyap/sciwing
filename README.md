@@ -29,48 +29,60 @@ pip install sciwing
 
 
 
+## Tasks 
+
+These are some of the tasks included in SciWING and their performance metrics 
+
+| Task                               | Dataset        | SciWING model                          | SciWING | Previous Best                      |
+| ---------------------------------- | -------------- | -------------------------------------- | ------- | ---------------------------------- |
+| Logical Structure Recovery         | SectLabel      |                                        |         | -                                  |
+| Header Normalisation               | SectLabel      |                                        |         | -                                  |
+| Citation String Parsing            | Neural Parscit | Bi-LSTM-CRF + GloVe + Elmo + Char-LSTM | 88.44   | 90.45(not comparable)              |
+| Citation Intent Classification     | SciCite        | Bi-LSTM + Elmo                         | 82.16   | 82.6 (without multi-task learning) |
+| Biomedical NER - BC5CDR (Upcoming) | -              | -                                      | -       | -                                  |
+| I2b2 NER (Upcoming)                | -              | -                                      | -       | -                                  |
+
+
+
 ## Simple Example 
 
-Example of a model that concatenates a vanilla word embedding and Elmo embedding and then encodes it using a `LSTM2Vec` encoder before finally passing it through a linear layer for classification.
-
-
+### Using Citation String Parsing 
 
 ```python
-from sciwing.modules.embedders import BowElmoEmbedder
-from sciwing.modules.embedders import VanillaEmbedder 
-from sciwing.modules.embedders import ConcatEmbedders
+from sciwing.models.neural_parscit import NeuralParscit 
 
-from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder 
+# instantiate an object 
+neural_parscit = NeuralParscit()
 
-# initialize a elmo_embedder
-elmo_embedder = BowElmoEmbedder()
-ELMO_EMBEDDING_DIMENSION = 1024
+# predict on a citation 
+neural_parscit.predict_for_text("")
 
-# Get word embeddings as PyTorch tensors for all the words in the vocab
-embedding = dataset.word_vocab.load_embedding()
-# initialize a normal embedder with the word embedding 
-# EMBEDDING_DIM is the embedding dimension for the word vectors
-vanilla_embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
-
-# concatenate the vanilla embedding and the elmo embedding to get a new embedding
-final_embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])
-FINAL_EMBEDDING_DIM = EMBEDDING_DIM + ELMO_EMBEDDING_DIMENSION
-
-# instantiate a LSTM2VecEncoder that encodes a sentence to a single vector
-encoder = LSTM2VecEncoder(
-  emb_dim= FINAL_EMBEDDING_DIM,
-  embedder=final_embedder, 
-  hidden_dimension=HIDDEN_DIM  
-)
-
-# Instantiate a linear classification layer that takes in an encoder and the dimension of the encoding and the number of classes
-model = SimpleClassifier(
-  encoder=encoder,
-  encoding_dim=HIDDEN_DIM,
-  num_classes=NUM_CLASSES
-)
-
+# if you have a file of citations with one citation per line 
+neural_parscit.predict_for_file("/path/to/filename")
 ```
+
+
+
+### Using Citation Intent Classification 
+
+````python
+from sciwing.models.citation_intent_clf import CitationIntentClassification 
+
+# instantiate an object 
+citation_intent_clf = CitationIntentClassification()
+````
+
+
+
+## Running API services 
+
+
+
+## Running the Demos 
+
+
+
+
 
 
 
