@@ -7,15 +7,15 @@ python ${SCRIPT_FILE} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
 --device cuda:1 \
---bs 10 \
---emb_type "glove_6B_100" \
---hidden_dim 512 \
---lr 1e-3 \
+--bs 64 \
+--emb_type "glove_6B_300" \
+--hidden_dim 256 \
+--lr 1e-4 \
 --bidirectional \
 --combine_strategy concat \
 --epochs 50 \
 --save_every 5 \
---log_train_metrics_every 5 \
+--log_train_metrics_every 25 \
 --sample_proportion 1
 
 
