@@ -47,6 +47,7 @@ setup(
         "scikit-learn",
         "tensorboardX",
         "Deprecated",
+        "urllib3",
         "flair",
     ],
 )
