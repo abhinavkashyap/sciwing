@@ -48,6 +48,5 @@ setup(
         "tensorboardX",
         "Deprecated",
         "urllib3",
-        "flair",
     ],
 )
