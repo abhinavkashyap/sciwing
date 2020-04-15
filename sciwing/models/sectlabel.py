@@ -96,6 +96,10 @@ class SectLabel:
         self.msg_printer.text(title=text, text=prediction)
         return prediction
 
+    def predict_for_text_batch(self, texts: List[str]) -> List[str]:
+        predictions = self.infer.infer_batch(lines=texts)
+        return predictions
+
     def _get_data(self):
         train_filename = self.data_dir.joinpath("sectLabel.train")
         dev_filename = self.data_dir.joinpath("sectLabel.dev")
