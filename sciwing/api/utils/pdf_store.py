@@ -34,7 +34,8 @@ class PdfStore:
         pdf_filename = self.store_path.joinpath(out_filename)
         with open(pdf_filename, "wb") as fp:
             fp.write(pdf_string)
-            return pdf_filename
+
+        return pdf_filename
 
     def retrieve_binary_string_from_store(self, filename: str):
         """ Retrieve the contents of the pdf file as binary from the store
