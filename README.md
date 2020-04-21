@@ -16,8 +16,7 @@ SciWING is a modern framework from WING-NUS to facilitate Scientific Document Pr
 - **Extensible** - SciWING enables easy addition of new datasets and provides command line tools for it. It enables addition of custom modules which are PyTorch modules.
 
   
-
-
+You can find our arxiv paper here: https://arxiv.org/abs/2004.03807
 
 ## Installation 
 
@@ -72,7 +71,7 @@ from sciwing.models.citation_intent_clf import CitationIntentClassification
 citation_intent_clf = CitationIntentClassification()
 
 # predict the intention of the citation 
-citation_intent_clf.predict_for_text("")
+citation_intent_clf.predict_for_text("Abu-Jbara et al. (2013) relied on lexical,structural, and syntactic features and a linear SVMfor classification.")
 ````
 
 
