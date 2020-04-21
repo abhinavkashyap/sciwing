@@ -1,7 +1,6 @@
 import pathlib
 import sciwing.api.conf as config
 import subprocess
-import spacy
 
 BIN_FOLDER = config.BIN_FOLDER
 PDF_BOX_JAR = BIN_FOLDER.joinpath("pdfbox-app-2.0.16.jar")

@@ -10,12 +10,13 @@ from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
 )
-from sciwing.utils.common import cached_path
+from sciwing.api.utils.pdf_reader import PdfReader
+from sciwing.utils.common import cached_path, chunks
 import pathlib
 import json
 import wasabi
 from typing import List
-
+import itertools
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -123,3 +124,85 @@ class SectLabel:
             path=self.final_model_dir,
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectlabel_elmo_bilstm.zip",
         )
+
+    def extract_abstract(
+        self, pdf_filename: pathlib.Path, dehyphenate: bool = True
+    ) -> str:
+        """ Extracts abstracts from a pdf using sectlabel. This is the python programmatic version of
+        the API. The APIs can be found in sciwing/api. You can see that for more information
+
+        Parameters
+        ----------
+        pdf_filename : pathlib.Path
+            The path where the pdf is stored
+        dehyphenate : bool
+            Scientific documents are two columns sometimes and there are a lot of hyphenation
+            introduced. If this is true, we remove the hyphens from the code
+
+        Returns
+        -------
+        str
+            The abstract of the pdf
+
+        """
+        pdf_reader = PdfReader(filepath=pdf_filename)
+        lines = pdf_reader.read_pdf()
+        all_labels = []
+        all_lines = []
+
+        for batch_lines in chunks(lines, 64):
+            labels = self.infer.infer_batch(lines=batch_lines)
+            all_labels.append(labels)
+            all_lines.append(batch_lines)
+
+        all_lines = itertools.chain.from_iterable(all_lines)
+        all_lines = list(all_lines)
+
+        all_labels = itertools.chain.from_iterable(all_labels)
+        all_labels = list(all_labels)
+
+        response_tuples = []
+        for line, label in zip(all_lines, all_labels):
+            response_tuples.append((line, label))
+
+        abstract_lines = []
+        found_abstract = False
+        for line, label in response_tuples:
+            if label == "sectionHeader" and line.strip().lower() == "abstract":
+                found_abstract = True
+                continue
+            if found_abstract and label == "sectionHeader":
+                break
+            if found_abstract:
+                abstract_lines.append(line.strip())
+
+        if dehyphenate:
+            buffer_lines = []  # holds lines that should be a single line
+            final_lines = []
+            for line in abstract_lines:
+                if line.endswith("-"):
+                    line_ = line.replace("-", "")  # replace the hyphen
+                    buffer_lines.append(line_)
+                else:
+
+                    # if the hyphenation ended on the previous
+                    # line then the next line also needs to be
+                    # added to the buffer line
+                    if len(buffer_lines) > 0:
+                        buffer_lines.append(line)
+
+                        line_ = "".join(buffer_lines)
+
+                        # add the line from buffer first
+                        final_lines.append(line_)
+
+                    else:
+                        # add the current line
+                        final_lines.append(line)
+
+                    buffer_lines = []
+
+            abstract_lines = final_lines
+
+        abstract = " ".join(abstract_lines)
+        return abstract
