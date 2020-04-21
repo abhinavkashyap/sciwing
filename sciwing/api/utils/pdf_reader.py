@@ -24,6 +24,6 @@ class PdfReader:
             stdout=subprocess.PIPE,
         )
         text = text.stdout
-        text = str(text)
-        text = text.split("\\n")
+        text = text.decode("utf-8")
+        text = text.split("\n")
         return text

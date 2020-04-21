@@ -206,3 +206,15 @@ class SectLabel:
 
         abstract = " ".join(abstract_lines)
         return abstract
+
+
+if __name__ == "__main__":
+    sectlabel = SectLabel()
+    abstract = sectlabel.extract_abstract(
+        pdf_filename=pathlib.Path(
+            "/Users/abhinav/Downloads/transferring_knowledge_from_discourse_to_arguments.pdf"
+        ),
+        dehyphenate=True,
+    )
+    abstract = abstract.encode("utf-8").decode("utf-8")
+    print(f"abstract\n =============== \n {abstract}")
