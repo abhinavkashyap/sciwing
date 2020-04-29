@@ -37,6 +37,7 @@ class EmbeddingLoader:
             "glove_6B_200",
             "glove_6B_300",
             "parscit",
+            "lample_conll",
         ]
 
         assert self.embedding_type in self.allowed_embedding_types, (
@@ -54,6 +55,9 @@ class EmbeddingLoader:
         if "parscit" in self.embedding_type:
             self._embeddings = self.load_parscit_embedding()
 
+        if self.embedding_type == "lample_conll":
+            self._embeddings = self.load_lample_conll_embedding()
+
     def get_preloaded_filename(self):
         filename = None
 
@@ -70,6 +74,9 @@ class EmbeddingLoader:
             filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.300d.txt")
         elif self.embedding_type == "parscit":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "vectors_with_unk.kv")
+
+        elif self.embedding_type == "lample_conll":
+            filename = os.path.join(EMBEDDING_CACHE_DIR, "lample_conll")
 
         return filename
 
@@ -101,6 +108,23 @@ class EmbeddingLoader:
         self.embedding_dimension = 500
         return pretrained
 
+    def load_lample_conll_embedding(self) -> Dict[str, np.array]:
+        embedding_dim = 100
+        self.embedding_dimension = embedding_dim
+        lample_conll_embedding: Dict[str, np.array] = {}
+        with open(self.embedding_filename, "r") as fp:
+            for line in tqdm(
+                fp,
+                desc=f"Loading Lample CoNLL embedding from file {self.embedding_filename}",
+            ):
+                values = line.split()
+                word = values[0]
+                embedding = values[1:]
+                embedding = list(map(lambda value: float(value), embedding))
+                embedding = np.array(embedding)
+                lample_conll_embedding[word] = embedding
+        return lample_conll_embedding
+
     def get_embeddings_for_vocab(self, vocab: Vocab) -> torch.FloatTensor:
         idx2item = vocab.get_idx2token_mapping()
         len_vocab = len(idx2item)
@@ -115,8 +139,8 @@ class EmbeddingLoader:
                     # try lowercasing the item and getting the embedding
                     emb = self._embeddings[item.lower()]
                 except KeyError:
-                    # nothing is working, lets fill it with zeros
-                    emb = np.zeros(shape=self.embedding_dimension)
+                    # nothing is working, lets fill it with random integers from normal dist
+                    emb = np.random.randn(self.embedding_dimension)
             embeddings.append(emb)
 
         embeddings = torch.tensor(embeddings, dtype=torch.float)

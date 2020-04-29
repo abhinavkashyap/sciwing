@@ -34,6 +34,7 @@ mem_in_gb = get_system_mem_in_gb()
     int(mem_in_gb) < 16, reason="Memory is too low to run bert tokenizers"
 )
 class TestTokenizerForBert:
+    @pytest.mark.slow
     @pytest.mark.parametrize("bert_type", bert_types)
     def test_tokenizer_initializations(self, bert_type, setup_bert_tokenizer):
         try:
@@ -42,6 +43,7 @@ class TestTokenizerForBert:
         except:
             pytest.fail(f"Failed to setup tokenizer for bert type {bert_type}")
 
+    @pytest.mark.slow
     @pytest.mark.parametrize("bert_type", bert_types)
     def test_tokenizer_returns_string_list(
         self, bert_type, setup_bert_tokenizer, setup_strings
@@ -54,6 +56,7 @@ class TestTokenizerForBert:
         except:
             pytest.fail(f"Failed to setup tokenizer for bert type {bert_type}")
 
+    @pytest.mark.slow
     @pytest.mark.parametrize("bert_type", bert_types)
     def test_len_tokenization(self, bert_type, setup_bert_tokenizer, setup_strings):
         tokenizer = setup_bert_tokenizer(bert_type)

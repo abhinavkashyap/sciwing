@@ -166,6 +166,7 @@ tests/utils/dummy_file.txt
 
 # ignore runs directory wherever it is
 runs/
+wandb/
 .model_cache
 .aws
 sciwing/reports/*

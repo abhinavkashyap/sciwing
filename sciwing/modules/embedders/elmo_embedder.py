@@ -4,7 +4,10 @@ import torch.nn as nn
 from typing import List
 import wasabi
 import torch
-from deprecated import deprecated
+from sciwing.data.line import Line
+from sciwing.modules.embedders.base_embedders import BaseEmbedder
+from sciwing.utils.class_nursery import ClassNursery
+from sciwing.data.datasets_manager import DatasetsManager
 
 FILES = constants.FILES
 
@@ -12,10 +15,14 @@ ELMO_OPTIONS_FILE = FILES["ELMO_OPTIONS_FILE"]
 ELMO_WEIGHTS_FILE = FILES["ELMO_WEIGHTS_FILE"]
 
 
-@deprecated(reason="ElmoEmbedder is deprecated and will be removed " "in version 0.1")
-class ElmoEmbedder(nn.Module):
+class ElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
     def __init__(
-        self, dropout_value: float = 0.0, device: torch.device = torch.device("cpu")
+        self,
+        dropout_value: float = 0.5,
+        datasets_manager: DatasetsManager = None,
+        word_tokens_namespace: str = "tokens",
+        device: torch.device = torch.device("cpu"),
+        fine_tune: bool = False,
     ):
         super(ElmoEmbedder, self).__init__()
 
@@ -24,8 +31,12 @@ class ElmoEmbedder(nn.Module):
         # TODO: change this in-case you need 2 representations
         self.num_output_representations = 1
         self.dropout_value = dropout_value
-        self.device = device
+        self.datasets_manager = datasets_manager
+        self.device = torch.device(device) if isinstance(device, str) else device
         self.msg_printer = wasabi.Printer()
+        self.word_tokens_namespace = word_tokens_namespace
+        self.fine_tune = fine_tune
+        self.embedder_name = "ElmoEmbedder"
 
         with self.msg_printer.loading("Loading Elmo Object"):
             self.elmo: nn.Module = Elmo(
@@ -33,13 +44,24 @@ class ElmoEmbedder(nn.Module):
                 weight_file=ELMO_WEIGHTS_FILE,
                 num_output_representations=self.num_output_representations,
                 dropout=self.dropout_value,
+                requires_grad=fine_tune,
             )
 
         self.msg_printer.good(f"Finished Loading ELMO object")
 
-    def forward(self, x: List[List[str]]):
-        character_ids = batch_to_ids(x)
+    def forward(self, lines: List[Line]):
+        texts = []
+        for line in lines:
+            line_tokens = line.tokens[self.word_tokens_namespace]
+            line_tokens = list(map(lambda tok: tok.text, line_tokens))
+            texts.append(line_tokens)
+
+        character_ids = batch_to_ids(texts)
         character_ids = character_ids.to(self.device)
         output_dict = self.elmo(character_ids)
+        # batch_size, max_seq_length * 1024
         embeddings = output_dict["elmo_representations"][0]
         return embeddings
+
+    def get_embedding_dimension(self):
+        return 1024

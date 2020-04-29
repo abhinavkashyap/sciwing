@@ -2,6 +2,7 @@ import pytest
 from sciwing.vocab.vocab import Vocab
 import os
 from sciwing.utils.common import get_system_mem_in_gb
+from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 
 
 @pytest.fixture
@@ -396,3 +397,18 @@ class TestVocab:
         single_instance = instances["single_instance"]
         vocab_builder = Vocab(instances=single_instance, max_num_tokens=1000)
         assert vocab_builder.max_instance_length == 100
+
+    def test_preprocessing_lower(self, instances):
+        single_instance = instances["single_instance"]
+        instance_preprocesing = InstancePreprocessing()
+        vocab_builder = Vocab(
+            instances=single_instance,
+            max_num_tokens=1000,
+            preprocessing_pipeline=[instance_preprocesing.lowercase],
+        )
+
+        instances = vocab_builder.instances
+
+        for instance in instances:
+            for token in instance:
+                assert token.islower()

@@ -17,6 +17,8 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         combine_strategy: str = "concat",
         rnn_bias: bool = False,
         device: torch.device = torch.device("cpu"),
+        add_projection_layer: bool = True,
+        projection_activation: str = "Tanh",
     ):
         """Encodes a set of tokens to a set of hidden states.
 
@@ -42,6 +44,10 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         rnn_bias : bool
             Set this to false only for debugging purposes
         device : torch.device
+        add_projection_layer: bool
+            Adds a projection layer after the lstm over the hidden activation
+        projection_activation: str
+            Refer to torch.nn activations. Use any class name as a projection here
         """
         super(Lstm2SeqEncoder, self).__init__()
         self.embedder = embedder
@@ -56,6 +62,11 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         self.num_layers = num_layers
         self.allowed_combine_strategies = ["sum", "concat"]
         self.msg_printer = wasabi.Printer()
+        self.add_projection_layer = add_projection_layer
+        self.projection_activation = projection_activation
+        self.projection_activation_module = getattr(
+            torch.nn, self.projection_activation
+        )()
 
         assert (
             self.combine_strategy in self.allowed_combine_strategies
@@ -75,6 +86,12 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
             num_layers=self.num_layers,
             dropout=self.dropout_value,
         )
+        if self.add_projection_layer:
+            if self.combine_strategy == "concat" and bidirectional is True:
+                output_hidden_dim = 2 * self.hidden_dim
+            else:
+                output_hidden_dim = self.hidden_dim
+            self.projection_layer = nn.Linear(output_hidden_dim, hidden_dim)
 
     def forward(
         self,
@@ -110,7 +127,7 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         if h0 is None or c0 is None:
             h0, c0 = self.get_initial_hidden(batch_size=batch_size)
 
-        # output = batch_size, sequence_length, hidden_dim * num_directions
+        # output = batch_size, sequence_length, num_directions * hidden_size
         # h_n = num_layers * num_directions, batch_size, hidden_dimension
         # c_n = num_layers * num_directions, batch_size, hidden_dimension
         output, (_, _) = self.rnn(embeddings, (h0, c0))
@@ -127,6 +144,11 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 raise ValueError("The combine strategy should be one of concat or sum")
         else:
             encoding = output
+
+        if self.add_projection_layer:
+            encoding = self.projection_activation_module(
+                self.projection_layer(encoding)
+            )
 
         return encoding
 

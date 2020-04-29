@@ -8,7 +8,6 @@ mem_gb = get_system_mem_in_gb()
 mem_gb = int(mem_gb)
 
 
-@pytest.mark.skipif(mem_gb < 16, reason="system memory is too low to run elmo embedder")
 @pytest.fixture(params=["sum", "average", "first", "last"])
 def setup_bow_elmo_encoder(request):
     layer_aggregation = request.param
@@ -24,12 +23,14 @@ def setup_bow_elmo_encoder(request):
 
 
 class TestBowElmoEncoder:
+    @pytest.mark.slow
     def test_dimension(self, setup_bow_elmo_encoder):
         bow_elmo_embedder, lines = setup_bow_elmo_encoder
         embedding = bow_elmo_embedder(lines)
         assert embedding.size(0) == 2
         assert embedding.size(2) == 1024
 
+    @pytest.mark.slow
     def test_token_embeddings(self, setup_bow_elmo_encoder):
         bow_elmo_embedder, lines = setup_bow_elmo_encoder
         _ = bow_elmo_embedder(lines)

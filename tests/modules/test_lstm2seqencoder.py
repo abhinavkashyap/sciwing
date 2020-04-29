@@ -4,8 +4,10 @@ from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.data.line import Line
 import itertools
 
-is_additional_embedding = [True, False]
-lstm2encoder_options = itertools.product([True, False], ["sum", "concat"], [1, 2])
+add_projection_layer = [True, False]
+lstm2encoder_options = itertools.product(
+    [True, False], ["sum", "concat"], [1, 2], add_projection_layer
+)
 lstm2encoder_options = list(lstm2encoder_options)
 
 
@@ -15,6 +17,7 @@ def setup_lstm2seqencoder(request):
     BIDIRECTIONAL = request.param[0]
     COMBINE_STRATEGY = request.param[1]
     NUM_LAYERS = request.param[2]
+    ADD_PROJECTION_LAYER = request.param[3]
     embedder = WordEmbedder(embedding_type="glove_6B_50")
     encoder = Lstm2SeqEncoder(
         embedder=embedder,
@@ -24,6 +27,7 @@ def setup_lstm2seqencoder(request):
         combine_strategy=COMBINE_STRATEGY,
         rnn_bias=False,
         num_layers=NUM_LAYERS,
+        add_projection_layer=ADD_PROJECTION_LAYER,
     )
 
     lines = []
@@ -39,7 +43,9 @@ def setup_lstm2seqencoder(request):
             "COMBINE_STRATEGY": COMBINE_STRATEGY,
             "BIDIRECTIONAL": BIDIRECTIONAL,
             "EXPECTED_HIDDEN_DIM": 2 * HIDDEN_DIM
-            if COMBINE_STRATEGY == "concat" and BIDIRECTIONAL
+            if COMBINE_STRATEGY == "concat"
+            and BIDIRECTIONAL
+            and not ADD_PROJECTION_LAYER
             else HIDDEN_DIM,
             "NUM_LAYERS": NUM_LAYERS,
             "LINES": lines,

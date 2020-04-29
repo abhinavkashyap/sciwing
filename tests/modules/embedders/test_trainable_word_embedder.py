@@ -42,6 +42,7 @@ def setup_embedder(setup_parscit_dataset_manager, request):
 
 
 class TestTrainableWordEmbedder:
+    @pytest.mark.slow
     def test_returns_float_tensors(self, setup_embedder):
         embedder, data_manager = setup_embedder
         train_dataset = data_manager.train_dataset
@@ -50,14 +51,17 @@ class TestTrainableWordEmbedder:
             embedding = embedder(lines_batch)
             assert isinstance(embedding, torch.FloatTensor)
 
+    @pytest.mark.slow
     def test_module_has_trainable_params(self, setup_embedder):
         embedder, data_manager = setup_embedder
         for param in embedder.parameters():
             assert param.requires_grad
 
+    @pytest.mark.slow
     def test_embedder_in_class_nursery(self):
         assert ClassNursery.class_nursery["TrainableWordEmbedder"] is not None
 
+    @pytest.mark.slow
     def test_embedding_dimensions(self, setup_embedder):
         embedder, data_manager = setup_embedder
         train_dataset = data_manager.train_dataset

@@ -14,7 +14,14 @@ DATA_DIR = constants.PATHS["DATA_DIR"]
 
 
 @pytest.fixture(
-    params=["glove_6B_50", "glove_6B_100", "glove_6B_200", "glove_6B_300", "parscit"],
+    params=[
+        "glove_6B_50",
+        "glove_6B_100",
+        "glove_6B_200",
+        "glove_6B_300",
+        "parscit",
+        "lample_conll",
+    ],
     scope="session",
 )
 def setup_word_emb_loader(request):
@@ -45,16 +52,19 @@ memory_available = int(get_system_mem_in_gb())
     memory_available < 16, reason="Memory is too low to run the word emb loader tests"
 )
 class TestWordEmbLoader:
+    @pytest.mark.slow
     def test_invalid_embedding_type(self):
         with pytest.raises(AssertionError):
             loader = EmbeddingLoader(embedding_type="nonexistent")
 
+    @pytest.mark.slow
     def test_preloaded_file_exists(self, setup_word_emb_loader):
         emb_loader = setup_word_emb_loader
         preloaded_filename = emb_loader.get_preloaded_filename()
 
         assert os.path.isfile(preloaded_filename)
 
+    @pytest.mark.slow
     def test_embeddings_are_np_arrays(self, setup_word_emb_loader):
 
         emb_loader = setup_word_emb_loader
@@ -62,6 +72,7 @@ class TestWordEmbLoader:
             for word, embedding in emb_loader._embeddings.items():
                 assert isinstance(embedding, np.ndarray)
 
+    @pytest.mark.slow
     def test_get_embedding_for_vocab_returns_tensor(
         self, setup_word_emb_loader, setup_parscit_dataset_manager
     ):
@@ -71,6 +82,7 @@ class TestWordEmbLoader:
         embedding = emb_loader.get_embeddings_for_vocab(vocab=vocab)
         assert isinstance(embedding, torch.FloatTensor)
 
+    @pytest.mark.slow
     def test_get_embedding_for_vocab_length(
         self, setup_word_emb_loader, setup_parscit_dataset_manager
     ):

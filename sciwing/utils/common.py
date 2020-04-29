@@ -6,7 +6,6 @@ from wasabi import Printer
 import zipfile
 from sys import stdout
 import re
-from sciwing.utils.amazon_s3 import S3Util
 from sklearn.model_selection import KFold
 import numpy as np
 import sciwing.constants as constants
@@ -17,6 +16,7 @@ import tarfile
 import psutil
 import pathlib
 from sklearn.model_selection import StratifiedShuffleSplit, ShuffleSplit
+import collections
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -740,6 +740,26 @@ def cached_path(path: pathlib.Path, url: str, unzip=True) -> pathlib.Path:
 
     if unzip:
         extract_zip(filename=f"{path}.zip", destination_dir=str(path.parent))
+
+
+def flatten(list_items: List[Any]) -> List[Any]:
+    """ Flattens an arbitrarily long nesting of lists
+
+    Parameters
+    ----------
+    list_items: List[Any]
+        It can be an arbitrarily long nesting of lists
+
+    Returns
+    -------
+    List
+        Flattened list
+    """
+    for el in list_items:
+        if isinstance(el, collections.Iterable) and not isinstance(el, (str, bytes)):
+            yield from flatten(el)
+        else:
+            yield el
 
 
 if __name__ == "__main__":

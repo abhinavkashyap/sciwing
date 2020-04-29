@@ -132,9 +132,15 @@ class CharEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         )
 
         # get embedding for every character
+
+        # batch_size * max_line_length, max_token_length, char_emb_dim
         embedded_tokens = self.embedding(batch_numericalized)
 
         # pass through bilstm
+
+        # output: batch_size * max_line_length, max_token_length, num_directions * hidden_size
+        # h_n = num_layers * num_directions, batch_size, hidden_dimension
+        # c_n = num_layers * num_directions, batch_size, hidden_dimension
         output, (h_n, c_n) = self.char_rnn(embedded_tokens)
 
         # concat forward and backward hidden states

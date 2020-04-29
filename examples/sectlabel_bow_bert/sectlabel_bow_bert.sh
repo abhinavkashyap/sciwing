@@ -11,7 +11,7 @@ python ${SCRIPT_FILE} \
 --bert_type "bert-base-uncased" \
 --bs 64 \
 --lr 1e-2 \
---epochs 1 \
+--epochs 15 \
 --save_every 1 \
 --log_train_metrics_every 50 \
---sample_proportion 0.1
+--sample_proportion 1

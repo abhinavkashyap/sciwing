@@ -22,6 +22,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
         device: torch.device = torch.device("cpu"),
         namespace_to_constraints: Dict[str, List[Tuple[int, int]]] = None,
         tagging_type=None,
+        include_start_end_trainsitions: bool = True,
     ):
         """
 
@@ -33,6 +34,8 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             Hidden dimension of the lstm2seq encoder
         namespace_to_constraints: Dict[str, List[Tuple[int, int]]]
             A set of constraints that are valid transitions
+        include_start_end_trainsitions: bool
+            Whether to include start end transitions
         """
         super(RnnSeqCrfTagger, self).__init__()
         self.rnn2seqencoder = rnn2seqencoder
@@ -44,6 +47,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
         self.tagging_type = tagging_type
         self.crfs = nn.ModuleDict()
         self.linear_clfs = nn.ModuleDict()
+        self.include_start_end_transitions = include_start_end_trainsitions
 
         if namespace_to_constraints is None and self.tagging_type is not None:
             namespace_to_constraints = defaultdict(list)
@@ -64,7 +68,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
             crf = CRF(
                 num_tags=num_labels,
                 constraints=self.namespace_to_constraints.get(namespace),
-                include_start_end_transitions=True,
+                include_start_end_transitions=self.include_start_end_transitions,
             )  # we do not add start and end tags to our labels
             clf = nn.Linear(self.encoding_dim, num_labels)
             self.crfs.update({namespace: crf})

@@ -59,6 +59,7 @@ def setup_parscit_tagger(seq_dataset_manager):
         bidirectional=BIDIRECTIONAL,
         combine_strategy=COMBINE_STRATEGY,
         rnn_bias=False,
+        add_projection_layer=False,
     )
 
     tagger = RnnSeqCrfTagger(

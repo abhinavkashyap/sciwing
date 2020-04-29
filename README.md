@@ -16,8 +16,7 @@ SciWING is a modern framework from WING-NUS to facilitate Scientific Document Pr
 - **Extensible** - SciWING enables easy addition of new datasets and provides command line tools for it. It enables addition of custom modules which are PyTorch modules.
 
   
-
-
+You can find our arxiv paper here: https://arxiv.org/abs/2004.03807
 
 ## Installation 
 
@@ -29,48 +28,71 @@ pip install sciwing
 
 
 
+## Tasks 
+
+These are some of the tasks included in SciWING and their performance metrics 
+
+| Task                               | Dataset        | SciWING model                          | SciWING               | Previous Best                                                |
+| ---------------------------------- | -------------- | -------------------------------------- | --------------------- | ------------------------------------------------------------ |
+| Logical Structure Recovery         | SectLabel      | BiLSTM + Elmo Embeddings               | 73.2 (Macro F-score)  | -                                                            |
+| Header Normalisation               | SectLabel      | Bag of Words Elmo                      | 93.52 (Macro F-Score) | -                                                            |
+| Citation String Parsing            | Neural Parscit | Bi-LSTM-CRF + GloVe + Elmo + Char-LSTM | 88.44 (Macro F-Score) | 90.45 [Prasad et al](https://dl.acm.org/doi/10.5555/3288541.3288551)(not comparable) |
+| Citation Intent Classification     | SciCite        | Bi-LSTM + Elmo                         | 82.16 (Fscore)        | 82.6 [Cohan et al](https://arxiv.org/pdf/1904.01608.pdf) (without multi-task learning) |
+| Biomedical NER - BC5CDR (Upcoming) | -              | -                                      | -                     | -                                                            |
+| I2b2 NER (Upcoming)                | -              | -                                      | -                     | -                                                            |
+
+   
+
 ## Simple Example 
 
-Example of a model that concatenates a vanilla word embedding and Elmo embedding and then encodes it using a `LSTM2Vec` encoder before finally passing it through a linear layer for classification.
-
-
+### Using Citation String Parsing 
 
 ```python
-from sciwing.modules.embedders import BowElmoEmbedder
-from sciwing.modules.embedders import VanillaEmbedder 
-from sciwing.modules.embedders import ConcatEmbedders
+from sciwing.models.neural_parscit import NeuralParscit 
 
-from sciwing.modules.lstm2vecencoder import LSTM2VecEncoder 
+# instantiate an object 
+neural_parscit = NeuralParscit()
 
-# initialize a elmo_embedder
-elmo_embedder = BowElmoEmbedder()
-ELMO_EMBEDDING_DIMENSION = 1024
+# predict on a citation 
+neural_parscit.predict_for_text("Calzolari, N. (1982) Towards the organization of lexical definitions on a database structure. In E. Hajicova (Ed.), COLING '82 Abstracts, Charles University, Prague, pp.61-64.")
 
-# Get word embeddings as PyTorch tensors for all the words in the vocab
-embedding = dataset.word_vocab.load_embedding()
-# initialize a normal embedder with the word embedding 
-# EMBEDDING_DIM is the embedding dimension for the word vectors
-vanilla_embedder = WordEmbedder(embedding=embedding, embedding_dim=EMBEDDING_DIM)
-
-# concatenate the vanilla embedding and the elmo embedding to get a new embedding
-final_embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])
-FINAL_EMBEDDING_DIM = EMBEDDING_DIM + ELMO_EMBEDDING_DIMENSION
-
-# instantiate a LSTM2VecEncoder that encodes a sentence to a single vector
-encoder = LSTM2VecEncoder(
-  emb_dim= FINAL_EMBEDDING_DIM,
-  embedder=final_embedder, 
-  hidden_dimension=HIDDEN_DIM  
-)
-
-# Instantiate a linear classification layer that takes in an encoder and the dimension of the encoding and the number of classes
-model = SimpleClassifier(
-  encoder=encoder,
-  encoding_dim=HIDDEN_DIM,
-  num_classes=NUM_CLASSES
-)
-
+# if you have a file of citations with one citation per line 
+neural_parscit.predict_for_file("/path/to/filename")
 ```
+
+
+
+### Using Citation Intent Classification 
+
+````python
+from sciwing.models.citation_intent_clf import CitationIntentClassification 
+
+# instantiate an object 
+citation_intent_clf = CitationIntentClassification()
+
+# predict the intention of the citation 
+citation_intent_clf.predict_for_text("Abu-Jbara et al. (2013) relied on lexical,structural, and syntactic features and a linear SVMfor classification.")
+````
+
+
+
+## Running API services 
+
+The APIs are built using [Fast API](https://github.com/tiangolo/fastapi). We have APIs for citation string parsing and citation intent classification. There are more APIs on the way. To run the APIs navigate into the `api` folder of this repository and run 
+
+```bash
+uvicorn api:app --reload
+```
+
+
+
+## Running the Demos 
+
+The demos are built using [Streamlit](www.streamlit.io). The Demos make use of the APIs. Please make sure that the APIs are running before the demos can be started. Navigate to the app folder and run the demo using streamlit (Installed along with the package). For example 
+
+````bash
+streamlit run ner_demo.py
+````
 
 
 

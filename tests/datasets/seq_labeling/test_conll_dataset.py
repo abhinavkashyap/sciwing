@@ -1,6 +1,10 @@
 import pytest
-from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDataset
+from sciwing.datasets.seq_labeling.conll_dataset import (
+    CoNLLDataset,
+    CoNLLDatasetManager,
+)
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
+from sciwing.preprocessing.instance_preprocessing import InstancePreprocessing
 
 
 @pytest.fixture(scope="session")
@@ -52,3 +56,37 @@ class TestCoNLLDataset:
                 == len(labels_pos)
                 == len(labels_dep)
             )
+
+    @pytest.mark.parametrize("train_only", ["ner", "pos", "dep"])
+    def test_restricted_namesapces(self, test_file, train_only):
+        dataset = CoNLLDataset(
+            filename=test_file,
+            tokenizers={"tokens": WordTokenizer()},
+            column_names=["POS", "DEP", "NER"],
+            train_only=train_only,
+        )
+        lines, labels = dataset.get_lines_labels()
+
+        for label in labels:
+            namespaces = label.namespace
+            assert len(namespaces) == 1
+            assert train_only.upper() in namespaces
+
+    def test_conll_dataset_manager(self, test_file):
+        instance_preprocessing = InstancePreprocessing()
+        manager = CoNLLDatasetManager(
+            train_filename=test_file,
+            dev_filename=test_file,
+            test_filename=test_file,
+            namespace_vocab_options={
+                "tokens": {
+                    "preprocessing_pipeline": [instance_preprocessing.lowercase],
+                    "include_special_vocab": False,
+                }
+            },
+        )
+
+        token_vocab = manager.namespace_to_vocab["tokens"].get_token2idx_mapping()
+
+        for token in token_vocab.keys():
+            assert token.islower()
