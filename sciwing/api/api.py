@@ -1,6 +1,7 @@
 import sciwing.api.conf as config
 from fastapi import FastAPI
-from sciwing.api.routers import parscit
+from sciwing.api.routers import parscit, generic_sect
+from sciwing.api.routers import science_ie
 
 app = FastAPI()
 
@@ -12,3 +13,5 @@ def root():
 
 # add the routers to the main app
 app.include_router(parscit.router)
+app.include_router(science_ie.router)
+app.include_router(generic_sect.router)
