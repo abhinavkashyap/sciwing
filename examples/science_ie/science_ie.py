@@ -127,10 +127,13 @@ if __name__ == "__main__":
         tagging_type="BIOUL",
         datasets_manager=data_manager,
     )
+
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr, weight_decay=args.reg)
+
     train_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
     dev_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
     test_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
+
     engine = Engine(
         model=model,
         datasets_manager=data_manager,
@@ -150,4 +153,5 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         sample_proportion=args.sample_proportion,
     )
+
     engine.run()
