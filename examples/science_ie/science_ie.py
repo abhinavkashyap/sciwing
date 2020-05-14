@@ -12,13 +12,10 @@ from sciwing.engine.engine import Engine
 import argparse
 import pathlib
 import wasabi
-
 DATA_DIR = constants.PATHS["DATA_DIR"]
-
 if __name__ == "__main__":
     # read the hyperparams from config file
     parser = argparse.ArgumentParser(description="ScienceIE Tagger for ScienceIE task")
-
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
     parser.add_argument("--bs", help="batch size", type=int)
     parser.add_argument("--lr", help="learning rate", type=float)
@@ -58,14 +55,11 @@ if __name__ == "__main__":
         help="How do you want to combine the hidden dimensions of the two "
         "combinations",
     )
-
     parser.add_argument("--device", help="Device on which the model is run", type=str)
-
     parser.add_argument("--reg", help="Regularization strength", type=float)
     parser.add_argument(
         "--dropout", help="Dropout added to multiple layer lstm", type=float
     )
-
     parser.add_argument(
         "--exp_dir_path", help="Directory to store all experiment related information"
     )
@@ -76,29 +70,23 @@ if __name__ == "__main__":
     parser.add_argument(
         "--sample_proportion", help="Sample proportion of the dataset", type=float
     )
-
     parser.add_argument(
         "--num_layers", help="Number of layers in rnn2seq encoder", type=int
     )
-
     args = parser.parse_args()
     msg_printer = wasabi.Printer()
-
     DATA_DIR = pathlib.Path(DATA_DIR)
     train_filename = DATA_DIR.joinpath("train_science_ie_conll.txt")
     dev_filename = DATA_DIR.joinpath("dev_science_ie_conll.txt")
-
     data_manager = CoNLLDatasetManager(
         train_filename=train_filename,
         dev_filename=dev_filename,
         test_filename=dev_filename,
         column_names=["TASK", "PROCESS", "MATERIAL"],
     )
-
     embedder = TrainableWordEmbedder(
         embedding_type=args.emb_type, datasets_manager=data_manager, device=args.device
     )
-
     char_embedder = CharEmbedder(
         char_embedding_dimension=args.char_emb_dim,
         hidden_dimension=args.char_encoder_hidden_dim,
@@ -106,7 +94,6 @@ if __name__ == "__main__":
         device=args.device,
     )
     embedder = ConcatEmbedders([embedder, char_embedder])
-
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
         dropout_value=args.dropout,
@@ -116,6 +103,7 @@ if __name__ == "__main__":
         rnn_bias=True,
         device=torch.device(args.device),
         num_layers=args.num_layers,
+        add_projection_layer=False,
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
@@ -126,13 +114,10 @@ if __name__ == "__main__":
         tagging_type="BIOUL",
         datasets_manager=data_manager,
     )
-
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr, weight_decay=args.reg)
-
     train_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
     dev_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
     test_metric = TokenClassificationAccuracy(datasets_manager=data_manager)
-
     engine = Engine(
         model=model,
         datasets_manager=data_manager,
@@ -152,5 +137,4 @@ if __name__ == "__main__":
         experiment_hyperparams=vars(args),
         sample_proportion=args.sample_proportion,
     )
-
     engine.run()
