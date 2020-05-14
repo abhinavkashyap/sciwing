@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
+
+
 EXPERIMENT_PREFIX="lstm_crf_scienceie"
 SCRIPT_FILE="science_ie.py"
+
 python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX} \
 --exp_dir_path  "./output" \
