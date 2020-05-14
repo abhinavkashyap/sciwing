@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
-
-
 EXPERIMENT_PREFIX="lstm_crf_scienceie"
 SCRIPT_FILE="science_ie.py"
-
 python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX} \
 --exp_dir_path  "./output" \
 --model_save_dir "./output/checkpoints" \
---device cuda:1 \
+--device cpu \
 --dropout 0.0 \
 --reg 0 \
 --bs 128 \
@@ -23,4 +20,4 @@ python ${SCRIPT_FILE} \
 --epochs 75 \
 --save_every 20 \
 --log_train_metrics_every 10 \
---sample_proportion 1
+--sample_proportion 0.1
