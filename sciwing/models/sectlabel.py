@@ -15,8 +15,14 @@ from sciwing.utils.common import cached_path, chunks
 import pathlib
 import json
 import wasabi
-from typing import List
+from typing import List, Dict
 import itertools
+from collections import defaultdict
+from logzero import setup_logger
+import logging
+from tqdm import tqdm
+import re
+import torch
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -24,7 +30,8 @@ DATA_DIR = PATHS["DATA_DIR"]
 
 
 class SectLabel:
-    def __init__(self):
+    def __init__(self, log_file: str = None, device: str = "cpu"):
+        self.device = device
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
         self.final_model_dir = self.models_cache_dir.joinpath("sectlabel_elmo_bilstm")
         self.model_filepath = self.final_model_dir.joinpath("best_model.pt")
@@ -35,12 +42,22 @@ class SectLabel:
         self.hparams = self._get_hparams()
         self.model = self._get_model()
         self.infer = self._get_infer_client()
+        self.log_file = log_file
+
+        if log_file:
+            self.logger = setup_logger(
+                "sectlabel_logger", logfile=self.log_file, level=logging.INFO
+            )
+        else:
+            self.logger = self.msg_printer
 
     def _get_model(self):
-        elmo_embedder = BowElmoEmbedder(layer_aggregation="sum")
+        elmo_embedder = BowElmoEmbedder(layer_aggregation="sum", device=self.device)
 
         # instantiate the vanilla embedder
-        vanilla_embedder = WordEmbedder(embedding_type=self.hparams.get("emb_type"))
+        vanilla_embedder = WordEmbedder(
+            embedding_type=self.hparams.get("emb_type"), device=self.device
+        )
 
         # concat the embeddings
         embedder = ConcatEmbedders([vanilla_embedder, elmo_embedder])
@@ -54,6 +71,7 @@ class SectLabel:
             hidden_dim=hidden_dim,
             bidirectional=bidirectional,
             combine_strategy=combine_strategy,
+            device=self.device,
         )
 
         encoding_dim = (
@@ -68,7 +86,9 @@ class SectLabel:
             num_classes=23,
             classification_layer_bias=True,
             datasets_manager=self.data_manager,
+            device=self.device,
         )
+        model.to(self.device)
 
         return model
 
@@ -77,6 +97,7 @@ class SectLabel:
             model=self.model,
             model_filepath=self.final_model_dir.joinpath("best_model.pt"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return client
 
@@ -125,7 +146,28 @@ class SectLabel:
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectlabel_elmo_bilstm.zip",
         )
 
-    def extract_abstract(
+    def _preprocess(self, lines: str):
+        preprocessed_lines = []
+        for line in lines:
+            line_ = line.strip()
+            if bool(line_):
+                line_words = line_.split()
+                num_single_character_words = sum(
+                    [1 for word in line_words if len(word) == 1]
+                )
+                num_words = len(line_words)
+                percentage_single_character_words = (
+                    num_single_character_words / num_words
+                ) * 100
+                if percentage_single_character_words > 40:
+                    line_ = "".join(line_words)
+                    line_ = re.sub("\d", "1. ", line_)
+                    preprocessed_lines.append(line_)
+                else:
+                    preprocessed_lines.append(line_)
+        return preprocessed_lines
+
+    def extract_abstract_for_file(
         self, pdf_filename: pathlib.Path, dehyphenate: bool = True
     ) -> str:
         """ Extracts abstracts from a pdf using sectlabel. This is the python programmatic version of
@@ -145,8 +187,16 @@ class SectLabel:
             The abstract of the pdf
 
         """
+        self.msg_printer.info(f"Extracting abstract for {pdf_filename}")
         pdf_reader = PdfReader(filepath=pdf_filename)
         lines = pdf_reader.read_pdf()
+
+        lines = self._preprocess(lines)
+
+        if len(lines) == 0:
+            self.logger.warning(f"No lines were read from file {pdf_filename}")
+            return ""
+
         all_labels = []
         all_lines = []
 
@@ -175,6 +225,9 @@ class SectLabel:
                 break
             if found_abstract:
                 abstract_lines.append(line.strip())
+
+        if len(abstract_lines) == 0:
+            self.logger.info(f"Could not find any abstract for {pdf_filename}")
 
         if dehyphenate:
             buffer_lines = []  # holds lines that should be a single line
@@ -207,14 +260,24 @@ class SectLabel:
         abstract = " ".join(abstract_lines)
         return abstract
 
+    def extract_abstract_for_folder(self, foldername: pathlib.Path, dehyphenate=True):
+        num_files = sum([1 for file in foldername.iterdir()])
+        for file in tqdm(
+            foldername.iterdir(), total=num_files, desc="Extracting Abstracts"
+        ):
+            if file.suffix == ".pdf":
+                abstract = self.extract_abstract_for_file(
+                    pdf_filename=file, dehyphenate=dehyphenate
+                )
+                self.msg_printer.text(title="abstract", text=abstract)
+                with open(f"{file.stem}.abstract", "w") as fp:
+                    fp.write(abstract)
+                    fp.write("\n")
+
 
 if __name__ == "__main__":
-    sectlabel = SectLabel()
-    abstract = sectlabel.extract_abstract(
-        pdf_filename=pathlib.Path(
-            "/Users/abhinav/Downloads/transferring_knowledge_from_discourse_to_arguments.pdf"
-        ),
+    sectlabel = SectLabel(log_file="no_abstract.p16.log", device="cuda:6")
+    sectlabel.extract_abstract_for_folder(
+        foldername=pathlib.Path("/home/wing.nus/rkashyap/anthology_p16/"),
         dehyphenate=True,
     )
-    abstract = abstract.encode("utf-8").decode("utf-8")
-    print(f"abstract\n =============== \n {abstract}")

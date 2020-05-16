@@ -43,12 +43,14 @@ class ClassificationInference(BaseClassificationInference):
         datasets_manager: DatasetsManager,
         tokens_namespace: str = "tokens",
         normalized_probs_namespace: str = "normalized_probs",
+        device: str = "cpu",
     ):
 
         super(ClassificationInference, self).__init__(
             model=model,
             model_filepath=model_filepath,
             datasets_manager=datasets_manager,
+            device=device,
         )
         self.batch_size = 32
         self.tokens_namespace = tokens_namespace

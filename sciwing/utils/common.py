@@ -352,7 +352,7 @@ def extract_zip(filename: str, destination_dir: str):
 
         msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
     except zipfile.BadZipFile:
-        msg_printer.fail(f"Couldnot extract {filename} to {destination}")
+        msg_printer.fail(f"Couldnot extract {filename} to {destination_dir}")
 
 
 def extract_tar(filename: str, destination_dir: str, mode="r"):
