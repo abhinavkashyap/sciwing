@@ -51,7 +51,7 @@ class ScienceIE:
         lstm2seqencoder = Lstm2SeqEncoder(
             embedder=embedder,
             hidden_dim=self.hparams.get("hidden_dim"),
-            bidirectional=True,
+            bidirectional = self.hparams.get("bidirectional"),
             combine_strategy=self.hparams.get("combine_strategy"),
             rnn_bias=True,
             device=torch.device(self.hparams.get("device")),
@@ -60,7 +60,9 @@ class ScienceIE:
 
         model = RnnSeqCrfTagger(
             rnn2seqencoder=lstm2seqencoder,
-            encoding_dim=700,
+            encoding_dim=2 * self.hparams.get("hidden_dim")
+            if self.hparams.get("bidirectional") and self.hparams.get("combine_strategy") == "concat"
+            else self.hparams.get("hidden_dim"),
             tagging_type="BIOUL",
             namespace_to_constraints=None,
             datasets_manager=self.data_manager,
@@ -115,5 +117,5 @@ class ScienceIE:
     def _download_if_required(self):
         cached_path(
             path=self.final_model_dir,
-            url="https://scienceie-models.s3-ap-southeast-1.amazonaws.com/lstm_crf_scienceie_final.zip",
+            url="https://science-ie-models.s3-ap-southeast-1.amazonaws.com/lstm_crf_scienceie_final.zip",
         )
