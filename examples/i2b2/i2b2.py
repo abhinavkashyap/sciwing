@@ -16,7 +16,6 @@ import pathlib
 FILES = constants.FILES
 PATHS = constants.PATHS
 
-CORA_FILE = FILES["CORA_FILE"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 CONFIGS_DIR = PATHS["CONFIGS_DIR"]
 DATA_DIR = PATHS["DATA_DIR"]
@@ -79,8 +78,8 @@ if __name__ == "__main__":
 
     data_dir = pathlib.Path(DATA_DIR)
     train_filename = data_dir.joinpath("i2b2.train")
-    dev_filename = data_dir.joinpath("i2b2.train")
-    test_filename = data_dir.joinpath("i2b2.train")
+    dev_filename = data_dir.joinpath("i2b2.dev")
+    test_filename = data_dir.joinpath("i2b2.dev")
     data_manager = CoNLLDatasetManager(
         train_filename=train_filename,
         dev_filename=dev_filename,
