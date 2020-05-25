@@ -39,7 +39,7 @@ These are some of the tasks included in SciWING and their performance metrics
 | Citation String Parsing            | Neural Parscit | Bi-LSTM-CRF + GloVe + Elmo + Char-LSTM | 88.44 (Macro F-Score) | 90.45 [Prasad et al](https://dl.acm.org/doi/10.5555/3288541.3288551)(not comparable) |
 | Citation Intent Classification     | SciCite        | Bi-LSTM + Elmo                         | 82.16 (Fscore)        | 82.6 [Cohan et al](https://arxiv.org/pdf/1904.01608.pdf) (without multi-task learning) |
 | Biomedical NER - BC5CDR (Upcoming) | -              | -                                      | -                     | -                                                            |
-| I2b2 NER (Upcoming)                | -              | -                                      | -                     | -                                                            |
+| I2b2 NER (Upcoming)                | I2B2           | Bi-LSTM + Elmo                         | 85.83 (Macro FScore)  | 86.23  [Boukkouri et al](https://www.aclweb.org/anthology/P19-2041/)                                                     |
 
    
 
