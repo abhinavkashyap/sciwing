@@ -37,7 +37,6 @@ class TrainableWordEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.datasets_manager = datasets_manager
         self.word_tokens_namespace = word_tokens_namespace
         self.device = torch.device(device) if isinstance(device, str) else device
-        self.word_tokens_namespace = word_tokens_namespace
         self.embedding_loader = EmbeddingLoader(embedding_type=embedding_type)
         self.embedder_name = self.embedding_loader.embedding_type
         self.embedding_dimension = self.get_embedding_dimension()
