@@ -110,7 +110,9 @@ if __name__ == "__main__":
     lstm2seqencoder = Lstm2SeqEncoder(
         embedder=embedder,
         dropout_value=args.dropout,
-        hidden_dim=args.hidden_dim,
+        hidden_dim=2 * args.hidden_dim
+        if args.bidirectional and args.combine_strategy == "concat"
+        else args.hidden_dim,
         bidirectional=args.bidirectional,
         combine_strategy=args.combine_strategy,
         rnn_bias=True,

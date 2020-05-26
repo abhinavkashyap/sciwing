@@ -1,4 +1,5 @@
 from sciwing.datasets.seq_labeling.base_seq_labeling import BaseSeqLabelingDataset
+from sciwing.utils.class_nursery import ClassNursery
 from torch.utils.data import Dataset
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
@@ -61,7 +62,7 @@ class SeqLabellingDataset(BaseSeqLabelingDataset, Dataset):
         return line, label
 
 
-class SeqLabellingDatasetManager(DatasetsManager):
+class SeqLabellingDatasetManager(DatasetsManager, ClassNursery):
     def __init__(
         self,
         train_filename: str,
