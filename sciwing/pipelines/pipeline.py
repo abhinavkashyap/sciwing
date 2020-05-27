@@ -32,16 +32,20 @@ class Pipeline(metaclass=ABCMeta):
 class PdfPipeline(Pipeline):
     def __init__(self, disable: Tuple = ()):
         super(PdfPipeline, self).__init__(disable=disable)
-        self.ents: Dict[str, Any] = {}
+        self.doc: Dict[str, Any] = {}
 
     def __call__(self, doc_name: pathlib.Path):
+        ents = {}
         if "sections" not in self.disable:
-            abstract = self.task_obj_mapping["sections"].extract_abstract_for_file(
-                doc_name
+            all_info = self.task_obj_mapping["sections"].extract_all_info(
+                pdf_filename=doc_name
             )
-            self.ents["abstract"] = abstract
+            ents["abstract"] = all_info["abstract"]
+            ents["section_headers"] = all_info["section_headers"]
 
-        return self.ents
+        self.doc["ents"] = ents
+
+        return self.doc
 
     def __iter__(self):
         pass
@@ -67,5 +71,5 @@ def pipeline(name="pdf_pipeline", disable: Tuple = ()):
 
 if __name__ == "__main__":
     pdf_pipeline = pipeline("pdf_pipeline")
-    ents = pdf_pipeline("/Users/abhinav/Downloads/sciwing_arxiv.pdf")
-    print(ents)
+    doc = pdf_pipeline("/Users/abhinav/Downloads/sciwing_arxiv.pdf")
+    print(doc["ents"])
