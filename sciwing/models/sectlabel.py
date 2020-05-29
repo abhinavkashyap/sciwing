@@ -113,6 +113,43 @@ class SectLabel:
 
         return predictions
 
+    def predict_for_pdf(self, pdf_filename: pathlib.Path) -> (List[str], List[str]):
+        """ Predicts lines and labels given a pdf filename
+
+        Parameters
+        ----------
+        pdf_filename : pathlib.Path
+            The location where pdf files are stored
+
+        Returns
+        -------
+        List[str], List[str]
+            The lines and labels inferred on the file
+        """
+        pdf_reader = PdfReader(filepath=pdf_filename)
+        lines = pdf_reader.read_pdf()
+
+        lines = self._preprocess(lines)
+
+        if len(lines) == 0:
+            self.logger.warning(f"No lines were read from file {pdf_filename}")
+            return ""
+
+        all_labels = []
+        all_lines = []
+
+        for batch_lines in chunks(lines, 64):
+            labels = self.infer.infer_batch(lines=batch_lines)
+            all_labels.append(labels)
+            all_lines.append(batch_lines)
+
+        all_lines = itertools.chain.from_iterable(all_lines)
+        all_labels = itertools.chain.from_iterable(all_labels)
+        all_lines = list(all_lines)
+        all_labels = list(all_labels)
+
+        return all_lines, all_labels
+
     def predict_for_text(self, text: str) -> str:
         prediction = self.infer.on_user_input(line=text)
         self.msg_printer.text(title=text, text=prediction)
@@ -146,7 +183,8 @@ class SectLabel:
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectlabel_elmo_bilstm.zip",
         )
 
-    def _preprocess(self, lines: str):
+    @staticmethod
+    def _preprocess(lines: str):
         preprocessed_lines = []
         for line in lines:
             line_ = line.strip()
@@ -166,6 +204,40 @@ class SectLabel:
                 else:
                     preprocessed_lines.append(line_)
         return preprocessed_lines
+
+    @staticmethod
+    def _extract_abstract_for_file(lines: List[str], labels: List[str]) -> List[str]:
+        """ Given the linse
+
+        Parameters
+        ----------
+        lines: List[str]
+            A set of lines
+        labels: List[str]
+            A set of labels
+
+        Returns
+        -------
+        List[str]
+            Lines in the abstract
+
+        """
+        response_tuples = []
+        for line, label in zip(lines, labels):
+            response_tuples.append((line, label))
+
+        abstract_lines = []
+        found_abstract = False
+        for line, label in response_tuples:
+            if label == "sectionHeader" and line.strip().lower() == "abstract":
+                found_abstract = True
+                continue
+            if found_abstract and label == "sectionHeader":
+                break
+            if found_abstract:
+                abstract_lines.append(line.strip())
+
+        return abstract_lines
 
     def extract_abstract_for_file(
         self, pdf_filename: pathlib.Path, dehyphenate: bool = True
@@ -188,46 +260,10 @@ class SectLabel:
 
         """
         self.msg_printer.info(f"Extracting abstract for {pdf_filename}")
-        pdf_reader = PdfReader(filepath=pdf_filename)
-        lines = pdf_reader.read_pdf()
-
-        lines = self._preprocess(lines)
-
-        if len(lines) == 0:
-            self.logger.warning(f"No lines were read from file {pdf_filename}")
-            return ""
-
-        all_labels = []
-        all_lines = []
-
-        for batch_lines in chunks(lines, 64):
-            labels = self.infer.infer_batch(lines=batch_lines)
-            all_labels.append(labels)
-            all_lines.append(batch_lines)
-
-        all_lines = itertools.chain.from_iterable(all_lines)
-        all_lines = list(all_lines)
-
-        all_labels = itertools.chain.from_iterable(all_labels)
-        all_labels = list(all_labels)
-
-        response_tuples = []
-        for line, label in zip(all_lines, all_labels):
-            response_tuples.append((line, label))
-
-        abstract_lines = []
-        found_abstract = False
-        for line, label in response_tuples:
-            if label == "sectionHeader" and line.strip().lower() == "abstract":
-                found_abstract = True
-                continue
-            if found_abstract and label == "sectionHeader":
-                break
-            if found_abstract:
-                abstract_lines.append(line.strip())
-
-        if len(abstract_lines) == 0:
-            self.logger.info(f"Could not find any abstract for {pdf_filename}")
+        all_lines, all_labels = self.predict_for_pdf(pdf_filename=pdf_filename)
+        abstract_lines = self._extract_abstract_for_file(
+            lines=all_lines, labels=all_labels
+        )
 
         if dehyphenate:
             buffer_lines = []  # holds lines that should be a single line
@@ -237,7 +273,6 @@ class SectLabel:
                     line_ = line.replace("-", "")  # replace the hyphen
                     buffer_lines.append(line_)
                 else:
-
                     # if the hyphenation ended on the previous
                     # line then the next line also needs to be
                     # added to the buffer line
@@ -274,10 +309,21 @@ class SectLabel:
                     fp.write(abstract)
                     fp.write("\n")
 
+    @staticmethod
+    def _extract_section_headers(lines: List[str], labels: List[str]) -> List[str]:
+        section_headers = []
+        for line, label in zip(lines, labels):
+            if label == "sectionHeader" or label == "subsectionHeader":
+                section_headers.append(line.strip())
 
-if __name__ == "__main__":
-    sectlabel = SectLabel(log_file="no_abstract.p16.log", device="cuda:6")
-    sectlabel.extract_abstract_for_folder(
-        foldername=pathlib.Path("/home/wing.nus/rkashyap/anthology_p16/"),
-        dehyphenate=True,
-    )
+        return section_headers
+
+    def extract_all_info(self, pdf_filename: pathlib.Path):
+        all_lines, all_labels = self.predict_for_pdf(pdf_filename=pdf_filename)
+        abstract = self._extract_abstract_for_file(lines=all_lines, labels=all_labels)
+        abstract = " ".join(abstract)
+        section_headers = self._extract_section_headers(
+            lines=all_lines, labels=all_labels
+        )
+
+        return {"abstract": abstract, "section_headers": section_headers}
