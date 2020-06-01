@@ -116,6 +116,7 @@ if __name__ == "__main__":
         rnn_bias=True,
         device=torch.device(args.device),
         num_layers=args.num_layers,
+        add_projection_layer=False,
     )
     model = RnnSeqCrfTagger(
         rnn2seqencoder=lstm2seqencoder,
