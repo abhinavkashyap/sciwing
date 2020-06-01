@@ -199,7 +199,6 @@ class SectLabel:
                 ) * 100
                 if percentage_single_character_words > 40:
                     line_ = "".join(line_words)
-                    line_ = re.sub("\d", "1. ", line_)
                     preprocessed_lines.append(line_)
                 else:
                     preprocessed_lines.append(line_)
@@ -239,6 +238,44 @@ class SectLabel:
 
         return abstract_lines
 
+    def dehyphenate(self, lines: List[str]) -> List[str]:
+        """ Dehyphenates a list of strings
+
+        Parameters
+        ----------
+        lines: List[str]
+            A list of hyphenated strings
+
+        Returns
+        -------
+        List[str]
+            A list of dehyphenated strings
+        """
+        buffer_lines = []  # holds lines that should be a single line
+        final_lines = []
+        for line in lines:
+            if line.endswith("-"):
+                line_ = line.replace("-", "")  # replace the hyphen
+                buffer_lines.append(line_)
+            else:
+                # if the hyphenation ended on the previous
+                # line then the next line also needs to be
+                # added to the buffer line
+                if len(buffer_lines) > 0:
+                    buffer_lines.append(line)
+
+                    line_ = "".join(buffer_lines)
+
+                    # add the line from buffer first
+                    final_lines.append(line_)
+
+                else:
+                    # add the current line
+                    final_lines.append(line)
+
+                buffer_lines = []
+        return final_lines
+
     def extract_abstract_for_file(
         self, pdf_filename: pathlib.Path, dehyphenate: bool = True
     ) -> str:
@@ -266,31 +303,7 @@ class SectLabel:
         )
 
         if dehyphenate:
-            buffer_lines = []  # holds lines that should be a single line
-            final_lines = []
-            for line in abstract_lines:
-                if line.endswith("-"):
-                    line_ = line.replace("-", "")  # replace the hyphen
-                    buffer_lines.append(line_)
-                else:
-                    # if the hyphenation ended on the previous
-                    # line then the next line also needs to be
-                    # added to the buffer line
-                    if len(buffer_lines) > 0:
-                        buffer_lines.append(line)
-
-                        line_ = "".join(buffer_lines)
-
-                        # add the line from buffer first
-                        final_lines.append(line_)
-
-                    else:
-                        # add the current line
-                        final_lines.append(line)
-
-                    buffer_lines = []
-
-            abstract_lines = final_lines
+            abstract_lines = self.dehyphenate(abstract_lines)
 
         abstract = " ".join(abstract_lines)
         return abstract
@@ -318,6 +331,16 @@ class SectLabel:
 
         return section_headers
 
+    def _extract_references(self, lines: List[str], labels: List[str]) -> List[str]:
+        references = []
+        for line, label in zip(lines, labels):
+            if label == "reference":
+                references.append(line.strip())
+
+        # references = self.dehyphenate(references)
+
+        return references
+
     def extract_all_info(self, pdf_filename: pathlib.Path):
         all_lines, all_labels = self.predict_for_pdf(pdf_filename=pdf_filename)
         abstract = self._extract_abstract_for_file(lines=all_lines, labels=all_labels)
@@ -325,5 +348,10 @@ class SectLabel:
         section_headers = self._extract_section_headers(
             lines=all_lines, labels=all_labels
         )
+        reference_strings = self._extract_references(lines=all_lines, labels=all_labels)
 
-        return {"abstract": abstract, "section_headers": section_headers}
+        return {
+            "abstract": abstract,
+            "section_headers": section_headers,
+            "references": reference_strings,
+        }

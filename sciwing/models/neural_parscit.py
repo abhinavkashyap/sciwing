@@ -118,14 +118,15 @@ class NeuralParscit(nn.Module):
 
         return predictions[self.data_manager.label_namespaces[0]]
 
-    def predict_for_text(self, text: str):
+    def predict_for_text(self, text: str, show=True):
         predictions = self._predict(line=text)
         for namespace, prediction in predictions.items():
             self.msg_printer.divider(f"Prediction for {namespace.upper()}")
             stylized_string = self.vis_tagger.visualize_tokens(
                 text=text.split(), labels=prediction[0].split()
             )
-            print(stylized_string)
+            if show:
+                print(stylized_string)
             return prediction[0]
 
     def _get_data(self):

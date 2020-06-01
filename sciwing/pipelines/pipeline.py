@@ -1,7 +1,10 @@
 from abc import ABCMeta, abstractmethod
 from typing import Tuple, Dict, Any
 from sciwing.models.sectlabel import SectLabel
+from sciwing.models.neural_parscit import NeuralParscit
 import pathlib
+from collections import defaultdict
+import wasabi
 
 
 class Pipeline(metaclass=ABCMeta):
@@ -13,18 +16,28 @@ class Pipeline(metaclass=ABCMeta):
     def __init__(self, disable: Tuple = (), **kwargs):
         self.disable = disable
         self.kwargs = kwargs
-        self.task_model_mapping = {"sections": {"classname": SectLabel}}
 
+        # maps the different tasks to the respective model names
+        # tasks might be associated with multiple models
+        # For example, extracting different sections requires sectlabel model, generic
+        # section classification model etc
+        self.task_model_mapping = {
+            "sections": {"classnames": [SectLabel]},
+            "reference-string-extract": {"classnames": [NeuralParscit]},
+        }
+
+        # mapping between the task and all the istantiated models with
         self.task_obj_mapping = self._instantiate_models()
 
     def _instantiate_models(self):
-        task_obj_mapping = {}
+        task_obj_mapping = defaultdict(list)
         for task, task_info in self.task_model_mapping.items():
             if task not in self.disable:
-                task_class = task_info["classname"]
+                task_classes = task_info["classnames"]
                 # instantiate the class with the keyword arguments
-                task_obj = task_class(**self.kwargs)
-                task_obj_mapping[task] = task_obj
+                for task_class in task_classes:
+                    task_obj = task_class(**self.kwargs)
+                    task_obj_mapping[task].append(task_obj)
 
         return task_obj_mapping
 
@@ -36,18 +49,39 @@ class PdfPipeline(Pipeline):
 
     def __call__(self, doc_name: pathlib.Path):
         ents = {}
-        if "sections" not in self.disable:
-            all_info = self.task_obj_mapping["sections"].extract_all_info(
-                pdf_filename=doc_name
-            )
-            ents["abstract"] = all_info["abstract"]
-            ents["section_headers"] = all_info["section_headers"]
+
+        # By default we extract sections information
+        # which is one time thing
+        sections_info = self.task_obj_mapping["sections"][0].extract_all_info(
+            pdf_filename=doc_name
+        )
+        ents["abstract"] = sections_info["abstract"]
+        ents["section_headers"] = sections_info["section_headers"]
+        ents["references"] = sections_info["references"]
+
+        # reference string parsing
+        if "reference-string-extract" not in self.disable:
+            parsed_ref_strings = []
+            for reference_text in sections_info["references"]:
+                parsed_string = self.task_obj_mapping["reference-string-extract"][
+                    0
+                ].predict_for_text(text=reference_text, show=False)
+                parsed_ref_strings.append(parsed_string)
+
+            ents["parsed_reference_strings"] = parsed_ref_strings
 
         self.doc["ents"] = ents
 
         return self.doc
 
     def __iter__(self):
+        """ You will be able to iterate over the class and obtain the different entities of the pdf
+        document
+
+        Returns
+        -------
+
+        """
         pass
 
 
@@ -71,5 +105,9 @@ def pipeline(name="pdf_pipeline", disable: Tuple = ()):
 
 if __name__ == "__main__":
     pdf_pipeline = pipeline("pdf_pipeline")
-    doc = pdf_pipeline("/Users/abhinav/Downloads/sciwing_arxiv.pdf")
-    print(doc["ents"])
+    doc = pdf_pipeline(pathlib.Path("/Users/abhinav/Downloads/sciwing_arxiv.pdf"))
+    printer = wasabi.Printer()
+    entities = doc["ents"]
+    parsed_references = entities["parsed_reference_strings"]
+    for ref in parsed_references:
+        print(ref)
