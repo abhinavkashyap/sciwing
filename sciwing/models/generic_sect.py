@@ -71,9 +71,10 @@ class GenericSect:
 
         return predictions
 
-    def predict_for_text(self, text: str) -> str:
+    def predict_for_text(self, text: str, show=True) -> str:
         prediction = self.infer.on_user_input(line=text)
-        self.msg_printer.text(title=text, text=prediction)
+        if show:
+            self.msg_printer.text(title=text, text=prediction)
         return prediction
 
     def _get_data(self):

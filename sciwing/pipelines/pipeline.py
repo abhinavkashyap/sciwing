@@ -1,7 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Any, List
 from sciwing.models.sectlabel import SectLabel
 from sciwing.models.neural_parscit import NeuralParscit
+from sciwing.models.generic_sect import GenericSect
 import pathlib
 from collections import defaultdict
 import wasabi
@@ -13,7 +14,7 @@ class Pipeline(metaclass=ABCMeta):
 
     """
 
-    def __init__(self, disable: Tuple = (), **kwargs):
+    def __init__(self, disable: List = [], **kwargs):
         self.disable = disable
         self.kwargs = kwargs
 
@@ -24,6 +25,7 @@ class Pipeline(metaclass=ABCMeta):
         self.task_model_mapping = {
             "sections": {"classnames": [SectLabel]},
             "reference-string-extract": {"classnames": [NeuralParscit]},
+            "normalize-section-headers": {"classnames": [GenericSect]},
         }
 
         # mapping between the task and all the istantiated models with
@@ -43,7 +45,7 @@ class Pipeline(metaclass=ABCMeta):
 
 
 class PdfPipeline(Pipeline):
-    def __init__(self, disable: Tuple = ()):
+    def __init__(self, disable: List = []):
         super(PdfPipeline, self).__init__(disable=disable)
         self.doc: Dict[str, Any] = {}
 
@@ -70,6 +72,16 @@ class PdfPipeline(Pipeline):
 
             ents["parsed_reference_strings"] = parsed_ref_strings
 
+        if "normalize-section-headers" not in self.disable:
+            normalized_section_headers = []
+            for sect_header in sections_info["section_headers"]:
+                norm_sect_header = self.task_obj_mapping["normalize-section-headers"][
+                    0
+                ].predict_for_text(text=sect_header)
+                normalized_section_headers.append(norm_sect_header)
+
+            ents["normalized_section_headers"] = normalized_section_headers
+
         self.doc["ents"] = ents
 
         return self.doc
@@ -86,7 +98,7 @@ class PdfPipeline(Pipeline):
             yield name, entity
 
 
-def pipeline(name="pdf_pipeline", disable: Tuple = ()):
+def pipeline(name="pdf_pipeline", disable: List = []):
     """ Defines a pipeline function
     It just takes in a name and instantiates the pipeline
 
@@ -105,7 +117,7 @@ def pipeline(name="pdf_pipeline", disable: Tuple = ()):
 
 
 if __name__ == "__main__":
-    pdf_pipeline = pipeline("pdf_pipeline")
+    pdf_pipeline = pipeline("pdf_pipeline", disable=["reference-string-extract"])
     doc = pdf_pipeline(pathlib.Path("/Users/abhinav/Downloads/sciwing_arxiv.pdf"))
     printer = wasabi.Printer()
 
