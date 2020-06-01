@@ -114,12 +114,3 @@ def pipeline(name="pdf_pipeline", disable: List = []):
         pipeline = PdfPipeline(disable=disable)
 
     return pipeline
-
-
-if __name__ == "__main__":
-    pdf_pipeline = pipeline("pdf_pipeline", disable=["reference-string-extract"])
-    doc = pdf_pipeline(pathlib.Path("/Users/abhinav/Downloads/sciwing_arxiv.pdf"))
-    printer = wasabi.Printer()
-
-    for entity_name, entity in pdf_pipeline:
-        printer.text(title=entity_name, text=entity)
