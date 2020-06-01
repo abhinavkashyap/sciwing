@@ -82,7 +82,8 @@ class PdfPipeline(Pipeline):
         -------
 
         """
-        pass
+        for name, entity in self.doc["ents"].items():
+            yield name, entity
 
 
 def pipeline(name="pdf_pipeline", disable: Tuple = ()):
@@ -107,7 +108,6 @@ if __name__ == "__main__":
     pdf_pipeline = pipeline("pdf_pipeline")
     doc = pdf_pipeline(pathlib.Path("/Users/abhinav/Downloads/sciwing_arxiv.pdf"))
     printer = wasabi.Printer()
-    entities = doc["ents"]
-    parsed_references = entities["parsed_reference_strings"]
-    for ref in parsed_references:
-        print(ref)
+
+    for entity_name, entity in pdf_pipeline:
+        printer.text(title=entity_name, text=entity)
