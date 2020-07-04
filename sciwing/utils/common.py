@@ -741,7 +741,7 @@ def cached_path(path: Union[pathlib.Path, str], url: str, unzip=True) -> pathlib
     download_file(url=url, dest_filename=str(path))
 
     if unzip:
-        extract_zip(filename=f"{path}.zip", destination_dir=str(path.parent))
+        extract_zip(filename=str(path), destination_dir=str(path.parent))
 
 
 def flatten(list_items: List[Any]) -> List[Any]:
