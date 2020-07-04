@@ -743,6 +743,8 @@ def cached_path(path: Union[pathlib.Path, str], url: str, unzip=True) -> pathlib
     if unzip:
         extract_zip(filename=str(path), destination_dir=str(path.parent))
 
+    return path
+
 
 def flatten(list_items: List[Any]) -> List[Any]:
     """ Flattens an arbitrarily long nesting of lists
