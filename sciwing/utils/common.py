@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Iterable, Iterator
+from typing import Dict, List, Any, Iterable, Iterator, Union
 
 import math
 import requests
@@ -729,14 +729,16 @@ def get_train_dev_test_stratified_split(
     )
 
 
-def cached_path(path: pathlib.Path, url: str, unzip=True) -> pathlib.Path:
+def cached_path(path: Union[pathlib.Path, str], url: str, unzip=True) -> pathlib.Path:
 
+    if isinstance(path, str):
+        path = pathlib.Path(path)
     msg_printer = Printer()
     if path.is_file() or path.is_dir():
         msg_printer.info(f"{path} exists.")
         return path
 
-    download_file(url=url, dest_filename=f"{str(path)}.zip")
+    download_file(url=url, dest_filename=str(path))
 
     if unzip:
         extract_zip(filename=f"{path}.zip", destination_dir=str(path.parent))
