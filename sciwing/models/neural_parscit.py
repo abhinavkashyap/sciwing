@@ -44,6 +44,10 @@ class NeuralParscit(nn.Module):
             self.models_cache_dir.mkdir(parents=True)
         self.model_filepath = self.final_model_dir.joinpath("best_model.pt")
         self.data_dir = pathlib.Path(DATA_DIR)
+
+        if not self.data_dir.is_dir():
+            self.data_dir.mkdir(parents=True)
+
         self.train_data_file_url = DATA_FILE_URLS["PARSCIT_TRAIN"]
         self.dev_data_file_url = DATA_FILE_URLS["PARSCIT_DEV"]
         self.test_data_file_url = DATA_FILE_URLS["PARSCIT_TEST"]
