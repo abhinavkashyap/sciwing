@@ -64,6 +64,8 @@ DATA_FILE_URLS = dict(
     CONLL_YAGO_TEST="https://parsect-models.s3-ap-southeast-1.amazonaws.com/conll_yago_ner.test",
     SECTLABEL_ORIGINAL_FILE="https://sciwing.s3.amazonaws.com/sectLabel.train.data",
     GEENRICSECT_ORIGINAL_FILE="https://sciwing.s3.amazonaws.com/genericSect.train.data",
+    I2B2_TRAIN="https://parsect-models.s3-ap-southeast-1.amazonaws.com/i2b2.train",
+    I2B2_DEV="https://parsect-models.s3-ap-southeast-1.amazonaws.com/i2b2.dev",
 )
 
 

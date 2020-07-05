@@ -21,6 +21,7 @@ from collections import defaultdict
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 DATA_DIR = PATHS["DATA_DIR"]
+DATA_FILE_URLS = constants.DATA_FILE_URLS
 
 
 class I2B2NER(nn.Module):
@@ -45,9 +46,9 @@ class I2B2NER(nn.Module):
         if not self.data_dir.is_dir():
             self.data_dir.mkdir()
 
-        self.train_data_url = None
-        self.dev_data_url = None
-        self.test_data_url = None
+        self.train_data_url = DATA_FILE_URLS["I2B2_TRAIN"]
+        self.dev_data_url = DATA_FILE_URLS["I2B2_DEV"]
+        self.test_data_url = DATA_FILE_URLS["I2B2_DEV"]
         self.msg_printer = wasabi.Printer()
         self._download_if_required()
         self.hparams = self._get_hparams()
