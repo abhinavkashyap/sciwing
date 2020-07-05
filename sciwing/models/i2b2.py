@@ -34,9 +34,20 @@ class I2B2NER(nn.Module):
     def __init__(self):
         super(I2B2NER, self).__init__()
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
+
+        if not self.models_cache_dir.is_dir():
+            self.models_cache_dir.mkdir(parents=True)
+
         self.final_model_dir = self.models_cache_dir.joinpath("i2b2")
         self.model_filepath = self.final_model_dir.joinpath("best_model.pt")
         self.data_dir = pathlib.Path(DATA_DIR)
+
+        if not self.data_dir.is_dir():
+            self.data_dir.mkdir()
+
+        self.train_data_url = None
+        self.dev_data_url = None
+        self.test_data_url = None
         self.msg_printer = wasabi.Printer()
         self._download_if_required()
         self.hparams = self._get_hparams()
@@ -119,10 +130,24 @@ class I2B2NER(nn.Module):
             return prediction[0]
 
     def _get_data(self):
+        train_filename = cached_path(
+            path=self.data_dir.joinpath("i2b2.train"),
+            url=self.train_data_url,
+            unzip=False,
+        )
+
+        dev_filename = cached_path(
+            path=self.data_dir.joinpath("i2b2.dev"), url=self.dev_data_url, unzip=False
+        )
+
+        test_filename = cached_path(
+            path=self.data_dir.joinpath("i2b2.dev"), url=self.dev_data_url, unzip=False
+        )
+
         data_manager = CoNLLDatasetManager(
-            train_filename=self.data_dir.joinpath("i2b2.train"),
-            dev_filename=self.data_dir.joinpath("i2b2.dev"),
-            test_filename=self.data_dir.joinpath("i2b2.dev"),
+            train_filename=train_filename,
+            dev_filename=dev_filename,
+            test_filename=test_filename,
             column_names=["NER", "NER", "NER"],
             train_only="ner",
         )
@@ -136,8 +161,9 @@ class I2B2NER(nn.Module):
     def _download_if_required(self):
         # download the model weights and data to client machine
         cached_path(
-            path=self.final_model_dir,
+            path=f"{self.final_model_dir}.zip",
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/i2b2.zip",
+            unzip=True,
         )
 
 
