@@ -15,27 +15,38 @@ from sciwing.utils.common import cached_path, chunks
 import pathlib
 import json
 import wasabi
-from typing import List, Dict
+from typing import List
 import itertools
-from collections import defaultdict
 from logzero import setup_logger
 import logging
 from tqdm import tqdm
-import re
-import torch
+from sciwing.utils.common import cached_path
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 DATA_DIR = PATHS["DATA_DIR"]
+DATA_FILE_URLS = constants.DATA_FILE_URLS
 
 
 class SectLabel:
     def __init__(self, log_file: str = None, device: str = "cpu"):
         self.device = device
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
+
+        if not self.models_cache_dir.is_dir():
+            self.models_cache_dir.mkdir(parents=True)
+
         self.final_model_dir = self.models_cache_dir.joinpath("sectlabel_elmo_bilstm")
         self.model_filepath = self.final_model_dir.joinpath("best_model.pt")
         self.data_dir = pathlib.Path(DATA_DIR)
+
+        if not self.data_dir.is_dir():
+            self.data_dir.mkdir(parents=True)
+
+        self.train_data_url = DATA_FILE_URLS["SECT_LABEL_TRAIN_FILE"]
+        self.dev_data_url = DATA_FILE_URLS["SECT_LABEL_DEV_FILE"]
+        self.test_data_url = DATA_FILE_URLS["SECT_LABEL_TEST_FILE"]
+
         self.msg_printer = wasabi.Printer()
         self._download_if_required()
         self.data_manager = self._get_data()
@@ -164,6 +175,17 @@ class SectLabel:
         dev_filename = self.data_dir.joinpath("sectLabel.dev")
         test_filename = self.data_dir.joinpath("sectLabel.test")
 
+        train_filename = cached_path(
+            path=train_filename, url=self.train_data_url, unzip=False
+        )
+        dev_filename = cached_path(
+            path=dev_filename, url=self.dev_data_url, unzip=False
+        )
+
+        test_filename = cached_path(
+            path=test_filename, url=self.test_data_url, unzip=False
+        )
+
         data_manager = TextClassificationDatasetManager(
             train_filename=train_filename,
             dev_filename=dev_filename,
@@ -179,8 +201,9 @@ class SectLabel:
 
     def _download_if_required(self):
         cached_path(
-            path=self.final_model_dir,
+            path=f"{self.final_model_dir}.zip",
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/sectlabel_elmo_bilstm.zip",
+            unzip=True,
         )
 
     @staticmethod
