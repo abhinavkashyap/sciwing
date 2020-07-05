@@ -741,7 +741,17 @@ def cached_path(path: Union[pathlib.Path, str], url: str, unzip=True) -> pathlib
     download_file(url=url, dest_filename=str(path))
 
     if unzip:
-        extract_zip(filename=str(path), destination_dir=str(path.parent))
+        if zipfile.is_zipfile(str(path)):
+            extract_zip(filename=str(path), destination_dir=str(path.parent))
+        if tarfile.is_tarfile(str(path)):
+            if "tar" in path.suffix:
+                mode = "r"
+            elif "gz" in path.suffix:
+                mode = "r:gz"
+            else:
+                mode = "r"
+
+            extract_tar(filename=str(path), destination_dir=str(path.parent), mode=mode)
 
     return path
 

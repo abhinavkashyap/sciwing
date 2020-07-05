@@ -171,3 +171,7 @@ class NeuralParscit(nn.Module):
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/lstm_crf_parscit_final.zip",
             unzip=True,
         )
+
+
+if __name__ == "__main__":
+    neural_parscit = NeuralParscit()

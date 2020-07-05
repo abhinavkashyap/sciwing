@@ -7,10 +7,13 @@ from wasabi import Printer
 import gensim
 from sciwing.vocab.vocab import Vocab
 import torch
+import pathlib
+from sciwing.utils.common import cached_path
 
 
 PATHS = constants.PATHS
 EMBEDDING_CACHE_DIR = PATHS["EMBEDDING_CACHE_DIR"]
+EMBEDDING_FILE_URLS = constants.EMBEDDING_FILE_URLS
 
 
 class EmbeddingLoader:
@@ -30,6 +33,10 @@ class EmbeddingLoader:
         """
         self.embedding_dimension = None
         self.embedding_type = embedding_type
+        self.embedding_cache_dir = pathlib.Path(EMBEDDING_CACHE_DIR)
+
+        if not self.embedding_cache_dir.is_dir():
+            self.embedding_cache_dir.mkdir(parents=True)
 
         self.allowed_embedding_types = [
             "glove_6B_50",
@@ -60,23 +67,40 @@ class EmbeddingLoader:
 
     def get_preloaded_filename(self):
         filename = None
+        url = None
 
         if self.embedding_type == "glove_6B_50":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.50d.txt")
+            url = EMBEDDING_FILE_URLS["GLOVE_FILE"]
 
         elif self.embedding_type == "glove_6B_100":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.100d.txt")
+            url = EMBEDDING_FILE_URLS["GLOVE_FILE"]
 
         elif self.embedding_type == "glove_6B_200":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.200d.txt")
+            url = EMBEDDING_FILE_URLS["GLOVE_FILE"]
 
         elif self.embedding_type == "glove_6B_300":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "glove.6B.300d.txt")
+            url = EMBEDDING_FILE_URLS["GLOVE_FILE"]
+
         elif self.embedding_type == "parscit":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "vectors_with_unk.kv")
+            url = EMBEDDING_FILE_URLS["PARSCIT_EMBEDDINGS"]
 
         elif self.embedding_type == "lample_conll":
             filename = os.path.join(EMBEDDING_CACHE_DIR, "lample_conll")
+            url = EMBEDDING_FILE_URLS["LAMPLE_CONLL"]
+        else:
+            raise ValueError(
+                f"Check the embedding type. It has to be one of {self.allowed_embedding_types}"
+            )
+
+        url_path = pathlib.Path(url)
+        destination_path = url_path.parts[-1]
+        destination_path = self.embedding_cache_dir.joinpath(destination_path)
+        _ = cached_path(url=url, unzip=True, path=destination_path)
 
         return filename
 
