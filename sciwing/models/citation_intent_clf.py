@@ -20,16 +20,29 @@ import json
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
 DATA_DIR = PATHS["DATA_DIR"]
+DATA_FILE_URLS = constants.DATA_FILE_URLS
 
 
 class CitationIntentClassification(nn.Module):
     def __init__(self):
         super(CitationIntentClassification, self).__init__()
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
+
+        if not self.models_cache_dir.is_dir():
+            self.models_cache_dir.mkdir(parents=True)
+
         self.final_model_dir = self.models_cache_dir.joinpath(
-            "citation_intent_clf_elmo", "checkpoints"
+            "citation_intent_clf_elmo"
         )
+
         self.data_dir = pathlib.Path(DATA_DIR)
+
+        if not self.data_dir.is_dir():
+            self.data_dir.mkdir(parents=True)
+
+        self.train_data_url = DATA_FILE_URLS["SCICITE_TRAIN"]
+        self.dev_data_url = DATA_FILE_URLS["SCICITE_DEV"]
+        self.test_data_url = DATA_FILE_URLS["SCICITE_TEST"]
         self.msg_printer = wasabi.Printer()
         self._download_if_required()
         self.hparams = self._get_hparams()
@@ -67,7 +80,9 @@ class CitationIntentClassification(nn.Module):
     def _get_infer_client(self):
         client = ClassificationInference(
             model=self.model,
-            model_filepath=self.final_model_dir.joinpath("best_model.pt"),
+            model_filepath=self.final_model_dir.joinpath(
+                "checkpoints", "best_model.pt"
+            ),
             datasets_manager=self.data_manager,
         )
         return client
@@ -91,21 +106,42 @@ class CitationIntentClassification(nn.Module):
         return label
 
     def _get_data(self):
+        train_file = cached_path(
+            path=self.data_dir.joinpath("scicite.train"),
+            url=self.train_data_url,
+            unzip=False,
+        )
+        dev_file = cached_path(
+            path=self.data_dir.joinpath("scicite.dev"),
+            url=self.dev_data_url,
+            unzip=False,
+        )
+        test_file = cached_path(
+            path=self.data_dir.joinpath("scicite.test"),
+            url=self.test_data_url,
+            unzip=False,
+        )
+
         data_manager = TextClassificationDatasetManager(
-            train_filename=self.data_dir.joinpath("scicite.train"),
-            dev_filename=self.data_dir.joinpath("scicite.dev"),
-            test_filename=self.data_dir.joinpath("scicite.test"),
+            train_filename=train_file, dev_filename=dev_file, test_filename=test_file
         )
         return data_manager
 
     def _get_hparams(self):
-        with open(self.final_model_dir.joinpath("hyperparams.json")) as fp:
+        with open(
+            self.final_model_dir.joinpath("checkpoints", "hyperparams.json")
+        ) as fp:
             hyperparams = json.load(fp)
         return hyperparams
 
     def _download_if_required(self):
         # download the model weights and data to client machine
         cached_path(
-            path=self.final_model_dir,
+            path=f"{self.final_model_dir}.zip",
             url="https://parsect-models.s3-ap-southeast-1.amazonaws.com/citation_intent_clf_elmo.zip",
+            unzip=True,
         )
+
+
+if __name__ == "__main__":
+    citation_intent_clf = CitationIntentClassification()
