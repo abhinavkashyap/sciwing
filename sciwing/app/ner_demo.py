@@ -4,37 +4,70 @@ from spacy import displacy
 import itertools
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 
-st.sidebar.title("SciWING-Neural Parscit")
+st.sidebar.title("SciWING-NER Demo")
 st.sidebar.markdown("---")
-
-
-st.title("Citation String Parsing - Neural Parscit")
-st.markdown(
-    "Neural Parscit is a citation parsing module. A citation string contains many information "
-    "like the author, the title of the publication, the conference/journal the publication is "
-    "submitted to, the year of publication. The Neural Parscit module is a Bidirectional LSTM model "
-    "with CRF Sequence tagging module that extracts information from a citation. The trained model "
-    "on SciWING also includes an Elmo Embedder along with a Glove embeddings and character "
-    "level embeddings"
+model_selected = st.sidebar.radio(
+    label="Select a Model",
+    options=["Citation String Parsing", "I2B2 Clinical Notes Tagging"],
 )
 
-citation_selected = st.selectbox(
-    label="Select a citation",
-    options=[
-        "Calzolari, N. (1982) Towards the organization of lexical definitions on a database structure. In E. Hajicova (Ed.), COLING '82 Abstracts, Charles University, Prague, pp.61-64.",
-        "Caraballo, S.A. (1999) Automatic construction of a hypernym-labeled noun hierarchy. In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics (ACL'99), College Park, Maryland, pp. 120-126.",
-    ],
-)
 
-st.markdown("---")
-text_citation = st.text_input(label="Enter a citation string", value=citation_selected)
-parse_citation_clicked = st.button("Parse Citation")
+if model_selected == "Citation String Parsing":
+    st.title("Citation String Parsing - Neural Parscit")
+    st.markdown(
+        "Neural Parscit is a citation parsing module. A citation string contains many information "
+        "like the author, the title of the publication, the conference/journal the publication is "
+        "submitted to, the year of publication. "
+        "**MODEL: ** The Neural Parscit module is a Bidirectional LSTM model "
+        "with CRF Sequence tagging module that extracts information from a citation. The trained model "
+        "on SciWING also includes an Elmo Embedder along with a Glove embeddings and character "
+        "level embeddings"
+    )
 
-if parse_citation_clicked:
-    citation_selected = text_citation
+    text_selected = st.selectbox(
+        label="Select a citation",
+        options=[
+            "Calzolari, N. (1982) Towards the organization of lexical definitions on a database structure. In E. Hajicova (Ed.), COLING '82 Abstracts, Charles University, Prague, pp.61-64.",
+            "Caraballo, S.A. (1999) Automatic construction of a hypernym-labeled noun hierarchy. In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics (ACL'99), College Park, Maryland, pp. 120-126.",
+        ],
+    )
+
+    st.markdown("---")
+    user_text = st.text_input(label="Enter a citation string", value=text_selected)
+    parse_button_clicked = st.button("Parse Citation")
 
 
-response = requests.get(f"http://localhost:8000/parscit/{citation_selected}")
+elif model_selected == "I2B2 Clinical Notes Tagging":
+    st.title("I2B2 Clinical Notes Tagging")
+    st.markdown(
+        "Clinical Natural Language Processing helps in identifying salient information from clinical notes."
+        "Here, we have trained a neural network model on the **i2b2: Informatics for Integrating Biology and the Bedside** dataset."
+        "This dataset has manual annotation for the problems identified, the treatments and tests suggested."
+    )
+    st.markdown(
+        "**MODEL**: We trained a Bi-LSTM model with a CRF on top. We also included Elmo Embedding in the first layer"
+    )
+    text_selected = st.selectbox(
+        label="Select an Example Clinical Note",
+        options=[
+            "Chest x - ray showed no evidence of cardiomegaly .",
+            "Prostrate cancer and Renal failure",
+            "Continue with Risperdal as per new psychiatrist",
+        ],
+    )
+    st.markdown("---")
+    user_text = st.text_input(label="Enter Clinical Notes", value=text_selected)
+    parse_button_clicked = st.button("Parse Clinical Notes")
+
+if parse_button_clicked:
+    text_selected = user_text
+
+
+if model_selected == "Citation String Parsing":
+    response = requests.get(f"http://localhost:8000/parscit/{text_selected}")
+elif model_selected == "I2B2 Clinical Notes Tagging":
+    response = requests.get(f"http://localhost:8000/i2b2/{text_selected}")
+
 json = response.json()
 text = json["text_tokens"]
 tags = json["tags"].split()
