@@ -114,3 +114,11 @@ def pipeline(name="pdf_pipeline", disable: List = []):
         pipeline = PdfPipeline(disable=disable)
 
     return pipeline
+
+
+if __name__ == "__main__":
+    pdf_pipeline = pipeline()
+    pdf_path = pathlib.Path("/Users/abhinav/Downloads/sciwing_arxiv.pdf")
+    ents = pdf_pipeline(pdf_path)
+    for name, ent in ents["ents"].items():
+        print(f"name: {name} \n entity: {ent} \n")
