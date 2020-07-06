@@ -4,7 +4,7 @@ from spacy import displacy
 import itertools
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 
-st.sidebar.title("SciWING Demo")
+st.sidebar.title("SciWING-Neural Parscit")
 st.sidebar.markdown("---")
 
 
