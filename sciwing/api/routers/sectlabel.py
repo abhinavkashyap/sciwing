@@ -10,7 +10,7 @@ PDF_CACHE_DIR = config.PDF_STORE_LOCATION
 BIN_FOLDER = config.BIN_FOLDER
 
 if not PDF_CACHE_DIR.is_dir():
-    PDF_CACHE_DIR.mkdir()
+    PDF_CACHE_DIR.mkdir(parents=True)
 
 router = APIRouter()
 
@@ -89,6 +89,8 @@ def extract_pdf(file: UploadFile = File(None)):
     pdf_save_location = pdf_store.save_pdf_binary_string(
         pdf_string=file_contents, out_filename=file_name
     )
+
+    print(f"pdf save location {pdf_save_location}")
 
     # noinspection PyTypeChecker
     pdf_reader = PdfReader(filepath=pdf_save_location)
