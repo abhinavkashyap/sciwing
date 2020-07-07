@@ -41,18 +41,18 @@ class ElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.fine_tune = fine_tune
         self.embedder_name = "ElmoEmbedder"
 
-        self.elmo_options_file = pathlib.Path(ELMO_WEIGHTS_FILE)
+        self.elmo_options_file = pathlib.Path(ELMO_OPTIONS_FILE)
         self.elmo_weights_file = pathlib.Path(ELMO_WEIGHTS_FILE)
         if not self.elmo_options_file.is_file():
             self.elmo_options_file = cached_path(
                 url=EMBEDDING_FILE_URLS["ELMO_OPTIONS_FILE"],
                 path=self.elmo_options_file,
-                unzip=True,
+                unzip=False,
             )
             self.elmo_weights_file = cached_path(
                 url=EMBEDDING_FILE_URLS["ELMO_WEIGHTS_FILE"],
                 path=self.elmo_weights_file,
-                unzip=True,
+                unzip=False,
             )
 
         with self.msg_printer.loading("Loading Elmo Object"):
