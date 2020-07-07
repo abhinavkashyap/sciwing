@@ -5,17 +5,16 @@ from spacy import displacy
 import itertools
 
 st.title("PDF Pipeline")
-st.markdown("---")
 
 st.markdown(
     "Upload a pdf file and we will show you insights about its content. This feature is still "
-    "in development. We will be adding more insights on the paper soon."
+    "in development. We will be providing more insights soon."
 )
 
+st.markdown("## Upload File")
 content = st.file_uploader(
     label="Upload a research paper (Preferably a latex generated pdf)", type="pdf"
 )
-
 
 HTML_WRAPPER = """<div style="display:flex; align-content: center; justify-content: center; overflow-x: auto; border: 1px solid #e6e9ef; border-radius: 0.25rem; padding: 1rem; margin-bottom: 2.5rem">{}</div>"""
 

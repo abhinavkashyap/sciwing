@@ -4,8 +4,8 @@ from spacy import displacy
 import itertools
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 
-st.sidebar.title("SciWING-NER Demo")
-st.sidebar.markdown("---")
+
+st.sidebar.subheader("NER Options")
 model_selected = st.sidebar.radio(
     label="Select a Model",
     options=["Citation String Parsing", "I2B2 Clinical Notes Tagging"],
@@ -15,14 +15,17 @@ model_selected = st.sidebar.radio(
 if model_selected == "Citation String Parsing":
     st.title("Citation String Parsing - Neural Parscit")
     st.markdown(
-        "Neural Parscit is a citation parsing module. A citation string contains many information "
-        "like the author, the title of the publication, the conference/journal the publication is "
-        "submitted to, the year of publication. "
-        "**MODEL: ** The Neural Parscit module is a Bidirectional LSTM model "
-        "with CRF Sequence tagging module that extracts information from a citation. The trained model "
-        "on SciWING also includes an Elmo Embedder along with a Glove embeddings and character "
-        "level embeddings"
+        "Neural Parscit is a citation parsing model. A citation string contains information "
+        "like the author, the title of the publication, the conference/journal "
+        "the year of publication etc. Neural Parscit extracts such information from references."
     )
+    st.markdown(
+        "**MODEL DESCRIPTION: ** SciWING trains a Bidirectional LSTM model "
+        "with CRF Sequence tagging module that extracts information from a citation. The trained model "
+        "on SciWING also includes an Elmo Embedder along with GloVe and character "
+        "level embeddings."
+    )
+    st.markdown("---")
 
     text_selected = st.selectbox(
         label="Select a Citation",
@@ -32,7 +35,6 @@ if model_selected == "Citation String Parsing":
         ],
     )
 
-    st.markdown("---")
     user_text = st.text_input(label="Enter a citation string", value=text_selected)
     parse_button_clicked = st.button("Parse Citation")
 
@@ -63,10 +65,11 @@ if parse_button_clicked:
     text_selected = user_text
 
 
-if model_selected == "Citation String Parsing":
-    response = requests.get(f"http://localhost:8000/parscit/{text_selected}")
-elif model_selected == "I2B2 Clinical Notes Tagging":
-    response = requests.get(f"http://localhost:8000/i2b2/{text_selected}")
+with st.spinner(f"Please wait... Parsing Citation"):
+    if model_selected == "Citation String Parsing":
+        response = requests.get(f"http://localhost:8000/parscit/{text_selected}")
+    elif model_selected == "I2B2 Clinical Notes Tagging":
+        response = requests.get(f"http://localhost:8000/i2b2/{text_selected}")
 
 json = response.json()
 text = json["text_tokens"]

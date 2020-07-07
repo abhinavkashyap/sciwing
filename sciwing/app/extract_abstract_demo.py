@@ -2,12 +2,14 @@ import streamlit as st
 import requests
 
 
-st.sidebar.title("SciWING-Extract Abstract")
-st.sidebar.markdown("---")
-
 st.title("Extract Abstracts from PDFs")
-st.markdown("Extract the abstracts from your pdf.")
-
+st.markdown(
+    "Marking the different logical sections of the paper is a fundamental step in analysing"
+    "scientific documents. Here you can extract the abstracts from PDF documents."
+)
+st.markdown("**Model Description: This uses a Bi-LSTM with Elmo.**")
+st.markdown("---")
+st.markdown("## Upload File")
 content = st.file_uploader(
     label="Upload a research paper (Preferably a latex generated pdf)", type="pdf"
 )
@@ -15,7 +17,7 @@ HTML_WRAPPER = """<div style="display:flex; align-content: center; justify-conte
 
 if content is not None:
 
-    with st.spinner("Extracting the abstracts"):
+    with st.spinner("Please wait... Extracting abstract."):
         response = requests.post(
             f"http://localhost:8000/sectlabel/abstract", files={"file": content}
         )
@@ -27,4 +29,7 @@ if content is not None:
         st.write(HTML_WRAPPER.format(abstract), unsafe_allow_html=True)
 
 else:
-    st.write(HTML_WRAPPER.format("Upload a file"), unsafe_allow_html=True)
+    st.write(
+        HTML_WRAPPER.format("No file uploaded. Please upload a file"),
+        unsafe_allow_html=True,
+    )

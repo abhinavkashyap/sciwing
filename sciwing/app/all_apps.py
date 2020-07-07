@@ -20,14 +20,22 @@ if __name__ == "__main__":
             fname.suffix == ".py"
             and "__init__.py" not in str(fname)
             and fname.stem != "all_apps"
+            and fname.stem != "pipeline_demo"
         ):
             fnames.append(fname)
 
     # Make a UI to run different files.
 
-    fname_to_run = st.sidebar.selectbox(
-        "Select An application", fnames, format_func=lambda fname: fname.stem
+    st.sidebar.image("https://sciwing.s3.amazonaws.com/sciwing.png", width=250)
+    st.sidebar.header("A Scientific Document Processing Toolkit.")
+
+    st.sidebar.subheader("Applications")
+    fname_to_run = st.sidebar.radio(
+        "Select An application",
+        fnames,
+        format_func=lambda fname: " ".join(fname.stem.split("_")[:-1]).capitalize(),
     )
+    st.sidebar.markdown("---")
 
     # Create module from filepath and put in sys.modules, so Streamlit knows
     # to watch it for changes.
@@ -50,3 +58,15 @@ if __name__ == "__main__":
         filebody = f.read()
 
     exec(filebody, {})
+
+    st.sidebar.subheader("Contributions")
+    st.sidebar.info(
+        "We are open to contributions and suggestions. The project is available on "
+        "[Github](https://github.com/abhinavkashyap/sciwing). Feel free to **contribute** by "
+        "submitting a pull request or raising a feature request."
+    )
+    st.sidebar.subheader("About")
+    st.sidebar.info(
+        "This app is maintained by **WING-NUS** at the *National University of Singapore.* "
+        "You can find more information about the app at [https://www.sciwing.io](https://www.sciwing.io)"
+    )
