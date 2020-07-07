@@ -25,7 +25,7 @@ if model_selected == "Citation String Parsing":
     )
 
     text_selected = st.selectbox(
-        label="Select a citation",
+        label="Select a Citation",
         options=[
             "Calzolari, N. (1982) Towards the organization of lexical definitions on a database structure. In E. Hajicova (Ed.), COLING '82 Abstracts, Charles University, Prague, pp.61-64.",
             "Caraballo, S.A. (1999) Automatic construction of a hypernym-labeled noun hierarchy. In Proceedings of the 37th Annual Meeting of the Association for Computational Linguistics (ACL'99), College Park, Maryland, pp. 120-126.",
