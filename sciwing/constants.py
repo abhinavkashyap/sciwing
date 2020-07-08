@@ -75,7 +75,7 @@ EMBEDDING_FILE_URLS = dict(
     "2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_options.json",
     ELMO_WEIGHTS_FILE="https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/"
     "2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5",
-    GLOVE_FILE="http://nlp.stanford.edu/data/glove.6B.zip",
+    GLOVE_FILE="https://parsect-models.s3-ap-southeast-1.amazonaws.com/glove.6B.zip",
     SCIBERT_SCIVOCAB_UNCASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_scivocab_uncased.tar",
     SCIBERT_SCIVOCAB_CASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_scivocab_cased.tar",
     SCIBERT_BASEVOCAB_UNCASED="https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/pytorch_models/scibert_basevocab_uncased.tar",
