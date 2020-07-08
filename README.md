@@ -16,7 +16,8 @@ SciWING is a modern framework from WING-NUS to facilitate Scientific Document Pr
 - **Extensible** - SciWING enables easy addition of new datasets and provides command line tools for it. It enables addition of custom modules which are PyTorch modules.
 
   
-You can find our arxiv paper here: https://arxiv.org/abs/2004.03807
+
+You can find our technical report  here: https://arxiv.org/abs/2004.03807
 
 ## Installation 
 
@@ -39,7 +40,7 @@ These are some of the tasks included in SciWING and their performance metrics
 | Citation String Parsing            | Neural Parscit | Bi-LSTM-CRF + GloVe + Elmo + Char-LSTM | 88.44 (Macro F-Score) | 90.45 [Prasad et al](https://dl.acm.org/doi/10.5555/3288541.3288551)(not comparable) |
 | Citation Intent Classification     | SciCite        | Bi-LSTM + Elmo                         | 82.16 (Fscore)        | 82.6 [Cohan et al](https://arxiv.org/pdf/1904.01608.pdf) (without multi-task learning) |
 | Biomedical NER - BC5CDR (Upcoming) | -              | -                                      | -                     | -                                                            |
-| I2b2 NER (Upcoming)                | I2B2           | Bi-LSTM + Elmo                         | 85.83 (Macro FScore)  | 86.23  [Boukkouri et al](https://www.aclweb.org/anthology/P19-2041/)                                                     |
+| I2b2 NER                           | I2B2           | Bi-LSTM + Elmo                         | 85.83 (Macro FScore)  | 86.23  [Boukkouri et al](https://www.aclweb.org/anthology/P19-2041/)                                                     |
 
    
 
@@ -88,10 +89,14 @@ uvicorn api:app --reload
 
 ## Running the Demos 
 
-The demos are built using [Streamlit](www.streamlit.io). The Demos make use of the APIs. Please make sure that the APIs are running before the demos can be started. Navigate to the app folder and run the demo using streamlit (Installed along with the package). For example 
+The demos are built using [Streamlit](www.streamlit.io). The Demos make use of the APIs. Please make sure that the APIs are running before the demos can be started. Navigate to the app folder and run the demo using streamlit (Installed along with the package). For example, this command runs all the demos. 
+
+
+
+**Note:** The demos download the models and the embeddings if already not downloaded and running the first time on your local machine might take time and memory. We have tested this on a 16GB MacBook Pro and works well. All the demos run on CPU for now and does not make use of any GPU, even when present.
 
 ````bash
-streamlit run ner_demo.py
+streamlit run all_apps.py
 ````
 
 
