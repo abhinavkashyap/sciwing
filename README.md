@@ -1,11 +1,11 @@
 # ![sciwing logo]( https://sciwing.s3.amazonaws.com/sciwing.png)
-A Modern Toolkit for Scientific Document Processing from [WING-NUS](https://wing.comp.nus.edu.sg/)
+A Modern Toolkit for Scientific Document Processing from [WING-NUS](https://wing.comp.nus.edu.sg/). You can find our technical report  here: https://arxiv.org/abs/2004.03807
 
 [![Build Status](https://travis-ci.com/abhinavkashyap/sciwing.svg?token=AShdNBksk5K9Pxg45w3H&branch=master)](https://travis-ci.com/abhinavkashyap/sciwing) ![Open Issues](https://img.shields.io/github/issues/abhinavkashyap/sciwing) ![Last Commit](https://img.shields.io/github/last-commit/abhinavkashyap/sciwing) [![Updates](https://pyup.io/repos/github/abhinavkashyap/sciwing/shield.svg)](https://pyup.io/repos/github/abhinavkashyap/sciwing/) ![](https://img.shields.io/badge/contributions-welcome-success)
 
 
 
-SciWING is a modern framework from WING-NUS to facilitate Scientific Document Processing.  It is built on PyTorch and believes in modularity from ground up and easy to use interface. SciWING includes many pre-trained models for fundamental tasks in Scientific Document Processing for practitioners. It has the following advantages
+SciWING is a modern framework from WING-NUS to facilitate Scientific Document Processing.  It is built on PyTorch and believes in modularity from ground up and easy to use interface. SciWING includes many pre-trained models for fundamental tasks in Scientific Document Processing for practitioners. It has the following advantages:
 
 - **Modularity**  - The framework embraces modularity from ground-up. **SciWING** helps in creating new models by combining multiple re-usable modules. You can combine different modules and experiment with new approaches in an easy manner 
 
@@ -14,10 +14,6 @@ SciWING is a modern framework from WING-NUS to facilitate Scientific Document Pr
 - ***Run from Config File***- SciWING enables you to declare datasets, models and experiment hyper-params in a [TOML](https://github.com/toml-lang/toml) file. The models declared in a TOML file have a one-one correspondence with their respective class declaration in a python file. SciWING parses the model to a Directed Acyclic Graph and instantiates the model using the DAG's topological ordering.
 
 - **Extensible** - SciWING enables easy addition of new datasets and provides command line tools for it. It enables addition of custom modules which are PyTorch modules.
-
-  
-
-You can find our technical report  here: https://arxiv.org/abs/2004.03807
 
 ## Installation 
 
