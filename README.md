@@ -57,7 +57,9 @@ neural_parscit.predict_for_text("Calzolari, N. (1982) Towards the organization o
 neural_parscit.predict_for_file("/path/to/filename")
 ```
 
+Here is the output of the above example:
 
+![Neural Parscit Output](https://parsect-models.s3-ap-southeast-1.amazonaws.com/neural_parscit_output.png)
 
 ### Using Citation Intent Classification 
 

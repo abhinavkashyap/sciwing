@@ -12,7 +12,7 @@ script:
 - travis_wait 60 pytest -v -p no:warnings tests -m "not slow"
 deploy:
   provider: pypi
-  user: abhinavkashyap92
+  user: sciwing-deploy-travis
   password:
     secure: pypi-AgEIcHlwaS5vcmcCJDNlYTUzOGE2LTFkMzAtNDUzNC1iYTljLTUxMmI4MjI1Nzg1YgACOHsicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJzY2l3aW5nIl19LCAidmVyc2lvbiI6IDF9AAAGIIPFRacmOXGmuBX08Q3G-FLU3RWRe0ygRdqsKroq7LPG
   on:
