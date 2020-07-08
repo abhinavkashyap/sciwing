@@ -14,7 +14,7 @@ deploy:
   provider: pypi
   user: abhinavkashyap92
   password:
-    secure: pypi-AgEIcHlwaS5vcmcCJDdlNTIxNTdjLWZiNTItNDA1NS04YzJkLWQxNWI2Mzk1N2MzNAACOHsicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJzY2l3aW5nIl19LCAidmVyc2lvbiI6IDF9AAAGIOtmOKr7T0PS8rqmcmAMzmaymRuQe5QTr7o3C3rikF_Q
+    secure: pypi-AgEIcHlwaS5vcmcCJDNlYTUzOGE2LTFkMzAtNDUzNC1iYTljLTUxMmI4MjI1Nzg1YgACOHsicGVybWlzc2lvbnMiOiB7InByb2plY3RzIjogWyJzY2l3aW5nIl19LCAidmVyc2lvbiI6IDF9AAAGIIPFRacmOXGmuBX08Q3G-FLU3RWRe0ygRdqsKroq7LPG
   on:
     tags: true
   skip_cleanup: true
