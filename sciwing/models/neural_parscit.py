@@ -11,6 +11,7 @@ from sciwing.datasets.seq_labeling.seq_labelling_dataset import (
 from sciwing.infer.seq_label_inference.seq_label_inference import (
     SequenceLabellingInference,
 )
+from sciwing.cli.sciwing_interact import SciWINGInteract
 from sciwing.utils.common import cached_path
 import sciwing.constants as constants
 import pathlib
@@ -58,6 +59,7 @@ class NeuralParscit(nn.Module):
         self.model: nn.Module = self._get_model()
         self.infer = self._get_infer_client()
         self.vis_tagger = VisTagging()
+        self.interact_ = SciWINGInteract(self.infer)
 
     def _get_model(self) -> nn.Module:
         word_embedder = TrainableWordEmbedder(
@@ -172,6 +174,10 @@ class NeuralParscit(nn.Module):
             unzip=True,
         )
 
+    def interact(self):
+        self.interact_.interact()
+
 
 if __name__ == "__main__":
     neural_parscit = NeuralParscit()
+    neural_parscit.interact()

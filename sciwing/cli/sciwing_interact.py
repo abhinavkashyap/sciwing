@@ -7,6 +7,7 @@ from sciwing.utils.amazon_s3 import S3Util
 from sciwing.utils.science_ie_eval import calculateMeasures
 import os
 import pathlib
+from typing import Union
 
 PATHS = constants.PATHS
 FILES = constants.FILES
@@ -23,7 +24,12 @@ class SciWINGInteract:
     """
 
     def __init__(self, infer_client: BaseInterfaceClient):
-        self.infer_obj = infer_client.build_infer()
+        if isinstance(infer_client, BaseInterfaceClient):
+            self.infer_obj = infer_client.build_infer()
+        else:
+            # You can pass the infer obj directly
+            # Refer to sciwing.infer.seq_label.BaseSeqLabelInference or sciwing.infer.seq_label.BaseClassificationInference
+            self.infer_obj = infer_client
         self.s3util = S3Util(os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json"))
         self.msg_printer = wasabi.Printer()
 
