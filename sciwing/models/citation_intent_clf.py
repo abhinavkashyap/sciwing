@@ -90,6 +90,20 @@ class CitationIntentClassification(nn.Module):
         return client
 
     def predict_for_file(self, filename: str) -> List[str]:
+        """ Predict the intents for all the citations in the filename
+        The citations should be contained one per line
+
+        Parameters
+        ----------
+        filename : str
+            The filename where the citations are stored
+
+        Returns
+        -------
+        List[str]
+            Returns the intents for each line of citation
+
+        """
         with open(filename, "r") as fp:
             lines = []
             for line in fp:
@@ -102,7 +116,20 @@ class CitationIntentClassification(nn.Module):
 
         return predictions
 
-    def predict_for_text(self, text: str):
+    def predict_for_text(self, text: str) -> str:
+        """ Predict the intent for citation
+
+        Parameters
+        ----------
+        text : str
+            The citation string
+
+        Returns
+        -------
+        str
+            The predicted label for the citation
+
+        """
         label = self.infer.on_user_input(line=text)
         self.msg_printer.text(title=text, text=label)
         return label
@@ -145,6 +172,8 @@ class CitationIntentClassification(nn.Module):
         )
 
     def interact(self):
+        """ Interact with the pretrained model
+        """
         self.cli_interact.interact()
 
 

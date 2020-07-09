@@ -75,6 +75,19 @@ class GenericSect:
         return client
 
     def predict_for_file(self, filename: str) -> List[str]:
+        """ Make predictions for every line in the file
+
+        Parameters
+        ----------
+        filename: str
+            The filename where section headers are stored one per line
+
+        Returns
+        -------
+        List[str]
+            A list of predictions
+
+        """
         lines = []
         with open(filename) as fp:
             for line in fp:
@@ -87,6 +100,21 @@ class GenericSect:
         return predictions
 
     def predict_for_text(self, text: str, show=True) -> str:
+        """ Predicts the generic section headers of the text
+
+        Parameters
+        ----------
+        text: str
+            The section header string to be normalized
+        show : bool
+            If True then we print the prediction.
+
+        Returns
+        -------
+        str
+            The prediction for the section header
+
+        """
         prediction = self.infer.on_user_input(line=text)
         if show:
             self.msg_printer.text(title=text, text=prediction)
@@ -130,6 +158,8 @@ class GenericSect:
         )
 
     def interact(self):
+        """ Interact with the pretrained model
+        """
         self.cli_interact.interact()
 
 

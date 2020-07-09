@@ -115,6 +115,19 @@ class SectLabel:
         return client
 
     def predict_for_file(self, filename: str) -> List[str]:
+        """ Predicts the logical sections for all the sentences in a file, with one sentence per line
+
+        Parameters
+        ----------
+        filename : str
+            The path of the file
+
+        Returns
+        -------
+        List[str]
+            The predictions for each line.
+
+        """
         lines = []
         with open(filename) as fp:
             for line in fp:
@@ -164,11 +177,37 @@ class SectLabel:
         return all_lines, all_labels
 
     def predict_for_text(self, text: str) -> str:
+        """ Predicts the logical section that the line belongs to
+
+        Parameters
+        ----------
+        text: str
+            A single line of text
+
+        Returns
+        -------
+        str
+            The logical section of the text.
+
+        """
         prediction = self.infer.on_user_input(line=text)
         self.msg_printer.text(title=text, text=prediction)
         return prediction
 
     def predict_for_text_batch(self, texts: List[str]) -> List[str]:
+        """ Predicts the logical section for a batch of text.
+
+        Parameters
+        ----------
+        texts: List[str]
+            A batch of text
+
+        Returns
+        -------
+        List[str]
+            A batch of predictions
+
+        """
         predictions = self.infer.infer_batch(lines=texts)
         return predictions
 
@@ -334,6 +373,21 @@ class SectLabel:
         return abstract
 
     def extract_abstract_for_folder(self, foldername: pathlib.Path, dehyphenate=True):
+        """ Extracts the abstracts for all the pdf fils stored in a folder
+
+        Parameters
+        ----------
+        foldername : pathlib.Path
+            THe path of the folder containing pdf files
+        dehyphenate : bool
+            We will try to dehyphenate the lines. Useful if the pdfs are two column research paper
+
+        Returns
+        -------
+        None
+            Writes the abstracts to files
+
+        """
         num_files = sum([1 for file in foldername.iterdir()])
         for file in tqdm(
             foldername.iterdir(), total=num_files, desc="Extracting Abstracts"
@@ -367,6 +421,19 @@ class SectLabel:
         return references
 
     def extract_all_info(self, pdf_filename: pathlib.Path):
+        """ Extracts information from the pdf file.
+
+        Parameters
+        ----------
+        pdf_filename: pathlib.Path
+            The path of the pdf file
+
+        Returns
+        -------
+        Dict[str, Any]
+            A dictionary containing information parsed from the pdf file
+
+        """
         all_lines, all_labels = self.predict_for_pdf(pdf_filename=pdf_filename)
         abstract = self._extract_abstract_for_file(lines=all_lines, labels=all_labels)
         abstract = " ".join(abstract)
@@ -382,6 +449,8 @@ class SectLabel:
         }
 
     def interact(self):
+        """ Interact with the pre-trained model
+        """
         self.cli_interact.interact()
 
 

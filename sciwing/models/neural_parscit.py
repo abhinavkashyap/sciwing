@@ -112,6 +112,19 @@ class NeuralParscit(nn.Module):
         return predictions
 
     def predict_for_file(self, filename: str) -> List[str]:
+        """ Parse the references in a file where every line is a reference
+
+        Parameters
+        ----------
+        filename : str
+            The filename where the references are stored
+
+        Returns
+        -------
+        List[str]
+            A list of parsed tags
+
+        """
         predictions = defaultdict(list)
         with open(filename, "r") as fp:
             for line_idx, line in enumerate(fp):
@@ -130,7 +143,24 @@ class NeuralParscit(nn.Module):
 
         return predictions[self.data_manager.label_namespaces[0]]
 
-    def predict_for_text(self, text: str, show=True):
+    def predict_for_text(self, text: str, show=True) -> str:
+        """ Parse the citation string for the given text
+
+        Parameters
+        ----------
+        text : str
+            reference string to parse
+        show : bool
+            If `True`, then we print the stylized string - where the stylized string provides
+            different colors for different tags
+            If `False` - then we do not print the stylized string
+
+        Returns
+        -------
+        str
+            The parsed citation string
+
+        """
         predictions = self._predict(line=text)
         for namespace, prediction in predictions.items():
             if show:
@@ -175,6 +205,9 @@ class NeuralParscit(nn.Module):
         )
 
     def interact(self):
+        """ Interact with the pretrained model
+        You can also interact from command line using `sciwing interact neural-parscit`
+        """
         self.interact_.interact()
 
 
