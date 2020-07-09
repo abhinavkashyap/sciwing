@@ -10,18 +10,9 @@ base_seq_labeling
    :show-inheritance:
 
 -------------------------
-parscit_dataset
+seq_labelling_dataset
 -------------------------
-.. automodule:: sciwing.datasets.seq_labeling.parscit_dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-
---------------------------
-science_ie_dataset
---------------------------
-.. automodule:: sciwing.datasets.seq_labeling.science_ie_dataset
+.. automodule:: sciwing.datasets.seq_labeling.seq_labelling_dataset
    :members:
    :undoc-members:
    :show-inheritance:

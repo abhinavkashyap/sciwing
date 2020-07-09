@@ -16,8 +16,11 @@ from sciwing.utils.class_nursery import ClassNursery
 
 class TextClassificationDataset(BaseTextClassification, Dataset):
     """ This represents a dataset that is of the form
+
     line1###label1
+
     line2###label2
+
     line3###label3
     .
     .
@@ -83,6 +86,25 @@ class TextClassificationDatasetManager(DatasetsManager, ClassNursery):
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size: int = 10,
     ):
+        """
+
+        Parameters
+        ----------
+        train_filename: str
+            The path wehere the train file is stored
+        dev_filename: str
+            The path where the dev file is stored
+        test_filename: str
+            The path where the test file is stored
+        tokenizers: Dict[str, BaseTokenizer]
+            A mapping from namespace to the tokenizer
+        namespace_vocab_options: Dict[str, Dict[str, Any]]
+            A mapping from the name to options
+        namespace_numericalizer_map: Dict[str, BaseNumericalizer]
+            Every namespace can have a different numericalizer specified
+        batch_size: int
+            The batch size of the data returned
+        """
         self.train_filename = train_filename
         self.dev_filename = dev_filename
         self.test_filename = test_filename
