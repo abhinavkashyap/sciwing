@@ -21,6 +21,20 @@ PDF_BOX_JAR = BIN_FOLDER.joinpath("pdfbox-app-2.0.16.jar")
 
 @router.post("/sectlabel/uploadfile/")
 def process_pdf(file: UploadFile = File(None)):
+    """ Classifies every line in the document to the logical section of the document. The logical
+    section can be title, author, email, section header, subsection header etc
+
+    Parameters
+    ----------
+    file : File
+        The Bytestream of a file to be uploaded
+
+    Returns
+    -------
+    JSON
+        ``{"labels": [(line, label)]}``
+
+    """
     global sectlabel_model
     if sectlabel_model is None:
         sectlabel_model = SectLabel()
@@ -69,12 +83,12 @@ def extract_pdf(file: UploadFile = File(None)):
     Parameters
     ----------
     file : uploadFile
-        The upload file class
+        Byte Stream of a file uploaded.
 
     Returns
     -------
     JSON
-        The abstract found in the scholarly document
+        ``{"abstract": The abstract found in the scholarly document}``
 
     """
 

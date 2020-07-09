@@ -42,11 +42,6 @@ class SciWINGInteract:
         - ``See-Examples-of-Classification`` is to explore correct and mis-classifications. You can provide two class numbers as in, ``2 3`` and it shows examples in the test dataset where text that belong to class ``2`` is classified as class ``3``.
         - ``See-prf-table`` shows the precision recall and fmeasure per class.
         - ``See-text`` - Manually enter text and look at the classification results.
-
-        Returns
-        -------
-        None
-
         """
         self.infer_obj.run_test()
 

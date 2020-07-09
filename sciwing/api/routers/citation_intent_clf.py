@@ -8,16 +8,17 @@ citation_intent_clf_model = None
 
 @router.get("/cit_int_clf/{citation}")
 def classify_citation_intent(citation: str):
-    """ End point to classify a citation
+    """ End point to classify a citation intent into ```Background`, `Method`, `Result Comparison```
 
     Parameters
     ----------
     citation : str
+        String containing the citation to another work
 
     Returns
     -------
     JSON
-        Predicted class for the citation
+        ``{"tags": Predicted tag for the citation, "citation": the citation itself}``
     """
     global citation_intent_clf_model
     if citation_intent_clf_model is None:

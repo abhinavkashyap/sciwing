@@ -1,27 +1,44 @@
-sciwing.api.resources
+sciwing.api.routers
 =============================
 
 
 ------------------------
-parscit_tagger_resource
+citation_intent_clf
 ------------------------
-.. automodule:: sciwing.api.resources.parscit_tagger_resource
+.. automodule:: sciwing.api.routers.citation_intent_clf
    :members:
    :undoc-members:
    :show-inheritance:
 
-------------------------------
-science_ie_tagger_resource
-------------------------------
-.. automodule:: sciwing.api.resources.science_ie_tagger_resource
+------------------------
+i2b2
+------------------------
+.. automodule:: sciwing.api.routers.i2b2
    :members:
    :undoc-members:
    :show-inheritance:
 
---------------------------------
-sect_label_resource
---------------------------------
-.. automodule:: sciwing.api.resources.sect_label_resource
+------------------------
+parscit
+------------------------
+.. automodule:: sciwing.api.routers.parscit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+------------------------
+pdf_pipeline
+------------------------
+.. automodule:: sciwing.api.routers.parscit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+------------------------
+sectlabel
+------------------------
+.. automodule:: sciwing.api.routers.sectlabel
    :members:
    :undoc-members:
    :show-inheritance:

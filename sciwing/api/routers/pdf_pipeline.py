@@ -20,6 +20,20 @@ processing_pipeline = None
 
 @router.post("/pdf_pipeline/uploadfile")
 def pdf_pipeline(file: UploadFile = File(None)):
+    """ Parses the file and returns various analytics about the pdf
+
+    Parameters
+    ----------
+    file: File
+        A File stream
+
+    Returns
+    -------
+    JSON
+        Returns a JSON where the key can be a section in the document with value as the text of the document.
+        It can also be other information such as parsed reference strings in the document, or normalised
+        section headers of the document. This is a feature in development. Be careful in using this.
+    """
     file_handle = file.file
     file_name = file.filename
     file_contents = file_handle.read()

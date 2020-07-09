@@ -2,9 +2,9 @@ sciwing.cli
 ===================
 
 
-parsect_interact
+sciwing_interact
 ------------------
-.. automodule:: sciwing.cli.parsect_interact
+.. automodule:: sciwing.cli.sciwing_interact
    :members:
    :undoc-members:
    :show-inheritance:

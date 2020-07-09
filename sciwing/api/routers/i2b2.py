@@ -9,7 +9,7 @@ i2b2_ner_model = None
 @router.get("/i2b2/{text}")
 def return_tags(text: str):
     """ Tags the text that you send according to i2b2 model with
-    problem treatment and tests
+    ``problem, treatment and tests``
 
     Parameters
     ----------
@@ -18,6 +18,8 @@ def return_tags(text: str):
 
     Returns
     -------
+    JSON
+        ``{tags: Predicted tags, text_tokens: Tokens in the text }``
 
     """
     global i2b2_ner_model
