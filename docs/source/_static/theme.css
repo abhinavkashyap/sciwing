@@ -4,8 +4,8 @@
 /* ------------------------------------------------------------ */
 
 :root {
-  --sidebar: #7249fb;
-  --sidebar-dark: #bc2bff;
+  --sidebar: #0077B6;
+  --sidebar-dark: #0096C7;
   --off-white: rgba(255,255,255,1);
 }
 
@@ -109,7 +109,7 @@ a.icon-home:before {
 
 
 .wy-nav-side {
-  background-color: #7249fb;
+  background-color: #0096C7 !important;
   font-weight: 300 !important;
   height: 100%;
 }
