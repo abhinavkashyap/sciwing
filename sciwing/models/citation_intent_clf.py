@@ -12,6 +12,7 @@ from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
 )
+from sciwing.cli.sciwing_interact import SciWINGInteract
 from sciwing.utils.common import cached_path
 import pathlib
 import wasabi
@@ -49,6 +50,7 @@ class CitationIntentClassification(nn.Module):
         self.data_manager = self._get_data()
         self.model: nn.Module = self._get_model()
         self.infer = self._get_infer_client()
+        self.cli_interact = SciWINGInteract(infer_client=self.infer)
 
     def _get_model(self) -> nn.Module:
         embedding_type = self.hparams.get("emb_type")
@@ -142,6 +144,10 @@ class CitationIntentClassification(nn.Module):
             unzip=True,
         )
 
+    def interact(self):
+        self.cli_interact.interact()
+
 
 if __name__ == "__main__":
     citation_intent_clf = CitationIntentClassification()
+    citation_intent_clf.interact()

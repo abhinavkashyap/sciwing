@@ -9,6 +9,7 @@ from sciwing.datasets.seq_labeling.conll_dataset import CoNLLDatasetManager
 from sciwing.infer.seq_label_inference.seq_label_inference import (
     SequenceLabellingInference,
 )
+from sciwing.cli.sciwing_interact import SciWINGInteract
 from sciwing.utils.common import cached_path
 import sciwing.constants as constants
 import pathlib
@@ -56,6 +57,7 @@ class I2B2NER(nn.Module):
         self.model: nn.Module = self._get_model()
         self.infer = self._get_infer_client()
         self.vis_tagger = VisTagging()
+        self.cli_interact = SciWINGInteract(self.infer)
 
     def _get_model(self) -> nn.Module:
         word_embedder = TrainableWordEmbedder(
@@ -167,7 +169,10 @@ class I2B2NER(nn.Module):
             unzip=True,
         )
 
+    def interact(self):
+        self.cli_interact.interact()
+
 
 if __name__ == "__main__":
     i2b2 = I2B2NER()
-    i2b2.predict_for_text("Continue with Risperdal as per new psychiatrist")
+    i2b2.interact()

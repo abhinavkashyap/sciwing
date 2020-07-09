@@ -8,6 +8,7 @@ from sciwing.models.simpleclassifier import SimpleClassifier
 from sciwing.infer.classification.classification_inference import (
     ClassificationInference,
 )
+from sciwing.cli.sciwing_interact import SciWINGInteract
 from sciwing.utils.common import cached_path
 import pathlib
 import json
@@ -45,6 +46,7 @@ class GenericSect:
         self.hparams = self._get_hparams()
         self.model = self._get_model()
         self.infer = self._get_infer_client()
+        self.cli_interact = SciWINGInteract(self.infer)
 
     def _get_model(self):
         embedder = BowElmoEmbedder(
@@ -127,6 +129,10 @@ class GenericSect:
             unzip=True,
         )
 
+    def interact(self):
+        self.cli_interact.interact()
+
 
 if __name__ == "__main__":
     generic_sect = GenericSect()
+    generic_sect.interact()

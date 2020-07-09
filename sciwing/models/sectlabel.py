@@ -12,6 +12,7 @@ from sciwing.infer.classification.classification_inference import (
 )
 from sciwing.api.utils.pdf_reader import PdfReader
 from sciwing.utils.common import cached_path, chunks
+from sciwing.cli.sciwing_interact import SciWINGInteract
 import pathlib
 import json
 import wasabi
@@ -53,6 +54,7 @@ class SectLabel:
         self.hparams = self._get_hparams()
         self.model = self._get_model()
         self.infer = self._get_infer_client()
+        self.cli_interact = SciWINGInteract(self.infer)
         self.log_file = log_file
 
         if log_file:
@@ -378,3 +380,11 @@ class SectLabel:
             "section_headers": section_headers,
             "references": reference_strings,
         }
+
+    def interact(self):
+        self.cli_interact.interact()
+
+
+if __name__ == "__main__":
+    sect_label = SectLabel()
+    sect_label.interact()
