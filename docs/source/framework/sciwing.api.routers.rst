@@ -30,7 +30,7 @@ parscit
 ------------------------
 pdf_pipeline
 ------------------------
-.. automodule:: sciwing.api.routers.parscit
+.. automodule:: sciwing.api.routers.pdf_pipeline
    :members:
    :undoc-members:
    :show-inheritance:

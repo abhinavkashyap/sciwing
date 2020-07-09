@@ -71,4 +71,6 @@ autodoc_mock_imports = [
     "sklearn",
     "tensorboardX",
     "pytorch-crf",
+    "flair",
+    "networkx",
 ]
