@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="sciwing",
-    version="0.1.post2",
+    version="0.1.post3",
     packages=find_packages(exclude=("tests",)),
     url="https://github.com/abhinavkashyap/sciwing",
     license="",
