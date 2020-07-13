@@ -25,15 +25,21 @@ if __name__ == "__main__":
             fnames.append(fname)
 
     # Make a UI to run different files.
+    fnames_options_mapping = {
+        "citation_intent_demo": "Citation Intent Classification",
+        "extract_abstract_demo": "Extract Abstract",
+        "ner_demo": "Named Entity Recognition",
+    }
 
     st.sidebar.image("https://sciwing.s3.amazonaws.com/sciwing.png", width=250)
     st.sidebar.header("A Scientific Document Processing Toolkit.")
 
     st.sidebar.subheader("Applications")
+
     fname_to_run = st.sidebar.radio(
         "Select An application",
         fnames,
-        format_func=lambda fname: " ".join(fname.stem.split("_")[:-1]).capitalize(),
+        format_func=lambda fname: fnames_options_mapping[fname.stem],
     )
     st.sidebar.markdown("---")
 

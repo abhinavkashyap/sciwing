@@ -7,15 +7,30 @@ st.markdown(
     "Identify the intent behind citing another scholarly document helps "
     "in fine-grain analysis of documents. Some citations refer to the "
     "methodology in another document, some citations may refer to other works"
-    "for background knowledge and some might compare and contrast their methods with another work."
+    "for background knowledge and some might compare and contrast their methods with another work. "
     "Citation Intent Classification models classify such intents."
 )
 st.markdown(
     "**MODEL DESCRIPTION: ** This model is similar to [Arman Cohan et al](https://arxiv.org/pdf/1904.01608.pdf). We do not perform multi-task learning, but include "
-    "Elmo Embeddings in the model."
+    "ELMo Embeddings in the model."
 )
 
 st.markdown("---")
+
+st.write("**The Labels can be one of: **")
+st.write(
+    """<span style="display:inline-block; border: 1px solid #0077B6; border-radius: 5px; padding: 5px; background-color: #0077B6; color: white; margin: 5px;">
+        RESULT
+    </span>
+    <span style="display:inline-block; border: 1px solid #0077B6; border-radius: 5px; padding: 5px; background-color: #0077B6; color: white; margin: 5px;">
+        BACKGROUND
+    </span>
+    <span style="display:inline-block; border: 1px solid #0077B6; border-radius: 5px; padding: 5px; background-color: #0077B6; color: white; margin: 5px;">
+        METHOD
+    </span>
+    """,
+    unsafe_allow_html=True,
+)
 
 text_selected = st.selectbox(
     label="Select a Citation",

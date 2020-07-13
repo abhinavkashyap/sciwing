@@ -27,6 +27,31 @@ if model_selected == "Citation String Parsing":
     )
     st.markdown("---")
 
+    st.write("**The Labels can be one of**")
+    label_pill = """<span style="display:inline-block; border: 1px solid #0077B6; border-radius: 5px; padding: 5px; background-color: #0077B6; color: white; margin: 5px;">
+                        {}
+                </span>"""
+    labels = [
+        "author",
+        "booktitle",
+        "data",
+        "editor",
+        "institution",
+        "journal",
+        "location",
+        "note",
+        "pages",
+        "publisher",
+        "tech",
+        "title",
+        "volume",
+    ]
+    labels_legend = ""
+    for label in labels:
+        labels_legend += label_pill.format(label.upper())
+
+    st.write(labels_legend, unsafe_allow_html=True)
+
     text_selected = st.selectbox(
         label="Select a Citation",
         options=[
