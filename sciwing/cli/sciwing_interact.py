@@ -30,7 +30,6 @@ class SciWINGInteract:
             # You can pass the infer obj directly
             # Refer to sciwing.infer.seq_label.BaseSeqLabelInference or sciwing.infer.seq_label.BaseClassificationInference
             self.infer_obj = infer_client
-        self.s3util = S3Util(os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json"))
         self.msg_printer = wasabi.Printer()
 
     def interact(self):

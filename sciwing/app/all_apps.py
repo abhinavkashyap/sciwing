@@ -23,11 +23,11 @@ if __name__ == "__main__":
             and fname.stem != "pipeline_demo"
         ):
             fnames.append(fname)
-
+    fnames = sorted(fnames)
     # Make a UI to run different files.
     fnames_options_mapping = {
         "citation_intent_demo": "Citation Intent Classification",
-        "extract_abstract_demo": "Extract Abstract",
+        "scientific_articles_abstract": "Scientific Articles Abstract",
         "ner_demo": "Named Entity Recognition",
     }
 
