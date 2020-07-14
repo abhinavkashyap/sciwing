@@ -7,6 +7,7 @@ Welcome to SciWing's documentation!
 ===================================
    .. image:: ./_static/img/logo.png
          :width: 300
+
    SciWING is a modular and easy to extend framework, that enables easy experimentation
    of modern techniques for Scholarly Document Processing. It enables easy addition of datasets,
    and models and provides tools to easily experiment with them.
@@ -30,20 +31,8 @@ Welcome to SciWing's documentation!
 
 
 .. toctree::
-   :caption: SciWING Reference:
+   :maxdepth: 4
 
-   framework/sciwing.api
-   framework/sciwing.cli
-   framework/sciwing.commands
-   framework/sciwing.datasets
-   framework/sciwing.engine
-   framework/sciwing.infer
-   framework/sciwing.meters
-   framework/sciwing.metrics
-   framework/sciwing.models
-   framework/sciwing.modules
-   framework/sciwing.numericalizer
-   framework/sciwing.preprocessing
-   framework/sciwing.tokenizers
-   framework/sciwing.utils
+   usage/index
+   framework/index
 

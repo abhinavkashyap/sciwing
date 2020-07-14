@@ -33,9 +33,9 @@ Citation Intent Classification
    :undoc-members:
    :show-inheritance:
 
-----------------------------------
+---------------------------------------
 Generic Section Header Classification
-----------------------------------
+---------------------------------------
 .. automodule:: sciwing.models.generic_sect
    :members:
    :undoc-members:

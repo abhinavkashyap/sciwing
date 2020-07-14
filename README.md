@@ -29,14 +29,14 @@ pip install sciwing
 
 These are some of the tasks included in SciWING and their performance metrics 
 
-| Task                               | Dataset        | SciWING model                          | SciWING               | Previous Best                                                |
-| ---------------------------------- | -------------- | -------------------------------------- | --------------------- | ------------------------------------------------------------ |
-| Logical Structure Recovery         | SectLabel      | BiLSTM + Elmo Embeddings               | 73.2 (Macro F-score)  | -                                                            |
-| Header Normalisation               | SectLabel      | Bag of Words Elmo                      | 93.52 (Macro F-Score) | -                                                            |
-| Citation String Parsing            | Neural Parscit | Bi-LSTM-CRF + GloVe + Elmo + Char-LSTM | 88.44 (Macro F-Score) | 90.45 [Prasad et al](https://dl.acm.org/doi/10.5555/3288541.3288551)(not comparable) |
-| Citation Intent Classification     | SciCite        | Bi-LSTM + Elmo                         | 82.16 (Fscore)        | 82.6 [Cohan et al](https://arxiv.org/pdf/1904.01608.pdf) (without multi-task learning) |
-| Biomedical NER - BC5CDR (Upcoming) | -              | -                                      | -                     | -                                                            |
-| I2b2 NER                           | I2B2           | Bi-LSTM + Elmo                         | 85.83 (Macro FScore)  | 86.23  [Boukkouri et al](https://www.aclweb.org/anthology/P19-2041/)                                                     |
+| Task                           | Dataset        | SciWING model                          | SciWING               | Previous Best                                                |
+| ------------------------------ | -------------- | -------------------------------------- | --------------------- | ------------------------------------------------------------ |
+| Logical Structure Recovery     | SectLabel      | BiLSTM + Elmo Embeddings               | 73.2 (Macro F-score)  | -                                                            |
+| Header Normalisation           | SectLabel      | Bag of Words Elmo                      | 93.52 (Macro F-Score) | -                                                            |
+| Citation String Parsing        | Neural Parscit | Bi-LSTM-CRF + GloVe + Elmo + Char-LSTM | 88.44 (Macro F-Score) | 90.45 [Prasad et al](https://dl.acm.org/doi/10.5555/3288541.3288551)(not comparable) |
+| Citation Intent Classification | SciCite        | Bi-LSTM + Elmo                         | 82.16 (Fscore)        | 82.6 [Cohan et al](https://arxiv.org/pdf/1904.01608.pdf) (without multi-task learning) |
+| I2b2 NER                       | I2B2           | Bi-LSTM + Elmo                         | 85.83 (Macro FScore)  | 86.23  [Boukkouri et al](https://www.aclweb.org/anthology/P19-2041/) |
+| BC5CDR - NER (Upcoming)        | -              | -                                      | -                     | -                                                            |
 
    
 
@@ -77,7 +77,7 @@ citation_intent_clf.predict_for_text("Abu-Jbara et al. (2013) relied on lexical,
 
 ## Running API services 
 
-The APIs are built using [Fast API](https://github.com/tiangolo/fastapi). We have APIs for citation string parsing and citation intent classification. There are more APIs on the way. To run the APIs navigate into the `api` folder of this repository and run 
+The APIs are built using [Fast API](https://github.com/tiangolo/fastapi). We have APIs for citation string parsing, citation intent classification and many other models. There are more APIs on the way. To run the APIs navigate into the `api` folder of this repository and run 
 
 ```bash
 uvicorn api:app --reload
@@ -118,7 +118,9 @@ Instructions to install pyenv are available  [here](https://github.com/pyenv/pye
 
 1. **Clone from git** 
 
-   https://github.com/abhinavkashyap/sciwing.git
+   `git clone https://github.com/abhinavkashyap/sciwing.git`
+
+   
 
 2. `cd sciwing`
 
