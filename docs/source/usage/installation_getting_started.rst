@@ -97,7 +97,7 @@ streamlit (Installed along with the package). For example, this command runs all
  on your local machine might take time and memory. We have tested this on a 16GB MacBook Pro and
  works well. All the demos run on CPU for now and does not make use of any GPU, even when present.
 
-.. code-block::
+.. code-block:: bash
 
     streamlit run all_apps.py
 

@@ -73,4 +73,5 @@ autodoc_mock_imports = [
     "pytorch-crf",
     "flair",
     "networkx",
+    "fastapi",
 ]
