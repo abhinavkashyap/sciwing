@@ -1,5 +1,7 @@
 # ![sciwing logo]( https://sciwing.s3.amazonaws.com/sciwing.png)
-A Modern Toolkit for Scientific Document Processing from [WING-NUS](https://wing.comp.nus.edu.sg/). You can find our technical report  here: https://arxiv.org/abs/2004.03807
+A Modern Toolkit for Scientific Document Processing from [WING-NUS](https://wing.comp.nus.edu.sg/). You can find our technical report  here: https://arxiv.org/abs/2004.03807. 
+
+**Note** The previous demo was available at [bit.ly/sciwing-demo](https://bit.ly/sciwing-demo). Due to unavoidable circumstances, it has been moved to [rebrand.ly/sciwing-demo](https://rebrand.ly/sciwing-demo). 
 
 [![Build Status](https://travis-ci.com/abhinavkashyap/sciwing.svg?token=AShdNBksk5K9Pxg45w3H&branch=master)](https://travis-ci.com/abhinavkashyap/sciwing) [![Documentation Status](https://readthedocs.org/projects/sciwing/badge/?version=latest)](https://sciwing.readthedocs.io/en/latest/?badge=latest) ![Open Issues](https://img.shields.io/github/issues/abhinavkashyap/sciwing) ![Last Commit](https://img.shields.io/github/last-commit/abhinavkashyap/sciwing) [![Updates](https://pyup.io/repos/github/abhinavkashyap/sciwing/shield.svg)](https://pyup.io/repos/github/abhinavkashyap/sciwing/) ![](https://img.shields.io/badge/contributions-welcome-success)
 
