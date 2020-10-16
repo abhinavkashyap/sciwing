@@ -9,7 +9,7 @@ tqdm==4.32.1
 wrapt==1.11.2
 stop_words
 botocore
-pytest==4.5.0
+pytest==6.1.1
 pytest-sugar
 pytest-xdist
 questionary==1.1.1
