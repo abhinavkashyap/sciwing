@@ -1,16 +1,15 @@
-import questionary
+from questionary import text as ask_text
+from questionary import rawselect
 from questionary import Choice
 from sciwing.infer.interface_client_base import BaseInterfaceClient
 import wasabi
-import sciwing.constants as constants
-from sciwing.utils.amazon_s3 import S3Util
+import sciwing.constants as sciwing_constants
 from sciwing.utils.science_ie_eval import calculateMeasures
-import os
 import pathlib
-from typing import Union
 
-PATHS = constants.PATHS
-FILES = constants.FILES
+
+PATHS = sciwing_constants.PATHS
+FILES = sciwing_constants.FILES
 SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
@@ -57,14 +56,14 @@ class SciWINGInteract:
                 Choice("exit"),
             ]
 
-            interaction_choice = questionary.rawselect(
+            interaction_choice = rawselect(
                 "What would you like to do now", qmark="❓", choices=choices
             ).ask()
 
             if interaction_choice == "See-Confusion-Matrix":
                 self.infer_obj.print_confusion_matrix()
             elif interaction_choice == "See-examples-of-Classifications":
-                misclassification_choice = questionary.text(
+                misclassification_choice = ask_text(
                     "Enter Two Classes separated by a space. [Hint: 1 2]"
                 ).ask()
                 two_classes = [
@@ -77,13 +76,13 @@ class SciWINGInteract:
                 self.infer_obj.report_metrics()
 
             elif interaction_choice == "enter_text":
-                text = questionary.text("Enter Text: ").ask()
+                text = ask_text("Enter Text: ").ask()
                 tagged_string = self.infer_obj.on_user_input(text)
                 print(tagged_string)
 
             elif interaction_choice == "semeval_official_results":
                 dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
-                pred_folder = questionary.text(
+                pred_folder = ask_text(
                     message="Enter the directory path for storing results"
                 )
                 pred_folder = pathlib.Path(pred_folder)
