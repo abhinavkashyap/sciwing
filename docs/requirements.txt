@@ -8,7 +8,7 @@ boto3==1.9.211
 tqdm==4.32.1
 wrapt==1.11.2
 stop_words
-botocore
+botocore==1.18.18
 pytest==4.5.0
 pytest-sugar
 pytest-xdist
