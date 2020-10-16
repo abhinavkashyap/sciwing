@@ -29,7 +29,7 @@ toml==0.10.0
 requests==2.22.0
 scikit_learn==0.21.3
 tensorboardX==1.8
-sphinx
+sphinx==3.2.1
 sphinx-rtd-theme
 sphinx-autobuild
 Deprecated
