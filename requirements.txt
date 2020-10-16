@@ -2,7 +2,7 @@ fastapi
 networkx
 wandb
 logzero
-typing==3.6.6
+typing==3.7.4.3
 torch
 wasabi==0.2.2
 boto3
