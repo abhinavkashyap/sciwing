@@ -23,7 +23,7 @@ pandas==0.24.2
 pytorch_crf
 colorful==0.5.1
 Jinja2==2.10.1
-numpy==1.16.3
+numpy==1.19.2
 click==7.0
 toml==0.10.0
 requests==2.22.0
