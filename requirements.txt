@@ -7,7 +7,7 @@ torch
 wasabi==0.2.2
 boto3
 tqdm==4.32.1
-wrapt==1.11.2
+wrapt==1.12.1
 stop_words
 allennlp==0.8.3
 botocore
