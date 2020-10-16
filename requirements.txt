@@ -5,7 +5,7 @@ logzero
 typing==3.6.6
 torch
 wasabi==0.2.2
-boto3
+boto3==1.15.17
 tqdm==4.32.1
 wrapt==1.11.2
 stop_words
