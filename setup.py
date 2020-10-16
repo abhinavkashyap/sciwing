@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name="sciwing",
-    version="0.1.post3",
+    version="0.1.post4",
     packages=find_packages(exclude=("tests",)),
     url="https://github.com/abhinavkashyap/sciwing",
     license="",
@@ -30,7 +30,7 @@ setup(
         "tqdm",
         "wrapt",
         "stopwords",
-        "allennlp",
+        "allennlp==0.8.3",
         "botocore",
         "gensim",
         "pytorch-pretrained-bert",
@@ -44,7 +44,7 @@ setup(
         "click",
         "toml",
         "requests",
-        "scikit-learn",
+        "scikit-learn==0.21.3",
         "tensorboardX",
         "Deprecated",
         "urllib3",
