@@ -1,5 +1,5 @@
 fastapi
-networkx
+networkx==2.5
 wandb
 logzero
 typing==3.6.6
