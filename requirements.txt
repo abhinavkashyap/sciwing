@@ -31,6 +31,6 @@ scikit_learn==0.21.3
 tensorboardX==1.8
 sphinx
 sphinx-rtd-theme
-sphinx-autobuild
+sphinx-autobuild==2020.9.1
 Deprecated
 flair
