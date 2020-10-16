@@ -24,7 +24,7 @@ pytorch_crf
 colorful==0.5.1
 Jinja2==2.10.1
 numpy==1.16.3
-click==7.0
+click==7.1.2
 toml==0.10.0
 requests==2.22.0
 scikit_learn==0.21.3
