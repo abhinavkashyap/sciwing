@@ -20,7 +20,7 @@ Jinja2==2.10.1
 falcon==2.0.0
 click==7.0
 toml==0.10.0
-requests==2.22.0
+requests==2.24.0
 sphinx
 sphinx-rtd-theme
 sphinx-autobuild
