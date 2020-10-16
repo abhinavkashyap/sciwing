@@ -13,7 +13,7 @@ allennlp==0.8.3
 botocore
 gensim==3.8.0
 pytest==5.4.1
-pytest-xdist
+pytest-xdist==2.1.0
 pytorch_pretrained_bert
 spacy==2.1.4
 questionary==1.1.1
