@@ -14,7 +14,7 @@ botocore
 gensim==3.8.0
 pytest==5.4.1
 pytest-xdist
-pytorch_pretrained_bert
+pytorch_pretrained_bert==0.6.2
 spacy==2.1.4
 questionary==1.1.1
 json_logging
