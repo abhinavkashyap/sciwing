@@ -15,7 +15,7 @@ gensim==3.8.0
 pytest==5.4.1
 pytest-xdist
 pytorch_pretrained_bert
-spacy==2.1.4
+spacy==2.3.2
 questionary==1.1.1
 json_logging
 autopep8==1.4.4
