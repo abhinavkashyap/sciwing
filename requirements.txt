@@ -21,7 +21,7 @@ json_logging
 autopep8==1.4.4
 pandas==0.24.2
 pytorch_crf
-colorful==0.5.1
+colorful==0.5.4
 Jinja2==2.10.1
 numpy==1.16.3
 click==7.0
