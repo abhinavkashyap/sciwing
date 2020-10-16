@@ -13,7 +13,7 @@ pytest==4.5.0
 pytest-sugar
 pytest-xdist
 questionary==1.1.1
-json_logging
+json_logging==1.2.9
 autopep8==1.4.4
 colorful==0.5.1
 Jinja2==2.10.1
