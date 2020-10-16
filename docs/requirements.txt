@@ -23,5 +23,5 @@ toml==0.10.0
 requests==2.22.0
 sphinx
 sphinx-rtd-theme
-sphinx-autobuild
+sphinx-autobuild==2020.9.1
 Deprecated
