@@ -2,7 +2,7 @@ networkx
 wandb
 logzero
 falcon_multipart
-typing==3.6.6
+typing==3.7.4.3
 wasabi==0.2.2
 boto3==1.9.211
 tqdm==4.32.1
