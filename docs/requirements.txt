@@ -12,7 +12,7 @@ botocore
 pytest==4.5.0
 pytest-sugar
 pytest-xdist
-questionary==1.1.1
+questionary==1.7.0
 json_logging
 autopep8==1.4.4
 colorful==0.5.1
