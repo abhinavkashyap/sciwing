@@ -21,7 +21,7 @@ falcon==2.0.0
 click==7.0
 toml==0.10.0
 requests==2.22.0
-sphinx
+sphinx==3.2.1
 sphinx-rtd-theme
 sphinx-autobuild
 Deprecated
