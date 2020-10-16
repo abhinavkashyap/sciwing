@@ -3,7 +3,7 @@ networkx
 wandb
 logzero
 typing==3.6.6
-torch
+torch==1.6.0
 wasabi==0.2.2
 boto3
 tqdm==4.32.1
