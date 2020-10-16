@@ -11,7 +11,7 @@ wrapt==1.11.2
 stop_words
 allennlp==0.8.3
 botocore
-gensim==3.8.0
+gensim==3.8.3
 pytest==5.4.1
 pytest-xdist
 pytorch_pretrained_bert
