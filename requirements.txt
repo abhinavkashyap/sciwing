@@ -33,4 +33,4 @@ sphinx
 sphinx-rtd-theme
 sphinx-autobuild
 Deprecated
-flair
+flair==0.6.1
