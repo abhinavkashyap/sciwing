@@ -24,4 +24,4 @@ requests==2.22.0
 sphinx
 sphinx-rtd-theme
 sphinx-autobuild
-Deprecated
+Deprecated==1.2.10
