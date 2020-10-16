@@ -3,7 +3,7 @@ wandb
 logzero
 falcon_multipart
 typing==3.6.6
-wasabi==0.2.2
+wasabi==0.8.0
 boto3==1.9.211
 tqdm==4.32.1
 wrapt==1.11.2
