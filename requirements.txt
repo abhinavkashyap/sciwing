@@ -27,7 +27,7 @@ numpy==1.16.3
 click==7.0
 toml==0.10.0
 requests==2.22.0
-scikit_learn==0.21.3
+scikit_learn==0.23.2
 tensorboardX==1.8
 sphinx
 sphinx-rtd-theme
