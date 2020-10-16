@@ -19,7 +19,7 @@ spacy==2.1.4
 questionary==1.1.1
 json_logging
 autopep8==1.4.4
-pandas==0.24.2
+pandas==1.1.3
 pytorch_crf
 colorful==0.5.1
 Jinja2==2.10.1
