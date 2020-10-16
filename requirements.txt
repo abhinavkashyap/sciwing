@@ -32,5 +32,5 @@ tensorboardX==1.8
 sphinx
 sphinx-rtd-theme
 sphinx-autobuild
-Deprecated
+Deprecated==1.2.10
 flair
