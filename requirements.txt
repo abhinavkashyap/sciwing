@@ -17,7 +17,7 @@ pytest-xdist
 pytorch_pretrained_bert
 spacy==2.1.4
 questionary==1.1.1
-json_logging
+json_logging==1.2.9
 autopep8==1.4.4
 pandas==0.24.2
 pytorch_crf
