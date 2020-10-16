@@ -11,7 +11,7 @@ stop_words
 botocore
 pytest==4.5.0
 pytest-sugar
-pytest-xdist
+pytest-xdist==2.1.0
 questionary==1.1.1
 json_logging
 autopep8==1.4.4
