@@ -1,6 +1,6 @@
 fastapi
 networkx
-wandb
+wandb==0.10.6
 logzero
 typing==3.6.6
 torch
