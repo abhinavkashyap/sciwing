@@ -1,4 +1,4 @@
-fastapi
+fastapi==0.61.1
 networkx
 wandb
 logzero
