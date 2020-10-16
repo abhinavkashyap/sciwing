@@ -19,7 +19,7 @@ colorful==0.5.1
 Jinja2==2.10.1
 falcon==2.0.0
 click==7.0
-toml==0.10.0
+toml==0.10.1
 requests==2.22.0
 sphinx
 sphinx-rtd-theme
