@@ -1,5 +1,5 @@
 networkx
-wandb
+wandb==0.10.6
 logzero
 falcon_multipart
 typing==3.6.6
