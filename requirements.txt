@@ -116,7 +116,7 @@ pandas==0.24.2
 pandocfilters==1.4.2
 parsimonious==0.8.1
 parso==0.6.2
-pathspec==0.7.0
+pathspec==0.8.0
 pathtools==0.1.2
 pexpect==4.8.0
 pickleshare==0.7.5
