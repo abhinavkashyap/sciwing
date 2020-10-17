@@ -184,7 +184,7 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
 sqlitedict==1.6.0
 sqlparse==0.3.1
-srsly==1.0.2
+srsly==2.3.0
 sshpubkeys==3.1.0
 starlette==0.13.2
 stop-words==2018.7.23
