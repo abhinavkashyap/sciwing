@@ -161,7 +161,7 @@ responses==0.10.12
 rsa==3.4.2
 s3transfer==0.3.3
 sacremoses==0.0.38
-scikit-learn==0.21.3
+scikit-learn==0.23.2
 scipy==1.4.1
 segtok==1.5.7
 Send2Trash==1.5.0
