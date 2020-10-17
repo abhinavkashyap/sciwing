@@ -200,7 +200,7 @@ thinc==7.0.8
 tika==1.24
 tokenizers==0.5.2
 toml==0.10.0
-toolz==0.10.0
+toolz==0.11.1
 torch==1.4.0
 tornado==5.1.1
 tqdm==4.32.1
