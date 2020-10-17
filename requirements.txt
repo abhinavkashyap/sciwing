@@ -53,7 +53,7 @@ flair==0.4.5
 flaky==3.6.1
 Flask==1.1.1
 Flask-Cors==3.0.8
-ftfy==5.7
+ftfy==5.8
 future==0.18.2
 gensim==3.8.0
 gevent==1.4.0
