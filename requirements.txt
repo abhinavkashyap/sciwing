@@ -47,7 +47,7 @@ editdistance==0.5.3
 entrypoints==0.3
 enum-compat==0.0.3
 execnet==1.7.1
-fastapi==0.52.0
+fastapi==0.61.1
 filelock==3.0.12
 flair==0.4.5
 flaky==3.6.1
