@@ -94,7 +94,7 @@ livereload==2.6.1
 logzero==1.5.0
 lxml==4.5.0
 MarkupSafe==1.1.1
-matplotlib==3.2.0
+matplotlib==3.3.2
 mistune==0.8.4
 mock==4.0.2
 more-itertools==8.2.0
