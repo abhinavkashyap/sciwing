@@ -2,7 +2,7 @@ alabaster==0.7.12
 allennlp==0.8.3
 altair==4.0.1
 apipkg==1.5
-appdirs==1.4.3
+appdirs==1.4.4
 appnope==0.1.0
 argh==0.26.2
 astor==0.8.1
