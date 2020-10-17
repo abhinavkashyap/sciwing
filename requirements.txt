@@ -222,7 +222,7 @@ wcwidth==0.1.8
 webencodings==0.5.1
 websocket-client==0.57.0
 websockets==8.1
-Werkzeug==1.0.0
+Werkzeug==1.0.1
 widgetsnbextension==3.5.1
 word2number==1.1
 wrapt==1.11.2
