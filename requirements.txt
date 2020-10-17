@@ -134,7 +134,7 @@ psutil==5.7.0
 ptyprocess==0.6.0
 py==1.8.1
 pyasn1==0.4.8
-pycodestyle==2.5.0
+pycodestyle==2.6.0
 pycparser==2.20
 pydantic==1.4
 pydeck==0.3.0b2
