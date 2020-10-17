@@ -212,7 +212,7 @@ typing==3.6.6
 tzlocal==2.0.0
 Unidecode==1.1.1
 urllib3==1.24.3
-uvicorn==0.11.3
+uvicorn==0.12.1
 uvloop==0.14.0
 validators==0.14.2
 wandb==0.8.29
