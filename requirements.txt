@@ -218,7 +218,7 @@ validators==0.14.2
 wandb==0.8.29
 wasabi==0.2.2
 watchdog==0.10.2
-wcwidth==0.1.8
+wcwidth==0.2.5
 webencodings==0.5.1
 websocket-client==0.57.0
 websockets==8.1
