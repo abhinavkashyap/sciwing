@@ -227,4 +227,4 @@ widgetsnbextension==3.5.1
 word2number==1.1
 wrapt==1.11.2
 xmltodict==0.12.0
-zipp==3.1.0
+zipp==3.3.1
