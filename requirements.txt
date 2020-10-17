@@ -88,7 +88,7 @@ jsonschema==3.0.2
 jupyter-client==6.0.0
 jupyter-core==4.6.3
 keyring==21.2.0
-kiwisolver==1.1.0
+kiwisolver==1.2.0
 langdetect==1.0.8
 livereload==2.6.1
 logzero==1.5.0
