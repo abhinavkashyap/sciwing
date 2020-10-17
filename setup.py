@@ -35,7 +35,7 @@ setup(
         "gensim",
         "pytorch-pretrained-bert",
         "spacy",
-        "questionary==1.1.1",
+        "questionary",
         "pandas",
         "pytorch-crf",
         "colorful",
