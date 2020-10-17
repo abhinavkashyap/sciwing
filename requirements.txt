@@ -196,7 +196,7 @@ tensorboardX==1.8
 termcolor==1.1.0
 terminado==0.8.3
 testpath==0.4.4
-thinc==7.0.8
+thinc==7.4.1
 tika==1.24
 tokenizers==0.5.2
 toml==0.10.0
