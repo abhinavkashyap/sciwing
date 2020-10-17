@@ -137,7 +137,7 @@ pyasn1==0.4.8
 pycodestyle==2.5.0
 pycparser==2.20
 pydantic==1.4
-pydeck==0.3.0b2
+pydeck==0.5.0b1
 Pygments==2.6.1
 pyparsing==2.4.6
 pyrsistent==0.15.7
