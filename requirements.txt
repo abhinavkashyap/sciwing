@@ -13,7 +13,7 @@ aws-sam-translator==1.21.0
 aws-xray-sdk==2.4.3
 awscli==1.18.36
 Babel==2.8.0
-backcall==0.1.0
+backcall==0.2.0
 base58==2.0.0
 black==19.10b0
 bleach==3.1.3
