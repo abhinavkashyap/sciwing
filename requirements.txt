@@ -160,7 +160,7 @@ requests-toolbelt==0.9.1
 responses==0.10.12
 rsa==3.4.2
 s3transfer==0.3.3
-sacremoses==0.0.38
+sacremoses==0.0.43
 scikit-learn==0.21.3
 scipy==1.4.1
 segtok==1.5.7
