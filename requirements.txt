@@ -78,7 +78,7 @@ jedi==0.16.0
 Jinja2==2.10.1
 jmespath==0.9.5
 joblib==0.14.1
-json-logging==1.0.6
+json-logging==1.2.10
 jsondiff==1.1.2
 jsonnet==0.15.0
 jsonpatch==1.25
