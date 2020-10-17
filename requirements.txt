@@ -58,7 +58,7 @@ future==0.18.2
 gensim==3.8.0
 gevent==1.4.0
 gitdb==4.0.2
-GitPython==3.1.0
+GitPython==3.1.9
 gql==0.2.0
 graphql-core==1.1
 greenlet==0.4.15
