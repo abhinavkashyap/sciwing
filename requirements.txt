@@ -198,7 +198,7 @@ terminado==0.8.3
 testpath==0.4.4
 thinc==7.0.8
 tika==1.24
-tokenizers==0.5.2
+tokenizers==0.9.2
 toml==0.10.0
 toolz==0.10.0
 torch==1.4.0
