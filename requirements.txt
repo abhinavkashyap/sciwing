@@ -60,7 +60,7 @@ gevent==1.4.0
 gitdb==4.0.2
 GitPython==3.1.0
 gql==0.2.0
-graphql-core==1.1
+graphql-core==3.1.2
 greenlet==0.4.15
 h11==0.9.0
 h5py==2.10.0
