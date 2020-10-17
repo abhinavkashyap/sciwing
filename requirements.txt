@@ -162,7 +162,7 @@ rsa==3.4.2
 s3transfer==0.3.3
 sacremoses==0.0.38
 scikit-learn==0.21.3
-scipy==1.4.1
+scipy==1.5.2
 segtok==1.5.7
 Send2Trash==1.5.0
 sentencepiece==0.1.85
