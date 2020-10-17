@@ -165,7 +165,7 @@ scikit-learn==0.21.3
 scipy==1.4.1
 segtok==1.5.7
 Send2Trash==1.5.0
-sentencepiece==0.1.85
+sentencepiece==0.1.93
 sentry-sdk==0.14.2
 shortuuid==1.0.1
 six==1.14.0
