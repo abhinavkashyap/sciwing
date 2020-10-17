@@ -182,7 +182,7 @@ sphinxcontrib-htmlhelp==1.0.3
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.4
-sqlitedict==1.6.0
+sqlitedict==1.7.0
 sqlparse==0.3.1
 srsly==1.0.2
 sshpubkeys==3.1.0
