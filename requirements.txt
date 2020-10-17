@@ -194,7 +194,7 @@ subprocess32==3.5.4
 tabulate==0.8.6
 tensorboardX==1.8
 termcolor==1.1.0
-terminado==0.8.3
+terminado==0.9.1
 testpath==0.4.4
 thinc==7.0.8
 tika==1.24
