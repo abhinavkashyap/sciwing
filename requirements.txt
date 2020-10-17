@@ -79,7 +79,7 @@ Jinja2==2.10.1
 jmespath==0.9.5
 joblib==0.14.1
 json-logging==1.0.6
-jsondiff==1.1.2
+jsondiff==1.2.0
 jsonnet==0.15.0
 jsonpatch==1.25
 jsonpickle==1.3
