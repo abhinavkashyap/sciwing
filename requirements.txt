@@ -173,7 +173,7 @@ smart-open==1.9.0
 smmap==3.0.1
 snowballstemmer==2.0.0
 spacy==2.1.4
-Sphinx==2.4.4
+Sphinx==3.2.1
 sphinx-autobuild==0.7.1
 sphinx-rtd-theme==0.4.3
 sphinxcontrib-applehelp==1.0.2
