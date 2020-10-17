@@ -122,7 +122,7 @@ pexpect==4.8.0
 pickleshare==0.7.5
 Pillow==7.0.0
 pkginfo==1.5.0.1
-plac==0.9.6
+plac==1.2.0
 pluggy==0.13.1
 port-for==0.3.1
 preshed==2.0.1
