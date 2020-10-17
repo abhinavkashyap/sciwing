@@ -205,7 +205,7 @@ torch==1.4.0
 tornado==5.1.1
 tqdm==4.32.1
 traitlets==4.3.3
-transformers==2.5.1
+transformers==3.3.1
 twine==3.1.1
 typed-ast==1.4.1
 typing==3.6.6
