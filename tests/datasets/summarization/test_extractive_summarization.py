@@ -13,8 +13,8 @@ def test_file(tmpdir_factory):
     return p
 
 
-class TestSeqLabellingDataset:
-    def test_get_lines_labels(self, test_file):
+class TestExtractiveSummarizationDataset:
+    def test_get_lines_labels_refs(self, test_file):
         dataset = ExtractiveSummarizationDataset(
             filename=str(test_file), tokenizers={"tokens": WordTokenizer()}
         )
