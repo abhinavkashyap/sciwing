@@ -82,7 +82,6 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
             "tokens": Numericalizer(),
             "char_tokens": Numericalizer(),
         }
-        self.namespace_numericalizer_map["seq_label"] = Numericalizer()
 
         self.batch_size = batch_size
 
