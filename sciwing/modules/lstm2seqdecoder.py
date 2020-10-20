@@ -11,7 +11,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
     def __init__(
         self,
         embedder: nn.Module,
-        vocab_size: int,
+        # vocab_size: int,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
@@ -45,7 +45,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         super(Lstm2SeqDecoder, self).__init__()
         self.embedder = embedder
         self.emb_dim = embedder.get_embedding_dimension()
-        self.vocab_size = vocab_size
+        # self.vocab_size = vocab_size
         self.dropout_value = dropout_value
         self.hidden_dim = hidden_dim
         self.rnn_bias = rnn_bias
@@ -68,10 +68,10 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
             dropout=self.dropout_value,
         )
 
-        self.output_size = self.vocab_size
+        # self.output_size = self.vocab_size
 
-        self.output_layer = nn.Linear(self.hidden_dim, self.output_size)
-        self.softmax_layer = nn.LogSoftmax(dim=1)
+        # self.output_layer = nn.Linear(self.hidden_dim, self.output_size)
+        # self.softmax_layer = nn.LogSoftmax(dim=1)
 
     def forward(
         self,
@@ -126,7 +126,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         # else:
         #     encoding = output
 
-        output = self.softmax_layer(self.output_layer(output))
+        # output = self.softmax_layer(self.output_layer(output))
 
         return output
 

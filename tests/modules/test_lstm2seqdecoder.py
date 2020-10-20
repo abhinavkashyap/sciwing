@@ -6,7 +6,7 @@ from sciwing.data.line import Line
 import itertools
 
 lstm2decoder_options = itertools.product(
-    [10, 15], [1, 2], [True, False]
+    [1, 2], [True, False]
 )
 lstm2decoder_options = list(lstm2decoder_options)
 
@@ -14,13 +14,11 @@ lstm2decoder_options = list(lstm2decoder_options)
 @pytest.fixture(params=lstm2decoder_options)
 def setup_lstm2seqdecoder(request, ):
     HIDDEN_DIM = 1024
-    VOCAB_SIZE = request.param[0]
-    NUM_LAYERS = request.param[1]
-    BIDIRECTIONAL = request.param[2]
+    NUM_LAYERS = request.param[0]
+    BIDIRECTIONAL = request.param[1]
     embedder = WordEmbedder(embedding_type="glove_6B_50")
     decoder = Lstm2SeqDecoder(
         embedder=embedder,
-        vocab_size=VOCAB_SIZE,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
@@ -38,7 +36,6 @@ def setup_lstm2seqdecoder(request, ):
         decoder,
         {
             "HIDDEN_DIM": HIDDEN_DIM,
-            "EXPECTED_OUTPUT_DIM": VOCAB_SIZE,
             "NUM_LAYERS": NUM_LAYERS,
             "LINES": lines,
             "TIME_STEPS": 2,
@@ -52,10 +49,8 @@ class TestLstm2SeqDecoder:
         decoder, options = setup_lstm2seqdecoder
         lines = options["LINES"]
         num_time_steps = options["TIME_STEPS"]
-        expected_output_size = options["EXPECTED_OUTPUT_DIM"]
         bidirectional = options["BIDIRECTIONAL"]
+        expected_output_size =  2 * options["HIDDEN_DIM"] if bidirectional else options["HIDDEN_DIM"]
         decoding = decoder(lines=lines)
         batch_size = len(lines)
-        hidden_dim = 2 * options["HIDDEN_DIM"] if bidirectional else options["HIDDEN_DIM"]
         assert decoding.size() == (batch_size, num_time_steps, expected_output_size)
-        assert decoder.hidden_dim == hidden_dim
