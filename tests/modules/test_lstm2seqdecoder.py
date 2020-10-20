@@ -6,41 +6,21 @@ from sciwing.data.line import Line
 import itertools
 
 lstm2decoder_options = itertools.product(
-    [1, 2], [True, False]
+    [10, 15], [1, 2], [True, False]
 )
 lstm2decoder_options = list(lstm2decoder_options)
 
-@pytest.fixture(scope="session")
-def abs_sum_dataset_manager(tmpdir_factory, request):
-    train_file = tmpdir_factory.mktemp("train_data").join("train_file.txt")
-    train_file.write("train_word1 train_word2###label1\ntrain_word3###label2")
-
-    dev_file = tmpdir_factory.mktemp("dev_data").join("dev_file.txt")
-    dev_file.write("dev_word1###label1\ndev_word2###label2")
-
-    test_file = tmpdir_factory.mktemp("test_data").join("test_file.txt")
-    test_file.write("test_word1###label1\ntest_word2###label2")
-
-    abs_sum_dataset_manager = AbstractiveSummarizationDatasetManager(
-        train_filename=str(train_file),
-        dev_filename=str(dev_file),
-        test_filename=str(test_file),
-    )
-
-    return abs_sum_dataset_manager
-
 
 @pytest.fixture(params=lstm2decoder_options)
-def setup_lstm2seqdecoder(request, abs_sum_dataset_manager):
+def setup_lstm2seqdecoder(request, ):
     HIDDEN_DIM = 1024
-    NUM_LAYERS = request.param[0]
-    OUTPUT_DIM = abs_sum_dataset_manager.namespace_to_vocab["tokens"].get_vocab_len()
-    BIDIRECTIONAL = request.param[1]
+    VOCAB_SIZE = request.param[0]
+    NUM_LAYERS = request.param[1]
+    BIDIRECTIONAL = request.param[2]
     embedder = WordEmbedder(embedding_type="glove_6B_50")
     decoder = Lstm2SeqDecoder(
         embedder=embedder,
-        datasets_manager=abs_sum_dataset_manager,
-        word_tokens_namespace="tokens",
+        vocab_size=VOCAB_SIZE,
         dropout_value=0.0,
         hidden_dim=HIDDEN_DIM,
         bidirectional=BIDIRECTIONAL,
@@ -58,7 +38,7 @@ def setup_lstm2seqdecoder(request, abs_sum_dataset_manager):
         decoder,
         {
             "HIDDEN_DIM": HIDDEN_DIM,
-            "EXPECTED_OUTPUT_DIM": OUTPUT_DIM,
+            "EXPECTED_OUTPUT_DIM": VOCAB_SIZE,
             "NUM_LAYERS": NUM_LAYERS,
             "LINES": lines,
             "TIME_STEPS": 2,
