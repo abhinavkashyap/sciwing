@@ -9,6 +9,8 @@ from typing import Dict, List, Any
 from sciwing.data.line import Line
 from sciwing.data.seq_label import SeqLabel
 from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.vocab.vocab import Vocab
+from collections import defaultdict
 
 
 class AbstractiveSummarizationDataset(BaseAbstractiveTextSummarization, Dataset):
@@ -81,6 +83,7 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),
             "char_tokens": Numericalizer(),
+            "shared_tokens": Numericalizer()
         }
 
         self.batch_size = batch_size
@@ -105,3 +108,46 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
             namespace_numericalizer_map=self.namespace_numericalizer_map,
             batch_size=batch_size,
         )
+
+    def build_vocab(self) -> Dict[str, Vocab]:
+        """ Returns a vocab for each of the namespace
+        The namespace identifies the kind of tokens
+        Some tokens correspond to words
+        Some tokens may correspond to characters.
+        Some tokens may correspond to Bert style tokens
+
+        Returns
+        -------
+        Dict[str, Vocab]
+            A vocab corresponding to each of the
+
+        """
+        lines = self.train_dataset.lines
+        labels = self.train_dataset.labels
+
+        namespace_to_instances: Dict[str, List[List[str]]] = defaultdict(list)
+        shared_namespace: str = "shared_tokens"
+        for line in lines:
+            namespace_tokens = line.tokens
+            for namespace, tokens in namespace_tokens.items():
+                namespace_to_instances[namespace].append(tokens)
+        for label in labels:
+            namespace_tokens = label.tokens
+            for namespace, tokens in namespace_tokens.items():
+                namespace_to_instances[namespace].append(tokens)
+        namespace_list = list(namespace_to_instances.keys()).copy()
+        for namespace in namespace_list:
+            namespace_to_instances[shared_namespace].extend(namespace_to_instances[namespace])
+
+        self.label_namespaces = list(labels[0].tokens.keys())
+
+        namespace_to_vocab: Dict[str, Vocab] = {}
+
+        # This always builds a vocab from instances
+        for namespace, instances in namespace_to_instances.items():
+            namespace_to_vocab[namespace] = Vocab(
+                instances=instances, **self.namespace_vocab_options.get(namespace, {})
+            )
+            namespace_to_vocab[namespace].build_vocab()
+        return namespace_to_vocab
+
