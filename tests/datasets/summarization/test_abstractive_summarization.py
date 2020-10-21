@@ -8,7 +8,9 @@ from sciwing.tokenizers.word_tokenizer import WordTokenizer
 @pytest.fixture(scope="session")
 def test_file(tmpdir_factory):
     p = tmpdir_factory.mktemp("data").join("test.txt")
-    p.write("line1###label1\nline2###label2")
+    p.write(
+        "word11_train word21_train###word11_label word12_label\nword12_train word22_train word32_train###word21_label"
+    )
     return p
 
 
@@ -31,8 +33,8 @@ class TestAbstractSummarizationDataset:
             filename=str(test_file), tokenizers={"tokens": WordTokenizer()}
         )
         num_instances = len(classification_dataset)
-        defined_line_tokens = ["line1", "line2"]
-        defined_label_tokens = ["label1", "label2"]
+        defined_line_tokens = ["word11_train", "word21_train", "word12_train", "word22_train", "word32_train"]
+        defined_label_tokens = ["word11_label", "word12_label", "word21_label"]
         line_tokens = []
         label_tokens = []
         for idx in range(num_instances):
