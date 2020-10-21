@@ -16,29 +16,29 @@ def test_file(tmpdir_factory):
 
 class TestAbstractSummarizationDataset:
     def test_get_lines_labels(self, test_file):
-        classification_dataset = AbstractiveSummarizationDataset(
+        summarization_dataset = AbstractiveSummarizationDataset(
             filename=str(test_file), tokenizers={"tokens": WordTokenizer()}
         )
-        lines = classification_dataset.lines
+        lines = summarization_dataset.lines
         assert len(lines) == 2
 
     def test_len_dataset(self, test_file):
-        classification_dataset = AbstractiveSummarizationDataset(
+        summarization_dataset = AbstractiveSummarizationDataset(
             filename=str(test_file), tokenizers={"tokens": WordTokenizer()}
         )
-        assert len(classification_dataset) == 2
+        assert len(summarization_dataset) == 2
 
     def test_get_item(self, test_file):
-        classification_dataset = AbstractiveSummarizationDataset(
+        summarization_dataset = AbstractiveSummarizationDataset(
             filename=str(test_file), tokenizers={"tokens": WordTokenizer()}
         )
-        num_instances = len(classification_dataset)
+        num_instances = len(summarization_dataset)
         defined_line_tokens = ["word11_train", "word21_train", "word12_train", "word22_train", "word32_train"]
         defined_label_tokens = ["word11_label", "word12_label", "word21_label"]
         line_tokens = []
         label_tokens = []
         for idx in range(num_instances):
-            line, label = classification_dataset[idx]
+            line, label = summarization_dataset[idx]
             line_tokens.extend(line.tokens["tokens"])
             label_tokens.extend(label.tokens["tokens"])
 
