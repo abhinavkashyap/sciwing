@@ -94,28 +94,21 @@ class Seq2SeqModel(nn.Module, ClassNursery):
         encoding = self.rnn2seqencoder(lines=lines)
         dec_output = self.rnn2seqdecoder(lines=labels)
         max_time_steps = dec_output.size(1)
-        print(dec_output.size()) # 2, 2, 200
 
         output_dict = {}
 
         # batch size, time steps, num_classes
         namespace_logits = self.linear_proj(dec_output)
-        print(namespace_logits.size()) # 2, 2, 28
         normalized_probs = softmax(namespace_logits, dim=2)
-        print(normalized_probs.size())
 
         batch_size, time_steps, _ = namespace_logits.size()
-        print(batch_size, time_steps)
         output_dict[f"logits_{self.vocab_namespace}"] = namespace_logits
         output_dict["normalized_probs"] = normalized_probs
         predicted_tags = torch.topk(namespace_logits, k=1, dim=2)
-        print(len(predicted_tags))
 
         # gets the max element indices and flattens it to get List[List[int]]
         predicted_tags = predicted_tags.indices.flatten(start_dim=1).tolist()
         output_dict[f"predicted_tags_{self.vocab_namespace}"] = predicted_tags
-
-        print("labels: ", len(labels))
 
         labels_indices = []
         if is_training or is_validation:
@@ -125,28 +118,20 @@ class Seq2SeqModel(nn.Module, ClassNursery):
                     self.vocab_namespace
                 ]
                 label_ = label.tokens[self.label_namespace]
-                print(self.label_namespace)
                 label_ = [tok.text for tok in label_]
-                print(label_)
-                print(self.vocab_size)
                 label_instances = numericalizer.numericalize_instance(instance=label_)
-                print(label_instances)
                 label_instances = numericalizer.pad_instance(
                     numericalized_text=label_instances,
                     max_length=max_time_steps,
                     add_start_end_token=False,
                 )
-                print(label_instances)
                 label_instances = torch.tensor(
                     label_instances, dtype=torch.long, device=self.device
                 )
                 labels_indices.append(label_instances)
-                print(labels_indices)
 
             # batch_size, num_steps
             labels_tensor = torch.stack(labels_indices)
-            print(labels_tensor.size())
-            print(batch_size * max_time_steps)
             loss = self._loss(
                 input=normalized_probs.view(batch_size * max_time_steps, -1),
                 target=labels_tensor.view(-1)
