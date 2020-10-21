@@ -110,6 +110,7 @@ class TestSeq2SeqModel:
     def test_seq2seq_model_dimensions(self, setup_seq2seq_model, abs_sum_dataset_manager):
         tagger, dataset_manager, options = setup_seq2seq_model
         dataset_manager = abs_sum_dataset_manager
+        VOCAB_SIZE = dataset_manager.namespace_to_vocab["shared_tokens"].get_vocab_len()
         lines, labels = dataset_manager.train_dataset.get_lines_labels()
         output_dict = tagger(
             lines=lines,
@@ -118,4 +119,4 @@ class TestSeq2SeqModel:
             is_validation=False,
             is_test=False,
         )
-        assert output_dict["logits_shared_tokens"].size() == (2, 2, 28)
+        assert output_dict["logits_shared_tokens"].size() == (2, 2, VOCAB_SIZE)
