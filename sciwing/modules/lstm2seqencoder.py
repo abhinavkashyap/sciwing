@@ -114,8 +114,8 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
             -------
             torch.Tensor
                 Returns the vector encoding of the set of instances
-                [batch_size, hidden_dim] if single direction
-                [batch_size, 2*hidden_dim] if bidirectional
+                [batch_size, seq_len, hidden_dim] if single direction
+                [batch_size, seq_len, 2*hidden_dim] if bidirectional
         """
 
         embeddings = self.embedder(lines=lines)
@@ -130,7 +130,7 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
         # output = batch_size, sequence_length, num_directions * hidden_size
         # h_n = num_layers * num_directions, batch_size, hidden_dimension
         # c_n = num_layers * num_directions, batch_size, hidden_dimension
-        output, (_, _) = self.rnn(embeddings, (h0, c0))
+        output, (hn, cn) = self.rnn(embeddings, (h0, c0))
 
         if self.bidirectional:
             output = output.view(batch_size, seq_length, self.num_directions, -1)
@@ -150,7 +150,7 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 self.projection_layer(encoding)
             )
 
-        return encoding
+        return encoding, (hn, cn)
 
     def get_initial_hidden(self, batch_size: int):
         h0 = torch.zeros(
