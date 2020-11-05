@@ -60,6 +60,7 @@ class TestLstm2SeqEncoder:
         lines = options["LINES"]
         num_time_steps = options["TIME_STEPS"]
         expected_hidden_size = options["EXPECTED_HIDDEN_DIM"]
-        encoding = encoder(lines=lines)
+        encoding, (hn, cn) = encoder(lines=lines)
         batch_size = len(lines)
+        print(hn.size(), cn.size())
         assert encoding.size() == (batch_size, num_time_steps, expected_hidden_size)
