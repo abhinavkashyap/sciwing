@@ -5,14 +5,17 @@ from typing import List
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.line import Line
 from sciwing.data.datasets_manager import DatasetsManager
+import random
+from sciwing.vocab.vocab import Vocab
 
 
 class Lstm2SeqDecoder(nn.Module, ClassNursery):
     def __init__(
         self,
         embedder: nn.Module,
-        vocab_size: int,
-        attn_module: nn.Module,
+        vocab: nn.Module,
+        max_length: int,
+        attn_module: Vocab,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
@@ -53,7 +56,8 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         """
         super(Lstm2SeqDecoder, self).__init__()
         self.embedder = embedder
-        self.vocab_size = vocab_size
+        self.vocab = vocab
+        self.max_length = max_length
         self.attn_module = attn_module
         self.emb_dim = embedder.get_embedding_dimension()
         self.dropout_value = dropout_value
@@ -82,6 +86,8 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
             f"{self.allowed_combine_strategies}. You passed "
             f"{self.combine_strategy}"
         )
+        self.vocab_size = self.vocab.get_vocab_len()
+        self.start_token = self.vocab.start_token
         self.emb_dropout = nn.Dropout(p=self.dropout_value)
         self.output_dropout = nn.Dropout(p=self.dropout_value)
         self.rnn = nn.LSTM(
@@ -95,22 +101,22 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         )
 
         if self.attn_module:
-            self.projection_layer = nn.Linear(self.hidden_dim * 2, vocab_size)
+            self.projection_layer = nn.Linear(self.hidden_dim * 2, self.vocab_size)
         else:
-            self.projection_layer = nn.Linear(self.hidden_dim, vocab_size)
+            self.projection_layer = nn.Linear(self.hidden_dim, self.vocab_size)
 
-    def forward(
+    def forward_step(
         self,
         lines: List[Line],
         c0: torch.FloatTensor,
         h0: torch.FloatTensor,
         encoder_outputs: torch.FloatTensor = None
-    ) -> torch.Tensor:
+    ) -> (torch.Tensor, torch.FloatTensor, torch.FloatTensor):
         """
 
         Parameters
         ----------
-        trg : 1d torch.LongTensor
+        lines : list of Line objects
             Batched tokenized source sentence of shape [batch size].
 
         h0, c0 : 3d torch.FloatTensor
@@ -127,28 +133,100 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
             Hidden and cell state of the LSTM layer. Each state's shape
             [n layers * n directions, batch size, hidden dim]
         """
-
-        # [batch_size, 1, emb dim], the 1 serves as sent len
+        # [batch_size, seq_length, emb dim], the 1 serves as sent len
         embeddings = self.embedder(lines=lines)
         embeddings = self.emb_dropout(embeddings)
 
         outputs, (hn, cn) = self.rnn(embeddings, (h0, c0))
 
         if self.attn_module:
-            # batch_size, number_of_context_lines
-            attn = self.attn_module(query_matrix=outputs.squeeze(1), key_matrix=encoder_outputs)
+            attn_encoding_list = []
+            for time_step in range(outputs.size(1)):
+                query = outputs[:, time_step, :]
 
-            attn_unsqueeze = attn.unsqueeze(1)
+                # batch_size, number_of_context_lines
+                attn = self.attn_module(query_matrix=query, key_matrix=encoder_outputs)
 
-            # batch_size, 1, hidden_dimension
-            values = torch.bmm(attn_unsqueeze, encoder_outputs)
+                attn_unsqueeze = attn.unsqueeze(1)
 
-            # batch_size, 1, 2 * hidden_dimension
-            outputs = torch.cat((values, outputs), -1)
+                # batch_size, 1, hidden_dimension
+                values = torch.bmm(attn_unsqueeze, encoder_outputs)
+                #
+                # # batch_size, 1, 2 * hidden_dimension
+                # outputs = torch.cat((values, outputs), -1)
 
-        prediction = self.projection_layer(outputs)
+                values = values.squeeze(1)
+                attn_encoding_list.append(values)
 
-        return prediction, (hn, cn)
+            # concatenate the representation
+            # batch_size, number_of_time_steps, hidden_dimension
+            attn_encoding = torch.stack(attn_encoding_list, dim=1)
+            outputs = torch.cat([outputs, attn_encoding], dim=2)
+
+        prediction = nn.functional.log_softmax(self.projection_layer(outputs))
+
+        return prediction, hn, cn
+
+    def forward(
+        self,
+        lines: List[Line],
+        c0: torch.FloatTensor,
+        h0: torch.FloatTensor,
+        encoder_outputs: torch.FloatTensor = None,
+        teacher_forcing_ratio: float = 0
+    ) -> torch.Tensor:
+        """
+
+        Parameters
+        ----------
+        lines : list of Line objects
+            Batched tokenized source sentence of shape [batch size].
+
+        h0, c0 : 3d torch.FloatTensor
+            Hidden and cell state of the LSTM layer. Each state's shape
+            [n layers * n directions, batch size, hidden dim]
+
+        Returns
+        -------
+        prediction : 2d torch.LongTensor
+            For each token in the batch, the predicted target vobulary.
+            Shape [batch size, output dim]
+
+        hn, cn : 3d torch.FloatTensor
+            Hidden and cell state of the LSTM layer. Each state's shape
+            [n layers * n directions, batch size, hidden dim]
+        """
+        use_teacher_forcing = True if (random.random() < teacher_forcing_ratio) else False
+        if use_teacher_forcing:
+            max_length = max(len(line.tokens['tokens']) for line in lines)
+        else:
+            max_length = self.max_length
+        batch_size = len(lines)
+
+        # tensor to store decoder's output
+        outputs = torch.zeros(max_length, batch_size, self.vocab_size).to(self.device)
+
+        # last hidden & cell state of the encoder is used as the decoder's initial hidden state
+        if use_teacher_forcing:
+            prediction, _, _ = self.forward_step(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs)
+            outputs = prediction
+        else:
+            lines = [self._generate_lines_with_start_token()] * batch_size
+            for i in range(1, max_length):
+                prediction, hn, cn = self.forward_step(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs)
+                prediction = prediction.squeeze(1)
+                outputs[i] = prediction
+                line_token_indexes = prediction.argmax(1)
+                line_tokens = [self.vocab.idx2token[line_token_index] for line_token_index in line_token_indexes.numpy()]
+                lines = []
+                for token in line_tokens:
+                    line = Line("")
+                    line.add_token(token, "tokens")
+                    lines.append(line)
+                h0, c0 = hn, cn
+        outputs = outputs.permute(1, 0, 2)
+        return outputs
+
 
     def get_initial_hidden(self, batch_size: int):
         h0 = torch.zeros(
@@ -160,4 +238,9 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         h0 = h0.to(self.device)
         c0 = c0.to(self.device)
         return h0, c0
+
+    def _generate_lines_with_start_token(self):
+        line = Line("")
+        line.add_token(self.start_token, "tokens")
+        return line
 
