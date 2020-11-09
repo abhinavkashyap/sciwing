@@ -12,6 +12,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         self,
         embedder: nn.Module,
         vocab_size: int,
+        attn_module: nn.Module,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
@@ -53,6 +54,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         super(Lstm2SeqDecoder, self).__init__()
         self.embedder = embedder
         self.vocab_size = vocab_size
+        self.attn_module = attn_module
         self.emb_dim = embedder.get_embedding_dimension()
         self.dropout_value = dropout_value
         self.hidden_dim = hidden_dim
@@ -92,47 +94,61 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
             dropout=self.dropout_value,
         )
 
-        self.projection_layer = nn.Linear(self.hidden_dim, vocab_size)
+        if self.attn_module:
+            self.projection_layer = nn.Linear(self.hidden_dim * 2, vocab_size)
+        else:
+            self.projection_layer = nn.Linear(self.hidden_dim, vocab_size)
 
     def forward(
         self,
         lines: List[Line],
         c0: torch.FloatTensor,
         h0: torch.FloatTensor,
+        encoder_outputs: torch.FloatTensor = None
     ) -> torch.Tensor:
         """
 
-            Parameters
-            ----------
-            lines : List[Line]
-                A list of lines
-            c0 : torch.FloatTensor
-                The initial state vector for the LSTM
-            h0 : torch.FloatTensor
-                The initial hidden state for the LSTM
+        Parameters
+        ----------
+        trg : 1d torch.LongTensor
+            Batched tokenized source sentence of shape [batch size].
 
-            Returns
-            -------
-            torch.Tensor
-                Returns the vector encoding of the set of instances
-                [batch_size, seq_len, hidden_dim] if single direction
-                [batch_size, seq_len, 2*hidden_dim] if bidirectional
+        h0, c0 : 3d torch.FloatTensor
+            Hidden and cell state of the LSTM layer. Each state's shape
+            [n layers * n directions, batch size, hidden dim]
+
+        Returns
+        -------
+        prediction : 2d torch.LongTensor
+            For each token in the batch, the predicted target vobulary.
+            Shape [batch size, output dim]
+
+        hn, cn : 3d torch.FloatTensor
+            Hidden and cell state of the LSTM layer. Each state's shape
+            [n layers * n directions, batch size, hidden dim]
         """
 
+        # [batch_size, 1, emb dim], the 1 serves as sent len
         embeddings = self.embedder(lines=lines)
-        batch_size = len(lines)
-        seq_length = embeddings.size(1)
-
         embeddings = self.emb_dropout(embeddings)
 
-        # output = batch_size, sequence_length, num_directions * hidden_size
-        # h_n = num_layers, batch_size, num_directions * hidden_dimension
-        # c_n = num_layers, batch_size, num_directions * hidden_dimension
-        output, (_, _) = self.rnn(embeddings, (h0, c0))
+        outputs, (hn, cn) = self.rnn(embeddings, (h0, c0))
 
-        predictions = self.projection_activation_module(self.projection_layer(output))
+        if self.attn_module:
+            # batch_size, number_of_context_lines
+            attn = self.attn_module(query_matrix=outputs.squeeze(1), key_matrix=encoder_outputs)
 
-        return predictions
+            attn_unsqueeze = attn.unsqueeze(1)
+
+            # batch_size, 1, hidden_dimension
+            values = torch.bmm(attn_unsqueeze, encoder_outputs)
+
+            # batch_size, 1, 2 * hidden_dimension
+            outputs = torch.cat((values, outputs), -1)
+
+        prediction = self.projection_layer(outputs)
+
+        return prediction, (hn, cn)
 
     def get_initial_hidden(self, batch_size: int):
         h0 = torch.zeros(
