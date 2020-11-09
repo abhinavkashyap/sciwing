@@ -224,7 +224,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
                     line.add_token(token, "tokens")
                     lines.append(line)
                 h0, c0 = hn, cn
-        outputs = outputs.permute(1, 0, 2)
+            outputs = outputs.permute(1, 0, 2)
         return outputs
 
 
