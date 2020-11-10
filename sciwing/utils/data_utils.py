@@ -4,6 +4,7 @@ import wasabi
 from collections import OrderedDict
 from tqdm import tqdm
 import json
+import os
 
 
 def convert_conll2003_ner_to_bioul(filename: str, out_filename: str):
@@ -223,6 +224,62 @@ def write_scicite_to_sciwing_text_clf(scicite_json_filename: str, out_filename: 
     printer.good(f"Finished writing {out_filename}")
 
 
+
+def write_pubmed_data_to_sciwing_seq2seq(pubmed_dir: str, subset:str, out_filename:str):
+    """ SciCite files are jsonl filenames with citation strings.
+
+    Parameters
+    ----------
+    pubmed_dir : str
+        The directory path to where pubmed dataset
+
+    subset : str
+        Choose from train, test and val
+
+    out_filename : str
+        Output file name
+
+    Returns
+    -------
+    None
+
+    """
+    printer = wasabi.Printer()
+    # inputs = []
+    # abstracts = []
+    lines = []
+
+    text_dir = os.path.join(pubmed_dir, "inputs", subset)
+    abstract_dir = os.path.join(pubmed_dir, "human-abstracts", subset)
+    filename_list = [filename.split(".")[0] for filename in os.listdir(text_dir)]
+
+    print(f"Reading pubmed {subset} data")
+    for filename in tqdm(filename_list):
+        with open(os.path.join(abstract_dir, f"{filename}.txt"), "r") as fp:
+            abstract = fp.read()
+            # abstracts.append(abstract)
+
+        with open(os.path.join(text_dir, f"{filename}.json"), "r") as fp:
+            input = json.load(fp)
+            # inputs.append(input)
+
+        abstract = abstract.strip().replace("\n", " ")
+        text = " ".join([text['text'] for text in input["inputs"]])
+        text = text.strip().replace("\n", " ")
+
+        if bool(text) and bool(abstract):
+            line = "###".join([text, abstract])
+            lines.append(line)
+
+    print(f"Writing pubmed {subset} data")
+    with open(os.path.join(pubmed_dir, out_filename), "w") as fp:
+        for line in lines:
+            fp.write(line)
+            fp.write("\n")
+
+    printer.good(f"Finished writing {out_filename}")
+
+
 if __name__ == "__main__":
     import sciwing.constants as constants
     import pathlib
@@ -231,22 +288,32 @@ if __name__ == "__main__":
     DATA_DIR = PATHS["DATA_DIR"]
 
     data_dir = pathlib.Path(DATA_DIR)
-    scicite_train_jsonl = data_dir.joinpath("scicite_train.jsonl")
-    scicite_dev_jsonl = data_dir.joinpath("scicite_dev.jsonl")
-    scicite_test_jsonl = data_dir.joinpath("scicite_test.jsonl")
+    # scicite_train_jsonl = data_dir.joinpath("scicite_train.jsonl")
+    # scicite_dev_jsonl = data_dir.joinpath("scicite_dev.jsonl")
+    # scicite_test_jsonl = data_dir.joinpath("scicite_test.jsonl")
+    #
+    # scicite_train_filename = data_dir.joinpath("scicite.train")
+    # scicite_dev_filename = data_dir.joinpath("scicite.dev")
+    # scicite_test_filename = data_dir.joinpath("scicite.test")
+    #
+    # write_scicite_to_sciwing_text_clf(
+    #     scicite_json_filename=scicite_train_jsonl, out_filename=scicite_train_filename
+    # )
+    #
+    # write_scicite_to_sciwing_text_clf(
+    #     scicite_json_filename=scicite_dev_jsonl, out_filename=scicite_dev_filename
+    # )
+    #
+    # write_scicite_to_sciwing_text_clf(
+    #     scicite_json_filename=scicite_test_jsonl, out_filename=scicite_test_filename
+    # )
+    #
+    pubmed_dir = data_dir.joinpath("pubmed")
+    pubmed_train_filename = data_dir.joinpath("pubmedSeq2seq.train")
+    pubmed_dev_filename = data_dir.joinpath("pubmedSeq2seq.dev")
+    pubmed_test_filename = data_dir.joinpath("pubmedSeq2seq.test")
 
-    scicite_train_filename = data_dir.joinpath("scicite.train")
-    scicite_dev_filename = data_dir.joinpath("scicite.dev")
-    scicite_test_filename = data_dir.joinpath("scicite.test")
+    write_pubmed_data_to_sciwing_seq2seq(pubmed_dir, "train", pubmed_train_filename)
+    write_pubmed_data_to_sciwing_seq2seq(pubmed_dir, "val", pubmed_dev_filename)
+    write_pubmed_data_to_sciwing_seq2seq(pubmed_dir, "test", pubmed_test_filename)
 
-    write_scicite_to_sciwing_text_clf(
-        scicite_json_filename=scicite_train_jsonl, out_filename=scicite_train_filename
-    )
-
-    write_scicite_to_sciwing_text_clf(
-        scicite_json_filename=scicite_dev_jsonl, out_filename=scicite_dev_filename
-    )
-
-    write_scicite_to_sciwing_text_clf(
-        scicite_json_filename=scicite_test_jsonl, out_filename=scicite_test_filename
-    )
