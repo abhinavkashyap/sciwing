@@ -11,6 +11,7 @@ from sciwing.data.seq_label import SeqLabel
 from sciwing.data.datasets_manager import DatasetsManager
 from sciwing.vocab.vocab import Vocab
 from collections import defaultdict
+from sciwing.data.token import Token
 
 
 class AbstractiveSummarizationDataset(BaseAbstractiveTextSummarization, Dataset):
@@ -29,7 +30,10 @@ class AbstractiveSummarizationDataset(BaseAbstractiveTextSummarization, Dataset)
         self.tokenizers = tokenizers
         self.lines, self.labels = self.get_lines_labels()
 
-    def get_lines_labels(self) -> (List[Line], List[Line]):
+    def get_lines_labels(
+            self,
+            start_token: str = "<SOS>",
+            end_token: str = "<EOS>") -> (List[Line], List[Line]):
         lines: List[Line] = []
         labels: List[Line] = []
 
@@ -40,6 +44,11 @@ class AbstractiveSummarizationDataset(BaseAbstractiveTextSummarization, Dataset)
                 label = label.strip()
                 line_instance = Line(text=line, tokenizers=self.tokenizers)
                 label_instance = Line(text=label, tokenizers=self.tokenizers)
+                for namespace, tokenizer in self.tokenizers.items():
+                    line_instance.tokens[namespace].insert(0, Token(start_token))
+                    line_instance.tokens[namespace].append(Token(end_token))
+                    label_instance.tokens[namespace].insert(0, Token(start_token))
+                    label_instance.tokens[namespace].append(Token(end_token))
                 lines.append(line_instance)
                 labels.append(label_instance)
 
