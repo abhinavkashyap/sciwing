@@ -13,9 +13,9 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
     def __init__(
         self,
         embedder: nn.Module,
-        vocab: nn.Module,
+        vocab: Vocab,
         max_length: int,
-        attn_module: Vocab,
+        attn_module: nn.Module = None,
         dropout_value: float = 0.0,
         hidden_dim: int = 1024,
         bidirectional: bool = False,
@@ -61,7 +61,6 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         self.attn_module = attn_module
         self.emb_dim = embedder.get_embedding_dimension()
         self.dropout_value = dropout_value
-        self.hidden_dim = hidden_dim
         self.bidirectional = bidirectional
         self.combine_strategy = combine_strategy
         self.rnn_bias = rnn_bias
@@ -163,7 +162,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
             attn_encoding = torch.stack(attn_encoding_list, dim=1)
             outputs = torch.cat([outputs, attn_encoding], dim=2)
 
-        prediction = nn.functional.log_softmax(self.projection_layer(outputs))
+        prediction = nn.functional.softmax(self.projection_layer(outputs))
 
         return prediction, hn, cn
 
@@ -209,7 +208,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         # last hidden & cell state of the encoder is used as the decoder's initial hidden state
         if use_teacher_forcing:
             prediction, _, _ = self.forward_step(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs)
-            outputs = prediction
+            outputs[1:] = prediction.permute(1, 0, 2)[:-1]
         else:
             lines = [self._generate_lines_with_start_token()] * batch_size
             for i in range(1, max_length):
@@ -224,7 +223,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
                     line.add_token(token, "tokens")
                     lines.append(line)
                 h0, c0 = hn, cn
-            outputs = outputs.permute(1, 0, 2)
+        outputs = outputs.permute(1, 0, 2)
         return outputs
 
 
