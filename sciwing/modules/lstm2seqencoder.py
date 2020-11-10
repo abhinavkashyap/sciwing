@@ -116,6 +116,7 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 Returns the vector encoding of the set of instances
                 [batch_size, seq_len, hidden_dim] if single direction
                 [batch_size, seq_len, 2*hidden_dim] if bidirectional
+
         """
 
         embeddings = self.embedder(lines=lines)
@@ -142,6 +143,14 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 encoding = torch.add(forward_output, backward_output)
             else:
                 raise ValueError("The combine strategy should be one of concat or sum")
+            hn = hn.view(self.num_layers, self.num_directions, batch_size, self.hidden_dim)\
+                .permute(0, 2, 1, 3) \
+                .contiguous()\
+                .view(self.num_layers, batch_size, -1)
+            cn = cn.view(self.num_layers, self.num_directions, batch_size, self.hidden_dim)\
+                .permute(0, 2, 1, 3)\
+                .contiguous()\
+                .view(self.num_layers, batch_size, -1)
         else:
             encoding = output
 
