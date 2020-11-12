@@ -70,7 +70,7 @@ DATA_FILE_URLS = dict(
 
 
 EMBEDDING_FILE_URLS = dict(
-    PARSCIT_EMBEDDINGS="https://sciwing.s3.amazonaws.com/vectors_with_unk.tar.gz",
+    PARSCIT_EMBEDDINGS="https://parsect-models.s3-ap-southeast-1.amazonaws.com/vectors_with_unk.tar.gz",
     ELMO_OPTIONS_FILE="https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/"
     "2x4096_512_2048cnn_2xhighway/elmo_2x4096_512_2048cnn_2xhighway_options.json",
     ELMO_WEIGHTS_FILE="https://s3-us-west-2.amazonaws.com/allennlp/models/elmo/"
