@@ -1,4 +1,4 @@
-# ![sciwing logo]( https://sciwing.s3.amazonaws.com/sciwing.png)
+# ![sciwing logo](https://parsect-models.s3-ap-southeast-1.amazonaws.com/sciwing.png)
 A Modern Toolkit for Scientific Document Processing from [WING-NUS](https://wing.comp.nus.edu.sg/). You can find our technical report  here: https://arxiv.org/abs/2004.03807. 
 
 **Note** The previous demo was available at [bit.ly/sciwing-demo](https://bit.ly/sciwing-demo). Due to unavoidable circumstances, it has been moved to [rebrand.ly/sciwing-demo](https://rebrand.ly/sciwing-demo). 
@@ -23,6 +23,10 @@ You can install SciWING from pip. We recommend using a virtual environment to in
 
 ```zsh
 pip install sciwing
+
+# install spacy language pack 
+
+python -m spacy download en_core_web_sm
 ```
 
 

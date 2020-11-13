@@ -31,7 +31,9 @@ if __name__ == "__main__":
         "ner_demo": "Named Entity Recognition",
     }
 
-    st.sidebar.image("https://sciwing.s3.amazonaws.com/sciwing.png", width=250)
+    st.sidebar.image(
+        "https://parsect-models.s3-ap-southeast-1.amazonaws.com/sciwing.png", width=250
+    )
     st.sidebar.header("A Scientific Document Processing Toolkit.")
 
     st.sidebar.subheader("Applications")
