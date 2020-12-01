@@ -1,45 +1,58 @@
 sciwing.models
 ==============
 
-
-
---------------------------
-bow_elmo_linear_classifier
---------------------------
-.. automodule:: sciwing.models.bow_elmo_linear_classifier
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
---------------------------
-elmo_lstm_classifier
---------------------------
-.. automodule:: sciwing.models.elmo_lstm_classifier
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
----------------------------
-parscit_tagger
----------------------------
-.. automodule:: sciwing.models.parscit_tagger
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
--------------------------------
-science_ie_tagger
--------------------------------
-.. automodule:: sciwing.models.science_ie_tagger
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 ----------------------------------
-simpleclassifier
+Simple Classifier
 ----------------------------------
 .. automodule:: sciwing.models.simpleclassifier
    :members:
    :undoc-members:
    :show-inheritance:
 
+----------------------------------
+Simple Tagger
+----------------------------------
+.. automodule:: sciwing.models.simple_tagger
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----------------------------------
+Neural Parscit
+----------------------------------
+.. automodule:: sciwing.models.neural_parscit
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----------------------------------
+Citation Intent Classification
+----------------------------------
+.. automodule:: sciwing.models.citation_intent_clf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+---------------------------------------
+Generic Section Header Classification
+---------------------------------------
+.. automodule:: sciwing.models.generic_sect
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----------------------------------
+I2B2 NER
+----------------------------------
+.. automodule:: sciwing.models.i2b2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+----------------------------------
+SectLabel
+----------------------------------
+.. automodule:: sciwing.models.sectlabel
+   :members:
+   :undoc-members:
+   :show-inheritance:

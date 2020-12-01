@@ -54,6 +54,7 @@ html_favicon = "_static/img/favicon.png"
 
 # Napoleon settings
 napoleon_include_init_with_doc = True
+master_doc = "index"
 
 autodoc_mock_imports = [
     "torch",
@@ -71,4 +72,7 @@ autodoc_mock_imports = [
     "sklearn",
     "tensorboardX",
     "pytorch-crf",
+    "flair",
+    "networkx",
+    "fastapi",
 ]

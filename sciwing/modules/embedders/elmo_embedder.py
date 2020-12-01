@@ -8,8 +8,11 @@ from sciwing.data.line import Line
 from sciwing.modules.embedders.base_embedders import BaseEmbedder
 from sciwing.utils.class_nursery import ClassNursery
 from sciwing.data.datasets_manager import DatasetsManager
+from sciwing.utils.common import cached_path
+import pathlib
 
 FILES = constants.FILES
+EMBEDDING_FILE_URLS = constants.EMBEDDING_FILE_URLS
 
 ELMO_OPTIONS_FILE = FILES["ELMO_OPTIONS_FILE"]
 ELMO_WEIGHTS_FILE = FILES["ELMO_WEIGHTS_FILE"]
@@ -38,10 +41,24 @@ class ElmoEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         self.fine_tune = fine_tune
         self.embedder_name = "ElmoEmbedder"
 
+        self.elmo_options_file = pathlib.Path(ELMO_OPTIONS_FILE)
+        self.elmo_weights_file = pathlib.Path(ELMO_WEIGHTS_FILE)
+        if not self.elmo_options_file.is_file():
+            self.elmo_options_file = cached_path(
+                url=EMBEDDING_FILE_URLS["ELMO_OPTIONS_FILE"],
+                path=self.elmo_options_file,
+                unzip=False,
+            )
+            self.elmo_weights_file = cached_path(
+                url=EMBEDDING_FILE_URLS["ELMO_WEIGHTS_FILE"],
+                path=self.elmo_weights_file,
+                unzip=False,
+            )
+
         with self.msg_printer.loading("Loading Elmo Object"):
             self.elmo: nn.Module = Elmo(
-                options_file=ELMO_OPTIONS_FILE,
-                weight_file=ELMO_WEIGHTS_FILE,
+                options_file=self.elmo_options_file,
+                weight_file=self.elmo_weights_file,
                 num_output_representations=self.num_output_representations,
                 dropout=self.dropout_value,
                 requires_grad=fine_tune,

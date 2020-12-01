@@ -59,10 +59,6 @@ class S3OutputMove:
 
     def interact(self):
         """ Interacts with the user by providing various options
-
-        Returns
-        -------
-        None
         """
         while True:
             answer = self.get_folder_choice()

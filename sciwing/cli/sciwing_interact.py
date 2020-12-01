@@ -1,15 +1,15 @@
-import questionary
+from questionary import text as ask_text
+from questionary import rawselect
 from questionary import Choice
 from sciwing.infer.interface_client_base import BaseInterfaceClient
 import wasabi
-import sciwing.constants as constants
-from sciwing.utils.amazon_s3 import S3Util
+import sciwing.constants as sciwing_constants
 from sciwing.utils.science_ie_eval import calculateMeasures
-import os
 import pathlib
 
-PATHS = constants.PATHS
-FILES = constants.FILES
+
+PATHS = sciwing_constants.PATHS
+FILES = sciwing_constants.FILES
 SCIENCE_IE_DEV_FOLDER = FILES["SCIENCE_IE_DEV_FOLDER"]
 OUTPUT_DIR = PATHS["OUTPUT_DIR"]
 AWS_CRED_DIR = PATHS["AWS_CRED_DIR"]
@@ -23,8 +23,12 @@ class SciWINGInteract:
     """
 
     def __init__(self, infer_client: BaseInterfaceClient):
-        self.infer_obj = infer_client.build_infer()
-        self.s3util = S3Util(os.path.join(AWS_CRED_DIR, "aws_s3_credentials.json"))
+        if isinstance(infer_client, BaseInterfaceClient):
+            self.infer_obj = infer_client.build_infer()
+        else:
+            # You can pass the infer obj directly
+            # Refer to sciwing.infer.seq_label.BaseSeqLabelInference or sciwing.infer.seq_label.BaseClassificationInference
+            self.infer_obj = infer_client
         self.msg_printer = wasabi.Printer()
 
     def interact(self):
@@ -36,11 +40,6 @@ class SciWINGInteract:
         - ``See-Examples-of-Classification`` is to explore correct and mis-classifications. You can provide two class numbers as in, ``2 3`` and it shows examples in the test dataset where text that belong to class ``2`` is classified as class ``3``.
         - ``See-prf-table`` shows the precision recall and fmeasure per class.
         - ``See-text`` - Manually enter text and look at the classification results.
-
-        Returns
-        -------
-        None
-
         """
         self.infer_obj.run_test()
 
@@ -57,14 +56,14 @@ class SciWINGInteract:
                 Choice("exit"),
             ]
 
-            interaction_choice = questionary.rawselect(
+            interaction_choice = rawselect(
                 "What would you like to do now", qmark="❓", choices=choices
             ).ask()
 
             if interaction_choice == "See-Confusion-Matrix":
                 self.infer_obj.print_confusion_matrix()
             elif interaction_choice == "See-examples-of-Classifications":
-                misclassification_choice = questionary.text(
+                misclassification_choice = ask_text(
                     "Enter Two Classes separated by a space. [Hint: 1 2]"
                 ).ask()
                 two_classes = [
@@ -77,13 +76,13 @@ class SciWINGInteract:
                 self.infer_obj.report_metrics()
 
             elif interaction_choice == "enter_text":
-                text = questionary.text("Enter Text: ").ask()
+                text = ask_text("Enter Text: ").ask()
                 tagged_string = self.infer_obj.on_user_input(text)
                 print(tagged_string)
 
             elif interaction_choice == "semeval_official_results":
                 dev_folder = pathlib.Path(SCIENCE_IE_DEV_FOLDER)
-                pred_folder = questionary.text(
+                pred_folder = ask_text(
                     message="Enter the directory path for storing results"
                 )
                 pred_folder = pathlib.Path(pred_folder)

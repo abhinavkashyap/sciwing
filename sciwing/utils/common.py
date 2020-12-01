@@ -1,4 +1,4 @@
-from typing import Dict, List, Any, Iterable, Iterator
+from typing import Dict, List, Any, Iterable, Iterator, Union
 
 import math
 import requests
@@ -352,7 +352,7 @@ def extract_zip(filename: str, destination_dir: str):
 
         msg_printer.good(f"Finished extraction {filename} to {destination_dir}")
     except zipfile.BadZipFile:
-        msg_printer.fail(f"Couldnot extract {filename} to {destination}")
+        msg_printer.fail(f"Couldnot extract {filename} to {destination_dir}")
 
 
 def extract_tar(filename: str, destination_dir: str, mode="r"):
@@ -729,17 +729,31 @@ def get_train_dev_test_stratified_split(
     )
 
 
-def cached_path(path: pathlib.Path, url: str, unzip=True) -> pathlib.Path:
+def cached_path(path: Union[pathlib.Path, str], url: str, unzip=True) -> pathlib.Path:
 
+    if isinstance(path, str):
+        path = pathlib.Path(path)
     msg_printer = Printer()
     if path.is_file() or path.is_dir():
         msg_printer.info(f"{path} exists.")
         return path
 
-    download_file(url=url, dest_filename=f"{str(path)}.zip")
+    download_file(url=url, dest_filename=str(path))
 
     if unzip:
-        extract_zip(filename=f"{path}.zip", destination_dir=str(path.parent))
+        if zipfile.is_zipfile(str(path)):
+            extract_zip(filename=str(path), destination_dir=str(path.parent))
+        if tarfile.is_tarfile(str(path)):
+            if "tar" in path.suffix:
+                mode = "r"
+            elif "gz" in path.suffix:
+                mode = "r:gz"
+            else:
+                mode = "r"
+
+            extract_tar(filename=str(path), destination_dir=str(path.parent), mode=mode)
+
+    return path
 
 
 def flatten(list_items: List[Any]) -> List[Any]:

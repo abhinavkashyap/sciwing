@@ -6,7 +6,7 @@ SCRIPT_FILE="i2b2.py"
 python ${SCRIPT_FILE} \
 --exp_name ${EXPERIMENT_PREFIX}"_i2b2" \
 --model_save_dir "./i2b2" \
---device "cuda:2" \
+--device "cuda:0" \
 --bs 64 \
 --emb_type "glove_6B_100" \
 --hidden_dim 256 \

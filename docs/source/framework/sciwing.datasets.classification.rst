@@ -12,17 +12,9 @@ base_text_classification
    :show-inheritance:
 
 ----------------------------
-generic_sect_dataset
+text_classification_dataset
 ----------------------------
-.. automodule:: sciwing.datasets.classification.generic_sect_dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
---------------------------------
-sectlabel_dataset
---------------------------------
-.. automodule:: sciwing.datasets.classification.sectlabel_dataset
+.. automodule:: sciwing.datasets.classification.text_classification_dataset
    :members:
    :undoc-members:
    :show-inheritance:

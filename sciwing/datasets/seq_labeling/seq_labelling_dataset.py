@@ -13,11 +13,17 @@ from sciwing.data.datasets_manager import DatasetsManager
 
 class SeqLabellingDataset(BaseSeqLabelingDataset, Dataset):
     """ This represents a dataset that is of the form
+
         word1###label1 word2###label2 word3###label3
+
         word1###label1 word2###label2 word3###label3
+
         word1###label1 word2###label2 word3###label3
+
         .
+
         .
+
         .
     """
 
@@ -72,6 +78,25 @@ class SeqLabellingDatasetManager(DatasetsManager):
         namespace_numericalizer_map: Dict[str, BaseNumericalizer] = None,
         batch_size: int = 10,
     ):
+        """
+
+        Parameters
+        ----------
+        train_filename: str
+            The path wehere the train file is stored
+        dev_filename: str
+            The path where the dev file is stored
+        test_filename: str
+            The path where the test file is stored
+        tokenizers: Dict[str, BaseTokenizer]
+            A mapping from namespace to the tokenizer
+        namespace_vocab_options: Dict[str, Dict[str, Any]]
+            A mapping from the name to options
+        namespace_numericalizer_map: Dict[str, BaseNumericalizer]
+            Every namespace can have a different numericalizer specified
+        batch_size: int
+            The batch size of the data returned
+        """
 
         self.train_filename = train_filename
         self.dev_filename = dev_filename

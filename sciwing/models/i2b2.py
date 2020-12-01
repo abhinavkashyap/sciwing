@@ -63,12 +63,10 @@ class I2B2NER(nn.Module):
         word_embedder = TrainableWordEmbedder(
             embedding_type=self.hparams.get("emb_type"),
             datasets_manager=self.data_manager,
-            device=torch.device(self.hparams.get("device")),
         )
 
         elmo_embedder = BowElmoEmbedder(
             datasets_manager=self.data_manager, layer_aggregation="sum"
-            device=torch.device(self.hparams.get("device")),
         )
 
         embedder = ConcatEmbedders([word_embedder, elmo_embedder])
@@ -81,7 +79,6 @@ class I2B2NER(nn.Module):
             rnn_bias=True,
             dropout_value=self.hparams.get("lstm2seq_dropout", 0.0),
             add_projection_layer=False,
-            device=torch.device(self.hparams.get("device")),
         )
         model = RnnSeqCrfTagger(
             rnn2seqencoder=lstm2seqencoder,
@@ -90,7 +87,6 @@ class I2B2NER(nn.Module):
             and self.hparams.get("combine_strategy") == "concat"
             else self.hparams.get("hidden_dim"),
             datasets_manager=self.data_manager,
-            device=torch.device(self.hparams.get("device")),
         )
 
         return model

@@ -134,7 +134,6 @@ class TokenClassificationAccuracy(BaseMetric, ClassNursery):
 
     def get_metric(self) -> Dict[str, Union[Dict[str, float], float]]:
         """ Returns different values being tracked to calculate Precision Recall FMeasure
-
         Returns
         -------
         Dict[str, Any]

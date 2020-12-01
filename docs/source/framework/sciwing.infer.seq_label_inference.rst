@@ -10,17 +10,17 @@ BaseSeqLabelInference
    :show-inheritance:
 
 --------------------------------
-Parscit Inference
+CONLL Inference
 --------------------------------
-.. automodule:: sciwing.infer.seq_label_inference.parscit_inference
+.. automodule:: sciwing.infer.seq_label_inference.conll_inference
    :members:
    :undoc-members:
    :show-inheritance:
 
 --------------------------------
-ScienceIEInference
+SeqLabel Inference
 --------------------------------
-.. automodule:: sciwing.infer.seq_label_inference.science_ie_inference
+.. automodule:: sciwing.infer.seq_label_inference.seq_label_inference
    :members:
    :undoc-members:
    :show-inheritance:

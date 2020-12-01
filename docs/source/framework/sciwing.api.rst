@@ -3,5 +3,5 @@ sciwing.api
 
 .. toctree::
 
-   sciwing.api.resources
+   sciwing.api.routers
 
