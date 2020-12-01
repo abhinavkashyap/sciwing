@@ -216,7 +216,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
                 prediction = prediction.squeeze(1)
                 outputs[i] = prediction
                 line_token_indexes = prediction.argmax(1)
-                line_tokens = [self.vocab.idx2token[line_token_index] for line_token_index in line_token_indexes.numpy()]
+                line_tokens = [self.vocab.idx2token[line_token_index] for line_token_index in line_token_indexes.cpu().numpy()]
                 lines = []
                 for token in line_tokens:
                     line = Line("")
@@ -225,7 +225,6 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
                 h0, c0 = hn, cn
         outputs = outputs.permute(1, 0, 2)
         return outputs
-
 
     def get_initial_hidden(self, batch_size: int):
         h0 = torch.zeros(
