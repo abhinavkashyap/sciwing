@@ -112,7 +112,7 @@ class RnnSeqCrfTagger(nn.Module, ClassNursery):
         """
 
         # batch size, max_num_word_tokens, hidden_dim
-        encoding = self.rnn2seqencoder(lines=lines)
+        encoding, _ = self.rnn2seqencoder(lines=lines)
         max_time_steps = encoding.size(1)
 
         output_dict = {}
