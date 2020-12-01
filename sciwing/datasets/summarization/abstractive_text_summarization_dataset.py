@@ -79,7 +79,7 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
         self.test_filename = test_filename
         self.tokenizers = tokenizers or {
             "tokens": WordTokenizer(tokenizer="vanilla"),
-            "char_tokens": CharacterTokenizer(),
+            # "char_tokens": CharacterTokenizer(),
         }
         self.namespace_vocab_options = namespace_vocab_options or {
             "char_tokens": {
@@ -91,7 +91,7 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
         }
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),
-            "char_tokens": Numericalizer(),
+            # "char_tokens": Numericalizer(),
             "shared_tokens": Numericalizer()
         }
 
