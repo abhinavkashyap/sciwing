@@ -46,7 +46,7 @@ class Lstm2SeqAttnContextEncoder(nn.Module, ClassNursery):
             main_lines.append(line.line)
 
         # batch_size, number_of_time_steps, hidden_dimension
-        encoding = self.rnn2seqencoder(lines=main_lines)
+        encoding, _ = self.rnn2seqencoder(lines=main_lines)
         num_timesteps = encoding.size(1)
 
         # batch_size, max_num_context_lines, hidden_dimension
