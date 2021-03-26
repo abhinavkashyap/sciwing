@@ -150,7 +150,7 @@ python-multipart==0.0.5
 pytorch-crf==0.7.2
 pytorch-pretrained-bert==0.6.2
 pytz==2019.3
-PyYAML==5.3
+PyYAML==5.4
 pyzmq==19.0.0
 questionary==1.1.1
 readme-renderer==25.0
