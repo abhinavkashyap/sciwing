@@ -138,7 +138,7 @@ pycodestyle==2.5.0
 pycparser==2.20
 pydantic==1.4
 pydeck==0.3.0b2
-Pygments==2.6.1
+Pygments==2.7.4
 pyparsing==2.4.6
 pyrsistent==0.15.7
 pytest==5.4.1
