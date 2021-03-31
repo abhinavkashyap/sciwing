@@ -92,7 +92,7 @@ kiwisolver==1.1.0
 langdetect==1.0.8
 livereload==2.6.1
 logzero==1.5.0
-lxml==4.5.0
+lxml==4.6.3
 MarkupSafe==1.1.1
 matplotlib==3.2.0
 mistune==0.8.4
