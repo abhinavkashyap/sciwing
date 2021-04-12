@@ -236,4 +236,3 @@ class NeuralParscit(nn.Module):
 
 if __name__ == "__main__":
     neural_parscit = NeuralParscit(device=0)
-    neural_parscit.interact()
