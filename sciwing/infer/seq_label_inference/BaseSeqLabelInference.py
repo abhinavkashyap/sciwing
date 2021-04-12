@@ -59,13 +59,7 @@ class BaseSeqLabelInference(metaclass=ABCMeta):
     def load_model(self):
         """ Loads the best_model from the model_filepath.
         """
-
-        if self.device.type != "cpu":
-            model_chkpoint = torch.load(self.model_filepath)
-        else:
-            # make sure that the model loads if the model
-            # is trained on gpu but runs on cpu
-            model_chkpoint = torch.load(self.model_filepath, map_location=self.device)
+        model_chkpoint = torch.load(self.model_filepath, map_location=self.device)
         model_state_dict = model_chkpoint["model_state"]
         loss_value = model_chkpoint["loss"]
         self.model.load_state_dict(model_state_dict)

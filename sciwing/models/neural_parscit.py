@@ -20,6 +20,8 @@ import torch.nn as nn
 import wasabi
 from typing import List
 from collections import defaultdict
+import torch
+from typing import Optional, Tuple
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -37,8 +39,22 @@ class NeuralParscit(nn.Module):
 
     """
 
-    def __init__(self):
+    def __init__(self, device=Optional[Tuple[torch.device, int]]):
         super(NeuralParscit, self).__init__()
+
+        if isinstance(device, torch.device):
+            self.device = device
+        elif isinstance(device, int):
+            if device == -1:
+                device_string = "cpu"
+            else:
+                device_string = f"cuda:{device}"
+            self.device = torch.device(device_string)
+        else:
+            raise ValueError(
+                f"Pass the device number or the device object from Pytorch"
+            )
+
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
         self.final_model_dir = self.models_cache_dir.joinpath("lstm_crf_parscit_final")
         if not self.models_cache_dir.is_dir():
@@ -65,16 +81,20 @@ class NeuralParscit(nn.Module):
         word_embedder = TrainableWordEmbedder(
             embedding_type=self.hparams.get("emb_type"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
 
         char_embedder = CharEmbedder(
             char_embedding_dimension=self.hparams.get("char_emb_dim"),
             hidden_dimension=self.hparams.get("char_encoder_hidden_dim"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
 
         elmo_embedder = BowElmoEmbedder(
-            datasets_manager=self.data_manager, layer_aggregation="sum"
+            datasets_manager=self.data_manager,
+            layer_aggregation="sum",
+            device=self.device,
         )
 
         embedder = ConcatEmbedders([word_embedder, char_embedder, elmo_embedder])
@@ -87,6 +107,7 @@ class NeuralParscit(nn.Module):
             rnn_bias=True,
             dropout_value=self.hparams.get("lstm2seq_dropout", 0.0),
             add_projection_layer=False,
+            device=self.device,
         )
         model = RnnSeqCrfTagger(
             rnn2seqencoder=lstm2seqencoder,
@@ -95,6 +116,7 @@ class NeuralParscit(nn.Module):
             and self.hparams.get("combine_strategy") == "concat"
             else self.hparams.get("hidden_dim"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
 
         return model
@@ -104,6 +126,7 @@ class NeuralParscit(nn.Module):
             model=self.model,
             model_filepath=self.final_model_dir.joinpath("best_model.pt"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return infer_client
 
@@ -212,5 +235,5 @@ class NeuralParscit(nn.Module):
 
 
 if __name__ == "__main__":
-    neural_parscit = NeuralParscit()
+    neural_parscit = NeuralParscit(device=0)
     neural_parscit.interact()

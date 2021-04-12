@@ -1,6 +1,8 @@
 import pytest
 from sciwing.metrics.summarization_metrics import SummarizationMetrics
-from sciwing.datasets.summarization.abstractive_text_summarization_dataset import AbstractiveSummarizationDatasetManager
+from sciwing.datasets.summarization.abstractive_text_summarization_dataset import (
+    AbstractiveSummarizationDatasetManager,
+)
 from sciwing.data.line import Line
 
 
@@ -35,12 +37,27 @@ def setup_scorer(abs_sum_dataset_manager):
     dataset_manager = abs_sum_dataset_manager
     scorer = SummarizationMetrics(dataset_manager)
 
-    lines = [Line("word11_train word21_train"), Line("word12_train word22_train word32_train")]
-    true_summary = [Line("word11_label word21_label"), Line("word11_label word22_label")]
+    lines = [
+        Line("word11_train word21_train"),
+        Line("word12_train word22_train word32_train"),
+    ]
+    true_summary = [
+        Line("word11_label word21_label"),
+        Line("word11_label word22_label"),
+    ]
     true_summary_tokens = ["word11_label", "word22_label", "word33_label"]
-    pred_summary_tokens = ["word11_label", "word22_label", "word23_label", "word33_label"]
-    predicted_tags = {'predicted_tags_tokens': [[0, 2], [1, 4, 5]]}
-    return scorer, (lines, true_summary, predicted_tags), (true_summary_tokens, pred_summary_tokens)
+    pred_summary_tokens = [
+        "word11_label",
+        "word22_label",
+        "word23_label",
+        "word33_label",
+    ]
+    predicted_tags = {"predicted_tags_tokens": [[0, 2], [1, 4, 5]]}
+    return (
+        scorer,
+        (lines, true_summary, predicted_tags),
+        (true_summary_tokens, pred_summary_tokens),
+    )
 
 
 class TestSummarizationMetrics:

@@ -1,4 +1,6 @@
-from sciwing.datasets.summarization.abstractive_text_summarization_dataset import AbstractiveSummarizationDatasetManager
+from sciwing.datasets.summarization.abstractive_text_summarization_dataset import (
+    AbstractiveSummarizationDatasetManager,
+)
 from sciwing.modules.embedders.bow_elmo_embedder import BowElmoEmbedder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.embedders.concat_embedders import ConcatEmbedders
@@ -19,9 +21,7 @@ DATA_DIR = PATHS["DATA_DIR"]
 
 if __name__ == "__main__":
     # read the hyperparams from config file
-    parser = argparse.ArgumentParser(
-        description="Glove with LSTM encoder and decoder"
-    )
+    parser = argparse.ArgumentParser(description="Glove with LSTM encoder and decoder")
 
     parser.add_argument("--exp_name", help="Specify an experiment name", type=str)
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         test_filename=str(test_file),
     )
 
-    vocab = data_manager.build_vocab()['tokens']
+    vocab = data_manager.build_vocab()["tokens"]
 
     # # instantiate the elmo embedder
     # elmo_embedder = BowElmoEmbedder(layer_aggregation="sum", device=args.device)
@@ -122,7 +122,7 @@ if __name__ == "__main__":
         combine_strategy=args.combine_strategy,
         device=torch.device(args.device),
         max_length=args.pred_max_length,
-        vocab=vocab
+        vocab=vocab,
     )
 
     model = Seq2SeqModel(
@@ -131,7 +131,7 @@ if __name__ == "__main__":
         enc_hidden_dim=args.hidden_dim,
         datasets_manager=data_manager,
         device=args.device,
-        bidirectional=args.bidirectional
+        bidirectional=args.bidirectional,
     )
 
     optimizer = optim.Adam(params=model.parameters(), lr=args.lr)

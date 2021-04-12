@@ -43,10 +43,7 @@ class SummarizationMetrics(BaseMetric):
         self.rouge_l_counter: Dict[str, List[float]] = defaultdict(list)
 
     def calc_metric(
-        self,
-        lines: List[Line],
-        labels: List[Line],
-        model_forward_dict: Dict[str, Any],
+        self, lines: List[Line], labels: List[Line], model_forward_dict: Dict[str, Any]
     ) -> None:
 
         # line_tokens: List[List[Token]] = [line.tokens["tokens"] for line in lines]
@@ -58,8 +55,12 @@ class SummarizationMetrics(BaseMetric):
                 f"{self.predicted_tags_namespace_prefix}_{namespace}"
             )
 
-            true_summary_tokens: List[List[Token]] = [summary.tokens[namespace] for summary in labels]
-            true_summary_token_strs: List[List[str]] = [[token.text for token in tokens] for tokens in true_summary_tokens]
+            true_summary_tokens: List[List[Token]] = [
+                summary.tokens[namespace] for summary in labels
+            ]
+            true_summary_token_strs: List[List[str]] = [
+                [token.text for token in tokens] for tokens in true_summary_tokens
+            ]
 
             namespace_filename = f"{cwd}/{str(uuid.uuid4())}_{namespace}_pred.txt"
             namespace_filename = pathlib.Path(namespace_filename)
@@ -73,22 +74,37 @@ class SummarizationMetrics(BaseMetric):
                     predicted_summary_token_strs_ = []
 
                     for predicted_tag in predicted_tags_:
-                        predicted_tag = self.namespace_to_vocab[namespace].get_token_from_idx(predicted_tag)
+                        predicted_tag = self.namespace_to_vocab[
+                            namespace
+                        ].get_token_from_idx(predicted_tag)
                         predicted_summary_token_strs_.append(predicted_tag)
                     predicted_summary_token_strs.append(predicted_summary_token_strs_)
 
                     fp.write(line.text)
-                    fp.write('Ground Truth')
-                    fp.write(' '.join([f'"{token}"' for token in true_summary_token_strs_]))
-                    fp.write('Predicted')
-                    fp.write(' '.join([f'"{token}"' for token in predicted_summary_token_strs_]))
+                    fp.write("Ground Truth")
+                    fp.write(
+                        " ".join([f'"{token}"' for token in true_summary_token_strs_])
+                    )
+                    fp.write("Predicted")
+                    fp.write(
+                        " ".join(
+                            [f'"{token}"' for token in predicted_summary_token_strs_]
+                        )
+                    )
                     fp.write("\n")
 
             for true_summary_token_strs_, predicted_summary_token_strs_ in zip(
-                    true_summary_token_strs, predicted_summary_token_strs):
-                rouge_1 = self._rouge_n(predicted_summary_token_strs_, true_summary_token_strs_, 1)
-                rouge_2 = self._rouge_n(predicted_summary_token_strs_, true_summary_token_strs_, 2)
-                rouge_l = self._rouge_l(predicted_summary_token_strs_, true_summary_token_strs_)
+                true_summary_token_strs, predicted_summary_token_strs
+            ):
+                rouge_1 = self._rouge_n(
+                    predicted_summary_token_strs_, true_summary_token_strs_, 1
+                )
+                rouge_2 = self._rouge_n(
+                    predicted_summary_token_strs_, true_summary_token_strs_, 2
+                )
+                rouge_l = self._rouge_l(
+                    predicted_summary_token_strs_, true_summary_token_strs_
+                )
 
                 rouge_1 = np.round(rouge_1, decimals=3)
                 rouge_2 = np.round(rouge_2, decimals=3)
@@ -117,7 +133,7 @@ class SummarizationMetrics(BaseMetric):
             metrics[namespace] = {
                 "rouge_1": rouge_1,
                 "rouge_2": rouge_2,
-                "rouge_l": rouge_l
+                "rouge_l": rouge_l,
             }
         return metrics
 
@@ -135,7 +151,7 @@ class SummarizationMetrics(BaseMetric):
                 rows = [
                     ("Rouge_1", rouge_1),
                     ("Rouge_2", rouge_2),
-                    ("Rouge_l", rouge_l)
+                    ("Rouge_l", rouge_l),
                 ]
 
                 table = wasabi.table(rows, header=header_row, divider=True)
@@ -151,6 +167,7 @@ class SummarizationMetrics(BaseMetric):
     def _calc_f1(self, matches, count_for_recall, count_for_precision, alpha):
         def safe_div(x1, x2):
             return 0 if x2 == 0 else x1 / x2
+
         recall = safe_div(matches, count_for_recall)
         precision = safe_div(matches, count_for_precision)
         denom = (1.0 - alpha) * precision + alpha * recall
@@ -186,7 +203,7 @@ class SummarizationMetrics(BaseMetric):
 
     def _ngram_iter(self, words, n):
         for i in range(self._len_ngram(words, n)):
-            n_gram = words[i:i+n]
+            n_gram = words[i : i + n]
             yield tuple(n_gram)
 
     def _count_ngrams(self, words, n):
@@ -253,4 +270,3 @@ class SummarizationMetrics(BaseMetric):
         count_for_prec = len(pred_summary)
         f1 = self._calc_f1(matches, count_for_recall, count_for_prec, alpha)
         return f1
-

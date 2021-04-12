@@ -1,4 +1,6 @@
-from sciwing.datasets.summarization.base_text_summarization import BaseAbstractiveTextSummarization
+from sciwing.datasets.summarization.base_text_summarization import (
+    BaseAbstractiveTextSummarization,
+)
 from torch.utils.data import Dataset
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
@@ -39,11 +41,13 @@ class ExtractiveSummarizationDataset(BaseAbstractiveTextSummarization, Dataset):
                     continue
                 line_sents, line_labels, line_ref = line.strip().split("###")
                 sents: List[str] = [sent.strip() for sent in line_sents.split("\t")]
-                sents_labels: List[str] = [sent_label.strip() for sent_label in line_labels.split(",")]
+                sents_labels: List[str] = [
+                    sent_label.strip() for sent_label in line_labels.split(",")
+                ]
                 sents_refs: str = line_ref
 
                 doc = [Line(text=sent, tokenizers=self.tokenizers) for sent in sents]
-                label = SeqLabel(labels={'seq_label': sents_labels})
+                label = SeqLabel(labels={"seq_label": sents_labels})
                 ref = Line(text=sents_refs, tokenizers=self.tokenizers)
                 docs.append(doc)
                 labels.append(label)

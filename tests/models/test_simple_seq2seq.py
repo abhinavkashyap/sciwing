@@ -2,7 +2,9 @@ import pytest
 from sciwing.modules.lstm2seqencoder import Lstm2SeqEncoder
 from sciwing.modules.lstm2seqdecoder import Lstm2SeqDecoder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
-from sciwing.datasets.summarization.abstractive_text_summarization_dataset import AbstractiveSummarizationDatasetManager
+from sciwing.datasets.summarization.abstractive_text_summarization_dataset import (
+    AbstractiveSummarizationDatasetManager,
+)
 from sciwing.models.simple_seq2seq import Seq2SeqModel
 
 
@@ -93,7 +95,9 @@ def setup_seq2seq_model(abs_sum_dataset_manager):
 
 
 class TestSeq2SeqModel:
-    def test_seq2seq_model_namespaces(self, setup_seq2seq_model, abs_sum_dataset_manager):
+    def test_seq2seq_model_namespaces(
+        self, setup_seq2seq_model, abs_sum_dataset_manager
+    ):
         model, dataset_manager, options = setup_seq2seq_model
         dataset_manager = abs_sum_dataset_manager
         lines, labels = dataset_manager.train_dataset.get_lines_labels()
@@ -110,7 +114,9 @@ class TestSeq2SeqModel:
         assert "predicted_tags_tokens" in output_dict.keys()
         assert "loss" in output_dict.keys()
 
-    def test_seq2seq_model_dimensions(self, setup_seq2seq_model, abs_sum_dataset_manager):
+    def test_seq2seq_model_dimensions(
+        self, setup_seq2seq_model, abs_sum_dataset_manager
+    ):
         model, dataset_manager, options = setup_seq2seq_model
         dataset_manager = abs_sum_dataset_manager
         VOCAB_SIZE = dataset_manager.namespace_to_vocab["tokens"].get_vocab_len()
@@ -122,4 +128,8 @@ class TestSeq2SeqModel:
             is_validation=False,
             is_test=False,
         )
-        assert output_dict["predicted_probs_tokens"].size() == (2, options["MAX_LENGTH"], VOCAB_SIZE)
+        assert output_dict["predicted_probs_tokens"].size() == (
+            2,
+            options["MAX_LENGTH"],
+            VOCAB_SIZE,
+        )
