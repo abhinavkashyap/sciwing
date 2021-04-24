@@ -37,9 +37,9 @@ def setup_scorer(abs_sum_dataset_manager):
 
     lines = [Line("word11_train word21_train"), Line("word12_train word22_train word32_train")]
     true_summary = [Line("word11_label word21_label"), Line("word11_label word22_label")]
-    true_summary_tokens = ["word11_label", "word22_label", "word33_label"]
-    pred_summary_tokens = ["word11_label", "word22_label", "word23_label", "word33_label"]
-    predicted_tags = {'predicted_tags_tokens': [[0, 2], [1, 4, 5]]}
+    true_summary_tokens = ['word11_label', 'word22_label']
+    pred_summary_tokens = ['<PAD>', 'word11_label', '<EOS>']
+    predicted_tags = {'predicted_tags_tokens': [[0, 2], [1, 4, 3]]}
     return scorer, (lines, true_summary, predicted_tags), (true_summary_tokens, pred_summary_tokens)
 
 
@@ -50,13 +50,12 @@ class TestSummarizationMetrics:
         rouge_2 = scorer._rouge_n(true_summary_tokens, pred_summary_tokens, 2)
         rouge_l = scorer._rouge_l(true_summary_tokens, pred_summary_tokens)
         print(rouge_l)
-        assert rouge_2 == 0.4
-        assert rouge_1 > 0.8
-        assert rouge_l > 0.8
+        assert rouge_1 == 0.4
+        assert rouge_2 == 0
+        assert rouge_l == 0.4
 
     def test_scorer(self, setup_scorer):
         scorer, (lines, true_summary, predicted_tags), _ = setup_scorer
         scorer.calc_metric(lines, true_summary, predicted_tags)
         metrics = scorer.get_metric()
-        print(metrics)
-        assert False
+        assert metrics == {'tokens': {'rouge_1': 0.2, 'rouge_2': 0.0, 'rouge_l': 0.2}}
