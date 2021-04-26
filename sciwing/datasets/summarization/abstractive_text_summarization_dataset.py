@@ -1,4 +1,6 @@
-from sciwing.datasets.summarization.base_text_summarization import BaseAbstractiveTextSummarization
+from sciwing.datasets.summarization.base_text_summarization import (
+    BaseAbstractiveTextSummarization,
+)
 from torch.utils.data import Dataset
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
@@ -31,9 +33,8 @@ class AbstractiveSummarizationDataset(BaseAbstractiveTextSummarization, Dataset)
         self.lines, self.labels = self.get_lines_labels()
 
     def get_lines_labels(
-            self,
-            start_token: str = "<SOS>",
-            end_token: str = "<EOS>") -> (List[Line], List[Line]):
+        self, start_token: str = "<SOS>", end_token: str = "<EOS>"
+    ) -> (List[Line], List[Line]):
         lines: List[Line] = []
         labels: List[Line] = []
 
@@ -92,7 +93,7 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
         self.namespace_numericalizer_map = namespace_numericalizer_map or {
             "tokens": Numericalizer(),
             # "char_tokens": Numericalizer(),
-            "shared_tokens": Numericalizer()
+            "shared_tokens": Numericalizer(),
         }
 
         self.batch_size = batch_size
@@ -146,7 +147,9 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
                 namespace_to_instances[namespace].append(tokens)
         namespace_list = list(namespace_to_instances.keys()).copy()
         for namespace in namespace_list:
-            namespace_to_instances[shared_namespace].extend(namespace_to_instances[namespace])
+            namespace_to_instances[shared_namespace].extend(
+                namespace_to_instances[namespace]
+            )
 
         self.label_namespaces = list(labels[0].tokens.keys())
 
@@ -159,4 +162,3 @@ class AbstractiveSummarizationDatasetManager(DatasetsManager):
             )
             namespace_to_vocab[namespace].build_vocab()
         return namespace_to_vocab
-

@@ -224,8 +224,9 @@ def write_scicite_to_sciwing_text_clf(scicite_json_filename: str, out_filename: 
     printer.good(f"Finished writing {out_filename}")
 
 
-
-def write_pubmed_data_to_sciwing_seq2seq(pubmed_dir: str, subset:str, out_filename:str):
+def write_pubmed_data_to_sciwing_seq2seq(
+    pubmed_dir: str, subset: str, out_filename: str
+):
     """ SciCite files are jsonl filenames with citation strings.
 
     Parameters
@@ -264,7 +265,7 @@ def write_pubmed_data_to_sciwing_seq2seq(pubmed_dir: str, subset:str, out_filena
             # inputs.append(input)
 
         abstract = abstract.strip().replace("\n", " ")
-        text = " ".join([text['text'] for text in input["inputs"]])
+        text = " ".join([text["text"] for text in input["inputs"]])
         text = text.strip().replace("\n", " ")
 
         if bool(text) and bool(abstract):
@@ -316,4 +317,3 @@ if __name__ == "__main__":
     write_pubmed_data_to_sciwing_seq2seq(pubmed_dir, "train", pubmed_train_filename)
     write_pubmed_data_to_sciwing_seq2seq(pubmed_dir, "val", pubmed_dev_filename)
     write_pubmed_data_to_sciwing_seq2seq(pubmed_dir, "test", pubmed_test_filename)
-

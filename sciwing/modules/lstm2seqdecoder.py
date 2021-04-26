@@ -109,7 +109,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         lines: List[Line],
         c0: torch.FloatTensor,
         h0: torch.FloatTensor,
-        encoder_outputs: torch.FloatTensor = None
+        encoder_outputs: torch.FloatTensor = None,
     ) -> (torch.Tensor, torch.FloatTensor, torch.FloatTensor):
         """
 
@@ -172,7 +172,7 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         c0: torch.FloatTensor,
         h0: torch.FloatTensor,
         encoder_outputs: torch.FloatTensor = None,
-        teacher_forcing_ratio: float = 0
+        teacher_forcing_ratio: float = 0,
     ) -> torch.Tensor:
         """
 
@@ -195,9 +195,11 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
             Hidden and cell state of the LSTM layer. Each state's shape
             [n layers * n directions, batch size, hidden dim]
         """
-        use_teacher_forcing = True if (random.random() < teacher_forcing_ratio) else False
+        use_teacher_forcing = (
+            True if (random.random() < teacher_forcing_ratio) else False
+        )
         if use_teacher_forcing:
-            max_length = max(len(line.tokens['tokens']) for line in lines)
+            max_length = max(len(line.tokens["tokens"]) for line in lines)
         else:
             max_length = self.max_length
         batch_size = len(lines)
@@ -207,16 +209,23 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
 
         # last hidden & cell state of the encoder is used as the decoder's initial hidden state
         if use_teacher_forcing:
-            prediction, _, _ = self.forward_step(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs)
+            prediction, _, _ = self.forward_step(
+                lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs
+            )
             outputs[1:] = prediction.permute(1, 0, 2)[:-1]
         else:
             lines = [self._generate_lines_with_start_token()] * batch_size
             for i in range(1, max_length):
-                prediction, hn, cn = self.forward_step(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs)
+                prediction, hn, cn = self.forward_step(
+                    lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs
+                )
                 prediction = prediction.squeeze(1)
                 outputs[i] = prediction
                 line_token_indexes = prediction.argmax(1)
-                line_tokens = [self.vocab.idx2token[line_token_index] for line_token_index in line_token_indexes.cpu().numpy()]
+                line_tokens = [
+                    self.vocab.idx2token[line_token_index]
+                    for line_token_index in line_token_indexes.cpu().numpy()
+                ]
                 lines = []
                 for token in line_tokens:
                     line = Line("")
@@ -241,4 +250,3 @@ class Lstm2SeqDecoder(nn.Module, ClassNursery):
         line = Line("")
         line.add_token(self.start_token, "tokens")
         return line
-

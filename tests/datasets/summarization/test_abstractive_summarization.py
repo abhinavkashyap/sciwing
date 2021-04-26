@@ -1,6 +1,6 @@
 import pytest
 from sciwing.datasets.summarization.abstractive_text_summarization_dataset import (
-    AbstractiveSummarizationDataset
+    AbstractiveSummarizationDataset,
 )
 from sciwing.tokenizers.word_tokenizer import WordTokenizer
 
@@ -33,7 +33,13 @@ class TestAbstractSummarizationDataset:
             filename=str(test_file), tokenizers={"tokens": WordTokenizer()}
         )
         num_instances = len(summarization_dataset)
-        defined_line_tokens = ["word11_train", "word21_train", "word12_train", "word22_train", "word32_train"]
+        defined_line_tokens = [
+            "word11_train",
+            "word21_train",
+            "word12_train",
+            "word22_train",
+            "word32_train",
+        ]
         defined_label_tokens = ["word11_label", "word12_label", "word21_label"]
         line_tokens = []
         label_tokens = []

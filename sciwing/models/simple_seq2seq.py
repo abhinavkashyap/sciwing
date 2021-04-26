@@ -49,7 +49,9 @@ class Seq2SeqModel(nn.Module, ClassNursery):
 
         self.vocabulary = self.datasets_manager.namespace_to_vocab[self.vocab_namespace]
         self.vocab_size = self.vocabulary.get_vocab_len()
-        self.dec_hidden_dim = self.enc_hidden_dim * 2 if bidirectional else self.enc_hidden_dim
+        self.dec_hidden_dim = (
+            self.enc_hidden_dim * 2 if bidirectional else self.enc_hidden_dim
+        )
 
         self._loss = CrossEntropyLoss()
         self.linear_proj = nn.Linear(self.dec_hidden_dim, self.vocab_size)
@@ -61,7 +63,7 @@ class Seq2SeqModel(nn.Module, ClassNursery):
         is_training: bool = False,
         is_validation: bool = False,
         is_test: bool = False,
-        teacher_forcing_ratio=0.5
+        teacher_forcing_ratio=0.5,
     ):
         """
         Parameters
@@ -95,7 +97,11 @@ class Seq2SeqModel(nn.Module, ClassNursery):
         encoding, (hn, cn) = self.rnn2seqencoder(lines=lines)
         batch_size = len(lines)
         dec_output = self.rnn2seqdecoder(
-            lines=labels, h0=hn, c0=cn, encoder_outputs=encoding, teacher_forcing_ratio=teacher_forcing_ratio
+            lines=labels,
+            h0=hn,
+            c0=cn,
+            encoder_outputs=encoding,
+            teacher_forcing_ratio=teacher_forcing_ratio,
         )
         max_time_steps = dec_output.size(1)
 
@@ -139,7 +145,7 @@ class Seq2SeqModel(nn.Module, ClassNursery):
             labels_tensor = torch.stack(labels_indices)
             loss = self._loss(
                 input=dec_output.contiguous().view(batch_size * max_time_steps, -1),
-                target=labels_tensor.view(-1)
+                target=labels_tensor.view(-1),
             )
 
             output_dict["loss"] = loss

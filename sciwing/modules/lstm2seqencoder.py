@@ -143,14 +143,22 @@ class Lstm2SeqEncoder(nn.Module, ClassNursery):
                 encoding = torch.add(forward_output, backward_output)
             else:
                 raise ValueError("The combine strategy should be one of concat or sum")
-            hn = hn.view(self.num_layers, self.num_directions, batch_size, self.hidden_dim)\
-                .permute(0, 2, 1, 3) \
-                .contiguous()\
+            hn = (
+                hn.view(
+                    self.num_layers, self.num_directions, batch_size, self.hidden_dim
+                )
+                .permute(0, 2, 1, 3)
+                .contiguous()
                 .view(self.num_layers, batch_size, -1)
-            cn = cn.view(self.num_layers, self.num_directions, batch_size, self.hidden_dim)\
-                .permute(0, 2, 1, 3)\
-                .contiguous()\
+            )
+            cn = (
+                cn.view(
+                    self.num_layers, self.num_directions, batch_size, self.hidden_dim
+                )
+                .permute(0, 2, 1, 3)
+                .contiguous()
                 .view(self.num_layers, batch_size, -1)
+            )
         else:
             encoding = output
 

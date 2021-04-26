@@ -2,7 +2,9 @@ import pytest
 from sciwing.modules.lstm2seqdecoder import Lstm2SeqDecoder
 from sciwing.modules.embedders.word_embedder import WordEmbedder
 from sciwing.modules.attentions.dot_product_attention import DotProductAttention
-from sciwing.datasets.summarization.abstractive_text_summarization_dataset import AbstractiveSummarizationDatasetManager
+from sciwing.datasets.summarization.abstractive_text_summarization_dataset import (
+    AbstractiveSummarizationDatasetManager,
+)
 from sciwing.data.line import Line
 import itertools
 import torch
@@ -15,7 +17,7 @@ lstm2decoder_options = list(lstm2decoder_options)
 
 
 @pytest.fixture(params=lstm2decoder_options)
-def setup_lstm2seqdecoder(request, ):
+def setup_lstm2seqdecoder(request,):
     HIDDEN_DIM = 1024
     NUM_LAYERS = request.param[0]
     BIDIRECTIONAL = request.param[1]
@@ -40,7 +42,11 @@ def setup_lstm2seqdecoder(request, ):
     c0 = torch.ones(NUM_LAYERS, len(texts), num_direction * HIDDEN_DIM) * 0.2
 
     embedder = WordEmbedder(embedding_type="glove_6B_50")
-    encoder_outputs = torch.ones(len(texts), 5, num_direction * HIDDEN_DIM) * 0.5 if request.param[2] else None
+    encoder_outputs = (
+        torch.ones(len(texts), 5, num_direction * HIDDEN_DIM) * 0.5
+        if request.param[2]
+        else None
+    )
     decoder = Lstm2SeqDecoder(
         embedder=embedder,
         vocab=vocab,
@@ -63,10 +69,10 @@ def setup_lstm2seqdecoder(request, ):
             "LINES": lines,
             "WORDS": words,
             "VOCAB_SIZE": vocab.get_vocab_len(),
-            "BIDIRECTIONAL": BIDIRECTIONAL
+            "BIDIRECTIONAL": BIDIRECTIONAL,
         },
         encoder_outputs,
-        (h0, c0)
+        (h0, c0),
     )
 
 
@@ -77,16 +83,28 @@ class TestLstm2SeqDecoder:
         num_time_steps = 1
         batch_size = len(lines)
         vocab_size = options["VOCAB_SIZE"]
-        decoding, _, _ = decoder.forward_step(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs)
+        decoding, _, _ = decoder.forward_step(
+            lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs
+        )
         assert decoding.size() == (batch_size, num_time_steps, vocab_size)
 
     def test_forward(self, setup_lstm2seqdecoder):
         decoder, options, encoder_outputs, (h0, c0) = setup_lstm2seqdecoder
         lines = options["LINES"]
         teacher_forcing_ratio = options["TEACHER_FORCING_RATIO"]
-        num_time_steps = max([len(line.tokens["tokens"]) for line in lines]) if teacher_forcing_ratio > 0 else options["MAX_LENGTH"]
+        num_time_steps = (
+            max([len(line.tokens["tokens"]) for line in lines])
+            if teacher_forcing_ratio > 0
+            else options["MAX_LENGTH"]
+        )
         batch_size = len(lines)
 
         vocab_size = options["VOCAB_SIZE"]
-        output = decoder.forward(lines=lines, h0=h0, c0=c0, encoder_outputs=encoder_outputs, teacher_forcing_ratio=teacher_forcing_ratio)
+        output = decoder.forward(
+            lines=lines,
+            h0=h0,
+            c0=c0,
+            encoder_outputs=encoder_outputs,
+            teacher_forcing_ratio=teacher_forcing_ratio,
+        )
         assert output.size() == (batch_size, num_time_steps, vocab_size)

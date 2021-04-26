@@ -5,7 +5,6 @@ from sciwing.data.label import Label
 from sciwing.tokenizers.BaseTokenizer import BaseTokenizer
 
 
-
 class BaseExtractiveTextSummarization(metaclass=ABCMeta):
     def __init__(self, filename: str, tokenizers: Dict[str, BaseTokenizer]):
         """ Base Text Classification Dataset to be inherited by all text classification datasets
