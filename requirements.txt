@@ -158,7 +158,7 @@ regex==2020.2.20
 requests==2.22.0
 requests-toolbelt==0.9.1
 responses==0.10.12
-rsa==3.4.2
+rsa==4.7
 s3transfer==0.3.3
 sacremoses==0.0.38
 scikit-learn==0.21.3
