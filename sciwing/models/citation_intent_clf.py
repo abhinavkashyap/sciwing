@@ -17,6 +17,7 @@ from sciwing.utils.common import cached_path
 import pathlib
 import wasabi
 import json
+from typing import Union
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -25,8 +26,20 @@ DATA_FILE_URLS = constants.DATA_FILE_URLS
 
 
 class CitationIntentClassification(nn.Module):
-    def __init__(self):
+    def __init__(self, log_file: str = None, device: Union[torch.device, int] = -1):
         super(CitationIntentClassification, self).__init__()
+        if isinstance(device, torch.device):
+            self.device = device
+        elif isinstance(device, int):
+            if device == -1:
+                device_string = "cpu"
+            else:
+                device_string = f"cuda:{device}"
+            self.device = torch.device(device_string)
+        else:
+            raise ValueError(
+                f"Pass the device number or the device object from Pytorch"
+            )
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
 
         if not self.models_cache_dir.is_dir():
@@ -51,6 +64,14 @@ class CitationIntentClassification(nn.Module):
         self.model: nn.Module = self._get_model()
         self.infer = self._get_infer_client()
         self.cli_interact = SciWINGInteract(infer_client=self.infer)
+        self.log_file = log_file
+
+        if log_file:
+            self.logger = setup_logger(
+                "citationa_intent_clf_logger", logfile=self.log_file, level=logging.INFO
+            )
+        else:
+            self.logger = self.msg_printer
 
     def _get_model(self) -> nn.Module:
         embedding_type = self.hparams.get("emb_type")
@@ -67,6 +88,7 @@ class CitationIntentClassification(nn.Module):
             hidden_dim=hidden_dim,
             combine_strategy=combine_strategy,
             bidirectional=bidirectional,
+            device=self.device,
         )
 
         classifier_encoding_dim = 2 * hidden_dim if bidirectional else hidden_dim
@@ -76,6 +98,7 @@ class CitationIntentClassification(nn.Module):
             num_classes=3,
             classification_layer_bias=True,
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return model
 
@@ -86,6 +109,7 @@ class CitationIntentClassification(nn.Module):
                 "checkpoints", "best_model.pt"
             ),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return client
 

@@ -13,7 +13,7 @@ from sciwing.utils.common import cached_path
 import pathlib
 import json
 import wasabi
-from typing import List
+from typing import List, Union
 
 
 PATHS = constants.PATHS
@@ -23,7 +23,19 @@ DATA_FILE_URLS = constants.DATA_FILE_URLS
 
 
 class GenericSect:
-    def __init__(self):
+    def __init__(self, log_file: str = None, device: Union[torch.device, int] = -1):
+        if isinstance(device, torch.device):
+            self.device = device
+        elif isinstance(device, int):
+            if device == -1:
+                device_string = "cpu"
+            else:
+                device_string = f"cuda:{device}"
+            self.device = torch.device(device_string)
+        else:
+            raise ValueError(
+                f"Pass the device number or the device object from Pytorch"
+            )
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
         self.final_model_dir = self.models_cache_dir.joinpath("genericsect_bow_elmo")
 
@@ -47,14 +59,25 @@ class GenericSect:
         self.model = self._get_model()
         self.infer = self._get_infer_client()
         self.cli_interact = SciWINGInteract(self.infer)
+        self.log_file = log_file
+
+        if log_file:
+            self.logger = setup_logger(
+                "general_sect_logger", logfile=self.log_file, level=logging.INFO
+            )
+        else:
+            self.logger = self.msg_printer
 
     def _get_model(self):
         embedder = BowElmoEmbedder(
             layer_aggregation=self.hparams.get("layer_aggregation"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         encoder = BOW_Encoder(
-            aggregation_type=self.hparams.get("word_aggregation"), embedder=embedder
+            aggregation_type=self.hparams.get("word_aggregation"),
+            embedder=embedder,
+            device=self.device,
         )
 
         model = SimpleClassifier(
@@ -63,6 +86,7 @@ class GenericSect:
             num_classes=12,
             classification_layer_bias=True,
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return model
 
@@ -71,6 +95,7 @@ class GenericSect:
             model=self.model,
             model_filepath=self.final_model_dir.joinpath("best_model.pt"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return client
 

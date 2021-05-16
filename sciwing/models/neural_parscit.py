@@ -21,7 +21,7 @@ import wasabi
 from typing import List
 from collections import defaultdict
 import torch
-from typing import Optional, Tuple
+from typing import Union
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -39,7 +39,7 @@ class NeuralParscit(nn.Module):
 
     """
 
-    def __init__(self, device=Optional[Tuple[torch.device, int]]):
+    def __init__(self, log_file: str = None, device: Union[torch.device, int] = -1):
         super(NeuralParscit, self).__init__()
 
         if isinstance(device, torch.device):
@@ -76,6 +76,14 @@ class NeuralParscit(nn.Module):
         self.infer = self._get_infer_client()
         self.vis_tagger = VisTagging()
         self.interact_ = SciWINGInteract(self.infer)
+        self.log_file = log_file
+
+        if log_file:
+            self.logger = setup_logger(
+                "neural_parscit_logger", logfile=self.log_file, level=logging.INFO
+            )
+        else:
+            self.logger = self.msg_printer
 
     def _get_model(self) -> nn.Module:
         word_embedder = TrainableWordEmbedder(
@@ -235,4 +243,4 @@ class NeuralParscit(nn.Module):
 
 
 if __name__ == "__main__":
-    neural_parscit = NeuralParscit(device=0)
+    neural_parscit = NeuralParscit()
