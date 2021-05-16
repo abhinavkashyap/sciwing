@@ -22,6 +22,7 @@ from logzero import setup_logger
 import logging
 from tqdm import tqdm
 from sciwing.utils.common import cached_path
+from typing import Union
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -30,8 +31,20 @@ DATA_FILE_URLS = constants.DATA_FILE_URLS
 
 
 class SectLabel:
-    def __init__(self, log_file: str = None, device: str = "cpu"):
-        self.device = device
+    def __init__(self, log_file: str = None, device: Union[torch.device, int] = -1):
+        if isinstance(device, torch.device):
+            self.device = device
+        elif isinstance(device, int):
+            if device == -1:
+                device_string = "cpu"
+            else:
+                device_string = f"cuda:{device}"
+            self.device = torch.device(device_string)
+        else:
+            raise ValueError(
+                f"Pass the device number or the device object from Pytorch"
+            )
+
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
 
         if not self.models_cache_dir.is_dir():

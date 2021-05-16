@@ -18,6 +18,7 @@ import torch.nn as nn
 import wasabi
 from typing import List
 from collections import defaultdict
+from typing import Union
 
 PATHS = constants.PATHS
 MODELS_CACHE_DIR = PATHS["MODELS_CACHE_DIR"]
@@ -33,8 +34,20 @@ class I2B2NER(nn.Module):
 
     """
 
-    def __init__(self):
+    def __init__(self, log_file: str = None, device: Union[torch.device, int] = -1):
         super(I2B2NER, self).__init__()
+        if isinstance(device, torch.device):
+            self.device = device
+        elif isinstance(device, int):
+            if device == -1:
+                device_string = "cpu"
+            else:
+                device_string = f"cuda:{device}"
+            self.device = torch.device(device_string)
+        else:
+            raise ValueError(
+                f"Pass the device number or the device object from Pytorch"
+            )
         self.models_cache_dir = pathlib.Path(MODELS_CACHE_DIR)
 
         if not self.models_cache_dir.is_dir():
@@ -58,15 +71,26 @@ class I2B2NER(nn.Module):
         self.infer = self._get_infer_client()
         self.vis_tagger = VisTagging()
         self.cli_interact = SciWINGInteract(self.infer)
+        self.log_file = log_file
+
+        if log_file:
+            self.logger = setup_logger(
+                "i2b2_logger", logfile=self.log_file, level=logging.INFO
+            )
+        else:
+            self.logger = self.msg_printer
 
     def _get_model(self) -> nn.Module:
         word_embedder = TrainableWordEmbedder(
             embedding_type=self.hparams.get("emb_type"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
 
         elmo_embedder = BowElmoEmbedder(
-            datasets_manager=self.data_manager, layer_aggregation="sum"
+            datasets_manager=self.data_manager,
+            layer_aggregation="sum",
+            device=self.device,
         )
 
         embedder = ConcatEmbedders([word_embedder, elmo_embedder])
@@ -79,6 +103,7 @@ class I2B2NER(nn.Module):
             rnn_bias=True,
             dropout_value=self.hparams.get("lstm2seq_dropout", 0.0),
             add_projection_layer=False,
+            device=self.device,
         )
         model = RnnSeqCrfTagger(
             rnn2seqencoder=lstm2seqencoder,
@@ -87,6 +112,7 @@ class I2B2NER(nn.Module):
             and self.hparams.get("combine_strategy") == "concat"
             else self.hparams.get("hidden_dim"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
 
         return model
@@ -96,6 +122,7 @@ class I2B2NER(nn.Module):
             model=self.model,
             model_filepath=self.final_model_dir.joinpath("best_model.pt"),
             datasets_manager=self.data_manager,
+            device=self.device,
         )
         return infer_client
 
