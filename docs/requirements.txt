@@ -16,7 +16,7 @@ questionary==1.1.1
 json_logging
 autopep8==1.4.4
 colorful==0.5.1
-Jinja2==2.10.1
+Jinja2==2.11.3
 falcon==2.0.0
 click==7.0
 toml==0.10.0
