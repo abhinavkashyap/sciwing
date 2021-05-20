@@ -11,9 +11,16 @@ On this page, we provide some basic tutorials on installation of SciWING and bas
 
 Installation from Pip
 ----------------------------
-SciWING works with Python 3.7 or later. Currently this is the default and the only way to install
-SciWING using Pip, the python package manager. We recommend using
-``virtualenv`` which helps in keeping the development environment clean. To install, just run
+SciWING currently only supports Python 3.7. This is the default and the only way to install
+SciWING using Pip, the python package manager. Do make sure that the pip version is 3.7 as well. We recommend using
+``virtualenv`` which helps in keeping the development environment clean. To setup a virtual environtment, simply run
+
+.. code-block:: Bash
+
+    virtualenv -ppython3.7 .venv
+    source .venv/bin/activate
+
+To install SciWING, just run
 
 .. code-block:: Bash
 
