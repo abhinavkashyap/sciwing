@@ -39,7 +39,7 @@ class NeuralParscit(nn.Module):
 
     """
 
-    def __init__(self, device=Optional[Tuple[torch.device, int]]):
+    def __init__(self, device: Optional[Tuple[torch.device, int]] = -1):
         super(NeuralParscit, self).__init__()
 
         if isinstance(device, torch.device):
