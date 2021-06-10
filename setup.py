@@ -42,7 +42,7 @@ setup(
         "pytorch_pretrained_bert==0.6.2",
         "stop_words==2018.7.23",
         "questionary==1.1.1",
-        "fastapi==0.65.1",
+        "fastapi==0.65.2",
         "scikit_learn==0.22.2",
         "tensorboardX==2.2",
         "werkzeug==1.0.0",
