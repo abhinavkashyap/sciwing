@@ -3,7 +3,7 @@ import sciwing.api.conf as config
 import subprocess
 
 BIN_FOLDER = config.BIN_FOLDER
-PDF_BOX_JAR = BIN_FOLDER.joinpath("pdfbox-app-2.0.16.jar")
+PDF_BOX_JAR = BIN_FOLDER.joinpath("pdfbox-app-2.0.24.jar")
 
 
 class PdfReader:
