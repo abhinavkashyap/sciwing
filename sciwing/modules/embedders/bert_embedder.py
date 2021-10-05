@@ -75,7 +75,7 @@ class BertEmbedder(nn.Module, BaseEmbedder, ClassNursery):
             The device on which the model is run.
         """
         super(BertEmbedder, self).__init__()
-
+        
         self.datasets_manager = datasets_manager
         self.dropout_value = dropout_value
         self.aggregation_type = aggregation_type
@@ -138,8 +138,15 @@ class BertEmbedder(nn.Module, BaseEmbedder, ClassNursery):
         # word_tokenize all the text string in the batch
         bert_tokens_lengths = []
         word_tokens_lengths = []
-        for line in lines:
-            text = line.text
+        for i in range(len(lines)):
+            # ----- This portion of code is due to line 159. Line 159 will add a new bert tokeniser to dataset manager module.
+            # When the dataset manager module construct a new Line (calling make_line function), 
+            # the new bert tokeniser will get populated during Line construction (see Line module)
+            # This set up could by pass that for quick a fix. Possibly better to re-design the module logics in future.
+            text = lines[i].text
+            lines[i] = Line(text)
+            line = lines[i]
+            # -----
             word_tokens = line.tokens[self.word_tokens_namespace]
             word_tokens_lengths.append(len(word_tokens))
 
@@ -229,17 +236,17 @@ class BertEmbedder(nn.Module, BaseEmbedder, ClassNursery):
             )
 
             line_embeddings = []
+            index = 0
             for token in word_tokens:
-                idx = 0
                 sub_tokens = token.sub_tokens
                 len_sub_tokens = len(sub_tokens)
 
                 # taking the embedding of only the first token
                 # TODO: Have different strategies for this
-                emb = token_embeddings[idx]
+                emb = token_embeddings[index]
                 line_embeddings.append(emb)
                 token.set_embedding(name=self.embedder_name, value=emb)
-                idx += len_sub_tokens
+                index += len_sub_tokens
 
             for i in range(padding_length_words):
                 zeros = torch.zeros(self.embedding_dimension)
@@ -255,3 +262,4 @@ class BertEmbedder(nn.Module, BaseEmbedder, ClassNursery):
 
     def get_embedding_dimension(self) -> int:
         return self.model.config.hidden_size
+
