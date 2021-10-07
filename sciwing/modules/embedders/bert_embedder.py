@@ -134,14 +134,19 @@ class BertEmbedder(nn.Module, BaseEmbedder, ClassNursery):
             The size of the returned embedding is ``[batch_size, max_len_word_tokens, emb_dim]``
 
         """
-
+        
         # word_tokenize all the text string in the batch
         bert_tokens_lengths = []
         word_tokens_lengths = []
+        
+        # somehow the input is a tuple instead of a list
+        if type(lines) is tuple:
+            lines = list(lines)
+            
         for i in range(len(lines)):
-            # ----- This portion of code is due to line 159. Line 159 will add a new bert tokeniser to dataset manager module.
+            # ----- This portion of code is due to line 164. Line 164 will add a new bert tokeniser to the dataset manager module.
             # When the dataset manager module construct a new Line (calling make_line function), 
-            # the new bert tokeniser will get populated during Line construction (see Line module)
+            # the new bert tokeniser will get populated during Line construction (see Line module), causing duplicate sub tokens and fail the check at line 238.
             # This set up could by pass that for quick a fix. Possibly better to re-design the module logics in future.
             text = lines[i].text
             lines[i] = Line(text)
