@@ -45,7 +45,7 @@ setup(
         "fastapi==0.65.1",
         "scikit_learn==0.22.2",
         "tensorboardX==2.2",
-        "werkzeug==1.0.0",
+        "werkzeug==2.2.3",
         "overrides==3.1.0",
         "s3transfer==0.4.0",
         "requests",
