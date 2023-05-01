@@ -51,7 +51,7 @@ setup(
         "requests",
         "Sphinx==2.4.4",
         "Jinja2",
-        "Flask==1.1.1",
+        "Flask==2.3.2",
         "Flask-Cors==3.0.8",
         "importlib-metadata==3.7.0",
         "docutils==0.15",
